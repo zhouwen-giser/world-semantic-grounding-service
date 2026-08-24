@@ -1,0 +1,28 @@
+{
+  "phase": "W10",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-Q001": "NOT_RUN",
+    "AC-Q002": "NOT_RUN",
+    "AC-Q003": "NOT_RUN",
+    "AC-Q004": "NOT_RUN",
+    "AC-Q005": "NOT_RUN",
+    "AC-Q006": "PASS",
+    "AC-Q007": "PASS",
+    "AC-Q008": "NOT_RUN",
+    "AC-Q009": "NOT_RUN",
+    "AC-Q010": "NOT_RUN",
+    "AC-Q011": "PASS",
+    "AC-Q012": "PASS",
+    "AC-Q013": "PASS",
+    "AC-Q014": "PASS",
+    "AC-Q015": "PASS",
+    "AC-Q016": "PASS"
+  },
+  "evidence": {
+    "compilerTests": "13/13 PASS",
+    "rootCheck": "69 PASS, 8 DB SKIPPED",
+    "approvedRules": 11,
+    "realWorldQuery": "DEFERRED_W16"
+  }
+}
