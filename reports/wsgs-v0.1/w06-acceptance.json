@@ -1,0 +1,24 @@
+{
+  "phase": "W06",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-D001": "PASS",
+    "AC-D002": "PASS",
+    "AC-D003": "NOT_RUN",
+    "AC-D004": "PASS",
+    "AC-D005": "PASS",
+    "AC-D006": "PASS",
+    "AC-D007": "PASS",
+    "AC-D008": "PASS",
+    "AC-D009": "PASS",
+    "AC-D010": "PASS",
+    "AC-D011": "NOT_RUN",
+    "AC-D012": "PASS"
+  },
+  "evidence": {
+    "parserTests": "9/9 PASS",
+    "spanEncoding": "UTF16_CODE_UNIT",
+    "h3Library": "h3-js@4.3.0",
+    "realH3Validation": "DEFERRED_W16"
+  }
+}

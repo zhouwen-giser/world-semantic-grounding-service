@@ -38,7 +38,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W03 Workspace, CI, and boundary scan
 - [x] W04 PostgreSQL jobs, idempotency, lease, cancel, replay
 - [x] W05 GOWM Gateway client
-- [ ] W06 Deterministic parser
+- [x] W06 Deterministic parser
 - [ ] W07 OpenAI-compatible semantic model adapter
 - [ ] W08 Semantic frame and grounding graph
 - [ ] W09 Reference grounding
@@ -69,6 +69,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - Initial local Git index write was denied by the workspace sandbox; approved Git write access was used.
 - The package intake script's partial clone failed to materialize several promised blobs. A read-only local exact-commit archive was used instead; the first archive inherited CRLF conversion, so it was rerun with `core.autocrlf=false` and passed exact Git-blob and SHA-256 validation.
 - The first PostgreSQL integration run sent a NUL-delimited advisory-lock key through the text protocol and failed all four cases. The store now hashes scope/key locally and sends a signed 64-bit advisory key; expanded real-DB acceptance passes.
+- The first W06 package-lock-only update was sandbox-blocked from the npm registry and returned EACCES; the approved network retry completed with zero reported vulnerabilities.
 
 ## Actual validation
 
@@ -80,6 +81,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - Root `npm run check` -> contract byte locks, six generated contract types, architecture boundaries, 11 strict TypeScript projects, and Vitest pass on Node 22.
 - Real PostgreSQL 17.10 W04 run -> fresh migration/assertions, 11 tables, idempotency replay/conflict, concurrent claim, lease reclaim/heartbeat, cancel precedence, terminal monotonicity, scope isolation, retention, and restart replay pass.
 - W05 Gateway client contract suite -> 12/12 tests pass for locked catalog/operation enforcement, fixed routes, transport-only authority, trace/deadline/abort, retry policy, bounded output, async polling/cancel/receipt, and circuit recovery.
+- W06 deterministic parser -> 9/9 tests pass for supplied references/map selections, conservative H3/coordinate/focus/code parsing, exact Chinese/emoji UTF-16 spans, deterministic overlap precedence, prior pointers, and no fabricated ReferenceKey.
 
 ## Remaining work
 
