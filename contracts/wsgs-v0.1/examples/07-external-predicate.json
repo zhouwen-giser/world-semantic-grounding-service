@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-predicate-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-predicate-1",
+    "originalText": "检查车辆是否已经进入A区",
+    "originalTextSha256": "sha256:2a7fd59e5cbfad62fdc8f52eb941507da6cfa256a4c7abc9bf179ac7b04eadc8",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "PREDICATE_EVALUATIONS",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": [
+      {
+        "schemaUri": "urn:gowm:v0.4:external-predicate",
+        "schemaHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "value": {
+          "predicateId": "predicate-enter-area-a",
+          "externalAuthority": "SDAR_PLANNING",
+          "subject": {
+            "namespace": "gowm",
+            "kind": "WORLD_OBJECT",
+            "id": "wrf_11111111111111111111111111111111",
+            "version": "17"
+          },
+          "operator": "IS_INSIDE",
+          "object": {
+            "namespace": "gowm",
+            "kind": "LAYER_FEATURE",
+            "id": "wrf_22222222222222222222222222222222",
+            "version": "3"
+          }
+        }
+      }
+    ]
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

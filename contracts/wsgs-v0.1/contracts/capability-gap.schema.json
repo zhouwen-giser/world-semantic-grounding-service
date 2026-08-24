@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:capability-gap",
+  "title": "CapabilityGap",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gapId",
+    "semanticCapability",
+    "reason",
+    "requiredForProduct",
+    "blocking"
+  ],
+  "properties": {
+    "gapId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "semanticCapability": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "reason": {
+      "enum": [
+        "NOT_REGISTERED",
+        "MATURITY_NOT_ALLOWED",
+        "SCHEMA_MISMATCH",
+        "PROVIDER_UNAVAILABLE",
+        "UNSUPPORTED_EXPRESSION",
+        "BUDGET_EXCEEDED"
+      ]
+    },
+    "requiredForProduct": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "blocking": {
+      "type": "boolean"
+    },
+    "details": {
+      "type": "object"
+    }
+  }
+}

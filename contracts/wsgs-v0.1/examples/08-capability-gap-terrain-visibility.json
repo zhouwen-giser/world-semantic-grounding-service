@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-gap-1",
+  "operation": "COMPILE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-gap-1",
+    "originalText": "2号车附近1公里范围内的高地可以观察到哪些任务目标？",
+    "originalTextSha256": "sha256:ae82ef8f2fe3c8cc30e43493bdf91fede047fd3046a62b0c39d3a6a941e01d50",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "MENTIONS",
+    "RESOLVED_REFERENCES",
+    "GROUNDING_GRAPH",
+    "WORLD_QUERY"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

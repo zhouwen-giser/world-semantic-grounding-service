@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-coordinate-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-coordinate-1",
+    "originalText": "查询坐标 112.9812, 28.1915 附近500米的设备",
+    "originalTextSha256": "sha256:5640af2e9c2b6d34a789a6a781e4b8a3377dc6e9a00c7d836bafc10456f01460",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "MENTIONS",
+    "GROUNDING_GRAPH",
+    "REFERENCE_SETS",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

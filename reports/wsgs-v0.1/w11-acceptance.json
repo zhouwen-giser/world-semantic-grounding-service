@@ -1,0 +1,22 @@
+{
+  "phase": "W11",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-E001": "PASS",
+    "AC-E002": "NOT_RUN",
+    "AC-E003": "NOT_RUN",
+    "AC-E004": "NOT_RUN",
+    "AC-E005": "PASS",
+    "AC-E006": "PASS",
+    "AC-E007": "PASS",
+    "AC-E008": "PASS",
+    "AC-E009": "PASS",
+    "AC-E010": "PASS"
+  },
+  "evidence": {
+    "normalizerTests": "8/8 PASS",
+    "rootCheck": "77 PASS, 8 DB SKIPPED",
+    "largePayloadPolicy": "HASH_SUMMARY_AND_AUTHORITATIVE_REF",
+    "realGatewayResults": "DEFERRED_W16"
+  }
+}

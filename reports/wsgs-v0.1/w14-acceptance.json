@@ -1,0 +1,21 @@
+{
+  "phase": "W14",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-C012": "PASS",
+    "AC-C013": "PASS",
+    "AC-C014": "PASS",
+    "AC-S019": "NOT_RUN",
+    "AC-S020": "NOT_RUN",
+    "AC-S021": "NOT_RUN",
+    "AC-S022": "NOT_RUN",
+    "AC-S023": "NOT_RUN",
+    "AC-S024": "NOT_RUN"
+  },
+  "evidence": {
+    "apiTests": "8/8 PASS",
+    "rootCheck": "98 PASS, 9 DB SKIPPED",
+    "publicResponses": "FROZEN_SCHEMAS_VALIDATED",
+    "realE2e": "DEFERRED_W16"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-road-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-road-1",
+    "originalText": "查询滨河路附近的设备",
+    "originalTextSha256": "sha256:0af80366e0e72867b8cea8080f651996d5a36c6ff66cdf3f4e932b1e235da2fd",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "MENTIONS",
+    "RESOLVED_REFERENCES",
+    "GROUNDING_GRAPH",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

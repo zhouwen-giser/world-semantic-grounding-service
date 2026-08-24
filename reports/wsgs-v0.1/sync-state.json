@@ -1,0 +1,79 @@
+{
+  "goal": "WSGS v0.1 Grounding Core",
+  "targetVersion": "0.1.0",
+  "status": "BLOCKED",
+  "phase": "W17",
+  "source": {
+    "repository": "zhouwen-giser/world-semantic-grounding-service",
+    "stateAtGeneration": "EMPTY",
+    "bootstrapCommit": "ae077ec",
+    "targetBranch": "codex/wsgs-v0.1-grounding-core"
+  },
+  "upstream": {
+    "gowmCommit": "db575f79c874a69f65a2043a7e463338524b713d",
+    "gowmVersion": "0.4.0",
+    "contractsLocked": true,
+    "requiredCapabilitiesReady": false
+  },
+  "milestones": {
+    "repositoryBootstrapped": true,
+    "northboundContractFrozen": true,
+    "groundingCoreReady": false,
+    "realGowmAccepted": false,
+    "sacsIntegrationReady": false
+  },
+  "acceptance": {
+    "passed": [
+      "AC-W001", "AC-W003", "AC-W004", "AC-W005",
+      "AC-U001", "AC-U002", "AC-U003", "AC-U004", "AC-U005", "AC-U006",
+      "AC-U007", "AC-U008", "AC-U009", "AC-U011", "AC-U012", "AC-U013",
+      "AC-C001", "AC-C002", "AC-C003", "AC-C004", "AC-C005", "AC-C006",
+      "AC-C007", "AC-C008", "AC-C010", "AC-C011", "AC-C012", "AC-C013", "AC-C014",
+      "AC-A001", "AC-A002", "AC-A003", "AC-A004", "AC-A005",
+      "AC-A006", "AC-A007", "AC-A008", "AC-A009", "AC-A010",
+      "AC-J001", "AC-J003", "AC-J004", "AC-J005", "AC-J006", "AC-J007",
+      "AC-J008", "AC-J013", "AC-J014", "AC-J015", "AC-J016",
+      "AC-G003", "AC-G004", "AC-G009", "AC-G010", "AC-G011", "AC-G012",
+      "AC-G013", "AC-G014", "AC-G015", "AC-C009",
+      "AC-D001", "AC-D002", "AC-D004", "AC-D005", "AC-D006", "AC-D007",
+      "AC-D008", "AC-D009", "AC-D010", "AC-D012",
+      "AC-M002", "AC-M003", "AC-M004", "AC-M005", "AC-M006", "AC-M007",
+      "AC-M008", "AC-M009", "AC-M010", "AC-M011", "AC-M012", "AC-M013", "AC-M014",
+      "AC-D011", "AC-F005", "AC-F006", "AC-F007", "AC-F008", "AC-F009", "AC-F010",
+      "AC-R004", "AC-R005", "AC-R006", "AC-R007", "AC-R008",
+      "AC-Q006", "AC-Q007", "AC-Q011", "AC-Q012", "AC-Q013", "AC-Q014", "AC-Q015", "AC-Q016",
+      "AC-E001", "AC-E005", "AC-E006", "AC-E007", "AC-E008", "AC-E009", "AC-E010",
+      "AC-O011", "AC-O012", "AC-P001", "AC-P002", "AC-P005", "AC-P006", "AC-P008",
+      "AC-S001", "AC-S002", "AC-S003", "AC-S004", "AC-S005", "AC-S006",
+      "AC-S007", "AC-S008", "AC-S009", "AC-S010", "AC-S011", "AC-S012",
+      "AC-S013", "AC-S014", "AC-S015", "AC-S016", "AC-S017", "AC-S018",
+      "AC-FN003", "AC-FN004", "AC-FN005", "AC-FN006", "AC-FN007", "AC-FN008",
+      "AC-FN009", "AC-FN010", "AC-FN012", "AC-FN013"
+    ],
+    "failed": [],
+    "notRun": ["AC-W002", "AC-J002"],
+  "blocked": [
+    "AC-U010",
+    "AC-J009", "AC-J010", "AC-J011", "AC-J012",
+    "AC-G001", "AC-G002", "AC-G005", "AC-G006", "AC-G007", "AC-G008", "AC-G016",
+    "AC-D003",
+    "AC-M001",
+    "AC-F001", "AC-F002", "AC-F003", "AC-F004",
+    "AC-R001", "AC-R002", "AC-R003", "AC-R009", "AC-R010", "AC-R011", "AC-R012",
+    "AC-Q001", "AC-Q002", "AC-Q003", "AC-Q004", "AC-Q005", "AC-Q008", "AC-Q009", "AC-Q010",
+    "AC-E002", "AC-E003", "AC-E004",
+    "AC-O001", "AC-O002", "AC-O003", "AC-O004", "AC-O005", "AC-O006", "AC-O007", "AC-O008", "AC-O009", "AC-O010",
+    "AC-P003", "AC-P004", "AC-P007",
+    "AC-S019", "AC-S020", "AC-S021", "AC-S022", "AC-S023", "AC-S024",
+    "AC-FN001", "AC-FN002", "AC-FN011", "AC-FN014"
+  ],
+    "deferred": []
+  },
+  "blockers": [
+    "MODEL_* semantic model endpoint and credential are not configured",
+    "Real GOWM Gateway endpoint, credential, deployment scope, and provider data are not configured",
+    "Executable deployment backend remains fail-closed until the production grounding pipeline is composed and accepted",
+    "Draft PR cannot become Ready and completion markers cannot be emitted while required gates are blocked"
+  ],
+  "next": "Provide the external W16 environment, compose the production deployment backend, rerun blocked gates, and only then make the Draft PR Ready."
+}

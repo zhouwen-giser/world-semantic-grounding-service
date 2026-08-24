@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:map-selection",
+  "title": "MapSelection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "selectionId",
+    "kind",
+    "revision"
+  ],
+  "properties": {
+    "selectionId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "label": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "kind": {
+      "enum": [
+        "POINT",
+        "LINE",
+        "AREA",
+        "FEATURE",
+        "ANNOTATION"
+      ]
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "referenceKey": {
+      "$ref": "common.schema.json#/$defs/referenceKey"
+    },
+    "geometry": {
+      "type": "object",
+      "maxProperties": 16
+    },
+    "geometryHash": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    }
+  }
+}

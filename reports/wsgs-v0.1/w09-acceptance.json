@@ -1,0 +1,24 @@
+{
+  "phase": "W09",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-R001": "NOT_RUN",
+    "AC-R002": "NOT_RUN",
+    "AC-R003": "NOT_RUN",
+    "AC-R004": "PASS",
+    "AC-R005": "PASS",
+    "AC-R006": "PASS",
+    "AC-R007": "PASS",
+    "AC-R008": "PASS",
+    "AC-R009": "NOT_RUN",
+    "AC-R010": "NOT_RUN",
+    "AC-R011": "NOT_RUN",
+    "AC-R012": "PASS"
+  },
+  "evidence": {
+    "referenceGroundingTests": "8/8 PASS",
+    "rootCheck": "56 PASS, 8 DB SKIPPED",
+    "gatewayOperations": ["reference.resolve@1.0", "reference.validate@1.0"],
+    "realGateway": "DEFERRED_W16"
+  }
+}

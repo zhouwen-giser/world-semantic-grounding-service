@@ -1,0 +1,207 @@
+id,required,area,scenario,expected,test_type
+AC-W001,yes,Source,Empty repository bootstrap,main receives one minimal bootstrap commit before feature work,git
+AC-W002,yes,Source,Existing repository continuation,Existing commits are preserved and reconciled,git-safety
+AC-W003,yes,Source,Feature branch,All implementation is on the target feature branch,git
+AC-W004,yes,Source,Draft PR,Draft PR targets main and records phases,github
+AC-W005,yes,Source,No upstream modification,GOWM/SACS/SDAR/SMPP repositories are unchanged,architecture
+AC-U001,yes,Upstream,Exact GOWM commit,Contract intake checks out db575f79 exactly,contract
+AC-U002,yes,Upstream,Version lock,Vendored VERSION is 0.4.0,contract
+AC-U003,yes,Upstream,Source package lock,33 GOWM v0.4 artifacts verify byte hashes,contract
+AC-U004,yes,Upstream,Gateway OpenAPI blob,Gateway OpenAPI matches locked Git blob,contract
+AC-U005,yes,Upstream,No default branch,Intake never resolves contracts from repository default branch,security
+AC-U006,yes,Upstream,No business source vendor,Only contracts/manifests/OpenAPI are vendored,architecture
+AC-U007,yes,Upstream,Required providers,Four required provider identities are locked,contract
+AC-U008,yes,Upstream,Required operations,All 28 required operations are locked,contract
+AC-U009,yes,Upstream,Operation version,All required operations are exactly 1.0,contract
+AC-U010,yes,Upstream,Schema hashes,Live catalog hashes equal vendored locks,real-gateway
+AC-U011,yes,Upstream,Allowed maturity,Only PREVIEW or STABLE required operations are accepted,policy
+AC-U012,yes,Upstream,Optional absence,Missing optional CRS/H3/Spatial does not fail core readiness,policy
+AC-U013,yes,Upstream,Upgrade isolation,Contract update requires explicit compatibility PR,architecture
+AC-C001,yes,Contract,Grounding request,Valid request passes JSON Schema,contract
+AC-C002,yes,Contract,Unknown field,Unknown request field fails closed,contract
+AC-C003,yes,Contract,Forbidden intent,Request/result contracts contain no intent field,architecture
+AC-C004,yes,Contract,Forbidden route,Contracts contain no route field,architecture
+AC-C005,yes,Contract,Forbidden forwarding,Contracts contain no shouldForwardToSdar,architecture
+AC-C006,yes,Contract,Operation semantics,"Grounding operation is service work, not user intent",docs
+AC-C007,yes,Contract,Requested products,Requested product enum is bounded,contract
+AC-C008,yes,Contract,Span encoding,All spans declare UTF16_CODE_UNIT,contract
+AC-C009,yes,Contract,Span verification,surfaceText equals source slice,unit
+AC-C010,yes,Contract,Context bounded,Context arrays and source text are bounded,security
+AC-C011,yes,Contract,Neutral result,GroundingResult contains neutral products only,contract
+AC-C012,yes,Contract,OpenAPI parity,Runtime routes and schemas match OpenAPI,contract
+AC-C013,yes,Contract,Error envelope,All public errors use typed redacted envelope,contract
+AC-C014,yes,Contract,Capabilities endpoint,Capabilities reports GOWM lock and optional availability,contract
+AC-A001,yes,Architecture,No SDAR dependency,"No SDAR package, URL or schema in source",architecture
+AC-A002,yes,Architecture,No A2A dependency,No A2A package or client in source,architecture
+AC-A003,yes,Architecture,No GOWM DB,No direct pg connection to GOWM database,architecture
+AC-A004,yes,Architecture,No provider endpoints,Only Gateway base URL is configurable,architecture
+AC-A005,yes,Architecture,No MCP discovery,No dynamic Provider/MCP tool discovery,architecture
+AC-A006,yes,Architecture,No LangGraph agent,No free tool-calling agent runtime,architecture
+AC-A007,yes,Architecture,Strict TypeScript,strict and noUncheckedIndexedAccess pass,build
+AC-A008,yes,Architecture,JSON Schema source,Generated types derive from schemas,contract
+AC-A009,yes,Architecture,Root check,One root command validates all workspaces,build
+AC-A010,yes,Architecture,Boundary scan,Automated scan enforces forbidden dependencies,architecture
+AC-J001,yes,Runtime,Fresh migrations,Clean WSGS PostgreSQL applies migrations/assertions,real-db
+AC-J002,yes,Runtime,Upgrade migrations,Previous schema upgrades without data loss,real-db
+AC-J003,yes,Runtime,Same idempotency,Same key+payload replays byte-identical result,real-db
+AC-J004,yes,Runtime,Idempotency conflict,Same key+different payload returns 409,real-db
+AC-J005,yes,Runtime,Lease claim,Concurrent workers claim a job once,race
+AC-J006,yes,Runtime,Lease recovery,Expired claim is reclaimed after crash,recovery
+AC-J007,yes,Runtime,Heartbeat,Long job lease remains owned while healthy,real-db
+AC-J008,yes,Runtime,Cancel pending,Pending job cancels without downstream work,race
+AC-J009,yes,Runtime,Cancel running model,Model AbortSignal is triggered,race
+AC-J010,yes,Runtime,Cancel running GOWM,GOWM query cancel is requested,race
+AC-J011,yes,Runtime,Late model result,Late model result cannot overwrite CANCELLED,race
+AC-J012,yes,Runtime,Late GOWM result,Late Gateway result cannot overwrite CANCELLED,race
+AC-J013,yes,Runtime,Terminal monotonic,Terminal state never regresses,unit
+AC-J014,yes,Runtime,Restart replay,API/worker restart preserves result/idempotency,recovery
+AC-J015,yes,Runtime,Scope rows,Jobs/results are data-scope filtered,security
+AC-J016,yes,Runtime,Source retention,Raw text retention/deletion follows policy,security
+AC-G001,yes,GOWMClient,Capability catalog,Required operations load from real Gateway,real-gateway
+AC-G002,yes,GOWMClient,Provider identity,Live provider IDs match locks,real-gateway
+AC-G003,yes,GOWMClient,Schema mismatch,Mismatch blocks readiness and execution,security
+AC-G004,yes,GOWMClient,Maturity mismatch,Disallowed maturity blocks operation,policy
+AC-G005,yes,GOWMClient,Direct operation,reference.validate executes through Gateway,real-gateway
+AC-G006,yes,GOWMClient,World query,World Query v2 submits and polls,real-gateway
+AC-G007,yes,GOWMClient,Async job,202 JobRecord is polled and normalized,real-gateway
+AC-G008,yes,GOWMClient,Receipt fetch,Receipt endpoint is used when needed,real-gateway
+AC-G009,yes,GOWMClient,Trace propagation,traceparent survives to Gateway,integration
+AC-G010,yes,GOWMClient,No body scope,Client never inserts dataScopeClaim into body,security
+AC-G011,yes,GOWMClient,Deadline merge,Effective deadline is minimum policy,unit
+AC-G012,yes,GOWMClient,Retry after,429/503 Retry-After is honored,fault
+AC-G013,yes,GOWMClient,No unsafe retry,400/403/409 are not retried,fault
+AC-G014,yes,GOWMClient,Output limit,Oversized Gateway response is rejected,security
+AC-G015,yes,GOWMClient,Circuit recovery,Gateway circuit opens and recovers,fault
+AC-G016,yes,GOWMClient,Gateway restart,Completed upstream result still replays,recovery
+AC-D001,yes,Parser,Known reference,KnownReference creates exact mention binding,unit
+AC-D002,yes,Parser,Map selection,MapSelection has priority over text guess,unit
+AC-D003,yes,Parser,H3 syntax,Valid H3 token is extracted and upstream-validated,real-e2e
+AC-D004,yes,Parser,Invalid H3,Hex-like invalid token is not accepted,unit
+AC-D005,yes,Parser,Coordinate explicit,"Explicit lon,lat is parsed",unit
+AC-D006,yes,Parser,Coordinate ambiguity,Dates/version numbers are not coordinates,unit
+AC-D007,yes,Parser,GeoJSON focus,Explicit focus span parses bounded GeoJSON,unit
+AC-D008,yes,Parser,Span Chinese,Chinese UTF-16 span is correct,unit
+AC-D009,yes,Parser,Span emoji,Surrogate-pair span remains correct,unit
+AC-D010,yes,Parser,Overlap precedence,Deterministic span wins overlapping model span,unit
+AC-D011,yes,Parser,Namespace conflict,Different namespaces remain ambiguity,unit
+AC-D012,yes,Parser,No generated reference,Parser never fabricates ReferenceKey,architecture
+AC-M001,yes,Model,Real adapter,Natural-language acceptance uses real compatible model,real-model
+AC-M002,yes,Model,Strict schema,Model output validates WorldSemanticFrame,model
+AC-M003,yes,Model,No intent,Model schema has no whole-turn intent/route,architecture
+AC-M004,yes,Model,No provider ID,Model cannot output operation/provider URL,architecture
+AC-M005,yes,Model,No reference key,Model cannot invent ReferenceKey,architecture
+AC-M006,yes,Model,No tool calling,Adapter disables tools/functions,model
+AC-M007,yes,Model,Prompt injection,User instruction cannot escape parser role,security
+AC-M008,yes,Model,Timeout,Model request aborts on deadline,fault
+AC-M009,yes,Model,Retry,429/5xx retries are bounded with jitter,fault
+AC-M010,yes,Model,Invalid JSON,Invalid output has bounded repair retries,model
+AC-M011,yes,Model,No silent fallback,Natural parsing failure is explicit,model
+AC-M012,yes,Model,Receipt,Model/prompt/schema/input/output hashes recorded,contract
+AC-M013,yes,Model,No reasoning exposure,Chain-of-thought is not stored/returned,security
+AC-M014,yes,Model,Explicit degraded mode,H3/coordinate/known ref works with model down,fault
+AC-F001,yes,Frame,Mentions,Device/road/area mentions are represented,model
+AC-F002,yes,Frame,Spatial relation,Nearby distance expression is represented,model
+AC-F003,yes,Frame,Temporal constraint,Bounded time expression represented,model
+AC-F004,yes,Frame,Ranking,Ranking is represented without answer decision,model
+AC-F005,yes,Frame,Graph validity,Grounding graph is internally valid,unit
+AC-F006,yes,Frame,Graph limits,Node/edge limits are enforced,security
+AC-F007,yes,Frame,Conflict retained,Conflicting map/text references remain visible,unit
+AC-F008,yes,Frame,No hidden model fact,Model-only node is not world fact,architecture
+AC-F009,yes,Frame,Deterministic merge,Merge is stable across retries,unit
+AC-F010,yes,Frame,Graph hash,Canonical graph hash is deterministic,unit
+AC-R001,yes,Reference,Exact code/name,2号车 resolves through real GOWM,real-e2e
+AC-R002,yes,Reference,Exact alias,Alias preserves matchedBy,real-e2e
+AC-R003,yes,Reference,Ambiguous road,滨河路 yields multiple candidates,real-e2e
+AC-R004,yes,Reference,No random select,Ambiguous result has no confirmed candidate,security
+AC-R005,yes,Reference,Unique suggested,SUGGESTED_UNIQUE remains suggested,contract
+AC-R006,yes,Reference,Score separation,matchScore and stateConfidence remain separate,contract
+AC-R007,yes,Reference,World version,Candidate worldVersion is preserved,contract
+AC-R008,yes,Reference,Batch bound,Mention/candidate limits enforced,security
+AC-R009,yes,Reference,Scope isolation,Other-scope names do not leak,security
+AC-R010,yes,Reference,Validate prior,Expired/stale prior reference reported,real-e2e
+AC-R011,yes,Reference,Map/reference conflict,Conflict returns ambiguity,real-e2e
+AC-R012,yes,Reference,Unresolved,No candidate returns UNRESOLVED not FAILED,real-e2e
+AC-Q001,yes,Compiler,Current state DAG,resolve→current-state compiles with exact ports,real-e2e
+AC-Q002,yes,Compiler,Geometry DAG,resolve→geometry compiles,real-e2e
+AC-Q003,yes,Compiler,Timeline DAG,resolve→event-timeline compiles,real-e2e
+AC-Q004,yes,Compiler,Nearby DAG,resolve→spatial.find-nearby compiles when available,real-e2e
+AC-Q005,yes,Compiler,Area DAG,resolve→spatial.find-in-area compiles,real-e2e
+AC-Q006,yes,Compiler,H3 candidate,H3 candidate remains approximate,contract
+AC-Q007,yes,Compiler,Exact verify,Boundary-sensitive H3 path requires Spatial exact node,policy
+AC-Q008,yes,Compiler,Correlation DAG,correlation→timeline compiles,real-e2e
+AC-Q009,yes,Compiler,Predicate DAG,predicate.evaluate compiles,real-e2e
+AC-Q010,yes,Compiler,Unsupported visibility,Missing terrain/visibility returns gap,real-e2e
+AC-Q011,yes,Compiler,No similar substitution,Compiler does not substitute wrong operation,policy
+AC-Q012,yes,Compiler,Schema ports,Port mismatch fails before Gateway,contract
+AC-Q013,yes,Compiler,Unit semantics,Meter and angular units are not mixed,contract
+AC-Q014,yes,Compiler,Budget aggregate,Plan/node budgets remain within request,policy
+AC-Q015,yes,Compiler,No direct plan input,Public request cannot supply arbitrary plan,security
+AC-Q016,yes,Compiler,Canonical plan hash,Same frame produces stable plan hash,unit
+AC-E001,yes,Evidence,Receipt separation,Execution receipt is not evidence,contract
+AC-E002,yes,Evidence,NO_DATA,NO_DATA remains unknown not false,real-e2e
+AC-E003,yes,Evidence,INDETERMINATE,Indeterminate remains non-negative,real-e2e
+AC-E004,yes,Evidence,Partial nodes,Partial query preserves products and gaps,real-e2e
+AC-E005,yes,Evidence,World fact authority,World facts carry GOWM authority,contract
+AC-E006,yes,Evidence,Payload schema,Payload schema URI/hash preserved,contract
+AC-E007,yes,Evidence,Snapshots,Data/compute snapshots stay separate,contract
+AC-E008,yes,Evidence,Large payload,Large result uses ref/summary,security
+AC-E009,yes,Evidence,Warnings,Upstream warnings retained,contract
+AC-E010,yes,Evidence,No model evidence,Model receipt never enters evidenceIds,architecture
+AC-O001,yes,Operational,Four dimensions,Task preserves four state dimensions,real-e2e
+AC-O002,yes,Operational,Complete unverified,Provider completed does not become verified,real-e2e
+AC-O003,yes,Operational,Correlation exact,Exact correlation finding returned,real-e2e
+AC-O004,yes,Operational,Correlation conflict,Conflicting match remains conflict,real-e2e
+AC-O005,yes,Operational,No match,"No match explicit, no invented task",real-e2e
+AC-O006,yes,Operational,Event timeline,Timeline stable and scoped,real-e2e
+AC-O007,yes,Operational,Predicate supported,Supported status/evidence preserved,real-e2e
+AC-O008,yes,Operational,Predicate no data,NO_DATA remains no data,real-e2e
+AC-O009,yes,Operational,Predicate negative,Negative gate evidence retained,real-e2e
+AC-O010,yes,Operational,Observability,Gap/source health normalized,real-e2e
+AC-O011,yes,Operational,No SDAR semantics,External authority opaque to WSGS,architecture
+AC-O012,yes,Operational,No mutation,WSGS performs reads/analysis only,security
+AC-P001,yes,Context,Prior result hash,Caller cannot substitute prior contents,security
+AC-P002,yes,Context,Prior load scope,Prior result loads only in same scope,security
+AC-P003,yes,Context,Alias,Explicit alias resolves prior selected product,real-e2e
+AC-P004,yes,Context,TTL,Expired prior product is revalidated,real-e2e
+AC-P005,yes,Context,No full history,API rejects conversation-history field,contract
+AC-P006,yes,Context,Context limit,Oversized capsule returns 413,security
+AC-P007,yes,Context,Map revision,Stale map revision detected,real-e2e
+AC-P008,yes,Context,Result retention,Audit survives source-text expiry,real-db
+AC-S001,yes,Security,Body scope injection,dataScope in body rejected,security
+AC-S002,yes,Security,Missing auth,Protected route rejects missing identity,security
+AC-S003,yes,Security,Wrong audience,JWT wrong audience rejected,security
+AC-S004,yes,Security,Cross scope,Grounding/result invisible across scope,security
+AC-S005,yes,Security,Arbitrary URL,Prompt/request cannot cause URL fetch,security
+AC-S006,yes,Security,Arbitrary SQL,Prompt/request cannot cause SQL,security
+AC-S007,yes,Security,Arbitrary operation,User cannot name operation IDs directly,security
+AC-S008,yes,Security,Log redaction,Raw text/tokens/geometry absent from logs,security
+AC-S009,yes,Security,Error redaction,Provider/model internals not leaked,security
+AC-S010,yes,Security,Request size,Oversized source rejected before model,security
+AC-S011,yes,Security,Unicode abuse,Invalid encoding/control input safe,security
+AC-S012,yes,Security,Rate budget,Per principal/scope budget enforced,security
+AC-S013,yes,Recovery,Model outage,Explicit grounding degrades correctly,fault
+AC-S014,yes,Recovery,GOWM outage,No fabricated result,fault
+AC-S015,yes,Recovery,GOWM restart,Retry/replay recovers safely,recovery
+AC-S016,yes,Recovery,DB restart,Job/result/idempotency recover,recovery
+AC-S017,yes,Recovery,Graceful shutdown,Worker releases safely,recovery
+AC-S018,yes,Recovery,Queue load,Bounded queue,load
+AC-S019,yes,API,Sync result,Short request returns 200,real-e2e
+AC-S020,yes,API,Async accepted,Prefer async returns 202,real-e2e
+AC-S021,yes,API,Poll result,GET returns exact terminal result,real-e2e
+AC-S022,yes,API,Cancel,Cancel endpoint idempotent,real-e2e
+AC-S023,yes,API,Optional degraded,Unavailable optional capability reported,real-e2e
+AC-S024,yes,API,Required readiness,Missing required GOWM op makes 503,real-e2e
+AC-FN001,yes,Final,Real GOWM,W16 uses locked GOWM and real HTTP/PostgreSQL,real-e2e
+AC-FN002,yes,Final,Real semantic model,Natural gates use actual model,real-model
+AC-FN003,yes,Final,Repository suite,Unit/contract/typecheck/build pass,ci
+AC-FN004,yes,Final,Container,Non-root read-only container passes,container
+AC-FN005,yes,Final,Migration,Fresh and restart recovery pass,real-db
+AC-FN006,yes,Final,Contract freeze,WSGS v1 schemas/OpenAPI byte lock,contract
+AC-FN007,yes,Final,Upstream freeze,GOWM lock exact at candidate,contract
+AC-FN008,yes,Final,Architecture,Boundary scan passes,architecture
+AC-FN009,yes,Final,Version,Package/VERSION/changelog agree 0.1.0,release
+AC-FN010,yes,Final,SHA,Local and remote candidate SHAs match,git
+AC-FN011,yes,Final,PR ready,Draft Ready only after matrix,github
+AC-FN012,yes,Final,No protected actions,No merge/tag/release/deploy,github
+AC-FN013,yes,Final,SACS contract ready,Northbound contract/examples frozen,contract
+AC-FN014,yes,Final,Completion markers,Final emits both markers,report

@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:grounding-request",
+  "title": "GroundingRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "requestId",
+    "operation",
+    "source",
+    "requestedProducts",
+    "contextCapsule",
+    "executionPolicy"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "requestId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "operation": {
+      "enum": [
+        "GROUND_REFERENCES",
+        "COMPILE_WORLD_QUERY",
+        "EXECUTE_WORLD_QUERY",
+        "VALIDATE_REFERENCES"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conversationRef",
+        "messageId",
+        "originalText",
+        "originalTextSha256",
+        "locale",
+        "createdAt"
+      ],
+      "properties": {
+        "conversationRef": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "messageId": {
+          "$ref": "common.schema.json#/$defs/identifier"
+        },
+        "originalText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "originalTextSha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "locale": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 32
+        },
+        "createdAt": {
+          "$ref": "common.schema.json#/$defs/dateTime"
+        },
+        "focusSpans": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "common.schema.json#/$defs/textSpan"
+          }
+        }
+      }
+    },
+    "requestedProducts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "MENTIONS",
+          "RESOLVED_REFERENCES",
+          "DERIVED_REFERENCES",
+          "REFERENCE_SETS",
+          "GROUNDING_GRAPH",
+          "WORLD_QUERY",
+          "WORLD_EVIDENCE",
+          "OPERATIONAL_TASKS",
+          "EVENT_TIMELINES",
+          "CORRELATION_FINDINGS",
+          "PREDICATE_EVALUATIONS"
+        ]
+      }
+    },
+    "contextCapsule": {
+      "$ref": "grounding-context-capsule.schema.json"
+    },
+    "hints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mentionHints": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "surfaceText"
+            ],
+            "properties": {
+              "surfaceText": {
+                "type": "string",
+                "maxLength": 512
+              },
+              "span": {
+                "$ref": "common.schema.json#/$defs/textSpan"
+              },
+              "expectedKinds": {
+                "type": "array",
+                "maxItems": 32,
+                "items": {
+                  "type": "string",
+                  "maxLength": 128
+                }
+              },
+              "semanticRole": {
+                "type": "string",
+                "maxLength": 64
+              }
+            }
+          }
+        }
+      }
+    },
+    "executionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readOnly",
+        "deadlineMs",
+        "maxQueryOperations",
+        "maxCandidatesPerMention",
+        "maxResultBytes",
+        "allowApproximation"
+      ],
+      "properties": {
+        "readOnly": {
+          "const": true
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 120000
+        },
+        "maxQueryOperations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "maxCandidatesPerMention": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "maxResultBytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 67108864
+        },
+        "allowApproximation": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

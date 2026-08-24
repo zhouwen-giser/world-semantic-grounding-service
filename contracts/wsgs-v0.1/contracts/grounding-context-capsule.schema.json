@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:grounding-context-capsule",
+  "title": "GroundingContextCapsule",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "knownWorldReferences",
+    "priorGroundings",
+    "mapSelections",
+    "externalCorrelationHints",
+    "externalPredicates"
+  ],
+  "properties": {
+    "knownWorldReferences": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "known-world-reference.schema.json"
+      }
+    },
+    "priorGroundings": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "$ref": "prior-grounding-reference.schema.json"
+      }
+    },
+    "mapSelections": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "map-selection.schema.json"
+      }
+    },
+    "externalCorrelationHints": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "external-correlation-hint.schema.json"
+      }
+    },
+    "externalPredicates": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "external-predicate-capsule.schema.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,292 @@
+{
+  "lockVersion": "1.0",
+  "gowmCommit": "db575f79c874a69f65a2043a7e463338524b713d",
+  "requiredProviders": {
+    "gowm.reference-catalog": 5,
+    "gowm.dataset-catalog": 6,
+    "gowm.world-evidence": 9,
+    "gowm.operational-reality": 8
+  },
+  "requiredOperations": [
+    {
+      "operationId": "reference.get",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "reference.resolve",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "reference.validate",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "reference.batch-get",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "reference.search",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "dataset.get",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "dataset.list",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "layer.get",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "layer.list",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "layer.find-features",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "feature.get",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "world.get-current-state",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "world.get-geometry",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "world.get-provenance",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "world.get-observations",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "world.get-event-timeline",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "world.get-state-history",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "result.get",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "result.validate",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "reference-set.get-members",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "operational-task.find",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "operational-task.get",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "operational-task.get-timeline",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "operational-task.find-by-correlation",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "world-event.find-by-correlation",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "correlation.resolve",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "predicate.evaluate",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    },
+    {
+      "operationId": "observability.evaluate",
+      "operationVersion": "1.0",
+      "allowedMaturities": [
+        "PREVIEW",
+        "STABLE"
+      ],
+      "inputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK",
+      "outputSchemaHash": "RESOLVE_FROM_VENDOR_LOCK"
+    }
+  ]
+}

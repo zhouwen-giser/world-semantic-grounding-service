@@ -1,0 +1,17 @@
+{
+  "phase": "W00",
+  "status": "PASS",
+  "cases": {
+    "AC-W001": "PASS",
+    "AC-W002": "NOT_RUN",
+    "AC-W003": "PASS",
+    "AC-W004": "PASS",
+    "AC-W005": "PASS"
+  },
+  "evidence": {
+    "bootstrapCommit": "ae077ec",
+    "mainPush": "PASS",
+    "featureBranch": "codex/wsgs-v0.1-grounding-core",
+    "draftPr": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/1"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-validate-1",
+  "operation": "VALIDATE_REFERENCES",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-validate-1",
+    "originalText": "验证上次引用是否仍有效",
+    "originalTextSha256": "sha256:6fe7b50525f061b318ffa60a4e662d7e0100f9cc1605d8e9662d286d8ac4b5fe",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "RESOLVED_REFERENCES"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [
+      {
+        "alias": "那里",
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "DERIVED_REFERENCE",
+          "id": "wrf_33333333333333333333333333333333",
+          "version": "1"
+        },
+        "referenceType": "DERIVED_AREA",
+        "sourceMessageId": "message-prior",
+        "sourceGroundingId": "grounding-prior",
+        "validUntil": "2026-08-24T12:05:00Z"
+      }
+    ],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

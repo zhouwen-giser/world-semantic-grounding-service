@@ -1,0 +1,30 @@
+{
+  "phase": "W07",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-M001": "NOT_RUN",
+    "AC-M002": "PASS",
+    "AC-M003": "PASS",
+    "AC-M004": "PASS",
+    "AC-M005": "PASS",
+    "AC-M006": "PASS",
+    "AC-M007": "PASS",
+    "AC-M008": "PASS",
+    "AC-M009": "PASS",
+    "AC-M010": "PASS",
+    "AC-M011": "PASS",
+    "AC-M012": "PASS",
+    "AC-M013": "PASS",
+    "AC-M014": "NOT_RUN"
+  },
+  "evidence": {
+    "adapterFaultTests": "12/12 PASS",
+    "rootCheck": "36 PASS, 8 DB SKIPPED",
+    "realModel": "NOT_RUN_NO_MODEL_ENVIRONMENT",
+    "outputModes": [
+      "RESPONSES_STRICT",
+      "CHAT_COMPLETIONS_STRICT",
+      "CHAT_COMPLETIONS_JSON"
+    ]
+  }
+}

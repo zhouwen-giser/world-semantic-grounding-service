@@ -1,0 +1,30 @@
+{
+  "phase": "W15",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-S001": "PASS",
+    "AC-S002": "PASS",
+    "AC-S003": "PASS",
+    "AC-S004": "PASS",
+    "AC-S005": "PASS",
+    "AC-S006": "PASS",
+    "AC-S007": "PASS",
+    "AC-S008": "PASS",
+    "AC-S009": "PASS",
+    "AC-S010": "PASS",
+    "AC-S011": "PASS",
+    "AC-S012": "PASS",
+    "AC-S013": "PASS",
+    "AC-S014": "PASS",
+    "AC-S015": "PASS",
+    "AC-S016": "PASS",
+    "AC-S017": "PASS",
+    "AC-S018": "PASS"
+  },
+  "evidence": {
+    "securityResilienceTests": "17/17 PASS",
+    "postgresql17_10": "9/9 PASS",
+    "rootCheck": "107 PASS, 9 DB SKIPPED",
+    "externalRealE2e": "DEFERRED_W16"
+  }
+}

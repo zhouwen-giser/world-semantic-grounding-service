@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:external-correlation-hint",
+  "title": "ExternalCorrelationHint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hintId",
+    "externalAuthority",
+    "kind",
+    "value"
+  ],
+  "properties": {
+    "hintId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "externalAuthority": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "kind": {
+      "enum": [
+        "EXECUTION_INTENT",
+        "OPERATION_CORRELATION",
+        "EXTERNAL_TASK",
+        "EXTERNAL_STEP",
+        "EXTERNAL_COMMAND"
+      ]
+    },
+    "value": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "relationHint": {
+      "enum": [
+        "REPORTS_EXECUTION_OF",
+        "REALIZES",
+        "RELATED_TO"
+      ]
+    },
+    "declarationConfidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

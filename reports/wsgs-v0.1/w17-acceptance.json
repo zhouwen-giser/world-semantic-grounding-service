@@ -1,0 +1,28 @@
+{
+  "phase": "W17",
+  "status": "BLOCKED",
+  "cases": {
+    "AC-FN001": "BLOCKED",
+    "AC-FN002": "BLOCKED",
+    "AC-FN003": "PASS",
+    "AC-FN004": "PASS",
+    "AC-FN005": "PASS",
+    "AC-FN006": "PASS",
+    "AC-FN007": "PASS",
+    "AC-FN008": "PASS",
+    "AC-FN009": "PASS",
+    "AC-FN010": "PASS",
+    "AC-FN011": "BLOCKED",
+    "AC-FN012": "PASS",
+    "AC-FN013": "PASS",
+    "AC-FN014": "BLOCKED"
+  },
+  "evidence": {
+    "requiredLedger": "206 TOTAL: 145 PASS, 0 FAIL, 2 NOT_RUN, 59 BLOCKED",
+    "repositorySuite": "107 PASS, 9 DB SKIPPED",
+    "postgresql17_10": "9/9 PASS",
+    "container": "PINNED_NON_ROOT_READ_ONLY_NO_NEW_PRIVILEGES_BOUNDED_TMPFS_PASS",
+    "pr": "DRAFT_BLOCKED",
+    "marker": "WSGS_V0_1_GROUNDING_CORE_BLOCKED"
+  }
+}

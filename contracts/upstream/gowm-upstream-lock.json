@@ -1,0 +1,28 @@
+{
+  "lockVersion": "1.0",
+  "generatedAt": "2026-08-24",
+  "repository": "zhouwen-giser/geospatial-operational-world-model",
+  "commit": "db575f79c874a69f65a2043a7e463338524b713d",
+  "softwareVersion": "0.4.0",
+  "mergedPullRequest": 2,
+  "sourcePackageLock": {
+    "path": "contracts/gowm-v0.4/source-package-lock.json",
+    "gitBlobSha": "97b118737f82bfe49c7741b2787da9d72e2d7400",
+    "expectedArtifacts": 33
+  },
+  "gatewayOpenApi": {
+    "path": "contracts/platform/openapi/world-capability-gateway-v1.yaml",
+    "gitBlobSha": "120f1f3ca2d65f5d7a73422718b6aa152794abed"
+  },
+  "requiredGroundingOperations": 28,
+  "allowedMaturities": [
+    "PREVIEW",
+    "STABLE"
+  ],
+  "policy": {
+    "defaultBranchAllowed": false,
+    "sourceCodeVendorAllowed": false,
+    "contractVendorRequired": true,
+    "schemaHashMismatch": "FAIL_CLOSED"
+  }
+}
