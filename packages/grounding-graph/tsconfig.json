@@ -5,6 +5,7 @@
   "references": [
     { "path": "../contracts" },
     { "path": "../deterministic-parser" },
+    { "path": "../gowm-gateway-client" },
     { "path": "../semantic-frame" }
   ]
 }

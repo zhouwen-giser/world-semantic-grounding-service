@@ -9,6 +9,7 @@
   "dependencies": {
     "@wsgs/contracts": "0.1.0",
     "@wsgs/deterministic-parser": "0.1.0",
+    "@wsgs/gowm-gateway-client": "0.1.0",
     "@wsgs/semantic-frame": "0.1.0"
   }
 }

@@ -41,7 +41,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W06 Deterministic parser
 - [x] W07 OpenAI-compatible semantic model adapter
 - [x] W08 Semantic frame and grounding graph
-- [ ] W09 Reference grounding
+- [x] W09 Reference grounding
 - [ ] W10 Typed query compiler
 - [ ] W11 Evidence normalization
 - [ ] W12 Operational products
@@ -84,6 +84,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - W06 deterministic parser -> 9/9 tests pass for supplied references/map selections, conservative H3/coordinate/focus/code parsing, exact Chinese/emoji UTF-16 spans, deterministic overlap precedence, prior pointers, and no fabricated ReferenceKey.
 - W07 semantic model adapter -> 12/12 strict-output/null normalization, injection isolation, exact-span rejection, bounded repair/retry, abort, hash-only receipt, compatibility-mode, and explicit-unavailable tests pass; real model remains not run because no `MODEL_*` environment is configured.
 - W08 frame/graph core -> 12/12 semantic invariant, priority merge, visible conflict/namespace ambiguity, no-hidden-fact, graph limit/integrity, canonical hash, and explicit degraded-Partial tests pass.
+- W09 reference grounding -> 8/8 locked resolve/validate, status/score/version preservation, ambiguity/no-data, limits, stale validation, async, authority-drift, and deadline tests pass; real catalog/scope cases remain deferred.
 
 ## Remaining work
 

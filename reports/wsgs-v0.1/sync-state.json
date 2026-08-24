@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W09",
+  "phase": "W10",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -39,7 +39,8 @@
       "AC-D008", "AC-D009", "AC-D010", "AC-D012",
       "AC-M002", "AC-M003", "AC-M004", "AC-M005", "AC-M006", "AC-M007",
       "AC-M008", "AC-M009", "AC-M010", "AC-M011", "AC-M012", "AC-M013", "AC-M014",
-      "AC-D011", "AC-F005", "AC-F006", "AC-F007", "AC-F008", "AC-F009", "AC-F010"
+      "AC-D011", "AC-F005", "AC-F006", "AC-F007", "AC-F008", "AC-F009", "AC-F010",
+      "AC-R004", "AC-R005", "AC-R006", "AC-R007", "AC-R008", "AC-R012"
     ],
     "failed": [],
     "notRun": ["AC-W002"],
@@ -48,9 +49,10 @@
       "AC-U010", "AC-C012", "AC-C013", "AC-C014",
       "AC-J002", "AC-J009", "AC-J010", "AC-J011", "AC-J012",
       "AC-G001", "AC-G002", "AC-G005", "AC-G006", "AC-G007", "AC-G008", "AC-G016",
-      "AC-D003", "AC-M001", "AC-F001", "AC-F002", "AC-F003", "AC-F004"
+      "AC-D003", "AC-M001", "AC-F001", "AC-F002", "AC-F003", "AC-F004",
+      "AC-R001", "AC-R002", "AC-R003", "AC-R009", "AC-R010", "AC-R011"
     ]
   },
   "blockers": [],
-  "next": "Resolve bounded mention candidates only through locked GOWM Gateway reference operations for W09."
+  "next": "Compile approved typed templates only into locked GOWM World Query v2 plans for W10."
 }
