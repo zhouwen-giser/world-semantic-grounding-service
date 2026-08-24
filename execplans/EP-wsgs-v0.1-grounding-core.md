@@ -44,7 +44,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W09 Reference grounding
 - [x] W10 Typed query compiler
 - [x] W11 Evidence normalization
-- [ ] W12 Operational products
+- [x] W12 Operational products
 - [ ] W13 Prior grounding and bounded context
 - [ ] W14 Northbound API
 - [ ] W15 Security and resilience
@@ -87,6 +87,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - W09 reference grounding -> 8/8 locked resolve/validate, status/score/version preservation, ambiguity/no-data, limits, stale validation, async, authority-drift, and deadline tests pass; real catalog/scope cases remain deferred.
 - W10 typed compiler -> 13/13 approved-rule mapping, H3 approximation/exact verification, no-substitution gap, lock/provider/schema/port/unit validation, aggregate budget, public-plan exclusion, and canonical hash tests pass.
 - W11 evidence normalization -> 8/8 receipt/evidence separation, status preservation, GOWM authority/schema/snapshots, bounded large-payload summary, model exclusion, drift, and upstream-failed tests pass.
+- W12 operational products -> 6/6 four-dimension/no-promotion, correlation/no-match, predicate evidence, timeline stability, optional gap, opaque external authority, and no-mutation tests pass.
 
 ## Remaining work
 

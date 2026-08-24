@@ -1,0 +1,24 @@
+{
+  "phase": "W12",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-O001": "NOT_RUN",
+    "AC-O002": "NOT_RUN",
+    "AC-O003": "NOT_RUN",
+    "AC-O004": "NOT_RUN",
+    "AC-O005": "NOT_RUN",
+    "AC-O006": "NOT_RUN",
+    "AC-O007": "NOT_RUN",
+    "AC-O008": "NOT_RUN",
+    "AC-O009": "NOT_RUN",
+    "AC-O010": "NOT_RUN",
+    "AC-O011": "PASS",
+    "AC-O012": "PASS"
+  },
+  "evidence": {
+    "operationalProductTests": "6/6 PASS",
+    "rootCheck": "83 PASS, 8 DB SKIPPED",
+    "architectureBoundary": "PASS",
+    "realOperationalEvidence": "DEFERRED_W16"
+  }
+}
