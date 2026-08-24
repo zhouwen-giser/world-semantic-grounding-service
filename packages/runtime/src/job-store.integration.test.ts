@@ -131,6 +131,18 @@ integration("PostgreSQL durable job store", () => {
     expect(retained.rows[0]?.source_text_ciphertext).toBeNull();
   });
 
+  it("retains the audit result bytes and hash after raw source expiry", async () => {
+    const retainedInput = input("retained-audit");
+    retainedInput.sourceExpiresAt = new Date(Date.now() - 1_000);
+    await store.createOrReplay(retainedInput);
+    const claim = await store.claimNext("worker-retention", 5_000);
+    const resultBytes = new TextEncoder().encode('{"status":"COMPLETED","audit":"retained"}');
+    await store.complete(claim!.jobId, claim!.leaseToken, "COMPLETED", resultBytes);
+    expect(await store.expireSourceText()).toBe(1);
+    expect(await store.getResult("scope-a", retainedInput.groundingId)).toEqual(resultBytes);
+    expect(await store.getResult("scope-b", retainedInput.groundingId)).toBeNull();
+  });
+
   it("enforces terminal monotonicity in PostgreSQL", async () => {
     await store.createOrReplay(input("terminal"));
     const claim = await store.claimNext("worker-a", 5_000);

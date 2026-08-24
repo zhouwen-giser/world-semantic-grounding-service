@@ -1,0 +1,20 @@
+{
+  "phase": "W13",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-P001": "PASS",
+    "AC-P002": "PASS",
+    "AC-P003": "NOT_RUN",
+    "AC-P004": "NOT_RUN",
+    "AC-P005": "PASS",
+    "AC-P006": "PASS",
+    "AC-P007": "NOT_RUN",
+    "AC-P008": "NOT_RUN"
+  },
+  "evidence": {
+    "contextLoaderTests": "7/7 PASS",
+    "rootCheck": "90 PASS, 9 DB SKIPPED",
+    "retentionDbCase": "ADDED_DEFERRED_W16",
+    "priorContentPolicy": "SERVER_LOAD_PLUS_EXACT_BYTE_HASH"
+  }
+}
