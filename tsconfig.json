@@ -1,0 +1,17 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/contracts" },
+    { "path": "packages/gowm-contract-intake" },
+    { "path": "packages/gowm-gateway-client" },
+    { "path": "packages/deterministic-parser" },
+    { "path": "packages/semantic-model" },
+    { "path": "packages/semantic-frame" },
+    { "path": "packages/grounding-graph" },
+    { "path": "packages/query-compiler" },
+    { "path": "packages/evidence-normalizer" },
+    { "path": "packages/runtime" },
+    { "path": "services/grounding-api" }
+  ]
+}
+

@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W03",
+  "phase": "W04",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -28,7 +28,9 @@
       "AC-U001", "AC-U002", "AC-U003", "AC-U004", "AC-U005", "AC-U006",
       "AC-U007", "AC-U008", "AC-U009", "AC-U011", "AC-U012", "AC-U013",
       "AC-C001", "AC-C002", "AC-C003", "AC-C004", "AC-C005", "AC-C006",
-      "AC-C007", "AC-C008", "AC-C010", "AC-C011"
+      "AC-C007", "AC-C008", "AC-C010", "AC-C011",
+      "AC-A001", "AC-A002", "AC-A003", "AC-A004", "AC-A005",
+      "AC-A006", "AC-A007", "AC-A008", "AC-A009", "AC-A010"
     ],
     "failed": [],
     "notRun": ["AC-W002"],
@@ -41,5 +43,5 @@
       "reason": "Docker engine/config access is unavailable in the current sandbox context"
     }
   ],
-  "next": "Establish the Node 22 strict TypeScript npm workspace, CI, and architecture boundary gates for W03."
+  "next": "Implement PostgreSQL migrations and durable job, idempotency, lease, cancel, and replay semantics for W04."
 }
