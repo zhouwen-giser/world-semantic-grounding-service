@@ -37,7 +37,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W02 Northbound contract freeze
 - [x] W03 Workspace, CI, and boundary scan
 - [x] W04 PostgreSQL jobs, idempotency, lease, cancel, replay
-- [ ] W05 GOWM Gateway client
+- [x] W05 GOWM Gateway client
 - [ ] W06 Deterministic parser
 - [ ] W07 OpenAI-compatible semantic model adapter
 - [ ] W08 Semantic frame and grounding graph
@@ -79,6 +79,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - WSGS northbound freeze -> 19 valid JSON Schemas, 11 valid request examples, 1 NO_DATA normalization example, forbidden/unknown-field rejection, and 32 locked artifacts pass.
 - Root `npm run check` -> contract byte locks, six generated contract types, architecture boundaries, 11 strict TypeScript projects, and Vitest pass on Node 22.
 - Real PostgreSQL 17.10 W04 run -> fresh migration/assertions, 11 tables, idempotency replay/conflict, concurrent claim, lease reclaim/heartbeat, cancel precedence, terminal monotonicity, scope isolation, retention, and restart replay pass.
+- W05 Gateway client contract suite -> 12/12 tests pass for locked catalog/operation enforcement, fixed routes, transport-only authority, trace/deadline/abort, retry policy, bounded output, async polling/cancel/receipt, and circuit recovery.
 
 ## Remaining work
 

@@ -1,0 +1,28 @@
+{
+  "phase": "W05",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-G001": "NOT_RUN",
+    "AC-G002": "NOT_RUN",
+    "AC-G003": "PASS",
+    "AC-G004": "PASS",
+    "AC-G005": "NOT_RUN",
+    "AC-G006": "NOT_RUN",
+    "AC-G007": "NOT_RUN",
+    "AC-G008": "NOT_RUN",
+    "AC-G009": "PASS",
+    "AC-G010": "PASS",
+    "AC-G011": "PASS",
+    "AC-G012": "PASS",
+    "AC-G013": "PASS",
+    "AC-G014": "PASS",
+    "AC-G015": "PASS",
+    "AC-G016": "NOT_RUN"
+  },
+  "evidence": {
+    "unitContractTests": "12/12 PASS",
+    "hostedCi": "PASS",
+    "realGateway": "DEFERRED_W16",
+    "providerIdentityPolicy": "FAIL_CLOSED_IF_UNAVAILABLE"
+  }
+}

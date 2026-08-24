@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W05",
+  "phase": "W06",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -32,16 +32,19 @@
       "AC-A001", "AC-A002", "AC-A003", "AC-A004", "AC-A005",
       "AC-A006", "AC-A007", "AC-A008", "AC-A009", "AC-A010",
       "AC-J001", "AC-J003", "AC-J004", "AC-J005", "AC-J006", "AC-J007",
-      "AC-J008", "AC-J013", "AC-J014", "AC-J015", "AC-J016"
+      "AC-J008", "AC-J013", "AC-J014", "AC-J015", "AC-J016",
+      "AC-G003", "AC-G004", "AC-G009", "AC-G010", "AC-G011", "AC-G012",
+      "AC-G013", "AC-G014", "AC-G015"
     ],
     "failed": [],
     "notRun": ["AC-W002"],
     "blocked": [],
     "deferred": [
       "AC-U010", "AC-C009", "AC-C012", "AC-C013", "AC-C014",
-      "AC-J002", "AC-J009", "AC-J010", "AC-J011", "AC-J012"
+      "AC-J002", "AC-J009", "AC-J010", "AC-J011", "AC-J012",
+      "AC-G001", "AC-G002", "AC-G005", "AC-G006", "AC-G007", "AC-G008", "AC-G016"
     ]
   },
   "blockers": [],
-  "next": "Implement the capability-locked GOWM Gateway HTTP client for W05."
+  "next": "Implement the conservative deterministic reference parser and UTF-16 span gates for W06."
 }
