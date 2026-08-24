@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-map-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-map-1",
+    "originalText": "查询我标注区域内的车辆",
+    "originalTextSha256": "sha256:8461b51d6d91d9d66eb49397a97b899cc8fcaa7ca6a98b237bf345411d3db164",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "MENTIONS",
+    "RESOLVED_REFERENCES",
+    "REFERENCE_SETS",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [
+      {
+        "selectionId": "annotation-red-zone-17",
+        "label": "红色区域",
+        "kind": "AREA",
+        "revision": 3,
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                112.98,
+                28.19
+              ],
+              [
+                112.99,
+                28.19
+              ],
+              [
+                112.99,
+                28.2
+              ],
+              [
+                112.98,
+                28.19
+              ]
+            ]
+          ]
+        },
+        "geometryHash": "sha256:8aeca846d1627654462213992629fc6854f2867343e5be8702a6433ebb8b0be8"
+      }
+    ],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

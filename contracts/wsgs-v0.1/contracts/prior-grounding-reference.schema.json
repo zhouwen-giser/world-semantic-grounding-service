@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:prior-grounding-reference",
+  "title": "PriorGroundingReference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "groundingId",
+    "resultHash"
+  ],
+  "properties": {
+    "groundingId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "resultHash": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "selectedProductIds": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "common.schema.json#/$defs/identifier"
+      }
+    }
+  }
+}

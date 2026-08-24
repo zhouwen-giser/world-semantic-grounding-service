@@ -1,0 +1,8 @@
+{
+  "upstreamStatus": "NO_DATA",
+  "normalizedSemantics": {
+    "negativeFact": false,
+    "unknown": true,
+    "message": "The requested world data is unavailable; absence is not proven."
+  }
+}

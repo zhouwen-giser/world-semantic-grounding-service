@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-prior-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-prior-1",
+    "originalText": "那里附近还有哪些道路？",
+    "originalTextSha256": "sha256:3e5645a4eddf218326cf6de23a1c2e24427360e378f61d8bb1abc5c6c7603286",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "MENTIONS",
+    "RESOLVED_REFERENCES",
+    "REFERENCE_SETS",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [
+      {
+        "groundingId": "grounding-previous-1",
+        "resultHash": "sha256:d382730c8f6ea18ac3063f8c3bd87e4cc1e1ed3c2f5dad2745bcb27e809b1cae",
+        "selectedProductIds": [
+          "product-best-area"
+        ]
+      }
+    ],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

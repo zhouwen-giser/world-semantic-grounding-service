@@ -1,0 +1,27 @@
+{
+  "phase": "W02",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-C001": "PASS",
+    "AC-C002": "PASS",
+    "AC-C003": "PASS",
+    "AC-C004": "PASS",
+    "AC-C005": "PASS",
+    "AC-C006": "PASS",
+    "AC-C007": "PASS",
+    "AC-C008": "PASS",
+    "AC-C009": "NOT_RUN",
+    "AC-C010": "PASS",
+    "AC-C011": "PASS",
+    "AC-C012": "NOT_RUN",
+    "AC-C013": "NOT_RUN",
+    "AC-C014": "NOT_RUN"
+  },
+  "evidence": {
+    "contractVersion": "sacs-wsgs-grounding/1.0",
+    "schemas": 19,
+    "examples": 12,
+    "lockedArtifacts": 32,
+    "runtimeChecks": "DEFERRED_W14"
+  }
+}

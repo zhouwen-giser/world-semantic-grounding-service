@@ -34,7 +34,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 
 - [x] W00 Repository bootstrap and execution plan
 - [x] W01 GOWM contract intake
-- [ ] W02 Northbound contract freeze
+- [x] W02 Northbound contract freeze
 - [ ] W03 Workspace, CI, and boundary scan
 - [ ] W04 PostgreSQL jobs, idempotency, lease, cancel, replay
 - [ ] W05 GOWM Gateway client
@@ -75,6 +75,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - `bash scripts/preflight.sh .` with the local Python shim -> `PREFLIGHT_PASS`
 - Bootstrap `main` pushed at `ae077ec`.
 - Exact GOWM intake verifier -> 33 byte-locked artifacts, 4 required providers, and 28 required operations pass.
+- WSGS northbound freeze -> 19 valid JSON Schemas, 11 valid request examples, 1 NO_DATA normalization example, forbidden/unknown-field rejection, and 32 locked artifacts pass.
 
 ## Remaining work
 

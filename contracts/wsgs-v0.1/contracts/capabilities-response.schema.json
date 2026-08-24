@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:capabilities-response",
+  "title": "WSGSCapabilitiesResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "service",
+    "version",
+    "contractVersion",
+    "supportedOperations",
+    "supportedProducts",
+    "gowmContract",
+    "requiredCapabilitiesReady",
+    "optionalCapabilities"
+  ],
+  "properties": {
+    "service": {
+      "const": "world-semantic-grounding-service"
+    },
+    "version": {
+      "const": "0.1.0"
+    },
+    "contractVersion": {
+      "const": "sacs-wsgs-grounding/1.0"
+    },
+    "supportedOperations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supportedProducts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gowmContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "softwareVersion",
+        "commit",
+        "sourcePackageArtifacts"
+      ],
+      "properties": {
+        "softwareVersion": {
+          "const": "0.4.0"
+        },
+        "commit": {
+          "const": "db575f79c874a69f65a2043a7e463338524b713d"
+        },
+        "sourcePackageArtifacts": {
+          "const": 33
+        }
+      }
+    },
+    "requiredCapabilitiesReady": {
+      "type": "boolean"
+    },
+    "optionalCapabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operationId",
+          "available"
+        ],
+        "properties": {
+          "operationId": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

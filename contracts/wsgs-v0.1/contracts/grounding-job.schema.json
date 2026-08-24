@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:grounding-job",
+  "title": "GroundingJob",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "groundingId",
+    "requestId",
+    "status",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "jobId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "groundingId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "requestId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "status": {
+      "enum": [
+        "ACCEPTED",
+        "RUNNING",
+        "COMPLETED",
+        "PARTIAL",
+        "AMBIGUOUS",
+        "UNRESOLVED",
+        "FAILED",
+        "CANCELLED"
+      ]
+    },
+    "createdAt": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "updatedAt": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "startedAt": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "finishedAt": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "result": {
+      "$ref": "grounding-result.schema.json"
+    },
+    "error": {
+      "$ref": "common.schema.json#/$defs/error"
+    }
+  }
+}

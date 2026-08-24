@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:external-predicate-capsule",
+  "title": "ExternalPredicateCapsule",
+  "description": "Opaque, schema-locked GOWM external predicate input.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaUri",
+    "schemaHash",
+    "value"
+  ],
+  "properties": {
+    "schemaUri": {
+      "const": "urn:gowm:v0.4:external-predicate"
+    },
+    "schemaHash": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "value": {
+      "type": "object"
+    }
+  }
+}

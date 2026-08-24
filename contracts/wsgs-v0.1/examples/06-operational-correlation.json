@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-correlation-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-correlation-1",
+    "originalText": "查询这次操作对应的真实事件",
+    "originalTextSha256": "sha256:9100f1afc5af33502979c8b70dfde56dfb49271634ac91d02487fa53f7cdabbc",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "CORRELATION_FINDINGS",
+    "EVENT_TIMELINES",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [
+      {
+        "hintId": "hint-1",
+        "externalAuthority": "SDAR_PLANNING",
+        "kind": "OPERATION_CORRELATION",
+        "value": "op-corr-b913",
+        "relationHint": "REPORTS_EXECUTION_OF",
+        "declarationConfidence": 1.0
+      }
+    ],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

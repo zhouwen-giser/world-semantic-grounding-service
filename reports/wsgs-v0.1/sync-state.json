@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W02",
+  "phase": "W03",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -17,7 +17,7 @@
   },
   "milestones": {
     "repositoryBootstrapped": true,
-    "northboundContractFrozen": false,
+    "northboundContractFrozen": true,
     "groundingCoreReady": false,
     "realGowmAccepted": false,
     "sacsIntegrationReady": false
@@ -26,12 +26,14 @@
     "passed": [
       "AC-W001", "AC-W003", "AC-W004", "AC-W005",
       "AC-U001", "AC-U002", "AC-U003", "AC-U004", "AC-U005", "AC-U006",
-      "AC-U007", "AC-U008", "AC-U009", "AC-U011", "AC-U012", "AC-U013"
+      "AC-U007", "AC-U008", "AC-U009", "AC-U011", "AC-U012", "AC-U013",
+      "AC-C001", "AC-C002", "AC-C003", "AC-C004", "AC-C005", "AC-C006",
+      "AC-C007", "AC-C008", "AC-C010", "AC-C011"
     ],
     "failed": [],
     "notRun": ["AC-W002"],
     "blocked": [],
-    "deferred": ["AC-U010"]
+    "deferred": ["AC-U010", "AC-C009", "AC-C012", "AC-C013", "AC-C014"]
   },
   "blockers": [
     {
@@ -39,5 +41,5 @@
       "reason": "Docker engine/config access is unavailable in the current sandbox context"
     }
   ],
-  "next": "Freeze and validate the SACS to WSGS northbound schemas and OpenAPI for W02."
+  "next": "Establish the Node 22 strict TypeScript npm workspace, CI, and architecture boundary gates for W03."
 }

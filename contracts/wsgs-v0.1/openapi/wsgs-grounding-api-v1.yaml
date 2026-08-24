@@ -1,0 +1,101 @@
+openapi: 3.1.0
+info:
+  title: World Semantic Grounding Service
+  version: 0.1.0
+  description: >
+    Neutral world semantic grounding and GOWM query compilation service.
+    Authentication, actor and data scope are transport-derived.
+paths:
+  /health/live:
+    get:
+      operationId: liveness
+      responses:
+        "200": { description: Process is live }
+  /health/ready:
+    get:
+      operationId: readiness
+      responses:
+        "200": { description: Required dependencies and capability locks ready }
+        "503": { description: Required dependency unavailable }
+  /v1/capabilities:
+    get:
+      operationId: getWsgsCapabilities
+      responses:
+        "200":
+          description: WSGS and upstream capability state
+          content:
+            application/json:
+              schema:
+                $ref: ../contracts/capabilities-response.schema.json
+  /v1/groundings:
+    post:
+      operationId: createGrounding
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 256 }
+        - in: header
+          name: Prefer
+          required: false
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../contracts/grounding-request.schema.json
+      responses:
+        "200":
+          description: Synchronous result
+          content:
+            application/json:
+              schema:
+                $ref: ../contracts/grounding-result.schema.json
+        "202":
+          description: Grounding job accepted
+          content:
+            application/json:
+              schema:
+                $ref: ../contracts/grounding-job.schema.json
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: ../contracts/protocol-error.schema.json
+        "409": { description: Idempotency conflict }
+        "413": { description: Input or context too large }
+        "429": { description: Budget or rate limit }
+  /v1/groundings/{groundingId}:
+    get:
+      operationId: getGrounding
+      parameters:
+        - in: path
+          name: groundingId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Job/result
+          content:
+            application/json:
+              schema:
+                $ref: ../contracts/grounding-job.schema.json
+        "404": { description: Not found }
+  /v1/groundings/{groundingId}:cancel:
+    post:
+      operationId: cancelGrounding
+      parameters:
+        - in: path
+          name: groundingId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Cancelled or terminal
+          content:
+            application/json:
+              schema:
+                $ref: ../contracts/grounding-job.schema.json
+        "409": { description: Cannot cancel terminal result }

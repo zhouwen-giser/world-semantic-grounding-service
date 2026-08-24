@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-name-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-name-1",
+    "originalText": "查询2号车的当前状态",
+    "originalTextSha256": "sha256:890067ce17da40d0c9ee9cbf4178c53df17a1be056dc889c554f07bb6b15b564",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "MENTIONS",
+    "RESOLVED_REFERENCES",
+    "GROUNDING_GRAPH",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}

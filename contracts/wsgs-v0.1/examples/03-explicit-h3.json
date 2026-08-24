@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-h3-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-h3-1",
+    "originalText": "查询H3 892f5a32d97ffff周边一环内的对象",
+    "originalTextSha256": "sha256:f2e37075a7c17b7f7495d4918be9a2738c9eabd886ab36d1a2118acd3b3a580c",
+    "locale": "zh-CN",
+    "createdAt": "2026-08-24T12:00:00Z"
+  },
+  "requestedProducts": [
+    "MENTIONS",
+    "GROUNDING_GRAPH",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}
