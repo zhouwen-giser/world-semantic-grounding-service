@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W11",
+  "phase": "W12",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -41,7 +41,8 @@
       "AC-M008", "AC-M009", "AC-M010", "AC-M011", "AC-M012", "AC-M013", "AC-M014",
       "AC-D011", "AC-F005", "AC-F006", "AC-F007", "AC-F008", "AC-F009", "AC-F010",
       "AC-R004", "AC-R005", "AC-R006", "AC-R007", "AC-R008", "AC-R012",
-      "AC-Q006", "AC-Q007", "AC-Q011", "AC-Q012", "AC-Q013", "AC-Q014", "AC-Q015", "AC-Q016"
+      "AC-Q006", "AC-Q007", "AC-Q011", "AC-Q012", "AC-Q013", "AC-Q014", "AC-Q015", "AC-Q016",
+      "AC-E001", "AC-E005", "AC-E006", "AC-E007", "AC-E008", "AC-E009", "AC-E010"
     ],
     "failed": [],
     "notRun": ["AC-W002"],
@@ -52,9 +53,10 @@
       "AC-G001", "AC-G002", "AC-G005", "AC-G006", "AC-G007", "AC-G008", "AC-G016",
       "AC-D003", "AC-M001", "AC-F001", "AC-F002", "AC-F003", "AC-F004",
       "AC-R001", "AC-R002", "AC-R003", "AC-R009", "AC-R010", "AC-R011",
-      "AC-Q001", "AC-Q002", "AC-Q003", "AC-Q004", "AC-Q005", "AC-Q008", "AC-Q009", "AC-Q010"
+      "AC-Q001", "AC-Q002", "AC-Q003", "AC-Q004", "AC-Q005", "AC-Q008", "AC-Q009", "AC-Q010",
+      "AC-E002", "AC-E003", "AC-E004"
     ]
   },
   "blockers": [],
-  "next": "Normalize bounded GOWM result envelopes into WSGS evidence products for W11."
+  "next": "Assemble requested operational/reference/evidence products with explicit gaps for W12."
 }
