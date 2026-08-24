@@ -39,7 +39,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W04 PostgreSQL jobs, idempotency, lease, cancel, replay
 - [x] W05 GOWM Gateway client
 - [x] W06 Deterministic parser
-- [ ] W07 OpenAI-compatible semantic model adapter
+- [x] W07 OpenAI-compatible semantic model adapter
 - [ ] W08 Semantic frame and grounding graph
 - [ ] W09 Reference grounding
 - [ ] W10 Typed query compiler
@@ -61,7 +61,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 
 - GitHub repository push credentials work through Git credential management, while the current `gh` CLI token is invalid.
 - Draft PR creation nevertheless succeeded through the approved `gh pr create` operation: PR #1.
-- Docker is installed but its config and engine pipe are inaccessible in the current sandbox context.
+- Docker access requires the approved host boundary; the W04 PostgreSQL 17.10 acceptance run proved the engine and database path usable there.
 
 ## Failed attempts retained
 
@@ -82,6 +82,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - Real PostgreSQL 17.10 W04 run -> fresh migration/assertions, 11 tables, idempotency replay/conflict, concurrent claim, lease reclaim/heartbeat, cancel precedence, terminal monotonicity, scope isolation, retention, and restart replay pass.
 - W05 Gateway client contract suite -> 12/12 tests pass for locked catalog/operation enforcement, fixed routes, transport-only authority, trace/deadline/abort, retry policy, bounded output, async polling/cancel/receipt, and circuit recovery.
 - W06 deterministic parser -> 9/9 tests pass for supplied references/map selections, conservative H3/coordinate/focus/code parsing, exact Chinese/emoji UTF-16 spans, deterministic overlap precedence, prior pointers, and no fabricated ReferenceKey.
+- W07 semantic model adapter -> 12/12 strict-output/null normalization, injection isolation, exact-span rejection, bounded repair/retry, abort, hash-only receipt, compatibility-mode, and explicit-unavailable tests pass; real model remains not run because no `MODEL_*` environment is configured.
 
 ## Remaining work
 

@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W07",
+  "phase": "W08",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -36,7 +36,9 @@
       "AC-G003", "AC-G004", "AC-G009", "AC-G010", "AC-G011", "AC-G012",
       "AC-G013", "AC-G014", "AC-G015", "AC-C009",
       "AC-D001", "AC-D002", "AC-D004", "AC-D005", "AC-D006", "AC-D007",
-      "AC-D008", "AC-D009", "AC-D010", "AC-D012"
+      "AC-D008", "AC-D009", "AC-D010", "AC-D012",
+      "AC-M002", "AC-M003", "AC-M004", "AC-M005", "AC-M006", "AC-M007",
+      "AC-M008", "AC-M009", "AC-M010", "AC-M011", "AC-M012", "AC-M013"
     ],
     "failed": [],
     "notRun": ["AC-W002"],
@@ -45,9 +47,9 @@
       "AC-U010", "AC-C012", "AC-C013", "AC-C014",
       "AC-J002", "AC-J009", "AC-J010", "AC-J011", "AC-J012",
       "AC-G001", "AC-G002", "AC-G005", "AC-G006", "AC-G007", "AC-G008", "AC-G016",
-      "AC-D003", "AC-D011"
+      "AC-D003", "AC-D011", "AC-M001", "AC-M014"
     ]
   },
   "blockers": [],
-  "next": "Implement the real OpenAI-compatible domain semantic model adapter for W07."
+  "next": "Validate semantic frames and merge deterministic/model products into the W08 grounding graph."
 }
