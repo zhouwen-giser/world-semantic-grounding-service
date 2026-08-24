@@ -1,0 +1,29 @@
+{
+  "phase": "W04",
+  "status": "PARTIAL",
+  "cases": {
+    "AC-J001": "PASS",
+    "AC-J002": "NOT_RUN",
+    "AC-J003": "PASS",
+    "AC-J004": "PASS",
+    "AC-J005": "PASS",
+    "AC-J006": "PASS",
+    "AC-J007": "PASS",
+    "AC-J008": "PASS",
+    "AC-J009": "NOT_RUN",
+    "AC-J010": "NOT_RUN",
+    "AC-J011": "NOT_RUN",
+    "AC-J012": "NOT_RUN",
+    "AC-J013": "PASS",
+    "AC-J014": "PASS",
+    "AC-J015": "PASS",
+    "AC-J016": "PASS"
+  },
+  "evidence": {
+    "postgresVersion": "17.10",
+    "containerImageId": "sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4",
+    "schemaTables": 11,
+    "migration": "001_wsgs_core.sql",
+    "fullRootTests": "11/11 PASS"
+  }
+}

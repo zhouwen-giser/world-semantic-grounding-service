@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W04",
+  "phase": "W05",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -30,18 +30,18 @@
       "AC-C001", "AC-C002", "AC-C003", "AC-C004", "AC-C005", "AC-C006",
       "AC-C007", "AC-C008", "AC-C010", "AC-C011",
       "AC-A001", "AC-A002", "AC-A003", "AC-A004", "AC-A005",
-      "AC-A006", "AC-A007", "AC-A008", "AC-A009", "AC-A010"
+      "AC-A006", "AC-A007", "AC-A008", "AC-A009", "AC-A010",
+      "AC-J001", "AC-J003", "AC-J004", "AC-J005", "AC-J006", "AC-J007",
+      "AC-J008", "AC-J013", "AC-J014", "AC-J015", "AC-J016"
     ],
     "failed": [],
     "notRun": ["AC-W002"],
     "blocked": [],
-    "deferred": ["AC-U010", "AC-C009", "AC-C012", "AC-C013", "AC-C014"]
+    "deferred": [
+      "AC-U010", "AC-C009", "AC-C012", "AC-C013", "AC-C014",
+      "AC-J002", "AC-J009", "AC-J010", "AC-J011", "AC-J012"
+    ]
   },
-  "blockers": [
-    {
-      "gate": "AC-FN004",
-      "reason": "Docker engine/config access is unavailable in the current sandbox context"
-    }
-  ],
-  "next": "Implement PostgreSQL migrations and durable job, idempotency, lease, cancel, and replay semantics for W04."
+  "blockers": [],
+  "next": "Implement the capability-locked GOWM Gateway HTTP client for W05."
 }

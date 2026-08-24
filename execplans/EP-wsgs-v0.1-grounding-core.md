@@ -36,7 +36,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W01 GOWM contract intake
 - [x] W02 Northbound contract freeze
 - [x] W03 Workspace, CI, and boundary scan
-- [ ] W04 PostgreSQL jobs, idempotency, lease, cancel, replay
+- [x] W04 PostgreSQL jobs, idempotency, lease, cancel, replay
 - [ ] W05 GOWM Gateway client
 - [ ] W06 Deterministic parser
 - [ ] W07 OpenAI-compatible semantic model adapter
@@ -68,6 +68,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - Initial Git Bash preflight selected the non-executable Microsoft Store `python3` alias. A local ignored shim to Python 3.12 was used and the unmodified preflight then passed.
 - Initial local Git index write was denied by the workspace sandbox; approved Git write access was used.
 - The package intake script's partial clone failed to materialize several promised blobs. A read-only local exact-commit archive was used instead; the first archive inherited CRLF conversion, so it was rerun with `core.autocrlf=false` and passed exact Git-blob and SHA-256 validation.
+- The first PostgreSQL integration run sent a NUL-delimited advisory-lock key through the text protocol and failed all four cases. The store now hashes scope/key locally and sends a signed 64-bit advisory key; expanded real-DB acceptance passes.
 
 ## Actual validation
 
@@ -77,6 +78,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - Exact GOWM intake verifier -> 33 byte-locked artifacts, 4 required providers, and 28 required operations pass.
 - WSGS northbound freeze -> 19 valid JSON Schemas, 11 valid request examples, 1 NO_DATA normalization example, forbidden/unknown-field rejection, and 32 locked artifacts pass.
 - Root `npm run check` -> contract byte locks, six generated contract types, architecture boundaries, 11 strict TypeScript projects, and Vitest pass on Node 22.
+- Real PostgreSQL 17.10 W04 run -> fresh migration/assertions, 11 tables, idempotency replay/conflict, concurrent claim, lease reclaim/heartbeat, cancel precedence, terminal monotonicity, scope isolation, retention, and restart replay pass.
 
 ## Remaining work
 
