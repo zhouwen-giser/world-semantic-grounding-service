@@ -48,7 +48,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W13 Prior grounding and bounded context
 - [x] W14 Northbound API
 - [x] W15 Security and resilience
-- [ ] W16 Real integration acceptance
+- [x] W16 Real integration acceptance (blocked: external model/GOWM environment absent)
 - [ ] W17 Final candidate
 
 ## Decisions
@@ -91,6 +91,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - W13 context/prior grounding -> 7/7 same-scope server-load/hash, substitution/history/size rejection, TTL, selected product, and Map revision tests pass; retained-audit real-DB case is added for W16.
 - W14 northbound API -> 8/8 authenticated route, frozen request/response/error schema, trusted identity, sync/async, poll/cancel, fail-closed backend, and low-cardinality metrics tests pass; real E2E remains W16.
 - W15 security/resilience -> 17/17 Unicode, size, rate, inert input, redaction, signed cursor, bounded queue, and graceful shutdown tests plus 9/9 real PostgreSQL restart/scope/cancel-race/retention tests pass.
+- W16 environment audit -> real PostgreSQL 17.10 passed 9/9; real model, GOWM Gateway/provider, and northbound E2E are BLOCKED because all required external configuration is absent.
 
 ## Remaining work
 
