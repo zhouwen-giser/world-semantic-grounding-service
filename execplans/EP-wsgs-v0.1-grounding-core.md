@@ -46,7 +46,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W11 Evidence normalization
 - [x] W12 Operational products
 - [x] W13 Prior grounding and bounded context
-- [ ] W14 Northbound API
+- [x] W14 Northbound API
 - [ ] W15 Security and resilience
 - [ ] W16 Real integration acceptance
 - [ ] W17 Final candidate
@@ -89,6 +89,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - W11 evidence normalization -> 8/8 receipt/evidence separation, status preservation, GOWM authority/schema/snapshots, bounded large-payload summary, model exclusion, drift, and upstream-failed tests pass.
 - W12 operational products -> 6/6 four-dimension/no-promotion, correlation/no-match, predicate evidence, timeline stability, optional gap, opaque external authority, and no-mutation tests pass.
 - W13 context/prior grounding -> 7/7 same-scope server-load/hash, substitution/history/size rejection, TTL, selected product, and Map revision tests pass; retained-audit real-DB case is added for W16.
+- W14 northbound API -> 8/8 authenticated route, frozen request/response/error schema, trusted identity, sync/async, poll/cancel, fail-closed backend, and low-cardinality metrics tests pass; real E2E remains W16.
 
 ## Remaining work
 

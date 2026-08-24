@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W14",
+  "phase": "W15",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -28,7 +28,7 @@
       "AC-U001", "AC-U002", "AC-U003", "AC-U004", "AC-U005", "AC-U006",
       "AC-U007", "AC-U008", "AC-U009", "AC-U011", "AC-U012", "AC-U013",
       "AC-C001", "AC-C002", "AC-C003", "AC-C004", "AC-C005", "AC-C006",
-      "AC-C007", "AC-C008", "AC-C010", "AC-C011",
+      "AC-C007", "AC-C008", "AC-C010", "AC-C011", "AC-C012", "AC-C013", "AC-C014",
       "AC-A001", "AC-A002", "AC-A003", "AC-A004", "AC-A005",
       "AC-A006", "AC-A007", "AC-A008", "AC-A009", "AC-A010",
       "AC-J001", "AC-J003", "AC-J004", "AC-J005", "AC-J006", "AC-J007",
@@ -49,7 +49,7 @@
     "notRun": ["AC-W002"],
     "blocked": [],
     "deferred": [
-      "AC-U010", "AC-C012", "AC-C013", "AC-C014",
+      "AC-U010",
       "AC-J002", "AC-J009", "AC-J010", "AC-J011", "AC-J012",
       "AC-G001", "AC-G002", "AC-G005", "AC-G006", "AC-G007", "AC-G008", "AC-G016",
       "AC-D003", "AC-M001", "AC-F001", "AC-F002", "AC-F003", "AC-F004",
@@ -57,9 +57,10 @@
       "AC-Q001", "AC-Q002", "AC-Q003", "AC-Q004", "AC-Q005", "AC-Q008", "AC-Q009", "AC-Q010",
       "AC-E002", "AC-E003", "AC-E004",
       "AC-O001", "AC-O002", "AC-O003", "AC-O004", "AC-O005", "AC-O006", "AC-O007", "AC-O008", "AC-O009", "AC-O010",
-      "AC-P003", "AC-P004", "AC-P007", "AC-P008"
+      "AC-P003", "AC-P004", "AC-P007", "AC-P008",
+      "AC-S019", "AC-S020", "AC-S021", "AC-S022", "AC-S023", "AC-S024"
     ]
   },
   "blockers": [],
-  "next": "Implement the frozen authenticated sync/async northbound API for W14."
+  "next": "Implement security, scope, rate, restart, queue, cancellation-race, and graceful-shutdown controls for W15."
 }
