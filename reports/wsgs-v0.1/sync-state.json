@@ -1,7 +1,7 @@
 {
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
-  "status": "IN_PROGRESS",
+  "status": "BLOCKED",
   "phase": "W17",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
@@ -46,7 +46,9 @@
       "AC-O011", "AC-O012", "AC-P001", "AC-P002", "AC-P005", "AC-P006", "AC-P008",
       "AC-S001", "AC-S002", "AC-S003", "AC-S004", "AC-S005", "AC-S006",
       "AC-S007", "AC-S008", "AC-S009", "AC-S010", "AC-S011", "AC-S012",
-      "AC-S013", "AC-S014", "AC-S015", "AC-S016", "AC-S017", "AC-S018"
+      "AC-S013", "AC-S014", "AC-S015", "AC-S016", "AC-S017", "AC-S018",
+      "AC-FN003", "AC-FN004", "AC-FN005", "AC-FN006", "AC-FN007", "AC-FN008",
+      "AC-FN009", "AC-FN010", "AC-FN012", "AC-FN013"
     ],
     "failed": [],
     "notRun": ["AC-W002", "AC-J002"],
@@ -63,13 +65,15 @@
     "AC-O001", "AC-O002", "AC-O003", "AC-O004", "AC-O005", "AC-O006", "AC-O007", "AC-O008", "AC-O009", "AC-O010",
     "AC-P003", "AC-P004", "AC-P007",
     "AC-S019", "AC-S020", "AC-S021", "AC-S022", "AC-S023", "AC-S024",
-    "AC-FN001", "AC-FN002"
+    "AC-FN001", "AC-FN002", "AC-FN011", "AC-FN014"
   ],
     "deferred": []
   },
   "blockers": [
     "MODEL_* semantic model endpoint and credential are not configured",
-    "Real GOWM Gateway endpoint, credential, deployment scope, and provider data are not configured"
+    "Real GOWM Gateway endpoint, credential, deployment scope, and provider data are not configured",
+    "Executable deployment backend remains fail-closed until the production grounding pipeline is composed and accepted",
+    "Draft PR cannot become Ready and completion markers cannot be emitted while required gates are blocked"
   ],
-  "next": "Produce W17 version/docs/container/status/acceptance/SHA/PR evidence and the blocked candidate marker."
+  "next": "Provide the external W16 environment, compose the production deployment backend, rerun blocked gates, and only then make the Draft PR Ready."
 }

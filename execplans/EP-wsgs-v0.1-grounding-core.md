@@ -49,7 +49,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W14 Northbound API
 - [x] W15 Security and resilience
 - [x] W16 Real integration acceptance (blocked: external model/GOWM environment absent)
-- [ ] W17 Final candidate
+- [x] W17 Final blocked candidate
 
 ## Decisions
 
@@ -92,7 +92,8 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - W14 northbound API -> 8/8 authenticated route, frozen request/response/error schema, trusted identity, sync/async, poll/cancel, fail-closed backend, and low-cardinality metrics tests pass; real E2E remains W16.
 - W15 security/resilience -> 17/17 Unicode, size, rate, inert input, redaction, signed cursor, bounded queue, and graceful shutdown tests plus 9/9 real PostgreSQL restart/scope/cancel-race/retention tests pass.
 - W16 environment audit -> real PostgreSQL 17.10 passed 9/9; real model, GOWM Gateway/provider, and northbound E2E are BLOCKED because all required external configuration is absent.
+- W17 candidate -> 0.1.0 version/docs, 206-case ledger, pinned image, restricted-container smoke, and final blocked report complete; Draft PR intentionally remains Draft.
 
 ## Remaining work
 
-Execute W01-W17 in order, create per-phase reports and evidence, and leave merge/tag/release/deploy unperformed.
+Provide the missing external W16 environment, compose the production deployment backend, rerun all blocked/not-run gates, and only after 206/206 PASS mark the Draft PR Ready. Merge/tag/release/deploy remain separately protected.

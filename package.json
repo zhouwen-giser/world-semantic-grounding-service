@@ -21,7 +21,8 @@
     "contracts:types:check": "node validation/scripts/generate-contract-types.mjs --check",
     "contracts:check": "node validation/scripts/verify-gowm-intake.mjs && node validation/scripts/verify-wsgs-contracts.mjs && npm run contracts:types:check",
     "architecture:check": "node validation/scripts/architecture-boundary.mjs",
-    "check": "npm run contracts:check && npm run architecture:check && npm run typecheck && npm test"
+    "acceptance:check": "node validation/scripts/generate-acceptance-ledger.mjs",
+    "check": "npm run contracts:check && npm run architecture:check && npm run acceptance:check && npm run typecheck && npm test"
   },
   "dependencies": {
     "ajv": "8.20.0",

@@ -1,0 +1,837 @@
+{
+  "version": "0.1.0",
+  "generatedFrom": "acceptance/required-acceptance-matrix.csv plus reports/wsgs-v0.1/sync-state.json",
+  "required": 206,
+  "summary": {
+    "PASS": 145,
+    "FAIL": 0,
+    "NOT_RUN": 2,
+    "BLOCKED": 59
+  },
+  "cases": [
+    {
+      "id": "AC-W001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-W002",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-W003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-W004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-W005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U002",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U010",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-U011",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-U013",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C002",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C011",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C013",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-C014",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A002",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-A010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J002",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-J003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J009",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-J010",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-J011",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-J012",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-J013",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J014",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J015",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-J016",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G001",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-G002",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-G003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G005",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-G006",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-G007",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-G008",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-G009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G011",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G013",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G014",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G015",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-G016",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-D001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D002",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D003",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-D004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D011",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-D012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M001",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-M002",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M011",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M013",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-M014",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-F001",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-F002",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-F003",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-F004",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-F005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-F006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-F007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-F008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-F009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-F010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-R001",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-R002",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-R003",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-R004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-R005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-R006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-R007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-R008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-R009",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-R010",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-R011",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-R012",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q001",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q002",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q003",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q004",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q005",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-Q007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-Q008",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q009",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q010",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-Q011",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-Q012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-Q013",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-Q014",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-Q015",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-Q016",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-E001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-E002",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-E003",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-E004",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-E005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-E006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-E007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-E008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-E009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-E010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-O001",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O002",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O003",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O004",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O005",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O006",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O007",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O008",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O009",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O010",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-O011",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-O012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-P001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-P002",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-P003",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-P004",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-P005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-P006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-P007",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-P008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S001",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S002",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S011",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S013",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S014",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S015",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S016",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S017",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S018",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-S019",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-S020",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-S021",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-S022",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-S023",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-S024",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-FN001",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-FN002",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-FN003",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN004",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN005",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN006",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN007",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN008",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN009",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN010",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN011",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AC-FN012",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN013",
+      "status": "PASS"
+    },
+    {
+      "id": "AC-FN014",
+      "status": "BLOCKED"
+    }
+  ]
+}

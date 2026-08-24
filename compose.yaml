@@ -1,0 +1,19 @@
+services:
+  wsgs:
+    build:
+      context: .
+    image: wsgs:0.1.0
+    user: "10001:10001"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m,mode=1777
+    environment:
+      WSGS_AUTH_MODE: STATIC_TRUSTED
+      WSGS_STATIC_PRINCIPAL_ID: local-sacs
+      WSGS_STATIC_ACTOR: sacs
+      WSGS_STATIC_DATA_SCOPE: local-development
+    ports:
+      - "127.0.0.1:8080:8080"
+    stop_grace_period: 15s

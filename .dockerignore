@@ -1,0 +1,9 @@
+.git
+.github
+.task-shims
+WSGS_v0.1_Grounding_Core_Codex_Goal
+**/node_modules
+**/dist
+reports
+coverage
+npm-debug.log*
