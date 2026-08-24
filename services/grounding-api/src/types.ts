@@ -36,5 +36,10 @@ export interface GroundingApiConfig {
   schemas: Record<string, unknown>;
   bodyLimitBytes?: number;
   logger?: boolean;
+  rateBudget?: {
+    requests: number;
+    windowMs: number;
+    maxTrackedKeys?: number;
+    now?: () => number;
+  };
 }
-

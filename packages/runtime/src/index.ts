@@ -4,3 +4,5 @@ export * from "./job-state.js";
 export * from "./job-store.js";
 export * from "./migrations.js";
 export * from "./context-loader.js";
+export * from "./work-queue.js";
+export * from "./signed-cursor.js";

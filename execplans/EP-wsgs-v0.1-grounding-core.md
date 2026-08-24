@@ -47,7 +47,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - [x] W12 Operational products
 - [x] W13 Prior grounding and bounded context
 - [x] W14 Northbound API
-- [ ] W15 Security and resilience
+- [x] W15 Security and resilience
 - [ ] W16 Real integration acceptance
 - [ ] W17 Final candidate
 
@@ -90,6 +90,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 - W12 operational products -> 6/6 four-dimension/no-promotion, correlation/no-match, predicate evidence, timeline stability, optional gap, opaque external authority, and no-mutation tests pass.
 - W13 context/prior grounding -> 7/7 same-scope server-load/hash, substitution/history/size rejection, TTL, selected product, and Map revision tests pass; retained-audit real-DB case is added for W16.
 - W14 northbound API -> 8/8 authenticated route, frozen request/response/error schema, trusted identity, sync/async, poll/cancel, fail-closed backend, and low-cardinality metrics tests pass; real E2E remains W16.
+- W15 security/resilience -> 17/17 Unicode, size, rate, inert input, redaction, signed cursor, bounded queue, and graceful shutdown tests plus 9/9 real PostgreSQL restart/scope/cancel-race/retention tests pass.
 
 ## Remaining work
 

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import { ApiAuthError, authenticate } from "./auth.js";
 import { compileApiSchemas, type ApiSchemaValidators } from "./schemas.js";
+import { ApiSecurityError, assertSafeUnicodeText, ScopedRateBudget } from "./security.js";
 import type { GroundingApiConfig, GroundingIdentity } from "./types.js";
 
 const identifierPattern = /^[A-Za-z][A-Za-z0-9._:-]{0,255}$/u;
@@ -109,8 +110,17 @@ async function identity(request: FastifyRequest, config: GroundingApiConfig): Pr
 export async function createGroundingApi(config: GroundingApiConfig): Promise<FastifyInstance> {
   const validators: ApiSchemaValidators = compileApiSchemas(config.schemas);
   const metrics = new Metrics();
+  const rateBudget = new ScopedRateBudget(config.rateBudget ?? { requests: 120, windowMs: 60_000 });
   const app = Fastify({
-    logger: config.logger ?? false,
+    logger: config.logger
+      ? {
+          level: "info",
+          redact: {
+            paths: ["req.headers.authorization", "req.body", "res.body", "err.message", "err.stack"],
+            censor: "[REDACTED]"
+          }
+        }
+      : false,
     bodyLimit: config.bodyLimitBytes ?? 1_048_576
   });
 
@@ -122,6 +132,11 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
     }
     if (error instanceof ApiProtocolError) {
       metrics.increment("request_rejected");
+      void reply.code(error.statusCode).send(checkedProtocolError(validators, request, error.code));
+      return;
+    }
+    if (error instanceof ApiSecurityError) {
+      metrics.increment("security_rejected");
       void reply.code(error.statusCode).send(checkedProtocolError(validators, request, error.code));
       return;
     }
@@ -150,11 +165,13 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
 
   app.post("/v1/groundings", async (request, reply) => {
     const caller = await identity(request, config);
+    rateBudget.consume(caller);
     const body = requestObject(request);
     assertNoAuthority(body);
     validate(validators.groundingRequest, body, "INVALID_GROUNDING_REQUEST");
     const source = body["source"] as Record<string, unknown>;
     const sourceText = source["originalText"] as string;
+    assertSafeUnicodeText(sourceText);
     const actualHash = `sha256:${createHash("sha256").update(sourceText, "utf8").digest("hex")}`;
     if (source["originalTextSha256"] !== actualHash) throw new ApiProtocolError("SOURCE_HASH_MISMATCH", 400);
     const idempotencyHeader = request.headers["idempotency-key"];

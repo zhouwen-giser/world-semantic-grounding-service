@@ -2,7 +2,7 @@
   "goal": "WSGS v0.1 Grounding Core",
   "targetVersion": "0.1.0",
   "status": "IN_PROGRESS",
-  "phase": "W15",
+  "phase": "W16",
   "source": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
     "stateAtGeneration": "EMPTY",
@@ -43,7 +43,10 @@
       "AC-R004", "AC-R005", "AC-R006", "AC-R007", "AC-R008", "AC-R012",
       "AC-Q006", "AC-Q007", "AC-Q011", "AC-Q012", "AC-Q013", "AC-Q014", "AC-Q015", "AC-Q016",
       "AC-E001", "AC-E005", "AC-E006", "AC-E007", "AC-E008", "AC-E009", "AC-E010",
-      "AC-O011", "AC-O012", "AC-P001", "AC-P002", "AC-P005", "AC-P006"
+      "AC-O011", "AC-O012", "AC-P001", "AC-P002", "AC-P005", "AC-P006",
+      "AC-S001", "AC-S002", "AC-S003", "AC-S004", "AC-S005", "AC-S006",
+      "AC-S007", "AC-S008", "AC-S009", "AC-S010", "AC-S011", "AC-S012",
+      "AC-S013", "AC-S014", "AC-S015", "AC-S016", "AC-S017", "AC-S018"
     ],
     "failed": [],
     "notRun": ["AC-W002"],
@@ -61,6 +64,9 @@
       "AC-S019", "AC-S020", "AC-S021", "AC-S022", "AC-S023", "AC-S024"
     ]
   },
-  "blockers": [],
-  "next": "Implement security, scope, rate, restart, queue, cancellation-race, and graceful-shutdown controls for W15."
+  "blockers": [
+    "MODEL_* semantic model endpoint and credential are not configured",
+    "Real GOWM Gateway endpoint, credential, deployment scope, and provider data are not configured"
+  ],
+  "next": "Execute W16 real integration acceptance where infrastructure exists and record all external-service gates truthfully."
 }
