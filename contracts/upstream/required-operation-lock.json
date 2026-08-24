@@ -1,0 +1,326 @@
+{
+  "lockVersion": "1.0",
+  "source": {
+    "repository": "zhouwen-giser/geospatial-operational-world-model",
+    "commit": "db575f79c874a69f65a2043a7e463338524b713d",
+    "softwareVersion": "0.4.0",
+    "sourcePackageLockGitBlob": "97b118737f82bfe49c7741b2787da9d72e2d7400",
+    "gatewayOpenApiGitBlob": "120f1f3ca2d65f5d7a73422718b6aa152794abed"
+  },
+  "providers": [
+    "gowm.dataset-catalog",
+    "gowm.operational-reality",
+    "gowm.reference-catalog",
+    "gowm.world-evidence"
+  ],
+  "operations": [
+    {
+      "operationId": "correlation.resolve",
+      "operationVersion": "1.0",
+      "providerId": "gowm.operational-reality",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/operational-query-request.schema.json",
+      "inputSchemaHash": "sha256:8ad08440e1e6842255d0bbc15602bf15408f96b1c136722e488032e30eca6ec8",
+      "outputSchemaFile": "contracts/correlation-finding.schema.json",
+      "outputSchemaHash": "sha256:575b30eab7c5b5a422395a4cc17d5bd37520697dd9d1d13ba3573e6903d47aa8"
+    },
+    {
+      "operationId": "dataset.get",
+      "operationVersion": "1.0",
+      "providerId": "gowm.dataset-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/dataset-descriptor.schema.json",
+      "outputSchemaHash": "sha256:bb19126cf8925352ced7f9d841d10894b81f05a4ce445db7627f70b357ca2f2d"
+    },
+    {
+      "operationId": "dataset.list",
+      "operationVersion": "1.0",
+      "providerId": "gowm.dataset-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/catalog-result.schema.json",
+      "outputSchemaHash": "sha256:e1efea73a0a57cd71ba303c36e165df05e936ad5b0cb8747390cf305e2f3f609"
+    },
+    {
+      "operationId": "feature.get",
+      "operationVersion": "1.0",
+      "providerId": "gowm.dataset-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/spatial-feature-descriptor.schema.json",
+      "outputSchemaHash": "sha256:550de9549574f7ba12278a44d829689e3d15c1534f8607ab4032802ac154074e"
+    },
+    {
+      "operationId": "layer.find-features",
+      "operationVersion": "1.0",
+      "providerId": "gowm.dataset-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/catalog-result.schema.json",
+      "outputSchemaHash": "sha256:e1efea73a0a57cd71ba303c36e165df05e936ad5b0cb8747390cf305e2f3f609"
+    },
+    {
+      "operationId": "layer.get",
+      "operationVersion": "1.0",
+      "providerId": "gowm.dataset-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/layer-descriptor.schema.json",
+      "outputSchemaHash": "sha256:1460971045f8d804086b8367dcae6e5469e8372f02230ccb5b39d0b4656090fa"
+    },
+    {
+      "operationId": "layer.list",
+      "operationVersion": "1.0",
+      "providerId": "gowm.dataset-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/catalog-result.schema.json",
+      "outputSchemaHash": "sha256:e1efea73a0a57cd71ba303c36e165df05e936ad5b0cb8747390cf305e2f3f609"
+    },
+    {
+      "operationId": "observability.evaluate",
+      "operationVersion": "1.0",
+      "providerId": "gowm.operational-reality",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/operational-query-request.schema.json",
+      "inputSchemaHash": "sha256:8ad08440e1e6842255d0bbc15602bf15408f96b1c136722e488032e30eca6ec8",
+      "outputSchemaFile": "contracts/observability-assessment.schema.json",
+      "outputSchemaHash": "sha256:c09af934b708bb3c784c36d9388439d881f7580e40bdc77dc0228c05c3be7776"
+    },
+    {
+      "operationId": "operational-task.find",
+      "operationVersion": "1.0",
+      "providerId": "gowm.operational-reality",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/operational-query-request.schema.json",
+      "inputSchemaHash": "sha256:8ad08440e1e6842255d0bbc15602bf15408f96b1c136722e488032e30eca6ec8",
+      "outputSchemaFile": "contracts/operational-query-result.schema.json",
+      "outputSchemaHash": "sha256:f663dd601d78381f4bb2f893928397bc7c5366fbf22d596e64f36f2eb888f322"
+    },
+    {
+      "operationId": "operational-task.find-by-correlation",
+      "operationVersion": "1.0",
+      "providerId": "gowm.operational-reality",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/operational-query-request.schema.json",
+      "inputSchemaHash": "sha256:8ad08440e1e6842255d0bbc15602bf15408f96b1c136722e488032e30eca6ec8",
+      "outputSchemaFile": "contracts/operational-query-result.schema.json",
+      "outputSchemaHash": "sha256:f663dd601d78381f4bb2f893928397bc7c5366fbf22d596e64f36f2eb888f322"
+    },
+    {
+      "operationId": "operational-task.get",
+      "operationVersion": "1.0",
+      "providerId": "gowm.operational-reality",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/operational-query-request.schema.json",
+      "inputSchemaHash": "sha256:8ad08440e1e6842255d0bbc15602bf15408f96b1c136722e488032e30eca6ec8",
+      "outputSchemaFile": "contracts/operational-task-snapshot.schema.json",
+      "outputSchemaHash": "sha256:266359fc72e3f7b114ebb5693c9f55dc2143c73f2fe470581147082fd13f1738"
+    },
+    {
+      "operationId": "operational-task.get-timeline",
+      "operationVersion": "1.0",
+      "providerId": "gowm.operational-reality",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/operational-query-request.schema.json",
+      "inputSchemaHash": "sha256:8ad08440e1e6842255d0bbc15602bf15408f96b1c136722e488032e30eca6ec8",
+      "outputSchemaFile": "contracts/operational-event-timeline.schema.json",
+      "outputSchemaHash": "sha256:c38abf0868b05bac0e62ef4a1741115837bd832c85d5f01e4c49bb204223c962"
+    },
+    {
+      "operationId": "predicate.evaluate",
+      "operationVersion": "1.0",
+      "providerId": "gowm.operational-reality",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/external-predicate.schema.json",
+      "inputSchemaHash": "sha256:4ada1a2e340fc58904e96c989e255b4c658958415b6db45fb31913d99b8717ef",
+      "outputSchemaFile": "contracts/predicate-evaluation.schema.json",
+      "outputSchemaHash": "sha256:d1d0d1d168ede096d6dd1caf590def9000b2305b7a5d2daa4a972b2c74bf2e31"
+    },
+    {
+      "operationId": "reference-set.get-members",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/reference-set.schema.json",
+      "outputSchemaHash": "sha256:0a7fd18d832b09268f2c5641c9cbce58a273fb15e69214bc08b7a709ce02e5d9"
+    },
+    {
+      "operationId": "reference.batch-get",
+      "operationVersion": "1.0",
+      "providerId": "gowm.reference-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/reference-validate-request.schema.json",
+      "inputSchemaHash": "sha256:cc82bb4d811e91972d022d9742e20d66dfb00a4d00c02e5b7433c51fd252b19e",
+      "outputSchemaFile": "contracts/catalog-result.schema.json",
+      "outputSchemaHash": "sha256:e1efea73a0a57cd71ba303c36e165df05e936ad5b0cb8747390cf305e2f3f609"
+    },
+    {
+      "operationId": "reference.get",
+      "operationVersion": "1.0",
+      "providerId": "gowm.reference-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/reference-descriptor.schema.json",
+      "outputSchemaHash": "sha256:59393bb6bd298bea40e3598d3d69c67fb4bd92de9953fc76ef1b0658e2d19218"
+    },
+    {
+      "operationId": "reference.resolve",
+      "operationVersion": "1.0",
+      "providerId": "gowm.reference-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/reference-resolve-request.schema.json",
+      "inputSchemaHash": "sha256:16d73c457ce186f12557fe52bbebca65e757754ed6d00671faad7e3c65b46a0a",
+      "outputSchemaFile": "contracts/reference-resolve-result.schema.json",
+      "outputSchemaHash": "sha256:d8cfb0673f90abd2c88b60522b3df0158f8035f69daf9b760a649566acf27749"
+    },
+    {
+      "operationId": "reference.search",
+      "operationVersion": "1.0",
+      "providerId": "gowm.reference-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/reference-resolve-request.schema.json",
+      "inputSchemaHash": "sha256:16d73c457ce186f12557fe52bbebca65e757754ed6d00671faad7e3c65b46a0a",
+      "outputSchemaFile": "contracts/reference-resolve-result.schema.json",
+      "outputSchemaHash": "sha256:d8cfb0673f90abd2c88b60522b3df0158f8035f69daf9b760a649566acf27749"
+    },
+    {
+      "operationId": "reference.validate",
+      "operationVersion": "1.0",
+      "providerId": "gowm.reference-catalog",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/reference-validate-request.schema.json",
+      "inputSchemaHash": "sha256:cc82bb4d811e91972d022d9742e20d66dfb00a4d00c02e5b7433c51fd252b19e",
+      "outputSchemaFile": "contracts/reference-validate-result.schema.json",
+      "outputSchemaHash": "sha256:db667246c3347ae334e49609df2ffada4fbae620d6812c187d50d3d260362384"
+    },
+    {
+      "operationId": "result.get",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/query-result-reference.schema.json",
+      "outputSchemaHash": "sha256:b9ba565da7d8cdbfda40afca326ea99e39d7d50116a930e2b3e170210fa54107"
+    },
+    {
+      "operationId": "result.validate",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/reference-validate-result.schema.json",
+      "outputSchemaHash": "sha256:db667246c3347ae334e49609df2ffada4fbae620d6812c187d50d3d260362384"
+    },
+    {
+      "operationId": "world-event.find-by-correlation",
+      "operationVersion": "1.0",
+      "providerId": "gowm.operational-reality",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/operational-query-request.schema.json",
+      "inputSchemaHash": "sha256:8ad08440e1e6842255d0bbc15602bf15408f96b1c136722e488032e30eca6ec8",
+      "outputSchemaFile": "contracts/operational-event-timeline.schema.json",
+      "outputSchemaHash": "sha256:c38abf0868b05bac0e62ef4a1741115837bd832c85d5f01e4c49bb204223c962"
+    },
+    {
+      "operationId": "world.get-current-state",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/world-fact-result.schema.json",
+      "outputSchemaHash": "sha256:920062e401515fc021aebe87dde56023dcfadfbf2bb59d2d791c9a1b86966ddb"
+    },
+    {
+      "operationId": "world.get-event-timeline",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/catalog-result.schema.json",
+      "outputSchemaHash": "sha256:e1efea73a0a57cd71ba303c36e165df05e936ad5b0cb8747390cf305e2f3f609"
+    },
+    {
+      "operationId": "world.get-geometry",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/world-fact-result.schema.json",
+      "outputSchemaHash": "sha256:920062e401515fc021aebe87dde56023dcfadfbf2bb59d2d791c9a1b86966ddb"
+    },
+    {
+      "operationId": "world.get-observations",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/catalog-result.schema.json",
+      "outputSchemaHash": "sha256:e1efea73a0a57cd71ba303c36e165df05e936ad5b0cb8747390cf305e2f3f609"
+    },
+    {
+      "operationId": "world.get-provenance",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/world-fact-result.schema.json",
+      "outputSchemaHash": "sha256:920062e401515fc021aebe87dde56023dcfadfbf2bb59d2d791c9a1b86966ddb"
+    },
+    {
+      "operationId": "world.get-state-history",
+      "operationVersion": "1.0",
+      "providerId": "gowm.world-evidence",
+      "providerVersion": "1.0.0",
+      "maturity": "PREVIEW",
+      "inputSchemaFile": "contracts/catalog-query-request.schema.json",
+      "inputSchemaHash": "sha256:6ad1a9f486f517cffc8d49dd588b5e48a2bfe2eac20c872a90f9acb9ea5981e8",
+      "outputSchemaFile": "contracts/catalog-result.schema.json",
+      "outputSchemaHash": "sha256:e1efea73a0a57cd71ba303c36e165df05e936ad5b0cb8747390cf305e2f3f609"
+    }
+  ]
+}

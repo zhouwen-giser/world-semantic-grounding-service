@@ -26,13 +26,12 @@ Bootstrap only: `README.md`, `.gitignore`, `.editorconfig`, and MIT `LICENSE`. N
 | `python scripts/validate_task_package.py .` | PASS | 19 schemas, 12 examples, 206 acceptance cases, 28 required operations |
 | `bash scripts/preflight.sh .` | PASS | `PREFLIGHT_PASS` after correcting Git Bash Python resolution |
 | `git push -u origin main` | PASS | new remote branch `main` at `ae077ec` |
-| `gh auth status` | BLOCKED | current `gh` token is invalid |
+| `gh pr create --draft ...` | PASS | Draft PR #1 created |
 
 ## Acceptance cases
 
-- PASS: AC-W001, AC-W003, AC-W005.
+- PASS: AC-W001, AC-W003, AC-W004, AC-W005.
 - NOT_RUN (not applicable to empty-source path): AC-W002.
-- BLOCKED: AC-W004 until Draft PR creation can authenticate.
 
 ## Authority and security review
 
@@ -46,13 +45,12 @@ No GOWM, SACS, SDAR, SMPP, or A2A repository was modified. No merge, tag, releas
 ## Commit/push/PR
 
 - Bootstrap: `ae077ec`, pushed to `origin/main`.
-- Draft PR: BLOCKED by invalid `gh` authentication at report time.
+- Draft PR: #1, created with the required title and base/head branches.
 
 ## Blockers
 
-Only Draft PR creation/update is blocked. Local implementation and Git feature-branch work can continue.
+None for W00.
 
 ## Next phase
 
 W01 exact GOWM contract intake and byte/hash verification.
-

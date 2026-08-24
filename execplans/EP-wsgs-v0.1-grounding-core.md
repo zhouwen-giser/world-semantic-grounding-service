@@ -33,7 +33,7 @@ Build an independent service that turns bounded SACS grounding work into neutral
 ## Progress
 
 - [x] W00 Repository bootstrap and execution plan
-- [ ] W01 GOWM contract intake
+- [x] W01 GOWM contract intake
 - [ ] W02 Northbound contract freeze
 - [ ] W03 Workspace, CI, and boundary scan
 - [ ] W04 PostgreSQL jobs, idempotency, lease, cancel, replay
@@ -60,20 +60,22 @@ Build an independent service that turns bounded SACS grounding work into neutral
 ## Discoveries
 
 - GitHub repository push credentials work through Git credential management, while the current `gh` CLI token is invalid.
+- Draft PR creation nevertheless succeeded through the approved `gh pr create` operation: PR #1.
 - Docker is installed but its config and engine pipe are inaccessible in the current sandbox context.
 
 ## Failed attempts retained
 
 - Initial Git Bash preflight selected the non-executable Microsoft Store `python3` alias. A local ignored shim to Python 3.12 was used and the unmodified preflight then passed.
 - Initial local Git index write was denied by the workspace sandbox; approved Git write access was used.
+- The package intake script's partial clone failed to materialize several promised blobs. A read-only local exact-commit archive was used instead; the first archive inherited CRLF conversion, so it was rerun with `core.autocrlf=false` and passed exact Git-blob and SHA-256 validation.
 
 ## Actual validation
 
 - `python scripts/validate_task_package.py .` -> `TASK_PACKAGE_VALID schemas=19 examples=12 acceptance=206 required_gowm_ops=28`
 - `bash scripts/preflight.sh .` with the local Python shim -> `PREFLIGHT_PASS`
 - Bootstrap `main` pushed at `ae077ec`.
+- Exact GOWM intake verifier -> 33 byte-locked artifacts, 4 required providers, and 28 required operations pass.
 
 ## Remaining work
 
 Execute W01-W17 in order, create per-phase reports and evidence, and leave merge/tag/release/deploy unperformed.
-

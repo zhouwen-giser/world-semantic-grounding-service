@@ -1,0 +1,78 @@
+{
+  "catalogVersion": "1.0",
+  "compilerVersion": "wsgs-query-compiler/1.0",
+  "templates": [
+    {
+      "templateId": "reference-current-state",
+      "semanticPattern": "REFERENCE_CURRENT_STATE",
+      "requiredOperations": [
+        "reference.resolve",
+        "world.get-current-state"
+      ],
+      "resultProducts": [
+        "RESOLVED_REFERENCES",
+        "WORLD_EVIDENCE"
+      ]
+    },
+    {
+      "templateId": "reference-geometry",
+      "semanticPattern": "REFERENCE_GEOMETRY",
+      "requiredOperations": [
+        "reference.resolve",
+        "world.get-geometry"
+      ],
+      "resultProducts": [
+        "RESOLVED_REFERENCES",
+        "WORLD_EVIDENCE"
+      ]
+    },
+    {
+      "templateId": "nearby-world-objects",
+      "semanticPattern": "REFERENCE_NEARBY",
+      "requiredOperations": [
+        "reference.resolve",
+        "spatial.find-nearby"
+      ],
+      "resultProducts": [
+        "RESOLVED_REFERENCES",
+        "REFERENCE_SETS",
+        "WORLD_EVIDENCE"
+      ]
+    },
+    {
+      "templateId": "area-world-objects",
+      "semanticPattern": "REFERENCE_IN_AREA",
+      "requiredOperations": [
+        "reference.resolve",
+        "spatial.find-in-area"
+      ],
+      "resultProducts": [
+        "RESOLVED_REFERENCES",
+        "REFERENCE_SETS",
+        "WORLD_EVIDENCE"
+      ]
+    },
+    {
+      "templateId": "operational-correlation-timeline",
+      "semanticPattern": "EXTERNAL_CORRELATION_TIMELINE",
+      "requiredOperations": [
+        "correlation.resolve",
+        "operational-task.get-timeline"
+      ],
+      "resultProducts": [
+        "CORRELATION_FINDINGS",
+        "EVENT_TIMELINES"
+      ]
+    },
+    {
+      "templateId": "predicate-evaluation",
+      "semanticPattern": "EXTERNAL_PREDICATE_EVALUATION",
+      "requiredOperations": [
+        "predicate.evaluate"
+      ],
+      "resultProducts": [
+        "PREDICATE_EVALUATIONS"
+      ]
+    }
+  ]
+}

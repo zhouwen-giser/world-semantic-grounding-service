@@ -7,5 +7,5 @@ coverage/
 *.log
 .DS_Store
 .task-shims/
+.intake/
 WSGS_v0.1_Grounding_Core_Codex_Goal/
-

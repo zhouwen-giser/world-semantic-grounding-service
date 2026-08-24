@@ -1,0 +1,108 @@
+{
+  "lockVersion": "1.0",
+  "gowmCommit": "db575f79c874a69f65a2043a7e463338524b713d",
+  "operations": [
+    {
+      "operationId": "crs.check-source",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "crs.normalize.point",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "crs.normalize.geometry",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "geometry.validate",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "geometry.make-valid",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "h3.index.points",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "h3.geometry.cover",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "h3.neighborhood.disk",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "h3.analytics.aggregate",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "h3.analytics.coverage",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "h3.analytics.flow",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "gowm.situation.h3.get-cell",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "gowm.situation.h3.get-area",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "spatial.find-nearby",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "spatial.find-in-area",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "spatial.find-intersections",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    },
+    {
+      "operationId": "spatial.find-containing-area",
+      "operationVersion": "1.0",
+      "policy": "DISCOVER_AND_LOCK_IF_AVAILABLE",
+      "absence": "CAPABILITY_GAP_NOT_READINESS_FAILURE"
+    }
+  ]
+}
