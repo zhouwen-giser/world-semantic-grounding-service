@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "logicalPackageIntegrity": "sha512-Z2mLu+us4NM8hqthMSo48H33cFpzxK9zxyx8UeB04F7LdWN0e6Vz5q++fB7ohyRikbXdgYCrT8+SMqwcuWEBLA==",
+  "logicalIntegrityAlgorithm": "SHA512_BASE64_OF_CANONICAL_PRE_LOCK_FILE_RECORDS",
+  "tarball": {
+    "path": "gowm-world-gateway-contracts-0.6.3.tgz",
+    "bytes": 52931,
+    "sha256": "da86ab50c2cf4a925f958003a132902770bb2e6d2082cd0aaffb44d70e226501",
+    "sha512": "sha512-UP91UrKaxuwDwN31zzh452f4iQYfiuXEukfcJ/Ken0+JSKyVnCTWemWs+6ELErb+xR3oInEly1oigzFRxbwLpg=="
+  },
+  "materialization": {
+    "archiveFileCount": 64,
+    "extractedFileCount": 64,
+    "rawCrlfPackageFileCount": 64,
+    "treeSha256": "sha256:d6a0f4ad900134ab06f00d2cbbf11f591d55e620d313b784741dd0e92808d8a7",
+    "status": "BYTE_IDENTICAL"
+  },
+  "discrepancy": {
+    "taskPackageLockedValueInterpretation": "UPSTREAM_LOGICAL_PRE_LOCK_FILE_RECORD_INTEGRITY",
+    "tarballDigestInterpretation": "INDEPENDENT_ARCHIVE_BYTE_INTEGRITY",
+    "valuesEqual": false,
+    "statement": "The task-package sha512-Z2m... value is the upstream logical integrity over canonical pre-lock file records; it is intentionally not the SHA-512 digest of the .tgz bytes."
+  }
+}

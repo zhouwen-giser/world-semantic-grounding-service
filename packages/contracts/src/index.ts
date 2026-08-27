@@ -1,7 +1,7 @@
 export const WSGS_VERSION = "0.1.0" as const;
 export const WSGS_CONTRACT_VERSION = "sacs-wsgs-grounding/1.0" as const;
-export const GOWM_VERSION = "0.4.0" as const;
-export const GOWM_COMMIT = "db575f79c874a69f65a2043a7e463338524b713d" as const;
+export const GOWM_VERSION = "0.6.3" as const;
+export const GOWM_COMMIT = "17dd221330d9af540ec815a39eca96550690299a" as const;
 
 export const groundingOperations = [
   "GROUND_REFERENCES",

@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "1.0",
+  "sourceCommit": "17dd221330d9af540ec815a39eca96550690299a",
+  "packageIntegrity": "sha512-Z2mLu+us4NM8hqthMSo48H33cFpzxK9zxyx8UeB04F7LdWN0e6Vz5q++fB7ohyRikbXdgYCrT8+SMqwcuWEBLA==",
+  "checks": [
+    {
+      "id": "source-lock",
+      "status": "PASS",
+      "actual": "17dd221330d9af540ec815a39eca96550690299a/@gowm/world-gateway-contracts@0.6.3",
+      "expected": "17dd221330d9af540ec815a39eca96550690299a/@gowm/world-gateway-contracts@0.6.3"
+    },
+    {
+      "id": "tarball-bytes",
+      "status": "PASS",
+      "actual": "52931",
+      "expected": "52931"
+    },
+    {
+      "id": "tarball-sha256",
+      "status": "PASS",
+      "actual": "da86ab50c2cf4a925f958003a132902770bb2e6d2082cd0aaffb44d70e226501",
+      "expected": "da86ab50c2cf4a925f958003a132902770bb2e6d2082cd0aaffb44d70e226501"
+    },
+    {
+      "id": "tarball-sha512",
+      "status": "PASS",
+      "actual": "sha512-UP91UrKaxuwDwN31zzh452f4iQYfiuXEukfcJ/Ken0+JSKyVnCTWemWs+6ELErb+xR3oInEly1oigzFRxbwLpg==",
+      "expected": "sha512-UP91UrKaxuwDwN31zzh452f4iQYfiuXEukfcJ/Ken0+JSKyVnCTWemWs+6ELErb+xR3oInEly1oigzFRxbwLpg=="
+    },
+    {
+      "id": "package-identity",
+      "status": "PASS",
+      "actual": "@gowm/world-gateway-contracts@0.6.3",
+      "expected": "@gowm/world-gateway-contracts@0.6.3"
+    },
+    {
+      "id": "manifest-file-count",
+      "status": "PASS",
+      "actual": "62",
+      "expected": "62"
+    },
+    {
+      "id": "manifest-lf-bytes-sha256",
+      "status": "PASS",
+      "actual": "62/62",
+      "expected": "62/62"
+    },
+    {
+      "id": "logical-package-integrity",
+      "status": "PASS",
+      "actual": "sha512-Z2mLu+us4NM8hqthMSo48H33cFpzxK9zxyx8UeB04F7LdWN0e6Vz5q++fB7ohyRikbXdgYCrT8+SMqwcuWEBLA==",
+      "expected": "sha512-Z2mLu+us4NM8hqthMSo48H33cFpzxK9zxyx8UeB04F7LdWN0e6Vz5q++fB7ohyRikbXdgYCrT8+SMqwcuWEBLA=="
+    },
+    {
+      "id": "integrity-semantics",
+      "status": "PASS",
+      "actual": "logical-pre-lock-records != tarball-bytes",
+      "expected": "logical-pre-lock-records != tarball-bytes"
+    },
+    {
+      "id": "contract-catalog-revision",
+      "status": "PASS",
+      "actual": "sha256:1f49cdec6b5568c9ad57967f0b111e437c873e90b1213f17cc4006824a04c5d0",
+      "expected": "sha256:1f49cdec6b5568c9ad57967f0b111e437c873e90b1213f17cc4006824a04c5d0"
+    },
+    {
+      "id": "binding-revision",
+      "status": "PASS",
+      "actual": "sha256:898fd2a69ff0b84dadf88ddf6cc2dc3b52838e1344888b65fb93d1869008e094",
+      "expected": "sha256:898fd2a69ff0b84dadf88ddf6cc2dc3b52838e1344888b65fb93d1869008e094"
+    },
+    {
+      "id": "semantic-catalog-hash",
+      "status": "PASS",
+      "actual": "sha256:540e9b169cfefa5707e7ba7bd59d304c7671d8d0f2f1f0f4f16d5c5210b08b3e",
+      "expected": "sha256:540e9b169cfefa5707e7ba7bd59d304c7671d8d0f2f1f0f4f16d5c5210b08b3e"
+    },
+    {
+      "id": "availability-contract-hash",
+      "status": "PASS",
+      "actual": "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036",
+      "expected": "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036"
+    },
+    {
+      "id": "snapshot-contract-hash",
+      "status": "PASS",
+      "actual": "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0",
+      "expected": "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0"
+    },
+    {
+      "id": "delegation-contract-hash",
+      "status": "PASS",
+      "actual": "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b",
+      "expected": "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b"
+    },
+    {
+      "id": "southbound-lock-lf-sha256",
+      "status": "PASS",
+      "actual": "51c189f2a4359b245b652eeb196410c742231db69dc0232d3f7057bb4368cdf0",
+      "expected": "51c189f2a4359b245b652eeb196410c742231db69dc0232d3f7057bb4368cdf0"
+    },
+    {
+      "id": "southbound-lock-schema-v2",
+      "status": "PASS",
+      "actual": "2.0;default=31;preview=89",
+      "expected": "2.0;default=31;preview=89"
+    },
+    {
+      "id": "compatibility-report",
+      "status": "PASS",
+      "actual": "ADDITIVE;breaking=0;promoted=10",
+      "expected": "ADDITIVE;breaking=0;promoted=10"
+    },
+    {
+      "id": "extracted-file-count",
+      "status": "PASS",
+      "actual": "64",
+      "expected": "64"
+    },
+    {
+      "id": "raw-crlf-materialization-count",
+      "status": "PASS",
+      "actual": "64",
+      "expected": "64"
+    },
+    {
+      "id": "materialization-tree-sha256",
+      "status": "PASS",
+      "actual": "sha256:d6a0f4ad900134ab06f00d2cbbf11f591d55e620d313b784741dd0e92808d8a7",
+      "expected": "sha256:d6a0f4ad900134ab06f00d2cbbf11f591d55e620d313b784741dd0e92808d8a7"
+    },
+    {
+      "id": "archive-file-count",
+      "status": "PASS",
+      "actual": "64",
+      "expected": "64"
+    },
+    {
+      "id": "archive-extracted-materialization",
+      "status": "PASS",
+      "actual": "64 byte-identical files",
+      "expected": "64 byte-identical files"
+    },
+    {
+      "id": "provider-url-token-db-topology-secrets",
+      "status": "PASS",
+      "actual": "0",
+      "expected": "0"
+    },
+    {
+      "id": "package-integrity-evidence",
+      "status": "PASS",
+      "actual": "CURRENT",
+      "expected": "CURRENT"
+    }
+  ],
+  "status": "PASS"
+}
