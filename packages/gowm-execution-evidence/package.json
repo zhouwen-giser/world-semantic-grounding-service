@@ -1,0 +1,9 @@
+{
+  "name": "@wsgs/gowm-execution-evidence",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": "./dist/index.js"
+}

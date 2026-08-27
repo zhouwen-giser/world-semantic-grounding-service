@@ -1,0 +1,485 @@
+import type {
+  PortRequirement,
+  QuerySemanticPattern,
+  SchemaPort,
+  SemanticCapabilityRequirement,
+  SnapshotMode,
+  WorldQueryNode
+} from "./types.js";
+
+type RequirementContract = Omit<
+  SemanticCapabilityRequirement,
+  "requirementId" | "semanticCapability" | "requiredForProduct" | "snapshotMode"
+>;
+
+export interface QueryTemplateLink {
+  sourceStepId: string;
+  outputPort: string;
+  inputName: string;
+  targetPath: string;
+}
+
+export interface QueryTemplateRequestBinding {
+  inputName: string;
+  path: string;
+  targetPath: string;
+  port?: SchemaPort;
+}
+
+export interface QueryTemplateLiteralBinding {
+  inputName: string;
+  value: unknown;
+  targetPath: string;
+  port: SchemaPort;
+}
+
+export interface QueryTemplateStep {
+  stepId: string;
+  requirement: RequirementContract;
+  costWeight: number;
+  failurePolicy: WorldQueryNode["failurePolicy"];
+  links: readonly QueryTemplateLink[];
+  requestBindings?: readonly QueryTemplateRequestBinding[];
+  literalBindings?: readonly QueryTemplateLiteralBinding[];
+}
+
+export interface QueryTemplateRule {
+  templateId: string;
+  pattern: Exclude<QuerySemanticPattern, "TERRAIN_VISIBILITY">;
+  maturity: "STABLE" | "PREVIEW";
+  allowDegraded: boolean;
+  defaultSnapshotMode?: SnapshotMode;
+  steps: readonly QueryTemplateStep[];
+}
+
+const requestPort = (
+  valueKind: PortRequirement["valueKind"] = "ANY",
+  unitSemantics: PortRequirement["unitSemantics"] = "UNSPECIFIED"
+): PortRequirement => ({
+  name: "request",
+  valueKind,
+  unitSemantics
+});
+
+const resultPort = (
+  valueKind: PortRequirement["valueKind"] = "ANY",
+  unitSemantics: PortRequirement["unitSemantics"] = "UNSPECIFIED"
+): PortRequirement => ({
+  name: "result",
+  valueKind,
+  unitSemantics
+});
+
+const stringLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:string",
+  schemaHash: "sha256:a71d355802de7ff21b9c9d9214a1ba71b3648866bcf1b7c0f4ff3b656485c6d5",
+  valueKind: "ANY",
+  unitSemantics: "UNSPECIFIED"
+};
+
+const schemaVersionLiteral: QueryTemplateLiteralBinding = {
+  inputName: "schemaVersion",
+  value: "1.0",
+  targetPath: "/schemaVersion",
+  port: stringLiteralPort
+};
+
+function contract(
+  operationKey: string,
+  values: Omit<RequirementContract, "allowedOperationKeys" | "selectionPriority">
+): RequirementContract {
+  return {
+    ...values,
+    allowedOperationKeys: [operationKey],
+    selectionPriority: [operationKey]
+  };
+}
+
+const resolveReference: QueryTemplateStep = {
+  stepId: "resolve-reference",
+  costWeight: 1,
+  failurePolicy: "FAIL_FAST",
+  links: [],
+  requirement: contract("reference.resolve@1.0", {
+    domain: "REFERENCE",
+    relationSemantics: ["RESOLVES_TO"],
+    acceptedReferenceKinds: [],
+    producedReferenceKinds: ["WORLD_OBJECT"],
+    spatialSemantics: "NONE",
+    timeSemantics: "SNAPSHOT",
+    resultNature: "FACT",
+    inputPorts: [requestPort()],
+    outputPorts: [{ name: "candidateReferenceKey", valueKind: "REFERENCE_KEY", unitSemantics: "UNSPECIFIED" }]
+  })
+};
+
+const referenceLink: QueryTemplateLink = {
+  sourceStepId: "resolve-reference",
+  outputPort: "candidateReferenceKey",
+  inputName: "referenceKey",
+  targetPath: "/referenceKey"
+};
+
+const geometryLink: QueryTemplateLink = {
+  sourceStepId: "read-geometry",
+  outputPort: "geometry",
+  inputName: "geometry",
+  targetPath: "/geometry"
+};
+
+function worldFactStep(
+  stepId: string,
+  operationId: string,
+  relations: readonly string[],
+  outputPorts: readonly PortRequirement[] = [resultPort()]
+): QueryTemplateStep {
+  return {
+    stepId,
+    costWeight: 2,
+    failurePolicy: "FAIL_FAST",
+    links: [referenceLink],
+    literalBindings: [schemaVersionLiteral],
+    requirement: contract(`${operationId}@1.0`, {
+      domain: "WORLD_STATE",
+      relationSemantics: relations,
+      acceptedReferenceKinds: ["WORLD_OBJECT"],
+      producedReferenceKinds: ["WORLD_OBJECT"],
+      spatialSemantics: "NONE",
+      timeSemantics: "SNAPSHOT",
+      resultNature: "FACT",
+      inputPorts: [requestPort()],
+      outputPorts
+    })
+  };
+}
+
+const readGeometry = worldFactStep("read-geometry", "world.get-geometry", ["HAS_GEOMETRY"], [
+  { name: "geometry", valueKind: "GEOMETRY", unitSemantics: "ANGULAR_DEGREES" }
+]);
+
+function spatialStep(
+  stepId: string,
+  operationId: string,
+  relation: string,
+  link: QueryTemplateLink,
+  producedReferenceKinds: readonly string[] = ["WORLD_OBJECT"],
+  requestBindings: readonly QueryTemplateRequestBinding[] = []
+): QueryTemplateStep {
+  return {
+    stepId,
+    costWeight: 4,
+    failurePolicy: "FAIL_FAST",
+    links: [link],
+    requestBindings,
+    requirement: contract(`${operationId}@1.0`, {
+      domain: "SPATIAL",
+      relationSemantics: [relation],
+      acceptedReferenceKinds: [],
+      producedReferenceKinds,
+      spatialSemantics: "EXACT",
+      timeSemantics: "SNAPSHOT",
+      resultNature: "FACT",
+      inputPorts: [requestPort()],
+      outputPorts: [resultPort("ROW_SET")]
+    })
+  };
+}
+
+export const queryTemplateRules: readonly QueryTemplateRule[] = [
+  {
+    templateId: "reference-identity",
+    pattern: "REFERENCE_IDENTITY",
+    maturity: "STABLE",
+    allowDegraded: false,
+    steps: [
+      resolveReference,
+      {
+        stepId: "validate-reference",
+        costWeight: 1,
+        failurePolicy: "FAIL_FAST",
+        links: [referenceLink],
+        requirement: contract("reference.validate@1.0", {
+          domain: "PLATFORM",
+          relationSemantics: ["VALIDATES"],
+          acceptedReferenceKinds: ["WORLD_OBJECT"],
+          producedReferenceKinds: [],
+          spatialSemantics: "NONE",
+          timeSemantics: "SNAPSHOT",
+          resultNature: "VALIDATION",
+          inputPorts: [requestPort()],
+          outputPorts: [resultPort("ROW_SET")]
+        })
+      }
+    ]
+  },
+  {
+    templateId: "reference-current-state",
+    pattern: "REFERENCE_CURRENT_STATE",
+    maturity: "STABLE",
+    allowDegraded: false,
+    steps: [resolveReference, worldFactStep("read-current-state", "world.get-current-state", [])]
+  },
+  {
+    templateId: "reference-geometry",
+    pattern: "REFERENCE_GEOMETRY",
+    maturity: "STABLE",
+    allowDegraded: false,
+    steps: [resolveReference, readGeometry]
+  },
+  {
+    templateId: "reference-provenance",
+    pattern: "REFERENCE_PROVENANCE",
+    maturity: "STABLE",
+    allowDegraded: false,
+    steps: [resolveReference, worldFactStep("read-provenance", "world.get-provenance", [])]
+  },
+  {
+    templateId: "catalog-search",
+    pattern: "CATALOG_SEARCH",
+    maturity: "STABLE",
+    allowDegraded: true,
+    steps: [{
+      stepId: "search-catalog",
+      costWeight: 2,
+      failurePolicy: "ALLOW_PARTIAL",
+      links: [],
+      requirement: contract("catalog.search@1.0", {
+        domain: "CATALOG",
+        relationSemantics: ["DISCOVERS_DATA_PRODUCT"],
+        acceptedReferenceKinds: [],
+        producedReferenceKinds: ["DATASET"],
+        spatialSemantics: "NONE",
+        timeSemantics: "SNAPSHOT",
+        resultNature: "CATALOG",
+        inputPorts: [requestPort()],
+        outputPorts: [resultPort("ROW_SET")]
+      })
+    }]
+  },
+  {
+    templateId: "reference-nearby",
+    pattern: "REFERENCE_NEARBY",
+    maturity: "STABLE",
+    allowDegraded: false,
+    steps: [
+      resolveReference,
+      readGeometry,
+      spatialStep("find-nearby", "spatial.find-nearby", "NEAR", {
+        ...geometryLink,
+        targetPath: "/location"
+      }, ["WORLD_OBJECT"], [{
+        inputName: "radiusM",
+        path: "/distanceM",
+        targetPath: "/radiusM",
+        port: {
+          schemaUri: "urn:gowm:v0.2:value:number",
+          schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348",
+          valueKind: "ANY",
+          unitSemantics: "UNSPECIFIED"
+        }
+      }])
+    ]
+  },
+  {
+    templateId: "reference-in-area",
+    pattern: "REFERENCE_IN_AREA",
+    maturity: "STABLE",
+    allowDegraded: false,
+    steps: [
+      resolveReference,
+      readGeometry,
+      spatialStep("find-in-area", "spatial.find-in-area", "INSIDE", geometryLink)
+    ]
+  },
+  {
+    templateId: "reference-intersections",
+    pattern: "REFERENCE_INTERSECTIONS",
+    maturity: "STABLE",
+    allowDegraded: false,
+    steps: [
+      resolveReference,
+      readGeometry,
+      spatialStep("find-intersections", "spatial.find-intersections", "INTERSECTS", geometryLink)
+    ]
+  },
+  {
+    templateId: "prior-result-revalidation",
+    pattern: "PRIOR_RESULT_REVALIDATION",
+    maturity: "STABLE",
+    allowDegraded: false,
+    defaultSnapshotMode: "PINNED",
+    steps: [{
+      stepId: "validate-reference",
+      costWeight: 1,
+      failurePolicy: "FAIL_FAST",
+      links: [],
+      requirement: contract("reference.validate@1.0", {
+        domain: "PLATFORM",
+        relationSemantics: ["VALIDATES"],
+        acceptedReferenceKinds: ["WORLD_OBJECT"],
+        producedReferenceKinds: [],
+        spatialSemantics: "NONE",
+        timeSemantics: "SNAPSHOT",
+        resultNature: "VALIDATION",
+        inputPorts: [requestPort()],
+        outputPorts: [resultPort("ROW_SET")]
+      })
+    }, {
+      stepId: "validate-snapshot",
+      costWeight: 1,
+      failurePolicy: "FAIL_FAST",
+      links: [{
+        sourceStepId: "validate-reference",
+        outputPort: "result",
+        inputName: "validationResult",
+        targetPath: "/validationResult"
+      }],
+      requirement: contract("snapshot.validate@1.0", {
+        domain: "PLATFORM",
+        relationSemantics: ["VALIDATES_SNAPSHOT"],
+        acceptedReferenceKinds: [],
+        producedReferenceKinds: [],
+        spatialSemantics: "NONE",
+        timeSemantics: "SNAPSHOT",
+        resultNature: "VALIDATION",
+        inputPorts: [requestPort()],
+        outputPorts: [resultPort()]
+      })
+    }]
+  },
+  {
+    templateId: "reference-event-timeline",
+    pattern: "REFERENCE_EVENT_TIMELINE",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [
+      resolveReference,
+      worldFactStep("read-event-timeline", "world.get-event-timeline", [], [resultPort("ROW_SET")])
+    ]
+  },
+  {
+    templateId: "reference-containing-area",
+    pattern: "REFERENCE_CONTAINING_AREA",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [
+      resolveReference,
+      readGeometry,
+      spatialStep(
+        "find-containing-area",
+        "spatial.find-containing-area",
+        "CONTAINS",
+        geometryLink,
+        ["LAYER_FEATURE"]
+      )
+    ]
+  },
+  {
+    templateId: "h3-neighborhood",
+    pattern: "H3_NEIGHBORHOOD",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [{
+      stepId: "h3-neighborhood",
+      costWeight: 1,
+      failurePolicy: "FAIL_FAST",
+      links: [],
+      requirement: contract("h3.neighborhood.disk@1.0", {
+        domain: "H3",
+        relationSemantics: [],
+        acceptedReferenceKinds: [],
+        producedReferenceKinds: [],
+        spatialSemantics: "CANDIDATE",
+        timeSemantics: "NONE",
+        resultNature: "DERIVED",
+        inputPorts: [requestPort("H3_CELL_SET", "DISCRETE")],
+        outputPorts: [resultPort("H3_CELL_SET", "DISCRETE")]
+      })
+    }]
+  },
+  {
+    templateId: "h3-exact-verify",
+    pattern: "H3_EXACT_VERIFY",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [{
+      stepId: "candidate-cover",
+      costWeight: 1,
+      failurePolicy: "FAIL_FAST",
+      links: [],
+      requirement: contract("h3.geometry.cover@1.0", {
+        domain: "H3",
+        relationSemantics: ["CANDIDATE_COVER"],
+        acceptedReferenceKinds: [],
+        producedReferenceKinds: [],
+        spatialSemantics: "EXACT",
+        timeSemantics: "NONE",
+        resultNature: "DERIVED",
+        inputPorts: [requestPort("GEOMETRY", "ANGULAR_DEGREES")],
+        outputPorts: [resultPort("H3_CELL_SET", "DISCRETE")],
+        allowCandidateWithExactVerification: true
+      })
+    }]
+  },
+  {
+    templateId: "operational-correlation-timeline",
+    pattern: "EXTERNAL_CORRELATION_TIMELINE",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [{
+      stepId: "resolve-correlation",
+      costWeight: 2,
+      failurePolicy: "FAIL_FAST",
+      links: [],
+      requirement: contract("correlation.resolve@1.0", {
+        domain: "TEMPORAL",
+        relationSemantics: ["CORRELATES_WITH"],
+        acceptedReferenceKinds: [],
+        producedReferenceKinds: ["OPERATIONAL_TASK"],
+        spatialSemantics: "NONE",
+        timeSemantics: "INTERVAL",
+        resultNature: "PROJECTION",
+        inputPorts: [requestPort()],
+        outputPorts: [resultPort()]
+      })
+    }]
+  },
+  {
+    templateId: "predicate-evaluation",
+    pattern: "EXTERNAL_PREDICATE_EVALUATION",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [{
+      stepId: "evaluate-predicate",
+      costWeight: 2,
+      failurePolicy: "FAIL_FAST",
+      links: [],
+      requirement: contract("predicate.evaluate@1.0", {
+        domain: "ANALYSIS",
+        relationSemantics: ["EVALUATES_PREDICATE"],
+        acceptedReferenceKinds: [],
+        producedReferenceKinds: [],
+        spatialSemantics: "NONE",
+        timeSemantics: "SNAPSHOT",
+        resultNature: "VALIDATION",
+        inputPorts: [requestPort()],
+        outputPorts: [resultPort()]
+      })
+    }]
+  }
+] as const;
+
+export function semanticRequirementFor(
+  rule: QueryTemplateRule,
+  step: QueryTemplateStep,
+  requiredForProduct: string,
+  snapshotMode: SnapshotMode
+): SemanticCapabilityRequirement {
+  return {
+    requirementId: `${rule.templateId}:${step.stepId}`,
+    semanticCapability: `${rule.pattern}:${step.stepId}`,
+    requiredForProduct,
+    snapshotMode,
+    ...step.requirement
+  };
+}

@@ -1,184 +1,221 @@
-import { createHash } from "node:crypto";
-import type { CapabilityDescriptor, CapabilityPort, OperationLock } from "@wsgs/gowm-gateway-client";
 import { describe, expect, it } from "vitest";
-import type { CompileInput, QuerySemanticPattern } from "./types.js";
-import { TypedWorldQueryCompiler, validateCompiledPlan } from "./index.js";
+import { defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
+import type { WorldQueryPlanV2 } from "./types.js";
+import {
+  GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH,
+  TypedWorldQueryCompiler,
+  validateCompiledPlan
+} from "./index.js";
+import { compileInput } from "./test-fixtures.js";
 
-const operationProviders: Record<string, string> = {
-  "reference.resolve": "gowm.reference-catalog",
-  "world.get-current-state": "gowm.world-evidence",
-  "world.get-geometry": "gowm.world-evidence",
-  "world.get-provenance": "gowm.world-evidence",
-  "world.get-event-timeline": "gowm.world-evidence",
-  "spatial.find-nearby": "gowm.spatial-analysis.bridge",
-  "spatial.find-in-area": "gowm.spatial-analysis.bridge",
-  "spatial.find-containing-area": "gowm.spatial-analysis.bridge",
-  "h3.neighborhood.disk": "gowm.h3.interactive",
-  "correlation.resolve": "gowm.operational-reality",
-  "operational-task.get-timeline": "gowm.operational-reality",
-  "predicate.evaluate": "gowm.operational-reality"
-};
-
-function digest(value: string): string {
-  return `sha256:${createHash("sha256").update(value).digest("hex")}`;
-}
-
-function port(name: string, operationId: string, direction: string, valueKind = "ANY", unitSemantics = "UNSPECIFIED"): CapabilityPort {
-  return {
-    name,
-    schemaUri: `urn:test:${operationId}:${direction}`,
-    schemaHash: digest(`${operationId}:${direction}:${name}`),
-    valueKind,
-    unitSemantics
-  };
-}
-
-function operation(operationId: string): { lock: OperationLock; descriptor: CapabilityDescriptor } {
-  const inputSchemaHash = digest(`${operationId}:input`);
-  const outputSchemaHash = digest(`${operationId}:output`);
-  const providerId = operationProviders[operationId]!;
-  const outputPorts = operationId === "reference.resolve"
-    ? [port("result", operationId, "out"), port("candidateReferenceKey", operationId, "ref", "REFERENCE_KEY")]
-    : operationId === "correlation.resolve"
-      ? [port("result", operationId, "out"), port("operationalTaskReferenceKey", operationId, "ref", "REFERENCE_KEY")]
-      : operationId === "h3.neighborhood.disk"
-        ? [port("result", operationId, "out", "H3_CELL_SET", "DISCRETE")]
-        : [port("result", operationId, "out", "ROW_SET")];
-  return {
-    lock: { operationId, operationVersion: "1.0", providerId, maturity: "PREVIEW", inputSchemaHash, outputSchemaHash },
-    descriptor: {
-      operationId,
-      operationVersion: "1.0",
-      providerId,
-      maturity: "PREVIEW",
-      inputSchemaHash,
-      outputSchemaHash,
-      ports: { inputs: [port("request", operationId, "in")], outputs: outputPorts }
-    }
-  };
-}
-
-const all = Object.keys(operationProviders).map(operation);
-const capabilities = all.map((entry) => entry.descriptor);
-const operationLocks = all.map((entry) => entry.lock);
-const budgets = {
-  maximumNodes: 16,
-  maximumDepth: 16,
-  maximumRows: 100,
-  maximumCandidates: 100,
-  maximumOutputBytes: 1_000_000,
-  maximumExecutionMs: 10_000
-};
-
-function input(pattern: QuerySemanticPattern): CompileInput {
-  return {
-    requestId: "request-1",
-    idempotencyKey: "idem-1",
-    pattern,
-    requiredForProduct: "WORLD_EVIDENCE",
-    operationInput: { mentions: [{ mentionId: "m1", surfaceText: "road" }], distanceM: 500 },
-    capabilities,
-    operationLocks,
-    budgets
-  };
-}
-
-describe("TypedWorldQueryCompiler", () => {
+describe("TypedWorldQueryCompiler v2", () => {
   const compiler = new TypedWorldQueryCompiler();
 
   it.each([
+    ["REFERENCE_IDENTITY", ["reference.resolve", "reference.validate"]],
     ["REFERENCE_CURRENT_STATE", ["reference.resolve", "world.get-current-state"]],
     ["REFERENCE_GEOMETRY", ["reference.resolve", "world.get-geometry"]],
-    ["REFERENCE_EVENT_TIMELINE", ["reference.resolve", "world.get-event-timeline"]],
-    ["REFERENCE_NEARBY", ["reference.resolve", "spatial.find-nearby"]],
-    ["REFERENCE_IN_AREA", ["reference.resolve", "spatial.find-in-area"]],
-    ["EXTERNAL_CORRELATION_TIMELINE", ["correlation.resolve", "operational-task.get-timeline"]],
-    ["EXTERNAL_PREDICATE_EVALUATION", ["predicate.evaluate"]]
-  ] as const)("compiles only the approved %s operation mapping", (pattern, expected) => {
-    const result = compiler.compile(input(pattern));
+    ["REFERENCE_PROVENANCE", ["reference.resolve", "world.get-provenance"]],
+    ["CATALOG_SEARCH", ["catalog.search"]],
+    ["REFERENCE_NEARBY", ["reference.resolve", "world.get-geometry", "spatial.find-nearby"]],
+    ["REFERENCE_IN_AREA", ["reference.resolve", "world.get-geometry", "spatial.find-in-area"]],
+    ["REFERENCE_INTERSECTIONS", ["reference.resolve", "world.get-geometry", "spatial.find-intersections"]]
+  ] as const)("compiles stable recipe %s to its frozen typed DAG", (pattern, expectedOperations) => {
+    const result = compiler.compile(compileInput(pattern));
     expect(result.status).toBe("COMPILED");
     if (result.status !== "COMPILED") return;
-    expect(result.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual(expected);
-    expect(() => validateCompiledPlan(result.submission.plan)).not.toThrow();
-    expect(result.submission.plan.nodes.every((node) =>
-      node.operation.inputSchemaHash.startsWith("sha256:") && node.operation.outputSchemaHash.startsWith("sha256:")
-    )).toBe(true);
+    expect(result.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual(expectedOperations);
+    expect(result.bindings.map((binding) =>
+      `${binding.operationId}@${binding.operationVersion}`)).toEqual(
+        expectedOperations.map((operationId) => `${operationId}@1.0`)
+      );
+    expect(result.submission.snapshotPolicy).toEqual({
+      mode: "LATEST_AT_START",
+      allowDowngrade: false
+    });
+    expect(JSON.stringify(result)).not.toContain("providerId");
   });
 
-  it("keeps H3 approximate and requires an exact Spatial node for boundary-sensitive use", () => {
-    const approximate = compiler.compile(input("H3_NEIGHBORHOOD"));
-    expect(approximate).toMatchObject({
+  it("requires explicit preview opt-in and then compiles the preview operation", () => {
+    const rejected = compiler.compile(compileInput("H3_NEIGHBORHOOD"));
+    expect(rejected).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "MATURITY_NOT_ALLOWED" }
+    });
+
+    const allowed = compileInput("H3_NEIGHBORHOOD");
+    allowed.maturityPolicy.allowPreview = true;
+    const result = compiler.compile(allowed);
+    expect(result).toMatchObject({
       status: "COMPILED",
       policy: { approximateInput: true, exactVerificationRequired: false }
     });
-    const exact = compiler.compile(input("H3_EXACT_VERIFY"));
-    expect(exact).toMatchObject({
+  });
+
+  it("adds the locked exact verifier after a candidate-only H3 cover", () => {
+    const input = compileInput("H3_EXACT_VERIFY");
+    input.maturityPolicy.allowPreview = true;
+    const result = compiler.compile(input);
+    expect(result).toMatchObject({
       status: "COMPILED",
       policy: { approximateInput: true, exactVerificationRequired: true }
     });
-    if (exact.status === "COMPILED") {
-      expect(exact.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual([
-        "h3.neighborhood.disk", "spatial.find-nearby"
-      ]);
-    }
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual([
+      "h3.geometry.cover",
+      "spatial.find-intersections"
+    ]);
+    expect(result.bindings[1]?.selectionPolicy).toBe(
+      "EXACT_VERIFIER:spatial.find-intersections@1.0"
+    );
+    expect(result.submission.plan.nodes[1]?.inputs["candidateReferences"]).toMatchObject({
+      kind: "NODE_OUTPUT",
+      nodeId: "Node_1",
+      outputPort: "cells",
+      targetPath: "/candidateReferences",
+      port: { valueKind: "H3_CELL_SET", unitSemantics: "DISCRETE" }
+    });
   });
 
-  it("returns a blocking gap for visibility and never substitutes a similar operation", () => {
-    const result = compiler.compile(input("TERRAIN_VISIBILITY"));
+  it("returns a typed gap for terrain/visibility and never substitutes nearby", () => {
+    const result = compiler.compile(compileInput("TERRAIN_VISIBILITY"));
     expect(result).toMatchObject({
       status: "CAPABILITY_GAP",
-      gap: { reason: "UNSUPPORTED_EXPRESSION", blocking: true, details: { substituted: false } }
+      gap: {
+        reason: "UNSUPPORTED_EXPRESSION",
+        blocking: true,
+        details: { substituted: false }
+      }
     });
     expect(JSON.stringify(result)).not.toContain("spatial.find-nearby");
   });
 
-  it("fails before Gateway when an exact operation, provider, schema, or port drifts", () => {
-    const missing = input("REFERENCE_CURRENT_STATE");
-    missing.capabilities = missing.capabilities.filter((entry) => entry.operationId !== "world.get-current-state");
-    expect(compiler.compile(missing)).toMatchObject({ status: "CAPABILITY_GAP", gap: { reason: "NOT_REGISTERED" } });
-
-    const drift = input("REFERENCE_CURRENT_STATE");
-    drift.capabilities = drift.capabilities.map((entry) => entry.operationId === "world.get-current-state"
-      ? { ...entry, outputSchemaHash: digest("drift") }
-      : entry);
-    expect(compiler.compile(drift)).toMatchObject({ status: "CAPABILITY_GAP", gap: { reason: "SCHEMA_MISMATCH" } });
-
-    const missingPort = input("REFERENCE_CURRENT_STATE");
-    missingPort.capabilities = missingPort.capabilities.map((entry) => entry.operationId === "reference.resolve"
-      ? { ...entry, ports: { ...entry.ports, outputs: entry.ports.outputs.filter((portValue) => portValue.name !== "candidateReferenceKey") } }
-      : entry);
-    expect(compiler.compile(missingPort)).toMatchObject({ status: "CAPABILITY_GAP", gap: { reason: "SCHEMA_MISMATCH" } });
+  it("allocates budgets by recipe weight and cost class while respecting aggregate caller limits", () => {
+    const result = compiler.compile(compileInput("REFERENCE_NEARBY"));
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    const [resolve, geometry, nearby] = result.submission.plan.nodes;
+    expect(resolve!.budget.maximumExecutionMs).toBeLessThan(geometry!.budget.maximumExecutionMs);
+    expect(geometry!.budget.maximumExecutionMs).toBeLessThan(nearby!.budget.maximumExecutionMs);
+    for (const name of [
+      "maximumRows",
+      "maximumCandidates",
+      "maximumOutputBytes",
+      "maximumExecutionMs"
+    ] as const) {
+      expect(result.submission.plan.nodes.reduce((sum, node) => sum + node.budget[name], 0))
+        .toBeLessThanOrEqual(result.submission.plan.budgets[name]);
+    }
   });
 
-  it("rejects H3 unit drift instead of mixing angular, linear, and discrete units", () => {
-    const drift = input("H3_EXACT_VERIFY");
-    drift.capabilities = drift.capabilities.map((entry) => entry.operationId === "h3.neighborhood.disk"
-      ? {
-          ...entry,
-          ports: {
-            ...entry.ports,
-            outputs: entry.ports.outputs.map((output) => output.name === "result"
-              ? { ...output, unitSemantics: "LINEAR_METERS" }
-              : output)
-          }
-        }
-      : entry);
-    expect(compiler.compile(drift)).toMatchObject({ status: "CAPABILITY_GAP", gap: { reason: "SCHEMA_MISMATCH" } });
+  it("preserves the 1 km metre parameter and validates every operation/port endpoint", () => {
+    const input = compileInput("REFERENCE_NEARBY");
+    input.operationInput = {
+      schemaVersion: "1.0",
+      mentions: [{ mentionId: "m1", surfaceText: "2号车" }],
+      context: { anchorReferenceKeys: [] },
+      limitPerMention: 5
+    };
+    input.parameterValues = { distanceM: 1_000 };
+    const result = compiler.compile(input);
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.parameters).toEqual({
+      operationInput: {
+        schemaVersion: "1.0",
+        mentions: [{ mentionId: "m1", surfaceText: "2号车" }],
+        context: { anchorReferenceKeys: [] },
+        limitPerMention: 5
+      },
+      distanceM: 1_000
+    });
+    expect(result.submission.parameterSchemaHash).toBe(GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH);
+    expect(result.submission.plan.nodes.at(-1)?.inputs["radiusM"]).toMatchObject({
+      kind: "REQUEST_PATH",
+      path: "/distanceM",
+      targetPath: "/radiusM",
+      port: {
+        schemaUri: "urn:gowm:v0.2:value:number",
+        schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348"
+      }
+    });
+    expect(result.submission.plan.nodes[1]?.inputs["schemaVersion"]).toEqual({
+      kind: "LITERAL",
+      value: "1.0",
+      targetPath: "/schemaVersion",
+      port: {
+        schemaUri: "urn:gowm:v0.2:value:string",
+        schemaHash: "sha256:a71d355802de7ff21b9c9d9214a1ba71b3648866bcf1b7c0f4ff3b656485c6d5",
+        valueKind: "ANY",
+        unitSemantics: "UNSPECIFIED"
+      }
+    });
+    expect(() => defaultGowmConsumerSchemaRegistry().validate(
+      "platform/world-query-submission.schema.json",
+      result.submission
+    )).not.toThrow();
+    expect(() => validateCompiledPlan(result.submission.plan, input.capabilities)).not.toThrow();
   });
 
-  it("enforces aggregate budgets and never accepts a direct public plan", () => {
-    const bounded = input("REFERENCE_CURRENT_STATE");
-    bounded.budgets = { ...budgets, maximumNodes: 1 };
-    expect(compiler.compile(bounded)).toMatchObject({ status: "CAPABILITY_GAP", gap: { reason: "BUDGET_EXCEEDED" } });
-    const publicOperationInput = JSON.stringify(input("REFERENCE_CURRENT_STATE").operationInput);
-    expect(publicOperationInput).not.toContain("queryPlanVersion");
-    expect(publicOperationInput).not.toContain("operationId");
+  it("uses an explicit pinned manifest for prior-result revalidation", () => {
+    const input = compileInput("PRIOR_RESULT_REVALIDATION");
+    for (const operationId of ["reference.validate", "snapshot.validate"]) {
+      input.operationLocks.find((lock) => lock.operationId === operationId)!.snapshotSupport = "PINNED";
+    }
+    input.snapshotPolicy = {
+      mode: "PINNED",
+      allowDowngrade: false,
+      pinnedSnapshot: {
+        manifestVersion: "1.0",
+        queryId: "prior-query",
+        snapshotId: "snapshot-1"
+      }
+    };
+    const result = compiler.compile(input);
+    expect(result).toMatchObject({
+      status: "COMPILED",
+      submission: { snapshotPolicy: { mode: "PINNED", allowDowngrade: false } }
+    });
   });
 
-  it("produces a byte-stable canonical plan hash", () => {
-    const first = compiler.compile(input("REFERENCE_CURRENT_STATE"));
-    const second = compiler.compile(structuredClone(input("REFERENCE_CURRENT_STATE")));
-    expect(first).toEqual(second);
-    expect(first.status === "COMPILED" ? first.planHash : "").toMatch(/^sha256:[0-9a-f]{64}$/u);
+  it("rejects an insufficient caller budget before producing a plan", () => {
+    const input = compileInput("REFERENCE_NEARBY");
+    input.budgets.maximumNodes = 2;
+    expect(compiler.compile(input)).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "BUDGET_EXCEEDED" }
+    });
+  });
+
+  it("produces a byte-stable canonical plan hash for equivalent inputs", () => {
+    const firstInput = compileInput("REFERENCE_CURRENT_STATE");
+    firstInput.operationInput = { beta: 2, alpha: { zeta: true, gamma: false } };
+    const secondInput = compileInput("REFERENCE_CURRENT_STATE");
+    secondInput.operationInput = { alpha: { gamma: false, zeta: true }, beta: 2 };
+    const first = compiler.compile(firstInput);
+    const second = compiler.compile(secondInput);
+    expect(first.status).toBe("COMPILED");
+    expect(second.status).toBe("COMPILED");
+    if (first.status !== "COMPILED" || second.status !== "COMPILED") return;
+    expect(first.planHash).toBe(second.planHash);
+    expect(first.submission.plan).toEqual(second.submission.plan);
+  });
+
+  it("rejects a cyclic plan even when every referenced node exists", () => {
+    const compiled = compiler.compile(compileInput("REFERENCE_CURRENT_STATE"));
+    expect(compiled.status).toBe("COMPILED");
+    if (compiled.status !== "COMPILED") return;
+    const plan = structuredClone(compiled.submission.plan) as WorldQueryPlanV2;
+    const secondOutput = plan.outputs[0]!.binding;
+    plan.nodes[0]!.inputs = {
+      cycle: {
+        kind: "NODE_OUTPUT",
+        port: secondOutput.port,
+        nodeId: "Node_2",
+        outputPort: secondOutput.outputPort,
+        targetPath: "/referenceKey"
+      }
+    };
+    expect(() => validateCompiledPlan(plan)).toThrow("CYCLIC_PLAN");
   });
 });

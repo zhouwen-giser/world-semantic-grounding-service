@@ -7,18 +7,18 @@ import { GowmReferenceGrounder, ReferenceGroundingError } from "./index.js";
 const resolveLock: OperationLock = {
   operationId: "reference.resolve",
   operationVersion: "1.0",
-  providerId: "gowm.reference-catalog",
-  maturity: "PREVIEW",
-  inputSchemaHash: "sha256:16d73c457ce186f12557fe52bbebca65e757754ed6d00671faad7e3c65b46a0a",
-  outputSchemaHash: "sha256:d8cfb0673f90abd2c88b60522b3df0158f8035f69daf9b760a649566acf27749"
+  maturity: "STABLE",
+  inputSchemaHash: "sha256:90f4610871c7077358e9ce09bbf139194bf10feebc5eacd448fec0bd81817329",
+  outputSchemaHash: "sha256:5e0779610b6e8f0ec12c2d47cbfa99d23a2e92f503eaabf06969b732fa21cb41",
+  semanticProfileHash: "sha256:2345427b162f36cc0792116f20cd337f1e95e0e8284b000ab556b876c45328ad"
 };
 const validateLock: OperationLock = {
   operationId: "reference.validate",
   operationVersion: "1.0",
-  providerId: "gowm.reference-catalog",
-  maturity: "PREVIEW",
-  inputSchemaHash: "sha256:cc82bb4d811e91972d022d9742e20d66dfb00a4d00c02e5b7433c51fd252b19e",
-  outputSchemaHash: "sha256:db667246c3347ae334e49609df2ffada4fbae620d6812c187d50d3d260362384"
+  maturity: "STABLE",
+  inputSchemaHash: "sha256:02b86151775176b13aa80fc0a8c595621941ab6ca5b6ba777c78d300ec59fc4b",
+  outputSchemaHash: "sha256:e5f544f8d40c72dc1dc8039c4f5c83ed94b5d16624e05a68d47c65207941c75c",
+  semanticProfileHash: "sha256:a79f3acf2cb9a825b367a63da65b63ed0f59746f0847ae30f9fb173082be79fc"
 };
 const mention: MergedMention = {
   mentionId: "mention-1",
@@ -47,12 +47,15 @@ function envelope(lock: OperationLock, value: unknown, status = "COMPLETED"): Re
     operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
     status,
     output: { schemaUri: "urn:test", schemaHash: lock.outputSchemaHash, value },
-    computeSnapshot: {},
+    computeSnapshot: {
+      operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
+      schemas: { inputSchemaHash: lock.inputSchemaHash, outputSchemaHash: lock.outputSchemaHash }
+    },
     receipts: [],
     evidenceReferences: [],
     warnings: [],
     consumption: { outputBytes: 1 },
-    execution: { providerId: lock.providerId, providerVersion: "1.0.0", elapsedMs: 1 }
+    execution: { providerId: "gowm.runtime-binding", providerVersion: "1.0.0", elapsedMs: 1 }
   };
 }
 
@@ -173,13 +176,16 @@ describe("GowmReferenceGrounder", () => {
       .rejects.toMatchObject({ code: "INVALID_RESOLUTION_STATUS_OR_LIMIT" });
   });
 
-  it("fails closed on provider or output-schema authority drift", async () => {
+  it("fails closed on operation or schema authority drift without trusting provider identity", async () => {
     const gateway: GatewayOperationExecutor = {
       executeOperation: vi.fn(async (lock) => ({
         status: 200,
         value: {
           ...envelope(lock, resolveResult("UNRESOLVED", [])),
-          execution: { providerId: "wrong.provider", providerVersion: "1", elapsedMs: 1 }
+          computeSnapshot: {
+            operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
+            schemas: { inputSchemaHash: lock.inputSchemaHash, outputSchemaHash: `sha256:${"f".repeat(64)}` }
+          }
         }
       })),
       pollJob: vi.fn(async () => ({}))

@@ -1,6 +1,6 @@
 {
   "name": "world-semantic-grounding-service",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Neutral world semantic grounding and typed GOWM query compilation service",
@@ -22,7 +22,14 @@
     "contracts:check": "tsx validation/scripts/verify-gowm-intake.ts && node validation/scripts/verify-wsgs-contracts.mjs && node validation/scripts/verify-wsgs-v02-internal.mjs && npm run contracts:types:check",
     "architecture:check": "node validation/scripts/architecture-boundary.mjs",
     "acceptance:check": "node validation/scripts/generate-acceptance-ledger.mjs",
-    "check": "npm run contracts:check && npm run architecture:check && npm run acceptance:check && npm run typecheck && npm test"
+    "acceptance:v0.2:check": "node validation/scripts/generate-v02-acceptance-ledger.mjs",
+    "acceptance:v0.2:write": "node validation/scripts/generate-v02-acceptance-ledger.mjs --write",
+    "db:migrate": "node packages/runtime/dist/migrate.js",
+    "db:migrate:verify": "node packages/runtime/dist/migrate.js --assertions",
+    "gate:real:gowm": "tsx validation/scripts/real-gowm-gate.ts",
+    "gate:real:model": "tsx validation/scripts/real-model-gate.ts",
+    "gate:real:readiness": "tsx validation/scripts/real-production-readiness-gate.ts",
+    "check": "npm run contracts:check && npm run architecture:check && npm run acceptance:check && npm run acceptance:v0.2:check && npm run typecheck && npm test"
   },
   "dependencies": {
     "ajv": "8.20.0",

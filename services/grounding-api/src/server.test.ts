@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
+import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { SignJWT } from "jose";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FastifyInstance } from "fastify";
-import { createGroundingApi, type GroundingApiBackend, type GroundingIdentity } from "./index.js";
+import { createGroundingApi, ScopedRateBudget, type GroundingApiBackend, type GroundingIdentity } from "./index.js";
 
 const schemaDirectory = new URL("../../../contracts/wsgs-v0.1/contracts/", import.meta.url);
 const schemas = Object.fromEntries(readdirSync(schemaDirectory)
@@ -112,12 +113,13 @@ function backend(captured: GroundingIdentity[] = []): GroundingApiBackend {
   };
 }
 
-const staticIdentity: GroundingIdentity = {
-  principalId: "service-a",
-  actor: "sacs",
-  dataScope: "scope-a",
+const staticIdentity: GroundingIdentity = createGroundingIdentity({
+  servicePrincipalId: "service-a",
+  actorId: "sacs",
+  dataScopes: ["scope-a"],
+  datasetScopes: ["dataset-a"],
   permissions: ["grounding.read"]
-};
+});
 const apps: FastifyInstance[] = [];
 
 async function staticApp(captured: GroundingIdentity[] = [], service = backend(captured)): Promise<FastifyInstance> {
@@ -165,11 +167,19 @@ describe("grounding API", () => {
   it("derives identity/scope from trusted transport and rejects body injection", async () => {
     const captured: GroundingIdentity[] = [];
     const app = await staticApp(captured);
-    const injected = { ...requestBody(), dataScope: "scope-b" };
-    const response = await app.inject({
-      method: "POST", url: "/v1/groundings", headers: { "idempotency-key": "idem-1" }, payload: injected
-    });
-    expect(response.statusCode).toBe(400);
+    const injectedBodies = [
+      { ...requestBody(), dataScope: "scope-b" },
+      { ...requestBody(), delegated: { datasetScopes: ["dataset-b"] } },
+      { ...requestBody(), service_principal_id: "forged-service" },
+      { ...requestBody(), authorizationContextHash: `sha256:${"0".repeat(64)}` }
+    ];
+    for (const [index, injected] of injectedBodies.entries()) {
+      const response = await app.inject({
+        method: "POST", url: "/v1/groundings", headers: { "idempotency-key": `injected-${index}` }, payload: injected
+      });
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toMatchObject({ error: { code: "BODY_AUTHORITY_FIELD_FORBIDDEN" } });
+    }
     expect(captured).toEqual([]);
     await app.inject({
       method: "POST", url: "/v1/groundings", headers: { "idempotency-key": "idem-2" }, payload: requestBody()
@@ -191,7 +201,7 @@ describe("grounding API", () => {
     })).statusCode).toBe(400);
   });
 
-  it("authenticates JWT_SERVICE claims and rejects wrong audience/missing identity", async () => {
+  it("authenticates canonical arrays and compatible legacy scalar JWT_SERVICE claims", async () => {
     const key = new TextEncoder().encode("a-secure-test-key-with-at-least-32-bytes");
     const captured: GroundingIdentity[] = [];
     const app = await createGroundingApi({
@@ -201,13 +211,71 @@ describe("grounding API", () => {
     });
     apps.push(app);
     expect((await app.inject({ method: "GET", url: "/v1/capabilities" })).statusCode).toBe(401);
-    const wrong = await new SignJWT({ actor: "sacs", data_scope: "scope-a", permissions: ["grounding.read"] })
+    const wrong = await new SignJWT({ actorId: "sacs", dataScopes: ["scope-a"], datasetScopes: ["dataset-a"], permissions: ["grounding.read"] })
       .setProtectedHeader({ alg: "HS256" }).setSubject("service-a").setIssuer("https://issuer.test").setAudience("wrong").sign(key);
     expect((await app.inject({ method: "GET", url: "/v1/capabilities", headers: { authorization: `Bearer ${wrong}` } })).statusCode).toBe(401);
-    const valid = await new SignJWT({ actor: "sacs", data_scope: "scope-a", permissions: ["grounding.read"] })
+    const valid = await new SignJWT({
+      actorId: "sacs",
+      dataScopes: ["scope-a"],
+      datasetScopes: ["dataset-a"],
+      permissions: ["grounding.read"]
+    })
       .setProtectedHeader({ alg: "HS256" }).setSubject("service-a").setIssuer("https://issuer.test").setAudience("wsgs").sign(key);
     expect((await app.inject({ method: "GET", url: "/v1/capabilities", headers: { authorization: `Bearer ${valid}` } })).statusCode).toBe(200);
     expect(captured[0]).toEqual(staticIdentity);
+    expect(captured[0]).not.toHaveProperty("token");
+    expect(JSON.stringify(captured[0])).not.toContain(valid);
+
+    const legacy = await new SignJWT({
+      actor: "sacs",
+      data_scope: "scope-a",
+      dataset_scope: "dataset-a",
+      permissions: "grounding.read"
+    })
+      .setProtectedHeader({ alg: "HS256" }).setSubject("service-a").setIssuer("https://issuer.test").setAudience("wsgs").sign(key);
+    expect((await app.inject({ method: "GET", url: "/v1/capabilities", headers: { authorization: `Bearer ${legacy}` } })).statusCode).toBe(200);
+    expect(captured[1]).toEqual(staticIdentity);
+
+    const v1Legacy = await new SignJWT({ actor: "sacs", data_scope: "scope-a", permissions: ["grounding.read"] })
+      .setProtectedHeader({ alg: "HS256" }).setSubject("service-a").setIssuer("https://issuer.test").setAudience("wsgs").sign(key);
+    expect((await app.inject({ method: "GET", url: "/v1/capabilities", headers: { authorization: `Bearer ${v1Legacy}` } })).statusCode).toBe(200);
+    expect(captured[2]).toEqual(createGroundingIdentity({
+      servicePrincipalId: "service-a",
+      actorId: "sacs",
+      dataScopes: ["scope-a"],
+      datasetScopes: [],
+      permissions: ["grounding.read"]
+    }));
+  });
+
+  it("rejects missing, duplicate, ambiguous, oversized, and invalid scope claims", async () => {
+    const key = new TextEncoder().encode("a-secure-test-key-with-at-least-32-bytes");
+    const service = backend();
+    const app = await createGroundingApi({
+      auth: { mode: "JWT_SERVICE", key, issuer: "https://issuer.test", audience: "wsgs" },
+      backend: service,
+      schemas
+    });
+    apps.push(app);
+    const rejectedClaims: Record<string, unknown>[] = [
+      { actorId: "sacs", datasetScopes: [], permissions: ["grounding.read"] },
+      { actorId: "sacs", dataScopes: ["scope-a", "scope-a"], datasetScopes: [], permissions: ["grounding.read"] },
+      { actorId: "sacs", dataScopes: ["scope a"], datasetScopes: [], permissions: ["grounding.read"] },
+      { actorId: "sacs", dataScopes: Array.from({ length: 33 }, (_value, index) => `scope-${index}`), datasetScopes: [], permissions: ["grounding.read"] },
+      { actorId: "sacs", dataScopes: ["scope-a"], data_scope: "scope-a", datasetScopes: [], permissions: ["grounding.read"] },
+      { actorId: "sacs", dataScopes: ["scope-a"], datasetScopes: ["dataset-a", "dataset-a"], permissions: ["grounding.read"] }
+    ];
+    for (const claims of rejectedClaims) {
+      const token = await new SignJWT(claims)
+        .setProtectedHeader({ alg: "HS256" })
+        .setSubject("service-a")
+        .setIssuer("https://issuer.test")
+        .setAudience("wsgs")
+        .sign(key);
+      const response = await app.inject({ method: "GET", url: "/v1/capabilities", headers: { authorization: `Bearer ${token}` } });
+      expect(response.statusCode).toBe(401);
+    }
+    expect(service.capabilities).not.toHaveBeenCalled();
   });
 
   it("polls and cancels only through the scoped backend and keeps not-found opaque", async () => {
@@ -218,7 +286,7 @@ describe("grounding API", () => {
     expect(cancelled.statusCode, cancelled.body).toBe(200);
     expect(cancelled.json()).toMatchObject({ status: "CANCELLED" });
     expect((await app.inject({ method: "GET", url: "/v1/groundings/missing" })).statusCode).toBe(404);
-    expect(captured.every((identity) => identity.dataScope === "scope-a")).toBe(true);
+    expect(captured.every((identity) => identity.dataScopes.includes("scope-a"))).toBe(true);
   });
 
   it("fails closed when backend output violates the frozen response schema", async () => {
@@ -266,7 +334,7 @@ describe("grounding API", () => {
     expect(service.create).not.toHaveBeenCalled();
   });
 
-  it("enforces a bounded rate budget independently per principal and scope", async () => {
+  it("enforces a bounded rate budget and resets expired windows", async () => {
     let time = 1_000;
     const app = await createGroundingApi({
       auth: { mode: "STATIC_TRUSTED", identity: staticIdentity },
@@ -284,6 +352,31 @@ describe("grounding API", () => {
     expect(rejected.json()).toMatchObject({ error: { code: "RATE_BUDGET_EXCEEDED" } });
     time += 1_000;
     expect((await send("three")).statusCode).toBe(200);
+  });
+
+  it("keys rate budgets by service principal, actor, data scope, and dataset scope", () => {
+    const budget = new ScopedRateBudget({ requests: 1, windowMs: 1_000, now: () => 1_000 });
+    budget.consume(staticIdentity);
+    expect(() => budget.consume(staticIdentity)).toThrowError(/RATE_BUDGET_EXCEEDED/u);
+
+    const variants = [
+      { servicePrincipalId: "service-b", actorId: "sacs", dataScopes: ["scope-a"], datasetScopes: ["dataset-a"] },
+      { servicePrincipalId: "service-a", actorId: "another-actor", dataScopes: ["scope-a"], datasetScopes: ["dataset-a"] },
+      { servicePrincipalId: "service-a", actorId: "sacs", dataScopes: ["scope-b"], datasetScopes: ["dataset-a"] },
+      { servicePrincipalId: "service-a", actorId: "sacs", dataScopes: ["scope-a"], datasetScopes: ["dataset-b"] }
+    ];
+    for (const variant of variants) {
+      expect(() => budget.consume(createGroundingIdentity({ ...variant, permissions: ["grounding.read"] }))).not.toThrow();
+    }
+
+    const sameAuthorityWithExtraPermission = createGroundingIdentity({
+      servicePrincipalId: "service-a",
+      actorId: "sacs",
+      dataScopes: ["scope-a"],
+      datasetScopes: ["dataset-a"],
+      permissions: ["grounding.read", "grounding.write"]
+    });
+    expect(() => budget.consume(sameAuthorityWithExtraPermission)).toThrowError(/RATE_BUDGET_EXCEEDED/u);
   });
 
   it("treats URL, SQL, and operation-looking prompt text as inert data", async () => {

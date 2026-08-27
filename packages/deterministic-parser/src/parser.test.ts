@@ -86,6 +86,37 @@ describe("deterministic reference parser", () => {
     expect(parsed.span).toEqual({ encoding: "UTF16_CODE_UNIT", start: 2, end: 5 });
     expect(assertValidUtf16Span(text, parsed.span, parsed.surfaceText)).toBe("🚗A");
     expect(() => assertValidUtf16Span(text, { ...parsed.span, end: 4 }, "🚗A")).toThrow(/does not match/u);
+    expect(() => assertValidUtf16Span(text, { encoding: "UTF16_CODE_UNIT", start: 2, end: 3 })).toThrow(/surrogate/u);
+  });
+
+  it("normalizes Chinese and English distance literals to exact integer millimetres", () => {
+    const originalText = "🚗半径1公里、200米，then 3 km and 500 m";
+    const result = parseDeterministicReferences({ originalText });
+    expect(result.distances?.map(({ surfaceText, millimetres, sourceUnit }) => ({ surfaceText, millimetres, sourceUnit }))).toEqual([
+      { surfaceText: "1公里", millimetres: 1_000_000, sourceUnit: "公里" },
+      { surfaceText: "200米", millimetres: 200_000, sourceUnit: "米" },
+      { surfaceText: "3 km", millimetres: 3_000_000, sourceUnit: "km" },
+      { surfaceText: "500 m", millimetres: 500_000, sourceUnit: "m" }
+    ]);
+    expect(result.distances?.every((entry) =>
+      originalText.slice(entry.span.start, entry.span.end) === entry.surfaceText && Number.isSafeInteger(entry.millimetres)
+    )).toBe(true);
+  });
+
+  it("parses only valid explicit ISO timestamps and absolute start/end ranges", () => {
+    const instant = "2026-08-27T09:00:00Z";
+    const from = "2026-08-27T10:00:00+08:00";
+    const to = "2026-08-27T12:30:00+08:00";
+    const originalText = `at ${instant}, window ${from}/${to}; ignore 2026-02-30T09:00:00Z and 2026-08-27`;
+    const result = parseDeterministicReferences({ originalText });
+    expect(result.absoluteTimeConstraints).toMatchObject([
+      { kind: "INSTANT", surfaceText: instant, from: instant },
+      { kind: "RANGE", surfaceText: `${from}/${to}`, from, to }
+    ]);
+    expect(result.absoluteTimeConstraints).toHaveLength(2);
+    expect(result.absoluteTimeConstraints?.every((entry) =>
+      originalText.slice(entry.span.start, entry.span.end) === entry.surfaceText
+    )).toBe(true);
   });
 
   it("lets deterministic spans win over overlapping model spans", () => {
@@ -96,6 +127,22 @@ describe("deterministic reference parser", () => {
       { mentionId: "model-other", surfaceText: "区域", span: span(text, "区域") }
     ]);
     expect(kept.map((entry) => entry.mentionId)).toEqual(["model-other"]);
+  });
+
+  it("applies Map > KnownReference > Deterministic precedence for overlapping text", () => {
+    const text = "查询目标code DEV-77";
+    const result = parseDeterministicReferences({
+      originalText: text,
+      knownWorldReferences: [
+        { alias: "目标", referenceKey, referenceType: "vehicle", sourceMessageId: "message-1" },
+        { alias: "DEV-77", referenceKey, referenceType: "vehicle", sourceMessageId: "message-1" }
+      ],
+      mapSelections: [{ selectionId: "selection", label: "目标", kind: "FEATURE", revision: 1 }]
+    });
+    expect(result.mentions.map((entry) => [entry.surfaceText, entry.extractionSource])).toEqual([
+      ["目标", "CLIENT_MAP"],
+      ["DEV-77", "KNOWN_REFERENCE"]
+    ]);
   });
 
   it("accepts explicit GOWM ReferenceKey objects and prior pointers without inventing contents", () => {
@@ -111,6 +158,25 @@ describe("deterministic reference parser", () => {
       resultHash: `sha256:${"b".repeat(64)}`,
       selectedProductIds: ["product-1"]
     }]);
+  });
+
+  it("rejects ReferenceKey literals outside the complete frozen shape", () => {
+    const invalid = JSON.stringify({ ...referenceKey, providerId: "forbidden" });
+    const result = parseDeterministicReferences({
+      originalText: invalid,
+      focusSpans: [{ encoding: "UTF16_CODE_UNIT", start: 0, end: invalid.length }]
+    });
+    expect(result.mentions).toEqual([]);
+    expect(result.warnings).toEqual([`UNRECOGNIZED_FOCUS_SPAN:0:${invalid.length}`]);
+    expect(() => parseDeterministicReferences({
+      originalText: "2号车",
+      knownWorldReferences: [{
+        alias: "2号车",
+        referenceKey: { ...referenceKey, version: "" },
+        referenceType: "vehicle",
+        sourceMessageId: "message-1"
+      }]
+    })).toThrow(/frozen northbound contract/u);
   });
 
   it("never fabricates ReferenceKey values for deterministic candidates", () => {

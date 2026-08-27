@@ -617,3 +617,5 @@ export function verifyGowmContractIntake(
 export function expectedGowmPackageIntegrityEvidence(): Readonly<PackageIntegrityEvidence> {
   return expectedPackageIntegrityEvidence();
 }
+
+export * from "./schema-registry.js";
