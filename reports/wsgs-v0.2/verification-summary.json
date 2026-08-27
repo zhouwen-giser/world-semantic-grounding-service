@@ -6,9 +6,10 @@
     "baseSha": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
     "implementationSha": "72b911ed9fc453d7c1d736ab551957e4ff4b8850",
     "deploymentSha": "9cf1f897cfc400c61c434fe1b34b31ab7f59c99b",
+    "sampleWorldFollowupEvidenceBaseSha": "5ef1acacd9214928be16cb3aaef1904cdb88f115",
     "gowmSourceSha": "17dd221330d9af540ec815a39eca96550690299a"
   },
-  "generatedAt": "2026-08-27T15:36:20.174Z",
+  "generatedAt": "2026-08-28T02:24:32.0850178+08:00",
   "timePolicy": "Execution dates are retained at day precision because raw terminal transcripts were not persisted. Durations and finer timestamps are not inferred.",
   "redaction": {
     "credentialsIncluded": false,
@@ -68,9 +69,9 @@
       "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
       "environmentCategory": "LOCAL_WINDOWS_NODE_NO_TEST_DATABASE_URLS",
       "counts": {
-        "testFilesPassed": 31,
+        "testFilesPassed": 32,
         "testFilesSkipped": 4,
-        "testsPassed": 278,
+        "testsPassed": 282,
         "testsSkipped": 20,
         "testsFailed": 0
       }
@@ -138,7 +139,40 @@
       "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
       "environmentCategory": "REAL_GOWM_0_6_3_DIAGNOSTIC_AFTER_FAIL_CLOSED_DRIFT",
       "counts": { "diagnosticChecksPassed": 7, "checksBlocked": 2, "checksFailed": 0 },
-      "note": "The non-zero exit is required while semantic authority and direct-operation 202 checks remain blocked."
+      "note": "Historical exact-source negative gate retained: the non-zero exit was required while that bundled lock and runtime semantic authority differed."
+    },
+    {
+      "id": "gowm-operational-lock-tests",
+      "command": "npx.cmd vitest run packages/gowm-contract-intake/src/operational-lock.test.ts",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_NODE",
+      "counts": { "testFilesPassed": 1, "testsPassed": 4, "testsSkipped": 0, "testsFailed": 0 },
+      "note": "Covers exact-byte operational-lock intake, expected hash pinning, schema rejection, and fail-closed mismatch behavior."
+    },
+    {
+      "id": "real-gowm-sample-public-handoff",
+      "command": "[public handoff and GOWM base URL set; no credentials] npm.cmd run gate:real:gowm:public-handoff",
+      "exitCode": 0,
+      "status": "PASS_PUBLIC_NO_CREDENTIALS",
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
+      "environmentCategory": "REAL_GOWM_0_6_3_SAMPLE_WORLD_PUBLIC_DISCOVERY",
+      "counts": {
+        "handoffFilesVerified": 12,
+        "expectedCasesVerified": 13,
+        "recordedCanariesPassed": 28,
+        "liveCapabilitiesVerified": 122,
+        "liveSemanticProfilesVerified": 122,
+        "unauthenticatedRequestsRejected": 2,
+        "failures": 0
+      },
+      "observed": {
+        "marker": "WSGS_GOWM_SAMPLE_PUBLIC_HANDOFF_PASS",
+        "availability": { "method": "GET", "path": "/v1/operation-availability", "httpStatus": 403, "protocolErrorCode": "SCOPE_DENIED" },
+        "directAsync": { "method": "POST", "path": "/v1/operations/world.get-current-state:execute", "expectedCaseId": "WORLD-STATE-UGV2", "requestHash": "sha256:4d15ac6dacc9f64b036226de2b0f81d1b1f147047b398c0ca1962f5b01c6e431", "deadlineAt": "2026-08-28T13:03:46.516Z", "advertisedExecutionMode": "SYNC", "httpStatus": 403, "protocolErrorCode": "SCOPE_DENIED" }
+      },
+      "note": "Exact operational lock and live public semantics match. Signed availability and execution were not attempted: BLOCKED — secure credential handoff authorization required."
     },
     {
       "id": "production-readiness-fail-closed",
@@ -152,10 +186,10 @@
     },
     {
       "id": "wsgs-image-build",
-      "command": "docker build --tag wsgs:0.2.0 .",
+      "command": "docker build --pull=false --tag wsgs:0.2.0 .",
       "exitCode": 0,
       "status": "PASS",
-      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
       "environmentCategory": "LOCAL_DOCKER_LINUX_AMD64_BUILD",
       "counts": { "imagesBuilt": 1, "buildFailures": 0 }
     },
@@ -167,6 +201,16 @@
       "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
       "environmentCategory": "LOCAL_DOCKER_IMAGE_INSPECTION",
       "counts": { "requiredRuntimeFilesPresent": 4, "requiredRuntimeFilesMissing": 0, "uid": 10001, "gid": 10001 }
+    },
+    {
+      "id": "wsgs-image-operational-lock-intake",
+      "command": "docker run --rm [read-only non-sensitive lock mount] wsgs:0.2.0 [exact operational-lock assertion]",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
+      "environmentCategory": "LOCAL_DOCKER_IMAGE_INSPECTION",
+      "counts": { "uid": 10001, "gid": 10001, "defaultOperations": 31, "previewOperations": 89, "hashMismatches": 0 },
+      "observed": { "operationLockHash": "sha256:765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686", "mountMode": "READ_ONLY" }
     },
     {
       "id": "postgres-image-digest",
@@ -184,7 +228,8 @@
       "status": "PASS",
       "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
       "environmentCategory": "LOCAL_DOCKER_COMPOSE_RENDER",
-      "counts": { "services": 4, "publishedPorts": 1, "configErrors": 0 }
+      "counts": { "services": 4, "publishedPorts": 1, "configErrors": 0 },
+      "note": "A second render with the Sample World non-sensitive lock verifies the API and worker share the read-only in-container lock path and use http://host.docker.internal:18063."
     },
     {
       "id": "compose-fresh-migration",
@@ -211,7 +256,7 @@
       "status": "PASS_BLOCKED_DECISION_RECORDED",
       "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
       "environmentCategory": "LOCAL_WINDOWS_REPORT_GENERATION",
-      "counts": { "required": 279, "pass": 186, "fail": 0, "notRun": 17, "blocked": 76 }
+      "counts": { "required": 279, "pass": 188, "fail": 0, "notRun": 17, "blocked": 74 }
     },
     {
       "id": "acceptance-ledger-check",
@@ -220,20 +265,22 @@
       "status": "PASS_BLOCKED_DECISION_VALIDATED",
       "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
       "environmentCategory": "LOCAL_WINDOWS_REPORT_VALIDATION",
-      "counts": { "required": 279, "pass": 186, "fail": 0, "notRun": 17, "blocked": 76 }
+      "counts": { "required": 279, "pass": 188, "fail": 0, "notRun": 17, "blocked": 74 }
     }
   ],
   "aggregate": {
     "staticAndUnitStatus": "PASS",
     "realPostgresqlStatus": "PASS",
     "realModelStatus": "PASS",
-    "realGowmStatus": "BLOCKED",
+    "realGowmPublicDiscoveryStatus": "PASS",
+    "realGowmAuthenticatedExecutionStatus": "BLOCKED_AUTHORIZATION_REQUIRED",
     "productionReadinessStatus": "FAIL_CLOSED_AS_REQUIRED",
     "deploymentArtifactStatus": "PASS",
     "candidateDecision": "BLOCKED"
   },
   "blockedClaims": [
     "TRUSTED_FULL_PRODUCTION_PIPELINE_E2E",
+    "SECURE_CREDENTIAL_HANDOFF_AUTHORIZATION_REQUIRED",
     "PINNED_PRIOR_RESULT_REPLAY",
     "DIRECT_OPERATION_202_LIFECYCLE",
     "PROCESS_CRASH_RESTART_IN_FLIGHT_RECOVERY",

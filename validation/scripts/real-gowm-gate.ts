@@ -1,7 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
 import { createGroundingIdentity, GowmDelegationSigner } from "@wsgs/delegated-identity";
+import {
+  GOWM_SOUTHBOUND_LOCK_LF_SHA256,
+  loadOperationalGowmLock
+} from "@wsgs/gowm-contract-intake";
 import {
   GowmGatewayClient,
   GatewayProtocolError,
@@ -201,10 +206,23 @@ async function main(): Promise<void> {
     }
   };
 
-  const lock = JSON.parse(await readFile(
-    new URL("../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json", import.meta.url),
-    "utf8"
-  )) as ConsumerLock;
+  const bundledLockPath = new URL(
+    "../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json",
+    import.meta.url
+  );
+  const externalLockPath = process.env["GOWM_SOUTHBOUND_LOCK_FILE"]?.trim();
+  const lockAuthority = externalLockPath
+    ? loadOperationalGowmLock({
+        lockPath: externalLockPath,
+        expectedSha256: required("GOWM_SOUTHBOUND_LOCK_SHA256") as `sha256:${string}`,
+        hashMode: "EXACT_BYTES"
+      })
+    : loadOperationalGowmLock({
+        lockPath: fileURLToPath(bundledLockPath),
+        expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_LF_SHA256}`,
+        hashMode: "CANONICAL_LF"
+      });
+  const lock = lockAuthority.lock as ConsumerLock;
   const allLocks = [...lock.defaultOperations, ...lock.previewOperations];
   const requiredLocks = expectedOperationIds.map((operationId) => {
     const operation = allLocks.find((entry) => entry.operationId === operationId && entry.operationVersion === "1.0");
@@ -323,22 +341,48 @@ async function main(): Promise<void> {
       entry.semanticProfileHash !== bundleBuildSha256(entry.semanticProfile)
     ).length;
     assertion(runtimeCanonicalHash === semantics.catalogHash, "LIVE_SEMANTIC_HASH_SELF_INCONSISTENT");
-    assertion(bundleCanonicalHash === lock.semanticCatalogHash, "BUNDLE_SEMANTIC_HASH_CAUSE_UNCONFIRMED");
+    if (!externalLockPath) {
+      assertion(bundleCanonicalHash === lock.semanticCatalogHash, "BUNDLE_SEMANTIC_HASH_CAUSE_UNCONFIRMED");
+    }
     checks.push({
       id: "consumer-semantic-lock",
       status: "BLOCKED",
       evidence: {
-        reason: "UPSTREAM_0_6_3_SEMANTIC_CATALOG_CANONICALIZATION_MISMATCH",
+        reason: externalLockPath
+          ? "PINNED_OPERATIONAL_LOCK_SEMANTIC_CATALOG_MISMATCH"
+          : "UPSTREAM_0_6_3_SEMANTIC_CATALOG_CANONICALIZATION_MISMATCH",
         expectedConsumerBundleHash: lock.semanticCatalogHash,
         observedLiveRuntimeHash: semantics.catalogHash,
         runtimeCanonicalHash,
-        bundleBuilderCanonicalHash: bundleCanonicalHash,
+        ...(externalLockPath ? {} : { bundleBuilderCanonicalHash: bundleCanonicalHash }),
         perProfileHashDifferences,
         wsgsReadiness: "FAIL_CLOSED",
         subsequentTransportChecks: "DIAGNOSTIC_ONLY"
       }
     });
   }
+
+  const validationLocks = allLocks.filter((entry) =>
+    entry.operationVersion === "1.0"
+      && (entry.operationId === "reference.validate" || entry.operationId === "result.validate")
+  );
+  const pinnedValidationReady = validationLocks.length === 2
+    && validationLocks.every((entry) => entry.snapshotSupport === "PINNED");
+  checks.push(pinnedValidationReady ? {
+    id: "pinned-prior-result-validation",
+    status: "PASS",
+    evidence: { operations: validationLocks.map((entry) => `${entry.operationId}@${entry.operationVersion}`) }
+  } : {
+    id: "pinned-prior-result-validation",
+    status: "BLOCKED",
+    evidence: {
+      reason: "PINNED_VALIDATION_OPERATION_UNAVAILABLE",
+      operations: validationLocks.map((entry) => ({
+        operationKey: `${entry.operationId}@${entry.operationVersion}`,
+        snapshotSupport: entry.snapshotSupport
+      }))
+    }
+  });
 
   async function direct(operationId: string, input: JsonObject, label: string): Promise<unknown> {
     const operationDescriptor = descriptor(operationId);
@@ -814,6 +858,8 @@ async function main(): Promise<void> {
       gatewayContractVersion: "0.6.3",
       transport: baseUrl.protocol,
       exactConsumerRevision: lock.contractCatalogRevision,
+      exactOperationalLockHash: lockAuthority.lockHash,
+      operationalLockSource: externalLockPath ? "PINNED_EXTERNAL" : "BUNDLED_SOURCE_LOCK",
       privateKeyPathHash: sha256(privateKeyPath),
       executionClassification: trustedReady ? "TRUSTED" : "DIAGNOSTIC_ONLY_AFTER_FAIL_CLOSED_CONTRACT_DRIFT"
     },

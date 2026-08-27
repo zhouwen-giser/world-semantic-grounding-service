@@ -19,8 +19,8 @@
     "version": "0.2.0",
     "implementationSha": "72b911ed9fc453d7c1d736ab551957e4ff4b8850",
     "deploymentSha": "9cf1f897cfc400c61c434fe1b34b31ab7f59c99b",
-    "localSha": "9cf1f897cfc400c61c434fe1b34b31ab7f59c99b",
-    "remoteSha": "1b263d4ef5521cd6773b0b728aa815660f54bed4",
+    "localSha": "5ef1acacd9214928be16cb3aaef1904cdb88f115",
+    "remoteSha": "5ef1acacd9214928be16cb3aaef1904cdb88f115",
     "baseSha": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
     "pullRequest": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/2",
     "pullRequestState": "DRAFT",
@@ -40,20 +40,20 @@
     "decision": "BLOCKED",
     "required": 279,
     "summary": {
-      "PASS": 186,
+      "PASS": 188,
       "FAIL": 0,
       "NOT_RUN": 17,
-      "BLOCKED": 76
+      "BLOCKED": 74
     }
   },
   "blockers": [
-    "LIVE_SEMANTIC_CATALOG_CANONICALIZATION_MISMATCH",
-    "GOWM_DIRECT_OPERATION_202_UNSUPPORTED",
+    "SECURE_CREDENTIAL_HANDOFF_AUTHORIZATION_REQUIRED",
+    "GOWM_DIRECT_OPERATION_202_AUTHENTICATED_PROBE_NOT_RUN",
     "PINNED_VALIDATION_OPERATION_UNAVAILABLE",
     "TRUSTED_PRODUCTION_PIPELINE_E2E_NOT_PROVEN",
     "RESTART_RECOVERY_MATRIX_INCOMPLETE",
     "LARGE_PAYLOAD_OBJECT_STORAGE_UNAVAILABLE",
     "FINAL_CANDIDATE_SHA_NOT_FORMED"
   ],
-  "next": "Keep Draft PR #2 blocked; remediate upstream semantic/direct/PINNED capability gaps, run the full trusted production and recovery matrix, then regenerate and synchronize the final ledger."
+  "next": "Keep Draft PR #2 blocked; obtain explicit secure credential handoff authorization, run signed availability/execution and the full trusted production/recovery matrix, and retain direct-202/PINNED blockers unless the authenticated protocol proves compatibility."
 }

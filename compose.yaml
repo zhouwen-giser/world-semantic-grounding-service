@@ -16,6 +16,8 @@ x-wsgs-runtime-environment: &wsgs-runtime-environment
   WSGS_REQUEST_ENCRYPTION_KEY_BASE64: ${WSGS_REQUEST_ENCRYPTION_KEY_BASE64:?Set WSGS_REQUEST_ENCRYPTION_KEY_BASE64 in .env}
   GOWM_GATEWAY_BASE_URL: ${GOWM_GATEWAY_BASE_URL:?Set GOWM_GATEWAY_BASE_URL in .env}
   GOWM_GATEWAY_TOKEN: ${GOWM_GATEWAY_TOKEN:?Set GOWM_GATEWAY_TOKEN in .env}
+  GOWM_SOUTHBOUND_LOCK_FILE: ${GOWM_SOUTHBOUND_LOCK_FILE:-}
+  GOWM_SOUTHBOUND_LOCK_SHA256: ${GOWM_SOUTHBOUND_LOCK_SHA256:-}
   GOWM_DELEGATION_ISSUER: ${GOWM_DELEGATION_ISSUER:?Set GOWM_DELEGATION_ISSUER in .env}
   GOWM_DELEGATION_AUDIENCE: ${GOWM_DELEGATION_AUDIENCE:?Set GOWM_DELEGATION_AUDIENCE in .env}
   GOWM_DELEGATION_SERVICE_PRINCIPAL_ID: ${GOWM_DELEGATION_SERVICE_PRINCIPAL_ID:?Set GOWM_DELEGATION_SERVICE_PRINCIPAL_ID in .env}
@@ -80,6 +82,11 @@ services:
       WSGS_JWT_AUDIENCE: ${WSGS_JWT_AUDIENCE:-wsgs}
     secrets:
       - gowm_delegation_private_key
+    volumes:
+      - type: bind
+        source: ${GOWM_SOUTHBOUND_LOCK_HOST_FILE:-./contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json}
+        target: /run/wsgs/gowm-southbound-operation-lock.json
+        read_only: true
     ports:
       - "127.0.0.1:${WSGS_API_PORT:-8080}:8080"
     depends_on:
@@ -95,6 +102,11 @@ services:
       WSGS_WORKER_SHUTDOWN_GRACE_MS: ${WSGS_WORKER_SHUTDOWN_GRACE_MS:-15000}
     secrets:
       - gowm_delegation_private_key
+    volumes:
+      - type: bind
+        source: ${GOWM_SOUTHBOUND_LOCK_HOST_FILE:-./contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json}
+        target: /run/wsgs/gowm-southbound-operation-lock.json
+        read_only: true
     command: ["node", "services/grounding-worker/dist/main.js"]
     healthcheck:
       test:

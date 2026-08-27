@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0",
+  "gate": "validation/scripts/verify-gowm-sample-handoff.ts",
+  "status": "BLOCKED",
+  "publicGateStatus": "PASS",
+  "executionTime": {
+    "executedOn": "2026-08-28",
+    "precision": "day"
+  },
+  "source": {
+    "sourceThreadId": "01a04307-cb6f-7bb1-a88d-0617612ba7c0",
+    "fixtureId": "gowm-wsgs-sample-world",
+    "fixtureVersion": "1.0.0",
+    "realizationId": "sample-realization-b24a5c48-e1f0-5031-90df-29d21d068777",
+    "realizationT0": "2026-08-27T13:03:46.516Z",
+    "realizationHash": "sha256:b988ff9f163ebb5a4e4cecb167f88f53ad0222820418e9ee753e38238f851e07"
+  },
+  "handoff": {
+    "files": 12,
+    "expectedCases": 13,
+    "canaryCasesPassed": 28,
+    "consumerConnectivityStatus": "PASS",
+    "authMode": "SIGNED_DELEGATION_V1",
+    "operationLockHash": "sha256:765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686",
+    "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
+    "bindingRevision": "sha256:1d59337bcbd8cb8dd76d0241d08b8c7618f61daa6e9c43d25db45c11994f1394",
+    "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61"
+  },
+  "livePublicDiscovery": {
+    "healthHttpStatus": 200,
+    "healthStatus": "degraded",
+    "livenessHttpStatus": 200,
+    "livenessStatus": "ok",
+    "capabilityCount": 122,
+    "semanticProfileCount": 122,
+    "contractCatalogRevisionMatch": true,
+    "bindingRevisionMatch": true,
+    "semanticCatalogHashMatch": true,
+    "semanticProfileContentHashesMatch": true,
+    "requiredOperationsDiscovered": 12,
+    "unauthenticatedAvailability": {
+      "method": "GET",
+      "path": "/v1/operation-availability",
+      "httpStatus": 403,
+      "protocolErrorCode": "SCOPE_DENIED"
+    },
+    "unauthenticatedDirectAsyncProbe": {
+      "method": "POST",
+      "path": "/v1/operations/world.get-current-state:execute",
+      "expectedCaseId": "WORLD-STATE-UGV2",
+      "requestHash": "sha256:4d15ac6dacc9f64b036226de2b0f81d1b1f147047b398c0ca1962f5b01c6e431",
+      "deadlineAt": "2026-08-28T13:03:46.516Z",
+      "requestedExecution": "ASYNC",
+      "advertisedExecutionMode": "SYNC",
+      "httpStatus": 403,
+      "protocolErrorCode": "SCOPE_DENIED",
+      "responseHash": "sha256:7b736c1eadc3429dea4bec906b51214d484b6e0dc0cb7387d7f5b10bc01903f3"
+    }
+  },
+  "compatibility": {
+    "previousSemanticCanonicalizationBlocker": "RESOLVED_FOR_PINNED_SAMPLE_OPERATIONAL_CANDIDATE",
+    "authenticatedAvailability": "NOT_RUN",
+    "authenticatedDirectExecution": "NOT_RUN",
+    "directOperation202Lifecycle": "NOT_RUN_AUTHORIZATION_REQUIRED",
+    "pinnedPriorValidation": {
+      "status": "BLOCKED",
+      "reason": "PINNED_VALIDATION_OPERATION_UNAVAILABLE",
+      "operations": [
+        { "operationKey": "reference.validate@1.0", "snapshotSupport": "CONSISTENT_AT_START" },
+        { "operationKey": "result.validate@1.0", "snapshotSupport": "CONSISTENT_AT_START" }
+      ]
+    }
+  },
+  "credentialBoundary": {
+    "credentialsRead": false,
+    "credentialLocationsGuessed": false,
+    "authenticatedRequestsSentByWsgs": false,
+    "decision": "BLOCKED — secure credential handoff authorization required"
+  },
+  "redaction": {
+    "gatewayCredentialIncluded": false,
+    "delegationTokenIncluded": false,
+    "privateKeyPathIncluded": false,
+    "providerOrDatabaseTopologyIncluded": false,
+    "rawBusinessResponseIncluded": false
+  }
+}

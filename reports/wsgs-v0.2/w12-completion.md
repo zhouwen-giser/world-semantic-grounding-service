@@ -45,7 +45,7 @@ Implementation commit `72b911ed9fc453d7c1d736ab551957e4ff4b8850` and deployment 
 
 ## Blockers
 
-The production readiness path is proven to fail closed with `503` under semantic drift. A trusted API/worker/model/GOWM/database business chain plus process restart and live cancel/late-result recovery remain unproven.
+The historical production readiness path is proven to fail closed with `503` under the old bundled-lock drift. The Sample World public authority now matches its explicit pinned lock, but signed readiness was not authorized. A trusted API/worker/model/GOWM/database business chain plus process restart and live cancel/late-result recovery remain unproven.
 
 ## Next phase
 

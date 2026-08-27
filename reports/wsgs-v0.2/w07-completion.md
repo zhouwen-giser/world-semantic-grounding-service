@@ -22,6 +22,7 @@ Internal snapshot schema and migration 002 authority fields are implemented with
 |---|---|---|
 | snapshot component tests | PASS in current Vitest run | `packages/trusted-capability-snapshot/src/snapshot.test.ts` |
 | live snapshot admission | BLOCKED | `reports/wsgs-v0.2/real-gowm-gate.json` |
+| Sample World public authority | PASS; signed availability NOT_RUN | `reports/wsgs-v0.2/real-gowm-sample-public-handoff.json` |
 
 ## Acceptance cases
 
@@ -33,7 +34,7 @@ New-job drift fails closed; old jobs do not silently refresh to newer authority.
 
 ## Failed attempts retained
 
-The live semantic catalog and published semantic lock canonicalize differently.
+The earlier source-lock mismatch is resolved for the separately pinned Sample World operational lock. The follow-up deliberately stopped before reading credentials or requesting signed availability.
 
 ## Commit/push/PR
 
@@ -41,8 +42,8 @@ No commit or push was performed by this reporting pass.
 
 ## Blockers
 
-A schema-valid but authority-mismatched live catalog cannot produce a trusted admission snapshot.
+A public catalog/semantic match alone cannot produce a trusted admission snapshot without principal-filtered signed availability.
 
 ## Next phase
 
-Resolve upstream canonicalization compatibility and recapture the live snapshot.
+Authorize secure credential handoff and recapture the live snapshot with signed availability against the exact pinned lock.

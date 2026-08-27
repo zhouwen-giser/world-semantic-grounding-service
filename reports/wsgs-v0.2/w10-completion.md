@@ -33,7 +33,7 @@ No model receipt becomes world evidence; failed upstream output yields no eviden
 
 ## Failed attempts retained
 
-Direct-operation `202` cannot be observed from GOWM 0.6.3, and live successful outputs cannot be trusted after semantic drift.
+The Sample World descriptor still advertises the probed direct operation as `SYNC`. An unauthenticated ASYNC request returns 403 `SCOPE_DENIED`; no authenticated request was authorized, so no `202` lifecycle or result evidence is claimed.
 
 ## Commit/push/PR
 

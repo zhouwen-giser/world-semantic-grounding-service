@@ -22,8 +22,9 @@ All live calls used the exact 0.6.3 consumer bundle and signed delegation. The g
 |---|---|---|
 | real semantic model | PASS, four cases × three runs | `reports/wsgs-v0.2/real-model-gate.json` |
 | real GOWM | 7 diagnostic PASS / 2 BLOCKED | `reports/wsgs-v0.2/real-gowm-gate.json` |
+| Sample World public handoff | PASS for 12-file intake, 122 capabilities/profiles, matching revisions/hashes, and fail-closed unauthenticated probes | `reports/wsgs-v0.2/real-gowm-sample-public-handoff.json` |
 
-The two GOWM blockers are the consumer semantic-lock canonicalization mismatch and lack of direct-operation `202`. The seven other observations remain diagnostic-only.
+The earlier semantic canonicalization blocker is resolved for the explicit Sample World operational lock. Signed availability/execution was not authorized; direct `202` remains unproven and the validation locks still lack `PINNED`.
 
 ## Acceptance cases
 
@@ -35,7 +36,7 @@ Scoped fixture checks excluded foreign data; prompt injection could not choose p
 
 ## Failed attempts retained
 
-Earlier model timeout/schema failures and the live semantic-lock mismatch remain in bounded evidence. No hash was rewritten and no diagnostic success was relabeled trusted.
+Earlier model timeout/schema failures and exact-source semantic-lock mismatch remain historical bounded evidence. The new operational lock is separately hash-pinned; no bundled hash was rewritten and no unauthenticated result was relabeled signed E2E.
 
 ## Commit/push/PR
 
@@ -47,4 +48,4 @@ No trusted API/worker multi-process run, restart matrix, large-evidence run, ful
 
 ## Next phase
 
-Resolve the upstream lock and operation-support gaps, repair production compiler inputs, then rerun the complete W13 matrix.
+Authorize secure credential handoff, rerun the signed GOWM and production chain, and retain direct-202/PINNED blocks unless the live protocol proves them compatible.

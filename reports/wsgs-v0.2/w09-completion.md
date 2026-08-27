@@ -41,8 +41,8 @@ Implementation commit `72b911ed9fc453d7c1d736ab551957e4ff4b8850` and deployment 
 
 ## Blockers
 
-Real availability, exact verification, and stable recipe execution have no trusted end-to-end proof while production readiness fails closed on semantic-catalog drift.
+Real signed availability, exact verification, and stable recipe execution have no trusted end-to-end proof. Public Sample World authority matches its pinned lock, but authenticated execution was not authorized.
 
 ## Next phase
 
-Repair the upstream semantic authority mismatch, then execute compiled recipes against a trusted GOWM snapshot.
+After secure credential handoff authorization, execute compiled recipes against a signed trusted Sample World snapshot.

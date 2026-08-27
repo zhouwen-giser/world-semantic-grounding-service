@@ -22,10 +22,11 @@ All transport validation consumes the exact GOWM 0.6.3 bundle and lock v2. No GO
 |---|---|---|
 | current full no-DB Vitest run | PASS for component tests | `reports/wsgs-v0.2/verification-summary.json`, `packages/gowm-gateway-client/src/client.test.ts` |
 | real GOWM gate | 7 diagnostic PASS / 2 BLOCKED overall | `reports/wsgs-v0.2/real-gowm-gate.json` |
+| Sample World public handoff gate | PASS for exact handoff, capabilities, semantics, and fail-closed unauthenticated probes | `reports/wsgs-v0.2/real-gowm-sample-public-handoff.json` |
 
 ## Acceptance cases
 
-See `w02-acceptance.json`: 17 PASS and 8 BLOCKED. No diagnostic live result is upgraded to trusted real-e2e.
+See `w02-acceptance.json`: 19 PASS and 6 BLOCKED. Public capabilities and semantics are now independently trusted against the pinned operational lock; signed availability and execution remain blocked.
 
 ## Security/authority review
 
@@ -33,7 +34,7 @@ The client rejects authority in request bodies, bounds requests/responses and ov
 
 ## Failed attempts retained
 
-The live semantic catalog recomputes to a different hash under runtime canonicalization. The published lock value is not weakened or rewritten.
+The earlier exact-source lock mismatch remains historical evidence. The Sample World operational-candidate lock is selected only by explicit file path plus exact SHA-256 and does not rewrite the bundled source lock.
 
 ## Commit/push/PR
 
@@ -41,8 +42,8 @@ No commit or push was performed by this reporting pass. Draft PR #2 must remain 
 
 ## Blockers
 
-Trusted catalog readiness is closed. Direct-operation asynchronous `202` is not supported by locked GOWM 0.6.3.
+Signed availability and execution were not run because secure credential handoff was not authorized. The public descriptor is `SYNC`; an authenticated direct-operation `202` lifecycle is unproven.
 
 ## Next phase
 
-Correct the upstream semantic authority artifact or canonicalization contract, then rerun the live Gateway matrix.
+Authorize a secure credential handoff, then rerun signed availability, direct/query/job/cancel/receipt, and exact `202` lifecycle checks against the pinned Sample World lock.

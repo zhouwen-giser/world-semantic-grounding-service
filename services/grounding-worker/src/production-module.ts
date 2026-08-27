@@ -14,10 +14,10 @@ import {
   type OperationalRequestedProduct
 } from "@wsgs/evidence-normalizer";
 import {
-  GOWM_CONSUMER_LOGICAL_INTEGRITY,
-  GOWM_CONTRACT_CATALOG_REVISION,
-  GOWM_SEMANTIC_CATALOG_HASH,
   GOWM_SOUTHBOUND_LOCK_LF_SHA256,
+  loadOperationalGowmLock,
+  type LoadedOperationalGowmLock,
+  type OperationalGowmLock,
   verifyGowmContractIntake
 } from "@wsgs/gowm-contract-intake";
 import {
@@ -145,6 +145,7 @@ interface LiveAuthority {
 interface Runtime {
   pool: Pool;
   ownsPool: boolean;
+  operationalLock: LoadedOperationalGowmLock;
   gateway: GowmGatewayClient;
   signer: GowmDelegationSigner;
   model: SemanticModelParser;
@@ -204,16 +205,32 @@ export function canonicalLfSha256(bytes: Uint8Array): string {
   return createHash("sha256").update(decoded.replaceAll("\r\n", "\n"), "utf8").digest("hex");
 }
 
-function readLock(): SchemaValidatedSouthboundLock {
-  const bytes = readFileSync(lockPath);
-  const actual = canonicalLfSha256(bytes);
-  if (actual !== GOWM_SOUTHBOUND_LOCK_LF_SHA256) {
-    throw new ProductionStageModuleError("SOUTHBOUND_LOCK_INTEGRITY_MISMATCH");
+function readOperationalLock(): LoadedOperationalGowmLock {
+  const externalPath = process.env["GOWM_SOUTHBOUND_LOCK_FILE"]?.trim();
+  if (externalPath) {
+    const expectedSha256 = process.env["GOWM_SOUTHBOUND_LOCK_SHA256"]?.trim();
+    if (!expectedSha256) throw new ProductionStageModuleError("MISSING_GOWM_SOUTHBOUND_LOCK_SHA256");
+    return loadOperationalGowmLock({
+      lockPath: externalPath,
+      expectedSha256: expectedSha256 as `sha256:${string}`,
+      hashMode: "EXACT_BYTES"
+    });
   }
-  return JSON.parse(bytes.toString("utf8")) as SchemaValidatedSouthboundLock;
+  if (process.env["GOWM_SOUTHBOUND_LOCK_SHA256"]?.trim()) {
+    throw new ProductionStageModuleError("GOWM_SOUTHBOUND_LOCK_FILE_REQUIRED");
+  }
+  return loadOperationalGowmLock({
+    lockPath,
+    expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_LF_SHA256}`,
+    hashMode: "CANONICAL_LF"
+  });
 }
 
-function gatewayLock(entry: SchemaValidatedSouthboundLock["defaultOperations"][number]): OperationLock {
+function validatedLock(value: OperationalGowmLock): SchemaValidatedSouthboundLock {
+  return value as SchemaValidatedSouthboundLock;
+}
+
+function gatewayLock(entry: OperationalGowmLock["defaultOperations"][number]): OperationLock {
   return {
     operationId: entry.operationId,
     operationVersion: entry.operationVersion,
@@ -226,7 +243,7 @@ function gatewayLock(entry: SchemaValidatedSouthboundLock["defaultOperations"][n
   };
 }
 
-function allGatewayLocks(lock: SchemaValidatedSouthboundLock): OperationLock[] {
+function allGatewayLocks(lock: OperationalGowmLock): OperationLock[] {
   return [...lock.defaultOperations, ...lock.previewOperations].map(gatewayLock);
 }
 
@@ -254,7 +271,8 @@ function createModel(policy: SemanticModelPolicyMode): SemanticModelParser {
 }
 
 function runtime(options: ProductionFactoryOptions = {}): Runtime {
-  const lock = readLock();
+  const operationalLock = readOperationalLock();
+  const lock = operationalLock.lock;
   const trustedOperationKeys = [...lock.defaultOperations, ...lock.previewOperations]
     .map((entry) => `${entry.operationId}@${entry.operationVersion}`);
   const modelPolicy = (process.env["WSGS_MODEL_POLICY"]?.trim() ?? "MODEL_REQUIRED") as SemanticModelPolicyMode;
@@ -282,6 +300,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   return {
     pool,
     ownsPool: options.pool === undefined,
+    operationalLock,
     gateway,
     signer,
     model: createModel(modelPolicy),
@@ -327,7 +346,7 @@ async function liveAuthority(
     verifyGowmContractIntake({ repositoryRoot, verifyRecordedEvidence: true });
     staticIntakeVerified = true;
   }
-  const lock = readLock();
+  const lock = value.operationalLock.lock;
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
     actorId: principal.actorId,
@@ -361,8 +380,8 @@ async function liveAuthority(
     catalog: catalog as never,
     semantics,
     availability,
-    southboundLock: lock,
-    southboundLockHash: `sha256:${GOWM_SOUTHBOUND_LOCK_LF_SHA256}`,
+    southboundLock: validatedLock(lock),
+    southboundLockHash: value.operationalLock.lockHash,
     capturedAt: new Date()
   });
   const validation = value.gateway.validateTrustedContracts({
@@ -374,8 +393,8 @@ async function liveAuthority(
       operationId: entry.operationId,
       operationVersion: entry.operationVersion
     })),
-    expectedContractCatalogRevision: GOWM_CONTRACT_CATALOG_REVISION,
-    expectedSemanticCatalogHash: GOWM_SEMANTIC_CATALOG_HASH
+    expectedContractCatalogRevision: lock.contractCatalogRevision,
+    expectedSemanticCatalogHash: lock.semanticCatalogHash
   });
   if (!validation.requiredReady) throw new ProductionStageModuleError("STABLE_GOWM_OPERATIONS_NOT_READY");
   await value.signer.ready();
@@ -388,13 +407,13 @@ async function liveAuthority(
     capabilityCatalog: catalog,
     semanticCatalog: semantics,
     availability,
-    southboundLock: lock
+    southboundLock: validatedLock(lock)
   };
   const admission: ProductionAdmissionSnapshot = {
     immutableLocks: persisted as unknown as Readonly<Record<string, unknown>>,
     gowmContractCatalogRevision: trustedCapabilitySnapshot.contractCatalogRevision,
     gowmSemanticCatalogHash: trustedCapabilitySnapshot.semanticCatalogHash,
-    gowmConsumerPackageIntegrity: GOWM_CONSUMER_LOGICAL_INTEGRITY,
+    gowmConsumerPackageIntegrity: lock.consumerContractPackage.integrity,
     gowmOperationLockHash: trustedCapabilitySnapshot.southboundLockHash
   };
   const result = { persisted, admission };

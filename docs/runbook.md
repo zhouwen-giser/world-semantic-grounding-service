@@ -2,9 +2,9 @@
 
 ## Current qualification state
 
-WSGS 0.2.0 is a blocked integration candidate, not a production release. Repeated real semantic-model runs passed. The current real GOWM+ gate reports **7 PASS / 2 BLOCKED**. The seven successful observations are diagnostic-only because the published semantic-catalog lock hash does not match the live catalog under the runtime's canonicalization. The second blocker is that the GOWM+ 0.6.3 direct-operation route returns a synchronous result and does not provide the required direct `202` asynchronous lifecycle.
+WSGS 0.2.0 is a blocked integration candidate, not a production release. Repeated real semantic-model runs passed. The earlier exact-source GOWM+ gate reported **7 PASS / 2 BLOCKED**. A later Sample World operational-candidate handoff passes the no-credential intake and public-discovery gate: its exact lock, live contract revision, binding revision, semantic catalog hash, and all 122 semantic profiles agree. This supersedes the earlier semantic-canonicalization mismatch for that pinned operational candidate only; it does not rewrite the exact-source 0.6.3 artifact.
 
-The service deliberately fails closed. `/health/live` can return `200` while `/health/ready` returns `503`; liveness proves only that the API process is running. Do not route production traffic, mark the candidate complete, or treat diagnostic GOWM observations as trusted E2E evidence while either blocker remains.
+Authenticated availability and execution against the Sample World remain NOT_RUN until secure credential handoff is explicitly authorized. Its `reference.validate@1.0` and `result.validate@1.0` locks still expose `CONSISTENT_AT_START`, not `PINNED`; the direct-operation asynchronous `202` lifecycle also requires an authenticated live probe. The service deliberately fails closed. `/health/live` can return `200` while `/health/ready` returns `503`; liveness proves only that the API process is running. Do not route production traffic or mark the candidate complete while these gates remain blocked.
 
 The public `GET /v1/capabilities` response remains the frozen v0.1 contract and therefore still reports WSGS `0.1.0` and GOWM `0.4.0`. Those constants are compatibility metadata, not the candidate's internal GOWM+ 0.6.3 authority lock.
 
@@ -82,7 +82,7 @@ $ready.StatusCode
 $ready.Content
 ```
 
-Readiness requires PostgreSQL, the exact local consumer intake, live capability and semantic catalogs, signed operation availability, the configured model policy, and the trusted GOWM lock to agree. Treat any non-`200` readiness result as a traffic block. With the currently observed semantic lock canonicalization mismatch, `503` is the correct safe result.
+Readiness requires PostgreSQL, the exact local consumer intake, live capability and semantic catalogs, signed operation availability, the configured model policy, and the trusted GOWM lock to agree. Treat any non-`200` readiness result as a traffic block. A Sample World handoff passing the public gate does not make readiness true because public discovery cannot replace signed availability or execution.
 
 ## Real qualification gates
 
@@ -105,9 +105,21 @@ The enclosing `SEMANTIC_MODEL_PARSE` pipeline stage inherits `MODEL_TIMEOUT_MS` 
 
 Real GOWM+:
 
+First validate a non-sensitive Sample World handoff and public discovery. This command sends no bearer or delegation header and requires unauthenticated availability to fail closed with HTTP `403` / `SCOPE_DENIED`:
+
+```powershell
+$env:GOWM_SAMPLE_HANDOFF_DIR = '<absolute-handoff-directory>'
+$env:GOWM_BASE_URL = 'http://127.0.0.1:18063'
+npm run gate:real:gowm:public-handoff
+```
+
+An operational-candidate lock never silently replaces the exact-source bundled lock. To select one for a host-side authenticated gate, set both its path and its exact byte hash. A missing value or byte mismatch fails before network trust is established:
+
 ```powershell
 $env:ALLOW_REAL_GOWM_GATE = 'YES'
-$env:GOWM_BASE_URL = 'http://127.0.0.1:8090'
+$env:GOWM_BASE_URL = 'http://127.0.0.1:18063'
+$env:GOWM_SOUTHBOUND_LOCK_FILE = '<absolute-handoff-directory>\CONSUMER_CONTRACT_LOCK.json'
+$env:GOWM_SOUTHBOUND_LOCK_SHA256 = 'sha256:<exact-lock-byte-hash>'
 $env:GOWM_GATEWAY_CREDENTIAL = '<transport-credential>'
 $env:GOWM_DELEGATION_PRIVATE_KEY_PATH = '<absolute-pkcs8-private-key-path>'
 $env:GOWM_SERVICE_PRINCIPAL_ID = '<registered-principal>'
@@ -118,7 +130,9 @@ $env:GOWM_DATASET_SCOPE = '<isolated-dataset-scope>'
 npm run gate:real:gowm
 ```
 
-The real GOWM+ gate intentionally exits non-zero while required checks are blocked. Do not suppress that exit code. A world-query asynchronous lifecycle does not substitute for the missing direct-operation `202` behavior, and recomputing the semantic lock with a different canonicalizer does not repair the published upstream artifact.
+For Compose, set `GOWM_SOUTHBOUND_LOCK_HOST_FILE` to the verified non-sensitive host lock, set `GOWM_SOUTHBOUND_LOCK_FILE=/run/wsgs/gowm-southbound-operation-lock.json`, and set its exact `GOWM_SOUTHBOUND_LOCK_SHA256`. The API and worker receive the same read-only bind mount. Leave both lock-selection variables empty to keep using the immutable bundled source lock.
+
+Do not infer credential file locations or copy credentials from another task. If secure credential handoff is not explicitly authorized, record `BLOCKED — secure credential handoff authorization required`. The real GOWM+ gate intentionally exits non-zero while required checks are blocked. Do not suppress that exit code. A world-query asynchronous lifecycle does not substitute for a missing direct-operation `202` behavior.
 
 After setting the complete production environment used by the API and worker, exercise the actual HTTP readiness path:
 
@@ -127,7 +141,7 @@ $env:ALLOW_REAL_PRODUCTION_READINESS_GATE = 'YES'
 npm run gate:real:readiness
 ```
 
-For the currently observed upstream semantic-catalog drift, the safe passing evidence from this gate is `WSGS_PRODUCTION_READINESS_FAIL_CLOSED` with HTTP `503`; it is not a readiness success marker.
+Until signed availability, model, PostgreSQL, and the selected exact lock all pass together, the safe production-readiness result remains HTTP `503`; a fail-closed negative-gate marker is not a readiness success marker.
 
 The current-schema PostgreSQL suites may share one dedicated, freshly migrated test database when run serially. Never point them at production:
 

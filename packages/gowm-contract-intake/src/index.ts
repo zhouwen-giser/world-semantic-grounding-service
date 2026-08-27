@@ -619,3 +619,4 @@ export function expectedGowmPackageIntegrityEvidence(): Readonly<PackageIntegrit
 }
 
 export * from "./schema-registry.js";
+export * from "./operational-lock.js";

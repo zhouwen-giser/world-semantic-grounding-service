@@ -17,10 +17,16 @@
     },
 
     {
-      "ids": ["AC-G001..AC-G003"],
+      "ids": ["AC-G001..AC-G002"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "validation/scripts/verify-gowm-sample-handoff.ts"],
+      "note": "The pinned Sample World handoff and live public catalog/semantics validate against consumer schemas; contract, binding, catalog, and all profile content hashes agree."
+    },
+    {
+      "ids": ["AC-G003"],
       "status": "BLOCKED",
-      "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "validation/scripts/real-gowm-gate.ts"],
-      "note": "Live endpoints were schema-observed, but the semantic catalog hash differs under runtime canonicalization; endpoint observations are diagnostic-only."
+      "evidence": ["reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "validation/scripts/verify-gowm-sample-handoff.ts"],
+      "note": "Unauthenticated availability correctly returns 403 SCOPE_DENIED; signed availability was not run because secure credential handoff was not authorized."
     },
     {
       "ids": ["AC-G004..AC-G009"],
@@ -31,8 +37,8 @@
     {
       "ids": ["AC-G010..AC-G014"],
       "status": "BLOCKED",
-      "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "packages/gowm-gateway-client/src/client.test.ts"],
-      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+      "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "packages/gowm-gateway-client/src/client.test.ts"],
+      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
     },
     {
       "ids": ["AC-G015..AC-G022"],
@@ -57,7 +63,7 @@
       "ids": ["AC-I004"],
       "status": "BLOCKED",
       "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "packages/delegated-identity/src/delegation.test.ts"],
-      "note": "A valid delegation participated in diagnostic live calls, but the live gate is not trusted while semantic authority is mismatched."
+      "note": "The handoff records an independent signed consumer call, but WSGS did not receive authorization to use the secure credential handoff and therefore did not independently rerun valid delegation."
     },
     {
       "ids": ["AC-I005..AC-I009", "AC-I013..AC-I014", "AC-I024"],
@@ -162,14 +168,14 @@
     {
       "ids": ["AC-Q003..AC-Q004", "AC-Q008", "AC-Q021..AC-Q022", "AC-Q028..AC-Q032"],
       "status": "BLOCKED",
-      "evidence": ["packages/requirement-planner/src/planner.test.ts", "packages/query-compiler/src/compiler.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "evidence": ["packages/requirement-planner/src/planner.test.ts", "packages/query-compiler/src/compiler.test.ts", "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"],
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "ids": ["AC-E001..AC-E005"],
       "status": "BLOCKED",
-      "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "packages/gowm-execution-evidence/src/normalizer.test.ts"],
-      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+      "evidence": ["reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "reports/wsgs-v0.2/real-gowm-gate.json", "packages/gowm-execution-evidence/src/normalizer.test.ts"],
+      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
     },
     {
       "ids": ["AC-E006", "AC-E008..AC-E016", "AC-E021..AC-E023", "AC-E025"],
@@ -218,7 +224,7 @@
       "ids": ["AC-D014..AC-D015", "AC-D030..AC-D031"],
       "status": "BLOCKED",
       "evidence": ["services/grounding-api/src/production.integration.test.ts", "services/grounding-worker/src/postgres.integration.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
     },
     {
       "ids": ["AC-D016..AC-D017"],
@@ -231,7 +237,7 @@
       "ids": ["AC-X001..AC-X019", "AC-X021", "AC-X023..AC-X024"],
       "status": "BLOCKED",
       "evidence": ["reports/wsgs-v0.2/real-model-gate.json", "reports/wsgs-v0.2/real-gowm-gate.json", "reports/wsgs-v0.2/verification-summary.json"],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "ids": ["AC-X020", "AC-X022", "AC-X025"],

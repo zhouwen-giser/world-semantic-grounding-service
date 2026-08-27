@@ -33,7 +33,7 @@ Cross-scope prior records are hidden behind the same not-found boundary; caller-
 
 ## Failed attempts retained
 
-Live `2号车` and `滨河路` observations cannot become trusted acceptance while semantic authority is mismatched.
+The Sample World public authority now matches its pinned lock, but no authenticated WSGS resolve/validate request was authorized in this follow-up.
 
 ## Commit/push/PR
 

@@ -7,10 +7,10 @@
   "required": 279,
   "decision": "BLOCKED",
   "summary": {
-    "PASS": 186,
+    "PASS": 188,
     "FAIL": 0,
     "NOT_RUN": 17,
-    "BLOCKED": 76
+    "BLOCKED": 74
   },
   "cases": [
     {
@@ -429,12 +429,12 @@
       "scenario": "Capabilities endpoint",
       "expected": "Capability catalog validates against consumer schemas",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
-        "reports/wsgs-v0.2/real-gowm-gate.json",
-        "validation/scripts/real-gowm-gate.ts"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json",
+        "validation/scripts/verify-gowm-sample-handoff.ts"
       ],
-      "note": "Live endpoints were schema-observed, but the semantic catalog hash differs under runtime canonicalization; endpoint observations are diagnostic-only."
+      "note": "The pinned Sample World handoff and live public catalog/semantics validate against consumer schemas; contract, binding, catalog, and all profile content hashes agree."
     },
     {
       "id": "AC-G002",
@@ -442,12 +442,12 @@
       "scenario": "Semantic endpoint",
       "expected": "Explicit semantic catalog validates and hash matches",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
-        "reports/wsgs-v0.2/real-gowm-gate.json",
-        "validation/scripts/real-gowm-gate.ts"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json",
+        "validation/scripts/verify-gowm-sample-handoff.ts"
       ],
-      "note": "Live endpoints were schema-observed, but the semantic catalog hash differs under runtime canonicalization; endpoint observations are diagnostic-only."
+      "note": "The pinned Sample World handoff and live public catalog/semantics validate against consumer schemas; contract, binding, catalog, and all profile content hashes agree."
     },
     {
       "id": "AC-G003",
@@ -457,10 +457,10 @@
       "testType": "real-e2e",
       "status": "BLOCKED",
       "evidence": [
-        "reports/wsgs-v0.2/real-gowm-gate.json",
-        "validation/scripts/real-gowm-gate.ts"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json",
+        "validation/scripts/verify-gowm-sample-handoff.ts"
       ],
-      "note": "Live endpoints were schema-observed, but the semantic catalog hash differs under runtime canonicalization; endpoint observations are diagnostic-only."
+      "note": "Unauthenticated availability correctly returns 403 SCOPE_DENIED; signed availability was not run because secure credential handoff was not authorized."
     },
     {
       "id": "AC-G004",
@@ -555,9 +555,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
     },
     {
       "id": "AC-G011",
@@ -568,9 +569,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
     },
     {
       "id": "AC-G012",
@@ -581,9 +583,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
     },
     {
       "id": "AC-G013",
@@ -594,9 +597,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
     },
     {
       "id": "AC-G014",
@@ -607,9 +611,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
     },
     {
       "id": "AC-G015",
@@ -818,7 +823,7 @@
         "packages/delegated-identity/src/delegation.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "A valid delegation participated in diagnostic live calls, but the live gate is not trusted while semantic authority is mismatched."
+      "note": "The handoff records an independent signed consumer call, but WSGS did not receive authorization to use the secure credential handoff and therefore did not independently rerun valid delegation."
     },
     {
       "id": "AC-I005",
@@ -2221,9 +2226,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q004",
@@ -2235,9 +2240,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q005",
@@ -2297,9 +2302,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q009",
@@ -2503,9 +2508,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q022",
@@ -2517,9 +2522,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q023",
@@ -2611,9 +2616,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q029",
@@ -2625,9 +2630,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q030",
@@ -2639,9 +2644,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q031",
@@ -2653,9 +2658,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-Q032",
@@ -2667,9 +2672,9 @@
       "evidence": [
         "packages/query-compiler/src/compiler.test.ts",
         "packages/requirement-planner/src/planner.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
     },
     {
       "id": "AC-E001",
@@ -2680,9 +2685,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-execution-evidence/src/normalizer.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
     },
     {
       "id": "AC-E002",
@@ -2693,9 +2699,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-execution-evidence/src/normalizer.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
     },
     {
       "id": "AC-E003",
@@ -2706,9 +2713,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-execution-evidence/src/normalizer.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
     },
     {
       "id": "AC-E004",
@@ -2719,9 +2727,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-execution-evidence/src/normalizer.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
     },
     {
       "id": "AC-E005",
@@ -2732,9 +2741,10 @@
       "status": "BLOCKED",
       "evidence": [
         "packages/gowm-execution-evidence/src/normalizer.test.ts",
-        "reports/wsgs-v0.2/real-gowm-gate.json"
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
     },
     {
       "id": "AC-E006",
@@ -3227,7 +3237,7 @@
         "services/grounding-api/src/production.integration.test.ts",
         "services/grounding-worker/src/postgres.integration.test.ts"
       ],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
     },
     {
       "id": "AC-D015",
@@ -3241,7 +3251,7 @@
         "services/grounding-api/src/production.integration.test.ts",
         "services/grounding-worker/src/postgres.integration.test.ts"
       ],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
     },
     {
       "id": "AC-D016",
@@ -3471,7 +3481,7 @@
         "services/grounding-api/src/production.integration.test.ts",
         "services/grounding-worker/src/postgres.integration.test.ts"
       ],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
     },
     {
       "id": "AC-D031",
@@ -3485,7 +3495,7 @@
         "services/grounding-api/src/production.integration.test.ts",
         "services/grounding-worker/src/postgres.integration.test.ts"
       ],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
     },
     {
       "id": "AC-X001",
@@ -3499,7 +3509,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X002",
@@ -3513,7 +3523,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X003",
@@ -3527,7 +3537,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X004",
@@ -3541,7 +3551,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X005",
@@ -3555,7 +3565,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X006",
@@ -3569,7 +3579,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X007",
@@ -3583,7 +3593,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X008",
@@ -3597,7 +3607,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X009",
@@ -3611,7 +3621,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X010",
@@ -3625,7 +3635,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X011",
@@ -3639,7 +3649,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X012",
@@ -3653,7 +3663,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X013",
@@ -3667,7 +3677,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X014",
@@ -3681,7 +3691,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X015",
@@ -3695,7 +3705,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X016",
@@ -3709,7 +3719,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X017",
@@ -3723,7 +3733,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X018",
@@ -3737,7 +3747,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X019",
@@ -3751,7 +3761,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X020",
@@ -3780,7 +3790,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X022",
@@ -3809,7 +3819,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X024",
@@ -3823,7 +3833,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X025",
