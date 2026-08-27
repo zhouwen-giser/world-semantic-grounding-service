@@ -34,7 +34,7 @@ Only API publishes a loopback port; secrets and delegation private key remain ex
 
 ## Failed attempts retained
 
-The Sample World public semantic lock now matches. Signed execution authorization, direct-operation `202`, PINNED prior validation, and trusted full-chain/restart evidence remain explicit blockers.
+The Sample World semantic lock and signed execution now pass. Direct-operation `202`, PINNED prior validation, and trusted full-chain/restart evidence remain explicit blockers.
 
 ## Commit/push/PR
 

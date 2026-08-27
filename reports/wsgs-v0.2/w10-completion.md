@@ -21,7 +21,7 @@ The v0.2 execution record remains identity-hash and provider-topology neutral. M
 | command/gate | result | evidence |
 |---|---|---|
 | current full no-DB Vitest run | execution-evidence component tests PASS | `packages/gowm-execution-evidence/src/normalizer.test.ts` |
-| real GOWM gate | live business/query/receipt/cancel observations diagnostic-only | `reports/wsgs-v0.2/real-gowm-gate.json` |
+| real GOWM gate | trusted direct sync, World Query 202/poll, receipt, and cancel observations pass | `reports/wsgs-v0.2/real-gowm-gate.json` |
 
 ## Acceptance cases
 
@@ -33,7 +33,7 @@ No model receipt becomes world evidence; failed upstream output yields no eviden
 
 ## Failed attempts retained
 
-The Sample World descriptor still advertises the probed direct operation as `SYNC`. An unauthenticated ASYNC request returns 403 `SCOPE_DENIED`; no authenticated request was authorized, so no `202` lifecycle or result evidence is claimed.
+The Sample World descriptor advertises the probed direct operation as `SYNC`; authenticated direct execution returns HTTP `200`. World Query async returns `202`, but it does not substitute for the missing direct-operation `202` lifecycle.
 
 ## Commit/push/PR
 
@@ -41,8 +41,8 @@ No commit or push was performed by this reporting pass.
 
 ## Blockers
 
-All execution-status entries whose matrix type is real-e2e remain blocked.
+Direct async `202`, World Query sync, and the production evidence-normalization E2E remain blocked; trusted direct sync, World Query async, receipt, and cancel transport paths pass.
 
 ## Next phase
 
-Restore trusted readiness and repeat sync/async/cancel/status/product scenarios through the production worker.
+Run the trusted sync/async/cancel/status/product scenarios through the production worker and retain the direct-202 gap.

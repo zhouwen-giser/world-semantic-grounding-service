@@ -41,8 +41,8 @@ Implementation commit `72b911ed9fc453d7c1d736ab551957e4ff4b8850` and deployment 
 
 ## Blockers
 
-Real signed availability, exact verification, and stable recipe execution have no trusted end-to-end proof. Public Sample World authority matches its pinned lock, but authenticated execution was not authorized.
+Signed availability and gate-authored World Query execution are trusted, but no real run proves that the WSGS planner/compiler output executes every required stable recipe through the production pipeline.
 
 ## Next phase
 
-After secure credential handoff authorization, execute compiled recipes against a signed trusted Sample World snapshot.
+Execute actual WSGS-compiled stable recipes against the signed trusted Sample World snapshot through the production worker.

@@ -21,7 +21,7 @@ Claims validate against the locked GOWM delegated-identity schema. Tokens are no
 | command/gate | result | evidence |
 |---|---|---|
 | current full no-DB Vitest run | delegation and API identity tests PASS | `packages/delegated-identity/src/delegation.test.ts`, `services/grounding-api/src/server.test.ts` |
-| real GOWM gate | delegation used only in diagnostic calls | `reports/wsgs-v0.2/real-gowm-gate.json` |
+| real GOWM gate | positive signed delegation passes trusted calls | `reports/wsgs-v0.2/real-gowm-gate.json` |
 
 ## Acceptance cases
 
@@ -41,8 +41,8 @@ No commit or push was performed by this reporting pass.
 
 ## Blockers
 
-The only live delegation observations inherit the real GOWM diagnostic-only classification.
+Positive DIRECT_OPERATION and WORLD_QUERY delegation now pass in the trusted signed Sample World gate. The real negative verifier matrix remains NOT_RUN.
 
 ## Next phase
 
-After trusted Gateway readiness is restored, run the live positive and negative delegation matrix.
+Run the remaining live negative delegation matrix without weakening the now-passing positive boundary.

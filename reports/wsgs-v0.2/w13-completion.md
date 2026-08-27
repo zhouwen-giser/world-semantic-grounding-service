@@ -21,10 +21,10 @@ All live calls used the exact 0.6.3 consumer bundle and signed delegation. The g
 | gate | result | evidence |
 |---|---|---|
 | real semantic model | PASS, four cases × three runs | `reports/wsgs-v0.2/real-model-gate.json` |
-| real GOWM | 7 diagnostic PASS / 2 BLOCKED | `reports/wsgs-v0.2/real-gowm-gate.json` |
+| real GOWM | 8 trusted PASS / 2 BLOCKED | `reports/wsgs-v0.2/real-gowm-gate.json` |
 | Sample World public handoff | PASS for 12-file intake, 122 capabilities/profiles, matching revisions/hashes, and fail-closed unauthenticated probes | `reports/wsgs-v0.2/real-gowm-sample-public-handoff.json` |
 
-The earlier semantic canonicalization blocker is resolved for the explicit Sample World operational lock. Signed availability/execution was not authorized; direct `202` remains unproven and the validation locks still lack `PINNED`.
+The earlier semantic canonicalization blocker is resolved for the explicit Sample World operational lock. Signed availability/execution now passes. Authenticated direct operations return HTTP `200` under `SYNC`, while the validation locks still lack `PINNED`.
 
 ## Acceptance cases
 
@@ -48,4 +48,4 @@ No trusted API/worker multi-process run, restart matrix, large-evidence run, ful
 
 ## Next phase
 
-Authorize secure credential handoff, rerun the signed GOWM and production chain, and retain direct-202/PINNED blocks unless the live protocol proves them compatible.
+Run the real multi-process WSGS production chain and retain direct-202/PINNED blocks until upstream protocol capabilities change.

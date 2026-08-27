@@ -7,10 +7,10 @@
   "required": 279,
   "decision": "BLOCKED",
   "summary": {
-    "PASS": 188,
+    "PASS": 195,
     "FAIL": 0,
     "NOT_RUN": 17,
-    "BLOCKED": 74
+    "BLOCKED": 67
   },
   "cases": [
     {
@@ -455,12 +455,12 @@
       "scenario": "Availability endpoint",
       "expected": "Operation-level availability validates",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
-        "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json",
-        "validation/scripts/verify-gowm-sample-handoff.ts"
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Unauthenticated availability correctly returns 403 SCOPE_DENIED; signed availability was not run because secure credential handoff was not authorized."
+      "note": "Signed delegation availability returned HTTP 200 with all five required operations AVAILABLE against the exact Sample World operational lock."
     },
     {
       "id": "AC-G004",
@@ -552,13 +552,13 @@
       "scenario": "Direct execute",
       "expected": "Locked direct operation executes",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
+      "note": "The signed Sample World gate passed direct sync execution, World Query 202 submission and polling, cancellation to CANCELLED, and bounded receipt retrieval. Direct-operation async 202 remains a separate blocked acceptance item."
     },
     {
       "id": "AC-G011",
@@ -566,13 +566,13 @@
       "scenario": "World query submit",
       "expected": "Typed query submission executes",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
+      "note": "The signed Sample World gate passed direct sync execution, World Query 202 submission and polling, cancellation to CANCELLED, and bounded receipt retrieval. Direct-operation async 202 remains a separate blocked acceptance item."
     },
     {
       "id": "AC-G012",
@@ -580,13 +580,13 @@
       "scenario": "Async job",
       "expected": "202 response is polled to terminal",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
+      "note": "The signed Sample World gate passed direct sync execution, World Query 202 submission and polling, cancellation to CANCELLED, and bounded receipt retrieval. Direct-operation async 202 remains a separate blocked acceptance item."
     },
     {
       "id": "AC-G013",
@@ -594,13 +594,13 @@
       "scenario": "Cancel",
       "expected": "Gateway query cancel propagates",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
+      "note": "The signed Sample World gate passed direct sync execution, World Query 202 submission and polling, cancellation to CANCELLED, and bounded receipt retrieval. Direct-operation async 202 remains a separate blocked acceptance item."
     },
     {
       "id": "AC-G014",
@@ -608,13 +608,13 @@
       "scenario": "Receipt",
       "expected": "Receipt fetch is bounded and validated",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         "packages/gowm-gateway-client/src/client.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Transport behavior has component coverage, but the Sample World authenticated execution gate was not authorized. Its public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED, so no direct 202 lifecycle is claimed."
+      "note": "The signed Sample World gate passed direct sync execution, World Query 202 submission and polling, cancellation to CANCELLED, and bounded receipt retrieval. Direct-operation async 202 remains a separate blocked acceptance item."
     },
     {
       "id": "AC-G015",
@@ -818,12 +818,12 @@
       "scenario": "Valid delegation",
       "expected": "Valid RS256 delegation accepted by GOWM",
       "testType": "real-e2e",
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
         "packages/delegated-identity/src/delegation.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "The handoff records an independent signed consumer call, but WSGS did not receive authorization to use the secure credential handoff and therefore did not independently rerun valid delegation."
+      "note": "WSGS independently signed bounded DIRECT_OPERATION and WORLD_QUERY delegations and completed authenticated Sample World calls without persisting or reporting credential material."
     },
     {
       "id": "AC-I005",
@@ -1931,7 +1931,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R002",
@@ -1944,7 +1944,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R003",
@@ -1957,7 +1957,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R004",
@@ -1970,7 +1970,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R005",
@@ -2009,7 +2009,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R008",
@@ -2022,7 +2022,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R009",
@@ -2035,7 +2035,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R010",
@@ -2048,7 +2048,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R011",
@@ -2061,7 +2061,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R012",
@@ -2074,7 +2074,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R013",
@@ -2087,7 +2087,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R014",
@@ -2100,7 +2100,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R015",
@@ -2113,7 +2113,7 @@
         "packages/grounding-graph/src/reference-grounding.test.ts",
         "reports/wsgs-v0.2/real-gowm-gate.json"
       ],
-      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
     },
     {
       "id": "AC-R016",
@@ -2228,7 +2228,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q004",
@@ -2242,7 +2242,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q005",
@@ -2304,7 +2304,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q009",
@@ -2510,7 +2510,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q022",
@@ -2524,7 +2524,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q023",
@@ -2618,7 +2618,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q029",
@@ -2632,7 +2632,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q030",
@@ -2646,7 +2646,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q031",
@@ -2660,7 +2660,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-Q032",
@@ -2674,7 +2674,7 @@
         "packages/requirement-planner/src/planner.test.ts",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Component behavior is covered, but the matrix requires trusted signed real-E2E execution; secure credential handoff was not authorized."
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
     },
     {
       "id": "AC-E001",
@@ -2688,7 +2688,7 @@
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
+      "note": "Signed direct sync, World Query 202/poll, and cancellation pass at the Gateway client boundary. These entries remain blocked as a group because direct async 202 and the full WSGS evidence-normalization path are not proven."
     },
     {
       "id": "AC-E002",
@@ -2702,7 +2702,7 @@
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
+      "note": "Signed direct sync, World Query 202/poll, and cancellation pass at the Gateway client boundary. These entries remain blocked as a group because direct async 202 and the full WSGS evidence-normalization path are not proven."
     },
     {
       "id": "AC-E003",
@@ -2716,7 +2716,7 @@
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
+      "note": "Signed direct sync, World Query 202/poll, and cancellation pass at the Gateway client boundary. These entries remain blocked as a group because direct async 202 and the full WSGS evidence-normalization path are not proven."
     },
     {
       "id": "AC-E004",
@@ -2730,7 +2730,7 @@
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
+      "note": "Signed direct sync, World Query 202/poll, and cancellation pass at the Gateway client boundary. These entries remain blocked as a group because direct async 202 and the full WSGS evidence-normalization path are not proven."
     },
     {
       "id": "AC-E005",
@@ -2744,7 +2744,7 @@
         "reports/wsgs-v0.2/real-gowm-gate.json",
         "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"
       ],
-      "note": "Sync/async/query/cancel normalization is unit-tested. The Sample World public descriptor is SYNC and the unauthenticated ASYNC probe returns 403 SCOPE_DENIED; signed execution was not authorized, so direct async 202 and trusted real E2E remain unproven."
+      "note": "Signed direct sync, World Query 202/poll, and cancellation pass at the Gateway client boundary. These entries remain blocked as a group because direct async 202 and the full WSGS evidence-normalization path are not proven."
     },
     {
       "id": "AC-E006",
@@ -3237,7 +3237,7 @@
         "services/grounding-api/src/production.integration.test.ts",
         "services/grounding-worker/src/postgres.integration.test.ts"
       ],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes. Signed Sample World availability/execution passes independently, but the deployed API/worker readiness chain has not been rerun with all real dependencies."
     },
     {
       "id": "AC-D015",
@@ -3251,7 +3251,7 @@
         "services/grounding-api/src/production.integration.test.ts",
         "services/grounding-worker/src/postgres.integration.test.ts"
       ],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes. Signed Sample World availability/execution passes independently, but the deployed API/worker readiness chain has not been rerun with all real dependencies."
     },
     {
       "id": "AC-D016",
@@ -3481,7 +3481,7 @@
         "services/grounding-api/src/production.integration.test.ts",
         "services/grounding-worker/src/postgres.integration.test.ts"
       ],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes. Signed Sample World availability/execution passes independently, but the deployed API/worker readiness chain has not been rerun with all real dependencies."
     },
     {
       "id": "AC-D031",
@@ -3495,7 +3495,7 @@
         "services/grounding-api/src/production.integration.test.ts",
         "services/grounding-worker/src/postgres.integration.test.ts"
       ],
-      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes; the Sample World public authority now matches its pinned lock, but signed availability and execution were not authorized."
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes. Signed Sample World availability/execution passes independently, but the deployed API/worker readiness chain has not been rerun with all real dependencies."
     },
     {
       "id": "AC-X001",
@@ -3509,7 +3509,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X002",
@@ -3523,7 +3523,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X003",
@@ -3537,7 +3537,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X004",
@@ -3551,7 +3551,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X005",
@@ -3565,7 +3565,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X006",
@@ -3579,7 +3579,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X007",
@@ -3593,7 +3593,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X008",
@@ -3607,7 +3607,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X009",
@@ -3621,7 +3621,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X010",
@@ -3635,7 +3635,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X011",
@@ -3649,7 +3649,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X012",
@@ -3663,7 +3663,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X013",
@@ -3677,7 +3677,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X014",
@@ -3691,7 +3691,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X015",
@@ -3705,7 +3705,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X016",
@@ -3719,7 +3719,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X017",
@@ -3733,7 +3733,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X018",
@@ -3747,7 +3747,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X019",
@@ -3761,7 +3761,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X020",
@@ -3790,7 +3790,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X022",
@@ -3819,7 +3819,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X024",
@@ -3833,7 +3833,7 @@
         "reports/wsgs-v0.2/real-model-gate.json",
         "reports/wsgs-v0.2/verification-summary.json"
       ],
-      "note": "The real model and Sample World public authority gates pass independently, but signed GOWM execution was not authorized and the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
     },
     {
       "id": "AC-X025",

@@ -20,7 +20,8 @@ const bindingRevision = digest("b");
 function canonical(value: unknown): string {
   return JSON.stringify(value, (_key, item) => {
     if (!item || typeof item !== "object" || Array.isArray(item)) return item;
-    return Object.fromEntries(Object.entries(item as Record<string, unknown>).sort(([left], [right]) => left.localeCompare(right)));
+    return Object.fromEntries(Object.entries(item as Record<string, unknown>)
+      .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0));
   });
 }
 
@@ -316,6 +317,38 @@ describe("GOWM Gateway client v2", () => {
       expectedContractCatalogRevision: revision,
       expectedSemanticCatalogHash: semantics().catalogHash
     }).requiredMismatches).toContainEqual(expect.objectContaining({ reason: "UNAVAILABLE" }));
+  });
+
+  it("uses code-point canonical ordering for nested semantic maps", () => {
+    const profile: CapabilitySemanticProfile = {
+      ...semanticProfile,
+      domainStatus: {
+        path: "/status",
+        mapping: {
+          CONFLICTING: "INDETERMINATE",
+          INDETERMINATE: "INDETERMINATE",
+          NOT_SUPPORTED: "INDETERMINATE",
+          NO_DATA: "NO_DATA",
+          PARTIALLY_SUPPORTED: "PARTIAL",
+          SUPPORTED: "COMPLETED"
+        }
+      }
+    };
+    const profileHash = canonicalHash(profile);
+    const codePointLock = { ...lock, semanticProfileHash: profileHash };
+    const codePointCatalog = catalog({
+      capabilities: [{ ...catalog().capabilities[0]!, semanticProfile: profile }]
+    });
+    const profiles = [{ ...semanticEntry, semanticProfile: profile, semanticProfileHash: profileHash }];
+
+    expect(client(async () => jsonResponse({})).validateTrustedContracts({
+      catalog: codePointCatalog,
+      semantics: semantics({ profiles, catalogHash: canonicalHash(profiles) }),
+      availability: availability(),
+      required: [codePointLock],
+      expectedContractCatalogRevision: revision,
+      expectedSemanticCatalogHash: canonicalHash(profiles)
+    }).requiredReady).toBe(true);
   });
 
   it("uses semantic and availability endpoints with no provider route", async () => {

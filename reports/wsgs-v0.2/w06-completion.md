@@ -21,7 +21,7 @@ Reference operations use locked operation/schema evidence without provider ident
 | command/gate | result | evidence |
 |---|---|---|
 | current full no-DB Vitest run | reference/prior component tests PASS | `packages/grounding-graph/src/reference-grounding.test.ts`, `packages/prior-grounding/src/validator.test.ts` |
-| real GOWM business gate | several reference observations diagnostic-only | `reports/wsgs-v0.2/real-gowm-gate.json` |
+| real GOWM business gate | trusted unique/ambiguous reference observations pass | `reports/wsgs-v0.2/real-gowm-gate.json` |
 
 ## Acceptance cases
 
@@ -33,7 +33,7 @@ Cross-scope prior records are hidden behind the same not-found boundary; caller-
 
 ## Failed attempts retained
 
-The Sample World public authority now matches its pinned lock, but no authenticated WSGS resolve/validate request was authorized in this follow-up.
+Trusted signed Sample World reference resolution now proves unique and ambiguous cases. The broader WSGS resolve/validate matrix and PINNED historical validation remain incomplete.
 
 ## Commit/push/PR
 

@@ -2,7 +2,7 @@
 
 ## Phase
 
-W02 — Gateway Client v2. Decision: `BLOCKED`.
+W02 — Gateway Client v2. Decision: `PASS`.
 
 ## Source state
 
@@ -21,12 +21,12 @@ All transport validation consumes the exact GOWM 0.6.3 bundle and lock v2. No GO
 | command/gate | result | evidence |
 |---|---|---|
 | current full no-DB Vitest run | PASS for component tests | `reports/wsgs-v0.2/verification-summary.json`, `packages/gowm-gateway-client/src/client.test.ts` |
-| real GOWM gate | 7 diagnostic PASS / 2 BLOCKED overall | `reports/wsgs-v0.2/real-gowm-gate.json` |
+| real GOWM gate | 8 trusted PASS / 2 BLOCKED overall | `reports/wsgs-v0.2/real-gowm-gate.json` |
 | Sample World public handoff gate | PASS for exact handoff, capabilities, semantics, and fail-closed unauthenticated probes | `reports/wsgs-v0.2/real-gowm-sample-public-handoff.json` |
 
 ## Acceptance cases
 
-See `w02-acceptance.json`: 19 PASS and 6 BLOCKED. Public capabilities and semantics are now independently trusted against the pinned operational lock; signed availability and execution remain blocked.
+See `w02-acceptance.json`: 25 PASS and 0 BLOCKED. Public and signed contract/availability authority plus direct/query/job/cancel/receipt transport paths are trusted against the pinned operational lock.
 
 ## Security/authority review
 
@@ -42,8 +42,8 @@ No commit or push was performed by this reporting pass. Draft PR #2 must remain 
 
 ## Blockers
 
-Signed availability and execution were not run because secure credential handoff was not authorized. The public descriptor is `SYNC`; an authenticated direct-operation `202` lifecycle is unproven.
+No W02-owned Gateway Client case remains blocked. The cross-phase direct-operation asynchronous `202` requirement remains blocked because authenticated direct execution returns HTTP `200` under a `SYNC` descriptor.
 
 ## Next phase
 
-Authorize a secure credential handoff, then rerun signed availability, direct/query/job/cancel/receipt, and exact `202` lifecycle checks against the pinned Sample World lock.
+Retain the direct-operation `202` gap in W10/W13 evidence and continue the full production-chain qualification without weakening it to World Query async.

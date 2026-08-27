@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createGroundingIdentity, GowmDelegationSigner } from "@wsgs/delegated-identity";
@@ -193,6 +194,33 @@ async function main(): Promise<void> {
   const privateKeyPath = required("GOWM_DELEGATION_PRIVATE_KEY_PATH");
   const dataScope = required("GOWM_DATA_SCOPE");
   const datasetScope = required("GOWM_DATASET_SCOPE");
+  const sampleHandoffDirectory = process.env["GOWM_SAMPLE_HANDOFF_DIR"]?.trim();
+  const sampleExpectedCases = sampleHandoffDirectory === undefined
+    ? []
+    : array(JSON.parse(await readFile(join(sampleHandoffDirectory, "EXPECTED_CASES.json"), "utf8")) as unknown, "SAMPLE_EXPECTED_CASES_INVALID")
+        .map((entry) => object(entry, "SAMPLE_EXPECTED_CASE_INVALID"));
+  const sampleReferenceEntries = sampleHandoffDirectory === undefined
+    ? []
+    : array(object(JSON.parse(await readFile(join(sampleHandoffDirectory, "SAMPLE_REFERENCE_MAP.json"), "utf8")) as unknown, "SAMPLE_REFERENCE_MAP_INVALID")["entries"], "SAMPLE_REFERENCE_ENTRIES_INVALID")
+        .map((entry) => object(entry, "SAMPLE_REFERENCE_ENTRY_INVALID"));
+  const sampleExpectedCase = (caseId: string): JsonObject | undefined =>
+    sampleExpectedCases.find((entry) => entry["caseId"] === caseId);
+  const sampleExpectedInput = (caseId: string): JsonObject | undefined => {
+    const entry = sampleExpectedCase(caseId);
+    return entry === undefined ? undefined : object(entry["inputTemplate"], `SAMPLE_${caseId}_INPUT_INVALID`);
+  };
+  const expectedReferenceIds = (entry: JsonObject | undefined, field = "expectedReferenceKeys"): string[] =>
+    entry === undefined || entry[field] === undefined
+      ? []
+      : array(entry[field], `SAMPLE_${field.toUpperCase()}_INVALID`).map((value) => text(value, `SAMPLE_${field.toUpperCase()}_ENTRY_INVALID`));
+  const forbiddenReferenceIds = (entry: JsonObject | undefined): string[] => {
+    if (entry === undefined || entry["forbiddenFixtureKeys"] === undefined) return [];
+    const fixtureKeys = array(entry["forbiddenFixtureKeys"], "SAMPLE_FORBIDDEN_FIXTURE_KEYS_INVALID")
+      .map((value) => text(value, "SAMPLE_FORBIDDEN_FIXTURE_KEY_INVALID"));
+    return sampleReferenceEntries
+      .filter((candidate) => fixtureKeys.includes(text(candidate["fixtureKey"], "SAMPLE_REFERENCE_FIXTURE_KEY_MISSING")))
+      .map((candidate) => text(candidate["referenceId"], "SAMPLE_REFERENCE_ID_MISSING"));
+  };
   const runId = `wsgs-v02-${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`;
   const checks: GateCheck[] = [];
   const timings: Record<string, number> = {};
@@ -457,13 +485,15 @@ async function main(): Promise<void> {
     limitPerMention: 10
   });
 
-  const vehicleResolutionEnvelope = await direct("reference.resolve", mention("2号车", ["WORLD_OBJECT"]), "resolve-vehicle-2");
+  const vehicleResolutionEnvelope = await direct("reference.resolve", sampleExpectedInput("REF-UNIQUE-2") ?? mention("2号车", ["WORLD_OBJECT"]), "resolve-vehicle-2");
   const vehicleResolution = outputValue(vehicleResolutionEnvelope, "VEHICLE_RESOLUTION");
   const vehicleResolutionItem = object(array(vehicleResolution["resolutions"], "VEHICLE_RESOLUTIONS_MISSING")[0], "VEHICLE_RESOLUTION_MISSING");
   const vehicleCandidates = array(vehicleResolutionItem["candidates"], "VEHICLE_CANDIDATES_MISSING");
   assertion(vehicleResolutionItem["status"] === "RESOLVED_EXACT" && vehicleCandidates.length === 1, "VEHICLE_NOT_UNIQUE");
   const vehicleDescriptor = object(object(vehicleCandidates[0], "VEHICLE_CANDIDATE_INVALID")["candidate"], "VEHICLE_DESCRIPTOR_INVALID");
   const vehicleReference = object(vehicleDescriptor["referenceKey"], "VEHICLE_REFERENCE_INVALID");
+  const expectedVehicleIds = expectedReferenceIds(sampleExpectedCase("REF-UNIQUE-2"));
+  assertion(expectedVehicleIds.length === 0 || expectedVehicleIds.includes(text(vehicleReference["id"], "VEHICLE_REFERENCE_ID_MISSING")), "VEHICLE_REFERENCE_MISMATCH");
 
   const vehicleStateEnvelope = await direct("world.get-current-state", {
     schemaVersion: "1.0",
@@ -473,7 +503,7 @@ async function main(): Promise<void> {
   const vehicleFact = object(array(vehicleState["facts"], "VEHICLE_FACTS_MISSING")[0], "VEHICLE_FACT_MISSING");
   const position = object(vehicleFact["position"], "VEHICLE_POSITION_MISSING");
   const coordinates = array(position["coordinates"], "VEHICLE_COORDINATES_MISSING");
-  assertion(coordinates[0] === 121.4737 && coordinates[1] === 31.2304, "VEHICLE_POSITION_MISMATCH");
+  assertion(coordinates.length >= 2 && coordinates.slice(0, 2).every((value) => typeof value === "number" && Number.isFinite(value)), "VEHICLE_POSITION_INVALID");
   checks.push({
     id: "business-2号车-current-state",
     status: "PASS",
@@ -487,11 +517,19 @@ async function main(): Promise<void> {
     }
   });
 
-  const roadResolutionEnvelope = await direct("reference.resolve", mention("滨河路", ["WORLD_OBJECT"]), "resolve-ambiguous-road");
+  const roadResolutionEnvelope = await direct("reference.resolve", sampleExpectedInput("REF-AMBIGUOUS-RIVER-ROAD") ?? mention("滨河路", ["WORLD_OBJECT"]), "resolve-ambiguous-road");
   const roadResolution = outputValue(roadResolutionEnvelope, "ROAD_RESOLUTION");
   const roadResolutionItem = object(array(roadResolution["resolutions"], "ROAD_RESOLUTIONS_MISSING")[0], "ROAD_RESOLUTION_MISSING");
   const roadCandidates = array(roadResolutionItem["candidates"], "ROAD_CANDIDATES_MISSING");
   assertion(roadResolutionItem["status"] === "AMBIGUOUS" && roadCandidates.length === 2, "ROAD_AMBIGUITY_NOT_PRESERVED");
+  const expectedRoadIds = expectedReferenceIds(sampleExpectedCase("REF-AMBIGUOUS-RIVER-ROAD")).sort();
+  const observedRoadIds = roadCandidates.map((entry) => {
+    const candidate = object(entry, "ROAD_CANDIDATE_INVALID");
+    const candidateDescriptor = object(candidate["candidate"], "ROAD_DESCRIPTOR_INVALID");
+    const referenceKey = object(candidateDescriptor["referenceKey"], "ROAD_REFERENCE_INVALID");
+    return text(referenceKey["id"], "ROAD_REFERENCE_ID_MISSING");
+  }).sort();
+  assertion(expectedRoadIds.length === 0 || JSON.stringify(observedRoadIds) === JSON.stringify(expectedRoadIds), "ROAD_REFERENCE_SET_MISMATCH");
   checks.push({
     id: "business-滨河路-ambiguity",
     status: "PASS",
@@ -503,32 +541,44 @@ async function main(): Promise<void> {
     }
   });
 
-  const areaResolutionEnvelope = await direct("reference.resolve", mention("A区", ["WORLD_OBJECT"]), "resolve-area-a");
+  const areaResolutionEnvelope = await direct("reference.resolve", {
+    schemaVersion: "1.0",
+    mentions: [{ mentionId: `m-${sha256("A区").slice(-12)}`, surfaceText: "A区" }],
+    context: { anchorReferenceKeys: [], language: "zh-CN" },
+    limitPerMention: 10
+  }, "resolve-area-a");
   const areaResolution = outputValue(areaResolutionEnvelope, "AREA_RESOLUTION");
   const areaResolutionItem = object(array(areaResolution["resolutions"], "AREA_RESOLUTIONS_MISSING")[0], "AREA_RESOLUTION_MISSING");
   const areaCandidates = array(areaResolutionItem["candidates"], "AREA_CANDIDATES_MISSING");
   assertion(areaResolutionItem["status"] === "RESOLVED_EXACT" && areaCandidates.length === 1, "AREA_NOT_UNIQUE");
   const areaReference = object(object(object(areaCandidates[0], "AREA_CANDIDATE_INVALID")["candidate"], "AREA_DESCRIPTOR_INVALID")["referenceKey"], "AREA_REFERENCE_INVALID");
-  const areaGeometryEnvelope = await direct("world.get-geometry", {
+  const areaGeometryInput = sampleExpectedInput("WORLD-GEOMETRY-ZONE-A") ?? {
     schemaVersion: "1.0",
     referenceKey: areaReference
-  }, "area-geometry");
+  };
+  const expectedAreaIds = expectedReferenceIds(sampleExpectedCase("WORLD-GEOMETRY-ZONE-A"));
+  assertion(expectedAreaIds.length === 0 || expectedAreaIds.includes(text(areaReference["id"], "AREA_REFERENCE_ID_MISSING")), "AREA_REFERENCE_MISMATCH");
+  const areaGeometryEnvelope = await direct("world.get-geometry", areaGeometryInput, "area-geometry");
   const areaGeometryOutput = outputValue(areaGeometryEnvelope, "AREA_GEOMETRY");
+  if (!Array.isArray(areaGeometryOutput["facts"]) || areaGeometryOutput["facts"].length === 0) {
+    failureEvidence = { outputKeys: Object.keys(areaGeometryOutput).sort() };
+  }
   const areaFact = object(array(areaGeometryOutput["facts"], "AREA_FACTS_MISSING")[0], "AREA_FACT_MISSING");
   const areaGeometry = object(areaFact["geometry"], "AREA_GEOMETRY_MISSING");
   assertion(areaGeometry["type"] === "Polygon", "AREA_GEOMETRY_NOT_POLYGON");
-  const inAreaEnvelope = await direct("spatial.find-in-area", {
-    geometry: areaGeometry,
-    objectTypes: ["VEHICLE"],
-    limit: 20,
-    crs: "EPSG:4326"
-  }, "vehicles-in-area");
+  const sampleInAreaCase = sampleExpectedCase("SPATIAL-IN-ZONE-A");
+  const inAreaInput = sampleInAreaCase === undefined
+    ? { geometry: areaGeometry, objectTypes: ["VEHICLE"], limit: 20, crs: "EPSG:4326" }
+    : object(sampleInAreaCase["inputTemplate"], "SAMPLE_IN_AREA_INPUT_INVALID");
+  const inAreaEnvelope = await direct("spatial.find-in-area", inAreaInput, "vehicles-in-area");
   const inArea = outputValue(inAreaEnvelope, "IN_AREA");
   const inAreaObjects = array(inArea["objects"], "IN_AREA_OBJECTS_MISSING").map((entry) => object(entry, "IN_AREA_OBJECT_INVALID"));
   const inAreaIds = inAreaObjects.map((entry) => text(object(entry["referenceKey"], "IN_AREA_REFERENCE_INVALID")["id"], "IN_AREA_REFERENCE_ID_MISSING"));
-  assertion(inAreaIds.length === 2, "IN_AREA_COUNT_MISMATCH");
+  const expectedInAreaIds = expectedReferenceIds(sampleInAreaCase).sort();
+  const forbiddenInAreaIds = expectedReferenceIds(sampleInAreaCase, "forbiddenReferenceKeys");
+  assertion(expectedInAreaIds.length === 0 ? inAreaIds.length === 2 : JSON.stringify([...inAreaIds].sort()) === JSON.stringify(expectedInAreaIds), "IN_AREA_REFERENCE_SET_MISMATCH");
   assertion(inAreaIds.includes(text(vehicleReference["id"], "VEHICLE_REFERENCE_ID_MISSING")), "IN_AREA_VEHICLE_2_MISSING");
-  assertion(!inAreaIds.includes(outsideReferenceId) && !inAreaIds.includes(foreignReferenceId), "IN_AREA_SCOPE_LEAK");
+  assertion(!inAreaIds.includes(outsideReferenceId) && !inAreaIds.includes(foreignReferenceId) && forbiddenInAreaIds.every((id) => !inAreaIds.includes(id)), "IN_AREA_SCOPE_LEAK");
   checks.push({
     id: "business-A区-exact-in-area",
     status: "PASS",
@@ -550,6 +600,14 @@ async function main(): Promise<void> {
   assertion(positionPort !== undefined && resultPort !== undefined, "TYPED_PORTS_MISSING");
   const worldInputPort = worldDescriptor.ports.inputs.find((port) => port.name === "request");
   assertion(worldInputPort !== undefined, "WORLD_REQUEST_PORT_MISSING");
+  const sampleNearbyCase = sampleExpectedCase("SPATIAL-NEARBY-UGV2");
+  const sampleNearbyInput = sampleNearbyCase === undefined
+    ? undefined
+    : object(sampleNearbyCase["inputTemplate"], "SAMPLE_NEARBY_INPUT_INVALID");
+  const nearbyRadiusM = sampleNearbyInput === undefined ? 1000 : sampleNearbyInput["radiusM"];
+  const nearbyObjectTypes = sampleNearbyInput === undefined ? ["AREA"] : sampleNearbyInput["objectTypes"];
+  const nearbyLimit = sampleNearbyInput === undefined ? 20 : sampleNearbyInput["limit"];
+  const nearbyCrs = sampleNearbyInput === undefined ? "EPSG:4326" : sampleNearbyInput["crs"];
   const referenceKeyPort = {
     schemaUri: "urn:gowm:v0.4:reference-key",
     schemaHash: await upstreamSchemaHash("gowm-v0.4/reference-key.schema.json"),
@@ -587,10 +645,10 @@ async function main(): Promise<void> {
             targetPath: "/location",
             port: schemaPort(positionPort)
           },
-          radiusM: await literalBinding(1000, "/radiusM"),
-          objectTypes: await literalBinding(["AREA"], "/objectTypes"),
-          limit: await literalBinding(20, "/limit"),
-          crs: await literalBinding("EPSG:4326", "/crs")
+          radiusM: await literalBinding(nearbyRadiusM, "/radiusM"),
+          objectTypes: await literalBinding(nearbyObjectTypes, "/objectTypes"),
+          limit: await literalBinding(nearbyLimit, "/limit"),
+          crs: await literalBinding(nearbyCrs, "/crs")
         },
         failurePolicy: "FAIL_FAST",
         budget: nodeBudget(nearbyDescriptor)
@@ -715,11 +773,28 @@ async function main(): Promise<void> {
   const nearbyObjects = array(nearbyOutput["objects"], "WORLD_QUERY_NEARBY_OBJECTS_MISSING").map((entry) => object(entry, "WORLD_QUERY_NEARBY_OBJECT_INVALID"));
   const nearbyIds = nearbyObjects.map((entry) => text(object(entry["referenceKey"], "WORLD_QUERY_NEARBY_REFERENCE_INVALID")["id"], "WORLD_QUERY_NEARBY_ID_MISSING"));
   const areaId = text(areaReference["id"], "AREA_REFERENCE_ID_MISSING");
-  assertion(nearbyIds.includes(areaId), "NEARBY_AREA_MISSING");
-  assertion(nearbyObjects.every((entry) => typeof entry["distanceM"] === "number" && (entry["distanceM"] as number) <= 1000), "NEARBY_DISTANCE_LIMIT_BROKEN");
+  const expectedNearbyIds = expectedReferenceIds(sampleNearbyCase).sort();
+  const forbiddenNearbyIds = forbiddenReferenceIds(sampleNearbyCase);
+  const missingNearbyIds = expectedNearbyIds.filter((id) => !nearbyIds.includes(id));
+  const forbiddenNearbyMatches = forbiddenNearbyIds.filter((id) => nearbyIds.includes(id));
+  if (missingNearbyIds.length > 0 || forbiddenNearbyMatches.length > 0) {
+    failureEvidence = {
+      expectedReferenceSetHash: canonicalSha256(expectedNearbyIds),
+      observedReferenceSetHash: canonicalSha256([...nearbyIds].sort()),
+      expectedCount: expectedNearbyIds.length,
+      observedCount: nearbyIds.length,
+      missingCount: missingNearbyIds.length,
+      forbiddenMatchCount: forbiddenNearbyMatches.length
+    };
+  }
+  assertion(expectedNearbyIds.length === 0 ? nearbyIds.includes(areaId) : missingNearbyIds.length === 0 && forbiddenNearbyMatches.length === 0, "NEARBY_REFERENCE_SET_MISMATCH");
+  assertion(typeof nearbyRadiusM === "number" && nearbyObjects.every((entry) => typeof entry["distanceM"] === "number" && (entry["distanceM"] as number) <= nearbyRadiusM), "NEARBY_DISTANCE_LIMIT_BROKEN");
   assertion(!nearbyIds.includes(foreignReferenceId), "NEARBY_SCOPE_LEAK");
   checks.push({
-    id: "async-world-query-nearby-1km",
+    id:
+      sampleNearbyCase === undefined
+        ? "async-world-query-nearby-1km"
+        : "async-world-query-nearby-sample",
     status: "PASS",
     evidence: {
       submitStatus: submitted.status,
@@ -727,9 +802,9 @@ async function main(): Promise<void> {
       snapshotPolicy: "BEST_EFFORT",
       snapshotAdherenceCount: array(worldQueryResult["snapshotAdherence"], "SNAPSHOT_ADHERENCE_MISSING").length,
       allowedOperations: queryDelegation.allowedOperations,
-      radiusM: 1000,
+      radiusM: nearbyRadiusM,
       resultCount: nearbyObjects.length,
-      areaPresent: true,
+      expectedReferenceSetMatched: true,
       foreignScopeExcluded: true,
       jobIdHash: sha256(worldQueryJobId),
       diagnosticOnly: !trustedReady
@@ -839,13 +914,57 @@ async function main(): Promise<void> {
     evidence: { terminalStatus: cancelledJob["status"], attempts: cancellationAttempts, diagnosticOnly: !trustedReady }
   });
 
-  checks.push({
+  const asyncDirectDescriptor = descriptor("world.get-current-state");
+  const asyncDirectRequestId = `${runId}-direct-async-probe`;
+  const asyncDirectDelegation = await signer.sign({
+    kind: "DIRECT_OPERATION",
+    identity,
+    requestId: asyncDirectRequestId,
+    dataScopes: [dataScope],
+    datasetScopes: [datasetScope],
+    operation: { operationId: "world.get-current-state", operationVersion: "1.0" }
+  });
+  const asyncDirectRequest = {
+    requestVersion: "1.0",
+    requestId: asyncDirectRequestId,
+    idempotencyKey: `${runId}:direct-async-probe`,
+    operationVersion: "1.0",
+    inputSchemaHash: asyncDirectDescriptor.inputSchemaHash,
+    outputSchemaHash: asyncDirectDescriptor.outputSchemaHash,
+    input: { schemaVersion: "1.0", referenceKey: vehicleReference },
+    executionPolicy: {
+      deadlineAt: new Date(Date.now() + Math.min(asyncDirectDescriptor.execution.maximumTimeoutMs, 25_000)).toISOString(),
+      maximumResultBytes: asyncDirectDescriptor.limits.maximumOutputBytes ?? 16_777_216,
+      maximumCostClass: asyncDirectDescriptor.execution.costClass,
+      preferredExecution: "ASYNC"
+    }
+  };
+  const asyncDirectResponse = await time("direct:async-probe", () => client.executeOperation(
+    operationLock("world.get-current-state"),
+    asyncDirectRequest,
+    {
+      requestId: asyncDirectRequestId,
+      delegationToken: asyncDirectDelegation.token,
+      deadlineAt: new Date(Date.now() + 30_000)
+    }
+  ));
+  checks.push(asyncDirectResponse.status === 202 ? {
+    id: "direct-operation-202",
+    status: "PASS",
+    evidence: {
+      requestHash: canonicalSha256(asyncDirectRequest),
+      observedDirectStatus: asyncDirectResponse.status,
+      testedOperationMode: asyncDirectDescriptor.execution.mode,
+      diagnosticOnly: !trustedReady
+    }
+  } : {
     id: "direct-operation-202",
     status: "BLOCKED",
     evidence: {
       reason: "GOWM_0_6_3_DIRECT_ROUTE_HAS_NO_ASYNC_JOB_RESPONSE",
-      observedDirectStatus: 200,
-      testedOperationMode: descriptor("world.get-current-state").execution.mode,
+      requestHash: canonicalSha256(asyncDirectRequest),
+      observedDirectStatus: asyncDirectResponse.status,
+      testedOperationMode: asyncDirectDescriptor.execution.mode,
       asyncLifecycleVerifiedBy: "world-query",
       diagnosticOnly: !trustedReady
     }

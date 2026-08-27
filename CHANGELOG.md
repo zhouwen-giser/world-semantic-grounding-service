@@ -5,7 +5,7 @@
 - Locked the internal southbound integration to the exact GOWM+ 0.6.3 consumer artifact while retaining the frozen `sacs-wsgs-grounding/1.0` northbound response constants.
 - Added signed delegation, trusted capability snapshots, a staged PostgreSQL worker pipeline, semantic requirement planning, capability matching, typed query compilation, and provider-neutral GOWM execution evidence handling.
 - Added one `wsgs:0.2.0` image for separate non-root, read-only API and worker processes, plus a pinned PostgreSQL 17.10 service and a fail-closed migration/assertion job.
-- Repeated real semantic-model checks passed. A pinned GOWM+ Sample World public handoff gate now verifies the exact operational lock plus live discovery and semantics without credentials, resolving the earlier canonicalization drift for that candidate. Signed availability/execution, direct-operation `202`, `PINNED` validation, and the trusted full chain remain blocked or unproven.
+- Repeated real semantic-model checks passed. A pinned GOWM+ Sample World gate verifies public discovery plus signed availability and trusted execution, including World Query `202`/poll, cancellation, and receipt retrieval. WSGS canonical hashing now uses code-point key ordering consistently. Direct-operation `202`, `PINNED` validation, and the trusted full chain remain blocked.
 
 This candidate is blocked. No stable-complete or production-ready marker is valid, and no release, tag, deploy, or merge has been performed.
 

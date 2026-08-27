@@ -4,14 +4,14 @@
 
 `BLOCKED`
 
-This working tree is not a stable candidate and is not ready for production traffic or PR readiness. The acceptance ledger contains 279 Required IDs with 188 PASS, 0 FAIL, 17 NOT_RUN, and 74 BLOCKED. No PARTIAL terminal status is used.
+This working tree is not a stable candidate and is not ready for production traffic or PR readiness. The acceptance ledger contains 279 Required IDs with 195 PASS, 0 FAIL, 17 NOT_RUN, and 67 BLOCKED. No PARTIAL terminal status is used.
 
 ## Candidate and exact SHA
 
 - Base: WSGS `2fdefe3769189fa8e8be4302a9e98ca55cf686d4`.
 - Implementation commit: `72b911ed9fc453d7c1d736ab551957e4ff4b8850`.
 - Deployment/package commit: `9cf1f897cfc400c61c434fe1b34b31ab7f59c99b`.
-- Evidence-base local/tracking commit at the start of this Sample World follow-up: `5ef1acacd9214928be16cb3aaef1904cdb88f115`. The follow-up commit cannot self-embed its own SHA; it is reported in the task handoff, and no final stable-candidate SHA exists.
+- Public Sample World follow-up base: `5ef1acacd9214928be16cb3aaef1904cdb88f115`; signed follow-up local/tracking base: `8f6ab63ad0c508c9787a72568c7e83b5b48af95a`. The follow-up commit cannot self-embed its own SHA; it is reported in the task handoff, and no final stable-candidate SHA exists.
 - Final local/tracking/`ls-remote` SHA equality is NOT_RUN.
 - Draft PR: https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/2; it must remain Draft.
 
@@ -27,13 +27,13 @@ Component evidence covers catalog/semantics/availability parsing, content revisi
 
 The historical exact-source real GOWM gate observed seven live checks succeed but remained diagnostic because that runtime and the bundled semantic lock differed. The new Sample World public handoff gate verifies the exact 12-file handoff, operational-lock hash, 13 expected cases, 28/28 recorded canaries, public contract/binding hashes, and all 122 live semantic profile hashes. The former canonicalization mismatch is therefore resolved for this explicitly pinned operational candidate.
 
-The no-credential availability request `GET /v1/operation-availability` and no-credential ASYNC request `POST /v1/operations/world.get-current-state:execute` each returned HTTP 403 with protocol code `SCOPE_DENIED`. The public descriptor declares that direct operation as `SYNC`. Signed availability and execution were not authorized, so no direct-operation `202` lifecycle or trusted business result is claimed: `BLOCKED — secure credential handoff authorization required`.
+The no-credential availability and direct ASYNC probes each returned HTTP 403 `SCOPE_DENIED`. A later explicitly authorized credential run used bounded signed delegation and passed five-operation availability, direct sync calls, World Query HTTP `202`/poll, cancellation, and receipt retrieval. Credential values and paths were not persisted or reported. Authenticated direct execution returned HTTP `200` under a `SYNC` descriptor, so no direct-operation `202` lifecycle is claimed.
 
 ## Delegated identity
 
 The implementation separates service principal, actor, data scopes, dataset scopes, permissions, and authorization-context hash. It signs bounded RS256 request/depth/scope/operation claims and does not persist the delegation token or forward a raw SACS bearer.
 
-The handoff reports an independent signed consumer canary, but WSGS did not reproduce it because the handoff contains no credentials and no secure credential transfer was authorized. The full real positive and negative verifier matrix for signature, issuer, audience, time, request, and depth has not run.
+WSGS independently reproduced positive signed delegation for DIRECT_OPERATION and WORLD_QUERY authority. The full real negative verifier matrix for forged signature, issuer, audience, time, request, and depth has not run.
 
 ## Executable pipeline
 
@@ -45,18 +45,18 @@ There is no trusted API → queue → worker → real model/GOWM → persisted r
 
 Component tests preserve ambiguity, suggestion, candidate order, match/state confidence, NO_DATA, stale/expired state, prior bytes/hash, scope hiding, and selected-product validation.
 
-Trusted real resolve/validate remains blocked. The locked `reference.validate@1.0` and `result.validate@1.0` operations provide `CONSISTENT_AT_START`, not the required `PINNED` historical replay. The implementation correctly fails closed; it does not silently substitute latest state.
+Trusted real unique and ambiguous resolution now passes at the signed Gateway boundary. The broader resolve/validate matrix remains incomplete, and locked `reference.validate@1.0` plus `result.validate@1.0` provide `CONSISTENT_AT_START`, not the required `PINNED` historical replay. The implementation correctly fails closed; it does not silently substitute latest state.
 
 ## Requirement planner and compiler v2
 
 Component tests cover neutral requirements, typed capability gaps, maturity/availability/semantic matching, typed ports and units, ambiguity/no substitution, cycles, weighted budgets, exact-verification recipes, and deterministic plan hashes.
 
-Production input wiring now carries requirement-graph requirements, inputs, and dependencies into typed compiler bindings and ports, with 17/17 compiler tests and the focused compiler/worker run passing. Real signed availability, exact verification, and stable recipe execution remain blocked because authenticated live execution was not authorized.
+Production input wiring now carries requirement-graph requirements, inputs, and dependencies into typed compiler bindings and ports, with 17/17 compiler tests and the focused compiler/worker run passing. Signed availability and a gate-authored typed World Query pass, but actual WSGS-compiled stable recipes have not executed through the production worker.
 
 ## Real model, GOWM, and PostgreSQL
 
 - Real model: the latest run passed 4/4 Chinese cases (`2号车`, `滨河路`, `A区`, prompt injection); prior evidence records three consecutive consistent 4/4 runs with strict schema, exact UTF-16 spans, and authority scanning.
-- Real GOWM public gate: PASS for exact Sample World handoff intake and public discovery/semantics. Contract catalog `sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a`, binding `sha256:1d59337bcbd8cb8dd76d0241d08b8c7618f61daa6e9c43d25db45c11994f1394`, and semantic catalog `sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61` all match the pinned handoff. Signed availability/execution remains blocked by the credential-authorization boundary.
+- Real GOWM signed gate: 8 trusted PASS / 2 BLOCKED / 0 FAIL. Contract catalog `sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a`, binding `sha256:1d59337bcbd8cb8dd76d0241d08b8c7618f61daa6e9c43d25db45c11994f1394`, and semantic catalog `sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61` match the pinned handoff. Five required operations are AVAILABLE; direct sync, World Query async, cancel, and receipt paths pass.
 - Production readiness: the historical `/health/ready` run returned HTTP `503` with reason `SEMANTIC_CATALOG_DRIFT`, proving fail-closed behavior under the old bundled lock. It is retained as negative evidence and does not characterize current Sample World readiness, which was not run with authenticated dependencies.
 - PostgreSQL: isolated current-schema suites passed 18/18 and a separate fresh upgrade suite passed 2/2, including failed-002 rollback and result-schema transaction rollback. Compose fresh migration and both SQL assertion files also passed.
 - Other database write/readiness cases without current final-run proof remain NOT_RUN in the ledger.

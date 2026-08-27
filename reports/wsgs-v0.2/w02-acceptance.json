@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
   "phase": "W02",
-  "status": "BLOCKED",
+  "status": "PASS",
   "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
-  "summary": { "PASS": 19, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 6 },
+  "summary": { "PASS": 25, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 0 },
   "groups": [
     { "ids": ["AC-G004..AC-G009", "AC-G015..AC-G025"], "status": "PASS", "evidence": ["packages/gowm-gateway-client/src/client.test.ts", "packages/trusted-capability-snapshot/src/snapshot.test.ts", "reports/wsgs-v0.2/verification-summary.json"] },
     { "ids": ["AC-G001..AC-G002"], "status": "PASS", "evidence": ["reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "validation/scripts/verify-gowm-sample-handoff.ts"], "note": "Pinned handoff and live public capabilities/semantics validate with matching contract, binding, catalog, and profile hashes." },
-    { "ids": ["AC-G003", "AC-G010..AC-G014"], "status": "BLOCKED", "evidence": ["reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "reports/wsgs-v0.2/real-gowm-gate.json"], "note": "Signed availability and execution were not authorized; the public ASYNC probe fails closed with 403 SCOPE_DENIED and the descriptor remains SYNC." }
+    { "ids": ["AC-G003", "AC-G010..AC-G014"], "status": "PASS", "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json"], "note": "Signed availability, direct sync execution, World Query 202/poll, cancel, and receipt retrieval pass against the exact Sample World operational lock." }
   ]
 }
