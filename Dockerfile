@@ -16,6 +16,9 @@ RUN npm ci --ignore-scripts \
 
 FROM node:22.14.0-bookworm-slim@sha256:1c18d9ab3af4585870b92e4dbc5cac5a0dc77dd13df1a5905cea89fc720eb05b
 
+LABEL org.opencontainers.image.title="World Semantic Grounding Service" \
+      org.opencontainers.image.version="0.2.0"
+
 ENV NODE_ENV=production \
     PORT=8080
 WORKDIR /app
@@ -27,6 +30,7 @@ COPY --from=build --chown=10001:10001 /app /app
 
 USER 10001:10001
 EXPOSE 8080
+STOPSIGNAL SIGTERM
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
   CMD ["node", "-e", "fetch('http://127.0.0.1:8080/health/live').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
 CMD ["node", "services/grounding-api/dist/main.js"]

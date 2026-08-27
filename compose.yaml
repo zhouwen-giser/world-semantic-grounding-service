@@ -1,19 +1,119 @@
+x-wsgs-container: &wsgs-container
+  image: wsgs:0.2.0
+  build:
+    context: .
+  user: "10001:10001"
+  read_only: true
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=16m,mode=1777
+  stop_grace_period: 20s
+
+x-wsgs-runtime-environment: &wsgs-runtime-environment
+  DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+  WSGS_REQUEST_ENCRYPTION_KEY_BASE64: ${WSGS_REQUEST_ENCRYPTION_KEY_BASE64:?Set WSGS_REQUEST_ENCRYPTION_KEY_BASE64 in .env}
+  GOWM_GATEWAY_BASE_URL: ${GOWM_GATEWAY_BASE_URL:?Set GOWM_GATEWAY_BASE_URL in .env}
+  GOWM_GATEWAY_TOKEN: ${GOWM_GATEWAY_TOKEN:?Set GOWM_GATEWAY_TOKEN in .env}
+  GOWM_DELEGATION_ISSUER: ${GOWM_DELEGATION_ISSUER:?Set GOWM_DELEGATION_ISSUER in .env}
+  GOWM_DELEGATION_AUDIENCE: ${GOWM_DELEGATION_AUDIENCE:?Set GOWM_DELEGATION_AUDIENCE in .env}
+  GOWM_DELEGATION_SERVICE_PRINCIPAL_ID: ${GOWM_DELEGATION_SERVICE_PRINCIPAL_ID:?Set GOWM_DELEGATION_SERVICE_PRINCIPAL_ID in .env}
+  GOWM_DELEGATION_PRIVATE_KEY_FILE: /run/secrets/gowm-delegation-private-key.pem
+  WSGS_READINESS_ACTOR_ID: ${WSGS_READINESS_ACTOR_ID:?Set WSGS_READINESS_ACTOR_ID in .env}
+  WSGS_READINESS_DATA_SCOPE: ${WSGS_READINESS_DATA_SCOPE:?Set WSGS_READINESS_DATA_SCOPE in .env}
+  WSGS_READINESS_DATASET_SCOPES: ${WSGS_READINESS_DATASET_SCOPES:-}
+  WSGS_READINESS_PERMISSIONS: ${WSGS_READINESS_PERMISSIONS:-data:read,dataset:read}
+  WSGS_MODEL_POLICY: ${WSGS_MODEL_POLICY:-MODEL_REQUIRED}
+  MODEL_BASE_URL: ${MODEL_BASE_URL:?Set MODEL_BASE_URL in .env}
+  MODEL_API_KEY: ${MODEL_API_KEY:?Set MODEL_API_KEY in .env}
+  MODEL_NAME: ${MODEL_NAME:?Set MODEL_NAME in .env}
+  MODEL_OUTPUT_MODE: ${MODEL_OUTPUT_MODE:-CHAT_COMPLETIONS_STRICT}
+  MODEL_TIMEOUT_MS: ${MODEL_TIMEOUT_MS:-120000}
+  MODEL_MAX_RETRIES: ${MODEL_MAX_RETRIES:-1}
+  WSGS_ALLOW_PREVIEW_CAPABILITIES: ${WSGS_ALLOW_PREVIEW_CAPABILITIES:-NO}
+
 services:
-  wsgs:
-    build:
-      context: .
-    image: wsgs:0.1.0
-    user: "10001:10001"
+  postgres:
+    image: postgres:17.10-alpine3.23@sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4
     read_only: true
     security_opt:
       - no-new-privileges:true
-    tmpfs:
-      - /tmp:rw,noexec,nosuid,nodev,size=16m,mode=1777
     environment:
-      WSGS_AUTH_MODE: STATIC_TRUSTED
-      WSGS_STATIC_PRINCIPAL_ID: local-sacs
-      WSGS_STATIC_ACTOR: sacs
-      WSGS_STATIC_DATA_SCOPE: local-development
+      POSTGRES_USER: ${POSTGRES_USER:-wsgs}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-wsgs}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
+    volumes:
+      - wsgs-postgres-data:/var/lib/postgresql/data
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777
+      - /var/run/postgresql:rw,nosuid,nodev,size=8m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  wsgs-migrate:
+    <<: *wsgs-container
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+    command: ["node", "packages/runtime/dist/migrate.js", "--assertions"]
+    healthcheck:
+      disable: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  grounding-api:
+    <<: *wsgs-container
+    environment:
+      <<: *wsgs-runtime-environment
+      PORT: "8080"
+      WSGS_AUTH_MODE: ${WSGS_AUTH_MODE:-JWT_SERVICE}
+      WSGS_JWT_HS256_SECRET: ${WSGS_JWT_HS256_SECRET:?Set WSGS_JWT_HS256_SECRET in .env}
+      WSGS_JWT_ISSUER: ${WSGS_JWT_ISSUER:?Set WSGS_JWT_ISSUER in .env}
+      WSGS_JWT_AUDIENCE: ${WSGS_JWT_AUDIENCE:-wsgs}
+    secrets:
+      - gowm_delegation_private_key
     ports:
-      - "127.0.0.1:8080:8080"
-    stop_grace_period: 15s
+      - "127.0.0.1:${WSGS_API_PORT:-8080}:8080"
+    depends_on:
+      wsgs-migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  grounding-worker:
+    <<: *wsgs-container
+    environment:
+      <<: *wsgs-runtime-environment
+      WSGS_WORKER_CONCURRENCY: ${WSGS_WORKER_CONCURRENCY:-1}
+      WSGS_WORKER_SHUTDOWN_GRACE_MS: ${WSGS_WORKER_SHUTDOWN_GRACE_MS:-15000}
+    secrets:
+      - gowm_delegation_private_key
+    command: ["node", "services/grounding-worker/dist/main.js"]
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "import('pg').then(async({Pool})=>{const p=new Pool({connectionString:process.env.DATABASE_URL,max:1});try{await p.query('SELECT 1 FROM wsgs.pipeline_checkpoint LIMIT 0')}finally{await p.end()}}).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      wsgs-migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+secrets:
+  gowm_delegation_private_key:
+    file: ${GOWM_DELEGATION_PRIVATE_KEY_FILE_HOST:?Set GOWM_DELEGATION_PRIVATE_KEY_FILE_HOST in .env}
+
+volumes:
+  wsgs-postgres-data:

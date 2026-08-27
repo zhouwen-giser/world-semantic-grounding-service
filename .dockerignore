@@ -4,6 +4,10 @@
 WSGS_v0.1_Grounding_Core_Codex_Goal
 **/node_modules
 **/dist
+.env
+.env.*
+!.env.example
+secrets
 reports
 coverage
 npm-debug.log*
