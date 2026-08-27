@@ -28,17 +28,17 @@ This is the living execution plan for WSGS 0.2.0.
 
 - [x] W00 Baseline reconciliation and Draft PR
 - [x] W01 GOWM 0.6.3 consumer contract intake
-- [ ] W02 Gateway client v2
-- [ ] W03 Delegated identity
-- [ ] W04 Production backend, worker, and pipeline
-- [ ] W05 Context, parser, model policy, and graph
-- [ ] W06 Reference runtime
-- [ ] W07 Trusted capability snapshot
-- [ ] W08 Semantic requirement planner
-- [ ] W09 Capability matcher and compiler v2
-- [ ] W10 GOWM execution and evidence
-- [ ] W11 Prior grounding revalidation
-- [ ] W12 API, readiness, security, and recovery
+- [x] W02 Gateway client v2
+- [x] W03 Delegated identity
+- [x] W04 Production backend, worker, and pipeline
+- [x] W05 Context, parser, model policy, and graph
+- [x] W06 Reference runtime
+- [x] W07 Trusted capability snapshot
+- [x] W08 Semantic requirement planner
+- [x] W09 Capability matcher and compiler v2
+- [x] W10 GOWM execution and evidence
+- [x] W11 Prior grounding revalidation
+- [x] W12 API, readiness, security, and recovery
 - [ ] W13 Real model, GOWM, and PostgreSQL E2E
 - [ ] W14 Stable candidate
 
@@ -57,6 +57,8 @@ This is the living execution plan for WSGS 0.2.0.
 - The task materialization helper compares the locked logical package integrity to raw `.tgz` bytes; that comparison cannot pass for the exact GOWM 0.6.3 source. W01 will retain this discrepancy and implement the upstream-defined logical check plus independent tarball-byte checks.
 - GOWM 0.6.3 packages its full base OpenAPI with unresolved relative schema paths and does not export that file through package exports. WSGS will validate bundle schemas/MANIFEST and explicit live routes rather than using blind OpenAPI code generation.
 - GOWM 0.6.3 implements asynchronous World Query submission but rejects asynchronous-only direct operations. Required direct-202 real gates therefore cannot be claimed against the locked upstream without modifying GOWM, which this goal forbids.
+- The exact GOWM 0.6.3 consumer bundle and live gateway canonicalize semantic profiles with different sort orders. One profile therefore produces different semantic catalog hashes, and WSGS correctly fails readiness closed with `SEMANTIC_CATALOG_DRIFT`.
+- The locked `reference.validate@1.0` and `result.validate@1.0` operations expose `CONSISTENT_AT_START`, while prior-grounding revalidation requires `PINNED`; WSGS returns the typed `PINNED_VALIDATION_OPERATION_UNAVAILABLE` gap instead of weakening the policy.
 
 ## Failed attempts retained
 
@@ -73,7 +75,14 @@ This is the living execution plan for WSGS 0.2.0.
 - Baseline local check without database: 15 test files passed, 1 integration file skipped; 107 tests passed and 9 skipped.
 - Baseline with isolated PostgreSQL 17.10: contract freeze, architecture boundary, generated types, strict TypeScript, 16 test files, and all 116 tests passed.
 - W01 intake: 25 independent contract/supply-chain checks pass; 62/62 MANIFEST records and 64/64 archive/extracted files verify; three exact-source materializations have identical tarball SHA-256; 7/7 focused positive/negative tests pass.
+- Frozen and internal contracts: 25 GOWM checks, 19 northbound schemas, 12 internal schemas, 9 stable recipes, 5 preview recipes, 13 examples, and all generated contract types pass validation.
+- Static repository verification: architecture boundaries and strict TypeScript pass; the no-database suite passes 278 tests in 31 files, with 20 database/real-environment tests skipped by design.
+- Fresh PostgreSQL verification: 20/20 targeted job-store, worker, API, migration-upgrade, and failed-migration rollback tests pass.
+- Real semantic model gate: 4/4 strict OpenAI-compatible model cases pass, including prompt-injection handling; every case completed on the first attempt.
+- Real GOWM gate: 7 checks pass, 2 are blocked, and 0 fail. Reference resolution, ambiguity preservation, area membership, one-kilometre World Query execution, evidence retrieval, and cancellation are exercised against the exact GOWM checkout.
+- Production readiness gate: the real API returns HTTP 503 with `SEMANTIC_CATALOG_DRIFT`, proving fail-closed behavior against the live catalog mismatch.
+- Container verification: the exact Node runtime image builds as non-root UID 10001; Compose configuration validates; a fresh isolated migration service applies and verifies both migrations successfully.
 
 ## Remaining work
 
-Execute W02-W14. Draft PR #2 is the publication surface; merge, tag, release, publish, and production deployment remain prohibited.
+W02-W12 implementation is complete. W13 and W14 remain blocked by the locked upstream semantic-catalog canonicalization mismatch, the lack of an asynchronous 202 direct-operation route, and the absence of a `PINNED` validation capability. Large evidence payloads also remain fail-closed until an object store is configured. The candidate must remain Draft and must not emit readiness or stable-candidate completion markers. Draft PR #2 is the publication surface; merge, tag, release, publish, and production deployment remain prohibited.

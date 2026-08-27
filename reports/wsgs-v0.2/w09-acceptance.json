@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W09",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 20, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 8 },
+  "groups": [
+    { "ids": ["AC-Q005..AC-Q007", "AC-Q009..AC-Q020", "AC-Q023..AC-Q027"], "status": "PASS", "evidence": ["packages/query-compiler/src/matcher.test.ts", "packages/query-compiler/src/compiler.test.ts", "services/grounding-worker/src/production-module.test.ts", "reports/wsgs-v0.2/verification-summary.json"], "note": "Compiler tests and production-module tests prove typed requirement inputs, bindings, ports, units, and canonical plan construction." },
+    { "ids": ["AC-Q008", "AC-Q021..AC-Q022", "AC-Q028..AC-Q032"], "status": "BLOCKED", "evidence": ["services/grounding-worker/src/production-module.ts", "reports/wsgs-v0.2/real-gowm-gate.json"], "note": "Trusted real availability, exact verification, and stable recipe execution remain blocked by fail-closed GOWM authority drift." }
+  ]
+}

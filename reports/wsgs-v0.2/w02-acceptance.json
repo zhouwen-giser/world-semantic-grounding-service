@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W02",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 17, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 8 },
+  "groups": [
+    { "ids": ["AC-G004..AC-G009", "AC-G015..AC-G025"], "status": "PASS", "evidence": ["packages/gowm-gateway-client/src/client.test.ts", "packages/trusted-capability-snapshot/src/snapshot.test.ts", "reports/wsgs-v0.2/verification-summary.json"] },
+    { "ids": ["AC-G001..AC-G003", "AC-G010..AC-G014"], "status": "BLOCKED", "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json"], "note": "Live observations are diagnostic-only after semantic-catalog canonicalization drift; direct-operation 202 is unsupported." }
+  ]
+}

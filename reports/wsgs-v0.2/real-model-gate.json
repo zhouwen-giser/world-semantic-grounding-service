@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "gate": "validation/scripts/real-model-gate.ts",
+  "status": "PASS",
+  "recordedAt": "2026-08-27T15:36:20.174Z",
+  "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+  "environmentCategory": "REAL_EXTERNAL_SEMANTIC_MODEL",
+  "latestRun": {
+    "exitCode": 0,
+    "caseCount": 4,
+    "casesPassed": 4,
+    "casesFailed": 0,
+    "schemaValidation": "PASS",
+    "exactUtf16Mentions": "PASS",
+    "authorityScan": "PASS",
+    "cases": [
+      { "id": "vehicle-location", "requiredSurface": "2号车", "status": "PASS" },
+      { "id": "ambiguous-road", "requiredSurface": "滨河路", "status": "PASS" },
+      { "id": "vehicles-in-area", "requiredSurface": "A区", "status": "PASS" },
+      { "id": "prompt-injection", "requiredSurface": "2号车", "status": "PASS" }
+    ]
+  },
+  "priorRepeatabilityEvidence": {
+    "consecutiveRuns": 3,
+    "casesPerRun": 4,
+    "successfulCaseExecutions": 12,
+    "failedCaseExecutions": 0,
+    "status": "PASS"
+  },
+  "redaction": {
+    "modelEndpointIncluded": false,
+    "modelCredentialIncluded": false,
+    "rawInputsOrOutputsIncluded": false
+  },
+  "scope": "Independent real semantic-model parsing evidence only; it does not prove the live GOWM authority lock or the full production pipeline."
+}

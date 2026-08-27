@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W06",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 5, "FAIL": 0, "NOT_RUN": 1, "BLOCKED": 14 },
+  "groups": [
+    { "ids": ["AC-R005..AC-R006", "AC-R016..AC-R018"], "status": "PASS", "evidence": ["packages/grounding-graph/src/reference-grounding.test.ts", "packages/prior-grounding/src/validator.test.ts", "reports/wsgs-v0.2/verification-summary.json"] },
+    { "ids": ["AC-R001..AC-R004", "AC-R007..AC-R015", "AC-R019"], "status": "BLOCKED", "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "services/grounding-worker/src/production-module.test.ts"], "note": "Trusted resolve/validate is blocked; PINNED historical validation is unavailable." },
+    { "ids": ["AC-R020"], "status": "NOT_RUN", "evidence": ["services/grounding-worker/src/production-module.ts"] }
+  ]
+}

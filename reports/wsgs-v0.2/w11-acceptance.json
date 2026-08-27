@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W11",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 1, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 1 },
+  "groups": [
+    { "ids": ["AC-E008"], "status": "PASS", "evidence": ["packages/prior-grounding/src/validator.test.ts", "services/grounding-worker/src/production-module.test.ts"], "note": "Unsupported PINNED replay fails typed and never falls back to latest." },
+    { "ids": ["AC-E007"], "status": "BLOCKED", "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json"], "note": "reference.validate/result.validate provide CONSISTENT_AT_START, not PINNED." }
+  ],
+  "crossPhasePriorIds": ["AC-R016", "AC-R017", "AC-R018", "AC-R019"]
+}

@@ -1,0 +1,3998 @@
+{
+  "version": "0.2.0",
+  "generatedFrom": [
+    "acceptance/acceptance-matrix.csv",
+    "reports/wsgs-v0.2/acceptance-evidence-groups.json"
+  ],
+  "required": 279,
+  "decision": "BLOCKED",
+  "summary": {
+    "PASS": 186,
+    "FAIL": 0,
+    "NOT_RUN": 17,
+    "BLOCKED": 76
+  },
+  "cases": [
+    {
+      "id": "AC-B001",
+      "area": "Baseline",
+      "scenario": "Fetch WSGS main",
+      "expected": "Actual latest committed WSGS SHA/version recorded",
+      "testType": "source",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B002",
+      "area": "Baseline",
+      "scenario": "Fetch GOWM exact source",
+      "expected": "GOWM 0.6.3 exact commit remains available",
+      "testType": "source",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B003",
+      "area": "Baseline",
+      "scenario": "Worktree isolation",
+      "expected": "No unrelated work is reset/stashed/overwritten",
+      "testType": "git-safety",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B004",
+      "area": "Baseline",
+      "scenario": "v0.1 regression",
+      "expected": "Existing contracts/components/security/PostgreSQL tests pass",
+      "testType": "regression",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B005",
+      "area": "Baseline",
+      "scenario": "Northbound contract hash",
+      "expected": "sacs-wsgs-grounding/1.0 files remain byte-identical",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B006",
+      "area": "Baseline",
+      "scenario": "No upper layer",
+      "expected": "No SACS/SDAR/A2A runtime dependency is introduced",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B007",
+      "area": "Baseline",
+      "scenario": "No GOWM internals",
+      "expected": "No Provider URL/DB/schema/implementation dependency enters WSGS",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B008",
+      "area": "Baseline",
+      "scenario": "No scope creep",
+      "expected": "Terrain/Visibility/Raster algorithms are not implemented",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B009",
+      "area": "Baseline",
+      "scenario": "Draft PR",
+      "expected": "Target branch and Draft PR are created from actual WSGS main",
+      "testType": "git",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-B010",
+      "area": "Baseline",
+      "scenario": "Status truth",
+      "expected": "README/status no longer claims only GOWM 0.4.0 or fail-closed final backend",
+      "testType": "docs",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/w00-acceptance.json",
+        "reports/wsgs-v0.2/w00-source-reconciliation.md"
+      ],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "id": "AC-C001",
+      "area": "ContractIntake",
+      "scenario": "Exact GOWM commit",
+      "expected": "Intake source equals locked GOWM commit",
+      "testType": "source",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C002",
+      "area": "ContractIntake",
+      "scenario": "Package name/version",
+      "expected": "Package is @gowm/world-gateway-contracts@0.6.3",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C003",
+      "area": "ContractIntake",
+      "scenario": "Package integrity",
+      "expected": "SHA-512 integrity matches locked value",
+      "testType": "supply-chain",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C004",
+      "area": "ContractIntake",
+      "scenario": "Bundle manifest",
+      "expected": "All bundle files match MANIFEST bytes and SHA-256",
+      "testType": "supply-chain",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C005",
+      "area": "ContractIntake",
+      "scenario": "Contract revision",
+      "expected": "Contract catalog revision matches lock",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C006",
+      "area": "ContractIntake",
+      "scenario": "Semantic hash",
+      "expected": "Semantic catalog hash matches lock",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C007",
+      "area": "ContractIntake",
+      "scenario": "Availability hash",
+      "expected": "Availability contract hash matches lock",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C008",
+      "area": "ContractIntake",
+      "scenario": "Snapshot hash",
+      "expected": "Snapshot contract hash matches lock",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C009",
+      "area": "ContractIntake",
+      "scenario": "Delegation hash",
+      "expected": "Delegation contract hash matches lock",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C010",
+      "area": "ContractIntake",
+      "scenario": "Southbound lock",
+      "expected": "Lock v2 SHA-256 and schema validate",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C011",
+      "area": "ContractIntake",
+      "scenario": "No provider topology",
+      "expected": "Artifact contains no Provider URL/container/database role",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C012",
+      "area": "ContractIntake",
+      "scenario": "No secrets",
+      "expected": "Artifact contains no token/private key/env secret",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C013",
+      "area": "ContractIntake",
+      "scenario": "Deterministic materialization",
+      "expected": "Two materializations produce identical intake tree",
+      "testType": "reproducibility",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C014",
+      "area": "ContractIntake",
+      "scenario": "Default branch drift",
+      "expected": "Unpinned newer GOWM main is rejected",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C015",
+      "area": "ContractIntake",
+      "scenario": "Manual schema copy",
+      "expected": "Runtime no longer consumes old vendored 0.4 schemas as authority",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C016",
+      "area": "ContractIntake",
+      "scenario": "Generated types",
+      "expected": "Generated WSGS types match GOWM bundle schemas",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C017",
+      "area": "ContractIntake",
+      "scenario": "Compatibility report",
+      "expected": "Package compatibility report is retained",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C018",
+      "area": "ContractIntake",
+      "scenario": "Source lock report",
+      "expected": "Machine-readable intake report is committed",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C019",
+      "area": "ContractIntake",
+      "scenario": "Missing package",
+      "expected": "Readiness fails closed when artifact is absent",
+      "testType": "fault",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-C020",
+      "area": "ContractIntake",
+      "scenario": "Corrupted package",
+      "expected": "Readiness fails closed when integrity differs",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json",
+        "packages/gowm-contract-intake/src/index.test.ts",
+        "reports/wsgs-v0.2/w01-acceptance.json"
+      ],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+    {
+      "id": "AC-G001",
+      "area": "GatewayClient",
+      "scenario": "Capabilities endpoint",
+      "expected": "Capability catalog validates against consumer schemas",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-gowm-gate.ts"
+      ],
+      "note": "Live endpoints were schema-observed, but the semantic catalog hash differs under runtime canonicalization; endpoint observations are diagnostic-only."
+    },
+    {
+      "id": "AC-G002",
+      "area": "GatewayClient",
+      "scenario": "Semantic endpoint",
+      "expected": "Explicit semantic catalog validates and hash matches",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-gowm-gate.ts"
+      ],
+      "note": "Live endpoints were schema-observed, but the semantic catalog hash differs under runtime canonicalization; endpoint observations are diagnostic-only."
+    },
+    {
+      "id": "AC-G003",
+      "area": "GatewayClient",
+      "scenario": "Availability endpoint",
+      "expected": "Operation-level availability validates",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-gowm-gate.ts"
+      ],
+      "note": "Live endpoints were schema-observed, but the semantic catalog hash differs under runtime canonicalization; endpoint observations are diagnostic-only."
+    },
+    {
+      "id": "AC-G004",
+      "area": "GatewayClient",
+      "scenario": "Content revision",
+      "expected": "sha256 contract revision is accepted",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Content revisions, legacy removal, provider-neutral locks, schema/semantic drift rejection, and binding refresh policy have direct automated coverage."
+    },
+    {
+      "id": "AC-G005",
+      "area": "GatewayClient",
+      "scenario": "Legacy registry-N",
+      "expected": "Legacy registry-N is no longer required",
+      "testType": "regression",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Content revisions, legacy removal, provider-neutral locks, schema/semantic drift rejection, and binding refresh policy have direct automated coverage."
+    },
+    {
+      "id": "AC-G006",
+      "area": "GatewayClient",
+      "scenario": "No provider lock",
+      "expected": "Operation lock has no providerId dependency",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Content revisions, legacy removal, provider-neutral locks, schema/semantic drift rejection, and binding refresh policy have direct automated coverage."
+    },
+    {
+      "id": "AC-G007",
+      "area": "GatewayClient",
+      "scenario": "Schema hash",
+      "expected": "Input/output schema drift fails closed",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Content revisions, legacy removal, provider-neutral locks, schema/semantic drift rejection, and binding refresh policy have direct automated coverage."
+    },
+    {
+      "id": "AC-G008",
+      "area": "GatewayClient",
+      "scenario": "Semantic profile hash",
+      "expected": "Semantic profile drift fails closed",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Content revisions, legacy removal, provider-neutral locks, schema/semantic drift rejection, and binding refresh policy have direct automated coverage."
+    },
+    {
+      "id": "AC-G009",
+      "area": "GatewayClient",
+      "scenario": "Binding revision",
+      "expected": "Binding changes trigger availability refresh, not contract drift",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Content revisions, legacy removal, provider-neutral locks, schema/semantic drift rejection, and binding refresh policy have direct automated coverage."
+    },
+    {
+      "id": "AC-G010",
+      "area": "GatewayClient",
+      "scenario": "Direct execute",
+      "expected": "Locked direct operation executes",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+    },
+    {
+      "id": "AC-G011",
+      "area": "GatewayClient",
+      "scenario": "World query submit",
+      "expected": "Typed query submission executes",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+    },
+    {
+      "id": "AC-G012",
+      "area": "GatewayClient",
+      "scenario": "Async job",
+      "expected": "202 response is polled to terminal",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+    },
+    {
+      "id": "AC-G013",
+      "area": "GatewayClient",
+      "scenario": "Cancel",
+      "expected": "Gateway query cancel propagates",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+    },
+    {
+      "id": "AC-G014",
+      "area": "GatewayClient",
+      "scenario": "Receipt",
+      "expected": "Receipt fetch is bounded and validated",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Transport behavior has component coverage and diagnostic live observations, but trusted real execution is blocked; GOWM 0.6.3 also has no direct-operation 202 response."
+    },
+    {
+      "id": "AC-G015",
+      "area": "GatewayClient",
+      "scenario": "Response limit",
+      "expected": "Oversized response fails closed",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "id": "AC-G016",
+      "area": "GatewayClient",
+      "scenario": "Request limit",
+      "expected": "Oversized request fails before network",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "id": "AC-G017",
+      "area": "GatewayClient",
+      "scenario": "Retry policy",
+      "expected": "Only bounded retryable statuses retry",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "id": "AC-G018",
+      "area": "GatewayClient",
+      "scenario": "Circuit",
+      "expected": "Circuit opens and recovers deterministically",
+      "testType": "fault",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "id": "AC-G019",
+      "area": "GatewayClient",
+      "scenario": "Deadline",
+      "expected": "Overall deadline aborts all transport",
+      "testType": "fault",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "id": "AC-G020",
+      "area": "GatewayClient",
+      "scenario": "Traceparent",
+      "expected": "Valid trace context propagates without authority",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "id": "AC-G021",
+      "area": "GatewayClient",
+      "scenario": "Body authority",
+      "expected": "Actor/scope/permission fields are forbidden",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "id": "AC-G022",
+      "area": "GatewayClient",
+      "scenario": "No topology logs",
+      "expected": "Errors/logs expose no provider endpoint",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-gateway-client/src/client.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "id": "AC-G023",
+      "area": "GatewayClient",
+      "scenario": "Trusted snapshot persist",
+      "expected": "Capability snapshot is stored with job",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Immutable job snapshots, restart reuse, and new-job drift rejection have component and PostgreSQL evidence; this does not make the live catalog trusted."
+    },
+    {
+      "id": "AC-G024",
+      "area": "GatewayClient",
+      "scenario": "Restart snapshot",
+      "expected": "Restart reuses stored capability snapshot",
+      "testType": "recovery",
+      "status": "PASS",
+      "evidence": [
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Immutable job snapshots, restart reuse, and new-job drift rejection have component and PostgreSQL evidence; this does not make the live catalog trusted."
+    },
+    {
+      "id": "AC-G025",
+      "area": "GatewayClient",
+      "scenario": "New contract drift",
+      "expected": "New job fails readiness on unexpected catalog revision",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Immutable job snapshots, restart reuse, and new-job drift rejection have component and PostgreSQL evidence; this does not make the live catalog trusted."
+    },
+    {
+      "id": "AC-I001",
+      "area": "Identity",
+      "scenario": "Static trusted",
+      "expected": "Existing static trusted mode remains",
+      "testType": "regression",
+      "status": "PASS",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "Static/JWT compatibility and separated identity dimensions are directly tested."
+    },
+    {
+      "id": "AC-I002",
+      "area": "Identity",
+      "scenario": "JWT service",
+      "expected": "Existing JWT service mode remains",
+      "testType": "regression",
+      "status": "PASS",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "Static/JWT compatibility and separated identity dimensions are directly tested."
+    },
+    {
+      "id": "AC-I003",
+      "area": "Identity",
+      "scenario": "Identity shape",
+      "expected": "Service, actor, data/dataset scopes are separate",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "Static/JWT compatibility and separated identity dimensions are directly tested."
+    },
+    {
+      "id": "AC-I004",
+      "area": "Identity",
+      "scenario": "Valid delegation",
+      "expected": "Valid RS256 delegation accepted by GOWM",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "A valid delegation participated in diagnostic live calls, but the live gate is not trusted while semantic authority is mismatched."
+    },
+    {
+      "id": "AC-I005",
+      "area": "Identity",
+      "scenario": "Invalid signature",
+      "expected": "Forged delegation rejected",
+      "testType": "security",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "id": "AC-I006",
+      "area": "Identity",
+      "scenario": "Wrong issuer",
+      "expected": "Unapproved issuer rejected",
+      "testType": "security",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "id": "AC-I007",
+      "area": "Identity",
+      "scenario": "Wrong audience",
+      "expected": "Wrong audience rejected",
+      "testType": "security",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "id": "AC-I008",
+      "area": "Identity",
+      "scenario": "Expired",
+      "expected": "Expired delegation rejected",
+      "testType": "security",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "id": "AC-I009",
+      "area": "Identity",
+      "scenario": "Premature",
+      "expected": "nbf in future rejected",
+      "testType": "security",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "id": "AC-I010",
+      "area": "Identity",
+      "scenario": "TTL",
+      "expected": "TTL above five minutes rejected",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I011",
+      "area": "Identity",
+      "scenario": "Service subject",
+      "expected": "sub equals authenticated WSGS principal",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I012",
+      "area": "Identity",
+      "scenario": "Actor required",
+      "expected": "Original actor cannot be omitted",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I013",
+      "area": "Identity",
+      "scenario": "Request binding",
+      "expected": "requestId mismatch rejected",
+      "testType": "security",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "id": "AC-I014",
+      "area": "Identity",
+      "scenario": "Depth",
+      "expected": "Delegation depth greater than one rejected",
+      "testType": "security",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "id": "AC-I015",
+      "area": "Identity",
+      "scenario": "Data scope intersection",
+      "expected": "Delegation cannot expand allowed DataScope",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I016",
+      "area": "Identity",
+      "scenario": "Dataset scope intersection",
+      "expected": "Delegation cannot expand DatasetScope",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I017",
+      "area": "Identity",
+      "scenario": "Operation minimum",
+      "expected": "Only actual operation keys are authorized",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I018",
+      "area": "Identity",
+      "scenario": "Unknown operation",
+      "expected": "Unknown key grants no authority",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I019",
+      "area": "Identity",
+      "scenario": "No full-lock grant",
+      "expected": "World query delegation is limited to DAG operations",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I020",
+      "area": "Identity",
+      "scenario": "No raw SACS token",
+      "expected": "SACS bearer is not forwarded",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I021",
+      "area": "Identity",
+      "scenario": "No token persistence",
+      "expected": "Delegation token not stored in PostgreSQL",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I022",
+      "area": "Identity",
+      "scenario": "Redaction",
+      "expected": "Only JTI/context hashes are logged",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I023",
+      "area": "Identity",
+      "scenario": "Actor idempotency",
+      "expected": "Different actor cannot replay result",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-I024",
+      "area": "Identity",
+      "scenario": "Equivalent resign",
+      "expected": "Equivalent valid re-sign can replay same actor request",
+      "testType": "integration",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "id": "AC-I025",
+      "area": "Identity",
+      "scenario": "Signing key readiness",
+      "expected": "Missing signing key fails readiness",
+      "testType": "fault",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/002_wsgs_gowm_063_runtime.sql",
+        "packages/delegated-identity/src/delegation.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts"
+      ],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+    {
+      "id": "AC-P001",
+      "area": "Pipeline",
+      "scenario": "LOAD_CONTEXT execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P002",
+      "area": "Pipeline",
+      "scenario": "DETERMINISTIC_PARSE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P003",
+      "area": "Pipeline",
+      "scenario": "SEMANTIC_MODEL_PARSE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P004",
+      "area": "Pipeline",
+      "scenario": "SEMANTIC_FRAME_VALIDATE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P005",
+      "area": "Pipeline",
+      "scenario": "GROUNDING_GRAPH_BUILD execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P006",
+      "area": "Pipeline",
+      "scenario": "REFERENCE_RESOLVE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P007",
+      "area": "Pipeline",
+      "scenario": "REFERENCE_VALIDATE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P008",
+      "area": "Pipeline",
+      "scenario": "REQUIREMENT_PLAN execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P009",
+      "area": "Pipeline",
+      "scenario": "CAPABILITY_MATCH execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P010",
+      "area": "Pipeline",
+      "scenario": "WORLD_QUERY_COMPILE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P011",
+      "area": "Pipeline",
+      "scenario": "GOWM_EXECUTE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P012",
+      "area": "Pipeline",
+      "scenario": "EVIDENCE_NORMALIZE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P013",
+      "area": "Pipeline",
+      "scenario": "PRODUCT_ASSEMBLE execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P014",
+      "area": "Pipeline",
+      "scenario": "RESULT_PERSIST execution",
+      "expected": "Stage writes deterministic start/terminal pipeline events and hashes",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/pipeline-policy.test.ts"
+      ],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "id": "AC-P015",
+      "area": "Pipeline",
+      "scenario": "Production backend",
+      "expected": "FailClosed backend is not used in configured deployment",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "No trusted real API to queue to worker to model/GOWM to persisted result chain has completed; injected readiness/stage backends are not real-e2e."
+    },
+    {
+      "id": "AC-P016",
+      "area": "Pipeline",
+      "scenario": "API submit",
+      "expected": "POST grounding creates result/job",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "No trusted real API to queue to worker to model/GOWM to persisted result chain has completed; injected readiness/stage backends are not real-e2e."
+    },
+    {
+      "id": "AC-P017",
+      "area": "Pipeline",
+      "scenario": "Worker claim",
+      "expected": "Worker claims queued job safely",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P018",
+      "area": "Pipeline",
+      "scenario": "Lease heartbeat",
+      "expected": "Long job heartbeat extends lease",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P019",
+      "area": "Pipeline",
+      "scenario": "Lease expiry",
+      "expected": "Expired job can be reclaimed with new generation",
+      "testType": "recovery",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P020",
+      "area": "Pipeline",
+      "scenario": "Old generation",
+      "expected": "Old generation cannot publish late result",
+      "testType": "race",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P021",
+      "area": "Pipeline",
+      "scenario": "GROUND_REFERENCES stop",
+      "expected": "No non-reference world query is executed",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Operation-specific stopping points and canonical result hashing are directly tested."
+    },
+    {
+      "id": "AC-P022",
+      "area": "Pipeline",
+      "scenario": "VALIDATE_REFERENCES stop",
+      "expected": "Model is not invoked",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Operation-specific stopping points and canonical result hashing are directly tested."
+    },
+    {
+      "id": "AC-P023",
+      "area": "Pipeline",
+      "scenario": "COMPILE stop",
+      "expected": "Plan returned without upstream execution",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Operation-specific stopping points and canonical result hashing are directly tested."
+    },
+    {
+      "id": "AC-P024",
+      "area": "Pipeline",
+      "scenario": "EXECUTE full",
+      "expected": "Full pipeline executes and persists",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "No trusted real API to queue to worker to model/GOWM to persisted result chain has completed; injected readiness/stage backends are not real-e2e."
+    },
+    {
+      "id": "AC-P025",
+      "area": "Pipeline",
+      "scenario": "Idempotent same payload",
+      "expected": "Same key/payload returns same grounding",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P026",
+      "area": "Pipeline",
+      "scenario": "Idempotent conflict",
+      "expected": "Same key/different payload conflicts",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P027",
+      "area": "Pipeline",
+      "scenario": "Cancel queued",
+      "expected": "Queued job becomes cancelled",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P028",
+      "area": "Pipeline",
+      "scenario": "Cancel running",
+      "expected": "Running model/GOWM work is aborted",
+      "testType": "fault",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P029",
+      "area": "Pipeline",
+      "scenario": "Late model",
+      "expected": "Late model output cannot overwrite cancel",
+      "testType": "race",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P030",
+      "area": "Pipeline",
+      "scenario": "Late GOWM",
+      "expected": "Late GOWM output cannot overwrite cancel",
+      "testType": "race",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P031",
+      "area": "Pipeline",
+      "scenario": "API restart",
+      "expected": "API restart preserves jobs/results",
+      "testType": "recovery",
+      "status": "NOT_RUN",
+      "evidence": [
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "No current evidence restarts the actual API process or PostgreSQL service and then proves preserved behavior."
+    },
+    {
+      "id": "AC-P032",
+      "area": "Pipeline",
+      "scenario": "Worker restart",
+      "expected": "Worker restart resumes safe stage",
+      "testType": "recovery",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/worker.test.ts"
+      ],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "id": "AC-P033",
+      "area": "Pipeline",
+      "scenario": "DB restart",
+      "expected": "PostgreSQL restart preserves idempotency",
+      "testType": "recovery",
+      "status": "NOT_RUN",
+      "evidence": [
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "No current evidence restarts the actual API process or PostgreSQL service and then proves preserved behavior."
+    },
+    {
+      "id": "AC-P034",
+      "area": "Pipeline",
+      "scenario": "Pipeline result hash",
+      "expected": "Same inputs/locks produce stable result hash",
+      "testType": "reproducibility",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Operation-specific stopping points and canonical result hashing are directly tested."
+    },
+    {
+      "id": "AC-M001",
+      "area": "ParserModelGraph",
+      "scenario": "Known alias",
+      "expected": "Known reference alias has highest text priority after map",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M002",
+      "area": "ParserModelGraph",
+      "scenario": "Map selection",
+      "expected": "Map selection remains highest-priority explicit input",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M003",
+      "area": "ParserModelGraph",
+      "scenario": "ReferenceKey",
+      "expected": "Full ReferenceKey is parsed and requires validation",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M004",
+      "area": "ParserModelGraph",
+      "scenario": "H3",
+      "expected": "Valid H3 cell parsed as approximate candidate",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M005",
+      "area": "ParserModelGraph",
+      "scenario": "Coordinate",
+      "expected": "Coordinate parsed with bounds and CRS candidate",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M006",
+      "area": "ParserModelGraph",
+      "scenario": "Device code",
+      "expected": "Bounded code hint parsed",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M007",
+      "area": "ParserModelGraph",
+      "scenario": "Distance km",
+      "expected": "1公里 normalizes to 1,000,000 mm",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M008",
+      "area": "ParserModelGraph",
+      "scenario": "Distance m",
+      "expected": "200米 normalizes to 200,000 mm",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M009",
+      "area": "ParserModelGraph",
+      "scenario": "English distance",
+      "expected": "3 km and 500 m parse deterministically",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M010",
+      "area": "ParserModelGraph",
+      "scenario": "ISO time",
+      "expected": "Explicit ISO timestamp/time range parses",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M011",
+      "area": "ParserModelGraph",
+      "scenario": "UTF16 spans",
+      "expected": "All surfaces exactly match UTF-16 slices",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M012",
+      "area": "ParserModelGraph",
+      "scenario": "Overlap",
+      "expected": "Priority/overlap resolution is deterministic",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/deterministic-parser/src/parser.test.ts",
+        "packages/semantic-frame/src/index.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "id": "AC-M013",
+      "area": "ParserModelGraph",
+      "scenario": "Model strict schema",
+      "expected": "Model output validates against frozen frame schema",
+      "testType": "model",
+      "status": "PASS",
+      "evidence": [
+        "packages/semantic-model/src/adapter.test.ts",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Four real Chinese cases ran three consecutive times with strict schema, exact spans, and authority scanning; model output cannot choose operations/providers or mint reference keys."
+    },
+    {
+      "id": "AC-M014",
+      "area": "ParserModelGraph",
+      "scenario": "Model cannot operation",
+      "expected": "Model cannot select provider/operation/tool",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/semantic-model/src/adapter.test.ts",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Four real Chinese cases ran three consecutive times with strict schema, exact spans, and authority scanning; model output cannot choose operations/providers or mint reference keys."
+    },
+    {
+      "id": "AC-M015",
+      "area": "ParserModelGraph",
+      "scenario": "Model cannot reference key",
+      "expected": "Model-only output cannot create ReferenceKey",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/semantic-model/src/adapter.test.ts",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Four real Chinese cases ran three consecutive times with strict schema, exact spans, and authority scanning; model output cannot choose operations/providers or mint reference keys."
+    },
+    {
+      "id": "AC-M016",
+      "area": "ParserModelGraph",
+      "scenario": "Model required unavailable",
+      "expected": "MODEL_REQUIRED fails typed",
+      "testType": "model",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/builder.test.ts",
+        "packages/grounding-graph/src/internal-v2.test.ts",
+        "packages/semantic-model/src/policy.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Required/optional model policy, no keyword fallback, graph precedence/ambiguity/bounds, and stable hashing are directly tested."
+    },
+    {
+      "id": "AC-M017",
+      "area": "ParserModelGraph",
+      "scenario": "Model optional unavailable",
+      "expected": "Deterministic product returns PARTIAL",
+      "testType": "model",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/builder.test.ts",
+        "packages/grounding-graph/src/internal-v2.test.ts",
+        "packages/semantic-model/src/policy.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Required/optional model policy, no keyword fallback, graph precedence/ambiguity/bounds, and stable hashing are directly tested."
+    },
+    {
+      "id": "AC-M018",
+      "area": "ParserModelGraph",
+      "scenario": "No keyword fallback",
+      "expected": "No natural-language semantic fallback is fabricated",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/builder.test.ts",
+        "packages/grounding-graph/src/internal-v2.test.ts",
+        "packages/semantic-model/src/policy.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Required/optional model policy, no keyword fallback, graph precedence/ambiguity/bounds, and stable hashing are directly tested."
+    },
+    {
+      "id": "AC-M019",
+      "area": "ParserModelGraph",
+      "scenario": "Graph precedence",
+      "expected": "Map>Known>Deterministic>Model",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/builder.test.ts",
+        "packages/grounding-graph/src/internal-v2.test.ts",
+        "packages/semantic-model/src/policy.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Required/optional model policy, no keyword fallback, graph precedence/ambiguity/bounds, and stable hashing are directly tested."
+    },
+    {
+      "id": "AC-M020",
+      "area": "ParserModelGraph",
+      "scenario": "Graph contradictions",
+      "expected": "Incompatible interpretations create explicit ambiguity",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/builder.test.ts",
+        "packages/grounding-graph/src/internal-v2.test.ts",
+        "packages/semantic-model/src/policy.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Required/optional model policy, no keyword fallback, graph precedence/ambiguity/bounds, and stable hashing are directly tested."
+    },
+    {
+      "id": "AC-M021",
+      "area": "ParserModelGraph",
+      "scenario": "Graph bounds",
+      "expected": "Node/edge limits enforced",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/builder.test.ts",
+        "packages/grounding-graph/src/internal-v2.test.ts",
+        "packages/semantic-model/src/policy.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Required/optional model policy, no keyword fallback, graph precedence/ambiguity/bounds, and stable hashing are directly tested."
+    },
+    {
+      "id": "AC-M022",
+      "area": "ParserModelGraph",
+      "scenario": "Graph hash",
+      "expected": "Canonical graph hash is stable",
+      "testType": "reproducibility",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/builder.test.ts",
+        "packages/grounding-graph/src/internal-v2.test.ts",
+        "packages/semantic-model/src/policy.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Required/optional model policy, no keyword fallback, graph precedence/ambiguity/bounds, and stable hashing are directly tested."
+    },
+    {
+      "id": "AC-R001",
+      "area": "ReferenceGrounding",
+      "scenario": "Unique name",
+      "expected": "2号车 resolves and validates",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R002",
+      "area": "ReferenceGrounding",
+      "scenario": "Suggested unique",
+      "expected": "SUGGESTED_UNIQUE remains non-authoritative",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R003",
+      "area": "ReferenceGrounding",
+      "scenario": "Ambiguous road",
+      "expected": "Two 滨河路 candidates, no selection",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R004",
+      "area": "ReferenceGrounding",
+      "scenario": "No data",
+      "expected": "Zero candidate becomes UNRESOLVED",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R005",
+      "area": "ReferenceGrounding",
+      "scenario": "Candidate order",
+      "expected": "Gateway order is retained",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Candidate order and match/state confidence separation are directly verified."
+    },
+    {
+      "id": "AC-R006",
+      "area": "ReferenceGrounding",
+      "scenario": "Score separation",
+      "expected": "matchScore and stateConfidence remain distinct",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Candidate order and match/state confidence separation are directly verified."
+    },
+    {
+      "id": "AC-R007",
+      "area": "ReferenceGrounding",
+      "scenario": "Current validation",
+      "expected": "VALID reference can be used",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R008",
+      "area": "ReferenceGrounding",
+      "scenario": "Stale",
+      "expected": "STALE marks revalidation required",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R009",
+      "area": "ReferenceGrounding",
+      "scenario": "Expired",
+      "expected": "EXPIRED is not current",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R010",
+      "area": "ReferenceGrounding",
+      "scenario": "Not found",
+      "expected": "NOT_FOUND remains explicit internally",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R011",
+      "area": "ReferenceGrounding",
+      "scenario": "Scope denied",
+      "expected": "External result is indistinguishable from not found",
+      "testType": "security",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R012",
+      "area": "ReferenceGrounding",
+      "scenario": "Type mismatch",
+      "expected": "TYPE_MISMATCH retained",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R013",
+      "area": "ReferenceGrounding",
+      "scenario": "Version conflict",
+      "expected": "VERSION_CONFLICT retained",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R014",
+      "area": "ReferenceGrounding",
+      "scenario": "Same snapshot",
+      "expected": "Resolve and validate adhere to same query snapshot",
+      "testType": "snapshot",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R015",
+      "area": "ReferenceGrounding",
+      "scenario": "Snapshot mismatch",
+      "expected": "Mismatch yields partial/failure, not current reference",
+      "testType": "snapshot",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/grounding-graph/src/reference-grounding.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalization has component tests and some business observations are diagnostic, but no trusted production reference resolve/validate chain proves these real-e2e and snapshot cases."
+    },
+    {
+      "id": "AC-R016",
+      "area": "ReferenceGrounding",
+      "scenario": "Prior hash",
+      "expected": "Prior result bytes recompute to supplied hash",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/prior-grounding/src/validator.test.ts",
+        "packages/runtime/src/context-loader.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Exact prior bytes/hash, scope hiding, and selected-product validation are directly tested."
+    },
+    {
+      "id": "AC-R017",
+      "area": "ReferenceGrounding",
+      "scenario": "Prior scope",
+      "expected": "Cross-scope prior result is not visible",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/prior-grounding/src/validator.test.ts",
+        "packages/runtime/src/context-loader.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Exact prior bytes/hash, scope hiding, and selected-product validation are directly tested."
+    },
+    {
+      "id": "AC-R018",
+      "area": "ReferenceGrounding",
+      "scenario": "Missing product",
+      "expected": "Unknown selected product ID fails",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/prior-grounding/src/validator.test.ts",
+        "packages/runtime/src/context-loader.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Exact prior bytes/hash, scope hiding, and selected-product validation are directly tested."
+    },
+    {
+      "id": "AC-R019",
+      "area": "ReferenceGrounding",
+      "scenario": "Result validation",
+      "expected": "Historical query result is revalidated",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "GOWM 0.6.3 locks reference.validate/result.validate as CONSISTENT_AT_START, not PINNED; production correctly fails closed instead of claiming historical revalidation."
+    },
+    {
+      "id": "AC-R020",
+      "area": "ReferenceGrounding",
+      "scenario": "Operation stop",
+      "expected": "Ambiguity blocks downstream required spatial query",
+      "testType": "architecture",
+      "status": "NOT_RUN",
+      "evidence": [
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "No full production test proves that a live ambiguity prevents every required downstream spatial execution."
+    },
+    {
+      "id": "AC-Q001",
+      "area": "PlannerCompiler",
+      "scenario": "Requirement no operation",
+      "expected": "Requirement graph contains no operation/provider ID",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q002",
+      "area": "PlannerCompiler",
+      "scenario": "Requirement hash",
+      "expected": "Equivalent graph has stable hash",
+      "testType": "reproducibility",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q003",
+      "area": "PlannerCompiler",
+      "scenario": "Unsupported terrain",
+      "expected": "Terrain requirement yields typed gap",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q004",
+      "area": "PlannerCompiler",
+      "scenario": "Unsupported visibility",
+      "expected": "Visibility requirement yields typed gap",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q005",
+      "area": "PlannerCompiler",
+      "scenario": "Stable default",
+      "expected": "Stable operation is eligible",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q006",
+      "area": "PlannerCompiler",
+      "scenario": "Preview opt-in",
+      "expected": "Preview only eligible when explicitly enabled",
+      "testType": "policy",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q007",
+      "area": "PlannerCompiler",
+      "scenario": "Experimental reject",
+      "expected": "Experimental is never auto-selected",
+      "testType": "policy",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q008",
+      "area": "PlannerCompiler",
+      "scenario": "Availability",
+      "expected": "Unavailable operation is not selected",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q009",
+      "area": "PlannerCompiler",
+      "scenario": "Degraded policy",
+      "expected": "Degraded operation follows recipe policy",
+      "testType": "policy",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q010",
+      "area": "PlannerCompiler",
+      "scenario": "Domain match",
+      "expected": "Semantic domain matches requirement",
+      "testType": "semantic",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q011",
+      "area": "PlannerCompiler",
+      "scenario": "Relation match",
+      "expected": "Relation semantics match",
+      "testType": "semantic",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q012",
+      "area": "PlannerCompiler",
+      "scenario": "Reference kinds",
+      "expected": "Accepted/produced reference kinds match",
+      "testType": "semantic",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q013",
+      "area": "PlannerCompiler",
+      "scenario": "Spatial exactness",
+      "expected": "Exact requirement cannot bind candidate-only op",
+      "testType": "semantic",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q014",
+      "area": "PlannerCompiler",
+      "scenario": "Time semantics",
+      "expected": "Temporal/snapshot semantics match",
+      "testType": "semantic",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q015",
+      "area": "PlannerCompiler",
+      "scenario": "Result nature",
+      "expected": "Fact/plan/validation nature matches",
+      "testType": "semantic",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q016",
+      "area": "PlannerCompiler",
+      "scenario": "Schema hashes",
+      "expected": "Schema hashes match lock",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q017",
+      "area": "PlannerCompiler",
+      "scenario": "Port value kind",
+      "expected": "Typed port kinds are compatible",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q018",
+      "area": "PlannerCompiler",
+      "scenario": "Unit semantics",
+      "expected": "Metres/discrete/coordinate units cannot be relabeled",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q019",
+      "area": "PlannerCompiler",
+      "scenario": "Multiple candidates",
+      "expected": "Tie without priority returns gap",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q020",
+      "area": "PlannerCompiler",
+      "scenario": "No substitution",
+      "expected": "Similar operation is never substituted",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q021",
+      "area": "PlannerCompiler",
+      "scenario": "Exact verification",
+      "expected": "Candidate chain adds exact verification",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q022",
+      "area": "PlannerCompiler",
+      "scenario": "Verification target",
+      "expected": "Exact verifier exists and is available",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q023",
+      "area": "PlannerCompiler",
+      "scenario": "Cycle",
+      "expected": "Requirement/plan cycle rejected",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q024",
+      "area": "PlannerCompiler",
+      "scenario": "Budget cost class",
+      "expected": "Budget allocation follows recipe/cost weights",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q025",
+      "area": "PlannerCompiler",
+      "scenario": "Budget aggregate",
+      "expected": "Node totals do not exceed caller limits",
+      "testType": "unit",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q026",
+      "area": "PlannerCompiler",
+      "scenario": "Plan ports",
+      "expected": "Every binding and output endpoint validates",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q027",
+      "area": "PlannerCompiler",
+      "scenario": "Plan hash",
+      "expected": "Equivalent plan hash is stable",
+      "testType": "reproducibility",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/query-compiler/src/matcher.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "id": "AC-Q028",
+      "area": "PlannerCompiler",
+      "scenario": "Reference current state",
+      "expected": "Recipe compiles correctly",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q029",
+      "area": "PlannerCompiler",
+      "scenario": "Reference nearby",
+      "expected": "1 km recipe compiles with metres",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q030",
+      "area": "PlannerCompiler",
+      "scenario": "Area query",
+      "expected": "In-area recipe compiles",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q031",
+      "area": "PlannerCompiler",
+      "scenario": "Intersections",
+      "expected": "Exact intersections recipe compiles",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-Q032",
+      "area": "PlannerCompiler",
+      "scenario": "Catalog",
+      "expected": "Catalog search recipe compiles",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/query-compiler/src/compiler.test.ts",
+        "packages/requirement-planner/src/planner.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Component behavior is covered, but the matrix requires trusted real-e2e execution, which readiness currently blocks."
+    },
+    {
+      "id": "AC-E001",
+      "area": "ExecutionEvidence",
+      "scenario": "Direct sync",
+      "expected": "200 operation result normalizes",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+    },
+    {
+      "id": "AC-E002",
+      "area": "ExecutionEvidence",
+      "scenario": "Direct async",
+      "expected": "202 job is polled and normalized",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+    },
+    {
+      "id": "AC-E003",
+      "area": "ExecutionEvidence",
+      "scenario": "World query sync",
+      "expected": "Query result normalizes",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+    },
+    {
+      "id": "AC-E004",
+      "area": "ExecutionEvidence",
+      "scenario": "World query async",
+      "expected": "Query job is polled",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+    },
+    {
+      "id": "AC-E005",
+      "area": "ExecutionEvidence",
+      "scenario": "Cancel propagation",
+      "expected": "WSGS cancel invokes GOWM cancel",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Sync/async/query/cancel normalization is unit-tested and several live observations succeeded diagnostically, but trusted real-e2e is blocked; direct async 202 is unsupported."
+    },
+    {
+      "id": "AC-E006",
+      "area": "ExecutionEvidence",
+      "scenario": "LATEST_AT_START",
+      "expected": "Manifest is preserved",
+      "testType": "snapshot",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E007",
+      "area": "ExecutionEvidence",
+      "scenario": "PINNED pass",
+      "expected": "Pinned history executes when supported",
+      "testType": "snapshot",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "The locked GOWM operations cannot provide required PINNED history execution."
+    },
+    {
+      "id": "AC-E008",
+      "area": "ExecutionEvidence",
+      "scenario": "PINNED unsupported",
+      "expected": "No silent latest fallback",
+      "testType": "snapshot",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E009",
+      "area": "ExecutionEvidence",
+      "scenario": "BEST_EFFORT",
+      "expected": "Mismatch warning is retained",
+      "testType": "snapshot",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E010",
+      "area": "ExecutionEvidence",
+      "scenario": "Node adherence",
+      "expected": "Adherence is stored per node",
+      "testType": "snapshot",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E011",
+      "area": "ExecutionEvidence",
+      "scenario": "Contract revision",
+      "expected": "Execution stores contract revision",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E012",
+      "area": "ExecutionEvidence",
+      "scenario": "Semantic hash",
+      "expected": "Execution stores semantic profile hash",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E013",
+      "area": "ExecutionEvidence",
+      "scenario": "Availability observation",
+      "expected": "Observed availability timestamp stored",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E014",
+      "area": "ExecutionEvidence",
+      "scenario": "Receipt separation",
+      "expected": "Receipt IDs stay distinct",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E015",
+      "area": "ExecutionEvidence",
+      "scenario": "Evidence separation",
+      "expected": "Evidence IDs stay authoritative",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E016",
+      "area": "ExecutionEvidence",
+      "scenario": "Model receipt",
+      "expected": "Model receipt cannot become world evidence",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E017",
+      "area": "ExecutionEvidence",
+      "scenario": "NO_DATA",
+      "expected": "NO_DATA becomes unknown, not false",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalizer semantics are unit-tested, but these matrix entries require trusted real-e2e upstream states/products."
+    },
+    {
+      "id": "AC-E018",
+      "area": "ExecutionEvidence",
+      "scenario": "INDETERMINATE",
+      "expected": "Indeterminate remains unknown",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalizer semantics are unit-tested, but these matrix entries require trusted real-e2e upstream states/products."
+    },
+    {
+      "id": "AC-E019",
+      "area": "ExecutionEvidence",
+      "scenario": "PARTIAL",
+      "expected": "Partial retains valid evidence and unknowns",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalizer semantics are unit-tested, but these matrix entries require trusted real-e2e upstream states/products."
+    },
+    {
+      "id": "AC-E020",
+      "area": "ExecutionEvidence",
+      "scenario": "FAILED",
+      "expected": "Failed upstream produces no evidence item",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalizer semantics are unit-tested, but these matrix entries require trusted real-e2e upstream states/products."
+    },
+    {
+      "id": "AC-E021",
+      "area": "ExecutionEvidence",
+      "scenario": "Large payload",
+      "expected": "Large payload is summarized and referenced",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E022",
+      "area": "ExecutionEvidence",
+      "scenario": "Small payload",
+      "expected": "Bounded safe payload can be copied",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E023",
+      "area": "ExecutionEvidence",
+      "scenario": "Requested products",
+      "expected": "Only caller-requested product kinds returned",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-E024",
+      "area": "ExecutionEvidence",
+      "scenario": "Optional product",
+      "expected": "Missing optional product yields non-substituting gap",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "reports/wsgs-v0.2/real-gowm-gate.json"
+      ],
+      "note": "Normalizer semantics are unit-tested, but these matrix entries require trusted real-e2e upstream states/products."
+    },
+    {
+      "id": "AC-E025",
+      "area": "ExecutionEvidence",
+      "scenario": "Result hash",
+      "expected": "Canonical product/result hash stable",
+      "testType": "reproducibility",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "packages/prior-grounding/src/validator.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "id": "AC-D001",
+      "area": "PersistenceRuntime",
+      "scenario": "Migration 001 immutable",
+      "expected": "Migration 001 byte hash unchanged",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "database/migrations/001_wsgs_core.sql",
+        "reports/wsgs-v0.2/w00-completion.md"
+      ],
+      "note": "The W00 recorded migration-001 Git blob remains the frozen baseline."
+    },
+    {
+      "id": "AC-D002",
+      "area": "PersistenceRuntime",
+      "scenario": "Fresh DB",
+      "expected": "001+002 install from empty database",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D003",
+      "area": "PersistenceRuntime",
+      "scenario": "Upgrade",
+      "expected": "0.1 database upgrades without loss",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D004",
+      "area": "PersistenceRuntime",
+      "scenario": "Replay",
+      "expected": "Applied migrations skip by checksum",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D005",
+      "area": "PersistenceRuntime",
+      "scenario": "Rollback",
+      "expected": "Failed 002 leaves no residue",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D006",
+      "area": "PersistenceRuntime",
+      "scenario": "Request actor",
+      "expected": "Actor and scopes persist separately",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D007",
+      "area": "PersistenceRuntime",
+      "scenario": "Capability snapshot",
+      "expected": "Trusted snapshot persists",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D008",
+      "area": "PersistenceRuntime",
+      "scenario": "Execution records",
+      "expected": "Direct/query execution records persist",
+      "testType": "real-db",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "Current final-run evidence does not yet prove every execution-record write or the remaining concrete production readiness fault paths."
+    },
+    {
+      "id": "AC-D009",
+      "area": "PersistenceRuntime",
+      "scenario": "Pipeline events",
+      "expected": "Append-only stage events persist",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D010",
+      "area": "PersistenceRuntime",
+      "scenario": "Source retention",
+      "expected": "Source expiration does not remove retained result",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D011",
+      "area": "PersistenceRuntime",
+      "scenario": "Scope queries",
+      "expected": "All get/list operations filter by scope",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D012",
+      "area": "PersistenceRuntime",
+      "scenario": "Job ownership",
+      "expected": "Actor cannot access another actor job",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D013",
+      "area": "PersistenceRuntime",
+      "scenario": "Signed cursor",
+      "expected": "Cursor tampering is rejected",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/signed-cursor.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "id": "AC-D014",
+      "area": "PersistenceRuntime",
+      "scenario": "API backend",
+      "expected": "Configured API uses production backend",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+    },
+    {
+      "id": "AC-D015",
+      "area": "PersistenceRuntime",
+      "scenario": "Worker service",
+      "expected": "Worker starts and claims jobs",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+    },
+    {
+      "id": "AC-D016",
+      "area": "PersistenceRuntime",
+      "scenario": "Only API exposed",
+      "expected": "Worker and DB are internal",
+      "testType": "container",
+      "status": "PASS",
+      "evidence": [
+        "Dockerfile",
+        "compose.yaml",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Rendered Compose exposes only API; image inspection and isolated migration smoke verify UID/GID 10001, read-only WSGS services, dependencies, and entrypoints."
+    },
+    {
+      "id": "AC-D017",
+      "area": "PersistenceRuntime",
+      "scenario": "Non-root",
+      "expected": "API and worker run non-root/read-only",
+      "testType": "container",
+      "status": "PASS",
+      "evidence": [
+        "Dockerfile",
+        "compose.yaml",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Rendered Compose exposes only API; image inspection and isolated migration smoke verify UID/GID 10001, read-only WSGS services, dependencies, and entrypoints."
+    },
+    {
+      "id": "AC-D018",
+      "area": "PersistenceRuntime",
+      "scenario": "Readiness DB",
+      "expected": "DB failure makes readiness fail",
+      "testType": "fault",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "Current final-run evidence does not yet prove every execution-record write or the remaining concrete production readiness fault paths."
+    },
+    {
+      "id": "AC-D019",
+      "area": "PersistenceRuntime",
+      "scenario": "Readiness contract",
+      "expected": "Contract integrity failure makes readiness fail",
+      "testType": "fault",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/job-store.integration.test.ts",
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "validation/scripts/real-production-readiness-gate.ts"
+      ],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "id": "AC-D020",
+      "area": "PersistenceRuntime",
+      "scenario": "Readiness catalog",
+      "expected": "Catalog revision drift makes readiness fail",
+      "testType": "fault",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/signed-cursor.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "id": "AC-D021",
+      "area": "PersistenceRuntime",
+      "scenario": "Readiness operations",
+      "expected": "Required stable operation unavailable fails readiness",
+      "testType": "fault",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "Current final-run evidence does not yet prove every execution-record write or the remaining concrete production readiness fault paths."
+    },
+    {
+      "id": "AC-D022",
+      "area": "PersistenceRuntime",
+      "scenario": "Readiness model required",
+      "expected": "MODEL_REQUIRED checks model",
+      "testType": "fault",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "Current final-run evidence does not yet prove every execution-record write or the remaining concrete production readiness fault paths."
+    },
+    {
+      "id": "AC-D023",
+      "area": "PersistenceRuntime",
+      "scenario": "Readiness model optional",
+      "expected": "MODEL_OPTIONAL can be ready with degraded model",
+      "testType": "fault",
+      "status": "NOT_RUN",
+      "evidence": [
+        "packages/runtime/src/migration-002.integration.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-worker/src/postgres.integration.test.ts",
+        "services/grounding-worker/src/production-module.ts"
+      ],
+      "note": "Current final-run evidence does not yet prove every execution-record write or the remaining concrete production readiness fault paths."
+    },
+    {
+      "id": "AC-D024",
+      "area": "PersistenceRuntime",
+      "scenario": "Rate limit",
+      "expected": "Per-principal bounded rate limit",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/signed-cursor.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "id": "AC-D025",
+      "area": "PersistenceRuntime",
+      "scenario": "Request body limit",
+      "expected": "Oversized grounding request rejected",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/signed-cursor.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "id": "AC-D026",
+      "area": "PersistenceRuntime",
+      "scenario": "Response redaction",
+      "expected": "Typed errors exclude source/model/output/token",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/signed-cursor.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "id": "AC-D027",
+      "area": "PersistenceRuntime",
+      "scenario": "Prompt injection",
+      "expected": "Source text cannot select tool/provider/operation",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/signed-cursor.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "id": "AC-D028",
+      "area": "PersistenceRuntime",
+      "scenario": "No GOWM DB",
+      "expected": "WSGS config/deps contain no GOWM DB credential",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/signed-cursor.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "id": "AC-D029",
+      "area": "PersistenceRuntime",
+      "scenario": "No SDAR",
+      "expected": "No SDAR/A2A import or endpoint",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/runtime/src/signed-cursor.test.ts",
+        "packages/trusted-capability-snapshot/src/snapshot.test.ts",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "services/grounding-api/src/server.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "id": "AC-D030",
+      "area": "PersistenceRuntime",
+      "scenario": "Health live",
+      "expected": "Liveness is process-only",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+    },
+    {
+      "id": "AC-D031",
+      "area": "PersistenceRuntime",
+      "scenario": "Health ready",
+      "expected": "Readiness reflects executable pipeline",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes or executable readiness against the mismatched live semantic authority."
+    },
+    {
+      "id": "AC-X001",
+      "area": "RealE2E",
+      "scenario": "2号车在哪里",
+      "expected": "Real model/GOWM returns resolved current state",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X002",
+      "area": "RealE2E",
+      "scenario": "滨河路歧义",
+      "expected": "Real fixture returns ambiguity without spatial execution",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X003",
+      "area": "RealE2E",
+      "scenario": "A区内车辆",
+      "expected": "Real resolve + exact in-area returns scoped set",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X004",
+      "area": "RealE2E",
+      "scenario": "附近1公里",
+      "expected": "Real 1000m nearby executes",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X005",
+      "area": "RealE2E",
+      "scenario": "模型不可用",
+      "expected": "Deterministic coordinate returns PARTIAL",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X006",
+      "area": "RealE2E",
+      "scenario": "Prior grounding",
+      "expected": "Stored prior result revalidates",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X007",
+      "area": "RealE2E",
+      "scenario": "Scope attack",
+      "expected": "Cross-scope object/result is not leaked",
+      "testType": "security",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X008",
+      "area": "RealE2E",
+      "scenario": "Contract drift",
+      "expected": "New task fails closed",
+      "testType": "security",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X009",
+      "area": "RealE2E",
+      "scenario": "Operation down",
+      "expected": "Spatial gap localized; reference remains",
+      "testType": "fault",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X010",
+      "area": "RealE2E",
+      "scenario": "Snapshot mismatch",
+      "expected": "Strict mismatch does not fabricate consistency",
+      "testType": "snapshot",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X011",
+      "area": "RealE2E",
+      "scenario": "API restart",
+      "expected": "Same idempotent result after API restart",
+      "testType": "recovery",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X012",
+      "area": "RealE2E",
+      "scenario": "Worker restart",
+      "expected": "No duplicate model/GOWM execution",
+      "testType": "recovery",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X013",
+      "area": "RealE2E",
+      "scenario": "DB restart",
+      "expected": "Jobs/results recover",
+      "testType": "recovery",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X014",
+      "area": "RealE2E",
+      "scenario": "Cancel",
+      "expected": "Cancelled result remains terminal",
+      "testType": "race",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X015",
+      "area": "RealE2E",
+      "scenario": "Model schema invalid",
+      "expected": "Invalid model output fails/repairs boundedly",
+      "testType": "model",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X016",
+      "area": "RealE2E",
+      "scenario": "Gateway 429",
+      "expected": "Bounded retry obeys deadline",
+      "testType": "fault",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X017",
+      "area": "RealE2E",
+      "scenario": "Gateway 503",
+      "expected": "Circuit/gap behavior is typed",
+      "testType": "fault",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X018",
+      "area": "RealE2E",
+      "scenario": "Large evidence",
+      "expected": "Payload reference behavior works",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X019",
+      "area": "RealE2E",
+      "scenario": "Stable recipe catalog",
+      "expected": "All stable recipes pass real E2E",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X020",
+      "area": "RealE2E",
+      "scenario": "Preview disabled",
+      "expected": "Preview recipes are not default",
+      "testType": "policy",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/matcher.test.ts",
+        "reports/wsgs-v0.2/final-stable-candidate.md",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/verify-wsgs-contracts.mjs"
+      ],
+      "note": "Preview is opt-in, frozen northbound fixtures remain valid, and the final report explicitly disclaims external IdP, multi-node HA, SLO, and production qualification."
+    },
+    {
+      "id": "AC-X021",
+      "area": "RealE2E",
+      "scenario": "Terrain/visibility gap",
+      "expected": "No fabricated result",
+      "testType": "real-e2e",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X022",
+      "area": "RealE2E",
+      "scenario": "Northbound compatibility",
+      "expected": "v1 SACS client fixtures still pass",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/matcher.test.ts",
+        "reports/wsgs-v0.2/final-stable-candidate.md",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/verify-wsgs-contracts.mjs"
+      ],
+      "note": "Preview is opt-in, frozen northbound fixtures remain valid, and the final report explicitly disclaims external IdP, multi-node HA, SLO, and production qualification."
+    },
+    {
+      "id": "AC-X023",
+      "area": "RealE2E",
+      "scenario": "Container restart",
+      "expected": "Compose services recover",
+      "testType": "container",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X024",
+      "area": "RealE2E",
+      "scenario": "Performance measurement",
+      "expected": "p50/p95 and model/GOWM stage timing reported",
+      "testType": "performance",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "reports/wsgs-v0.2/real-model-gate.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The real model gate passes, but semantic authority drift prevents trusted multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E claims."
+    },
+    {
+      "id": "AC-X025",
+      "area": "RealE2E",
+      "scenario": "No production overclaim",
+      "expected": "Docs state IdP/HA/SLO limitations",
+      "testType": "docs",
+      "status": "PASS",
+      "evidence": [
+        "packages/query-compiler/src/matcher.test.ts",
+        "reports/wsgs-v0.2/final-stable-candidate.md",
+        "reports/wsgs-v0.2/verification-summary.json",
+        "validation/scripts/verify-wsgs-contracts.mjs"
+      ],
+      "note": "Preview is opt-in, frozen northbound fixtures remain valid, and the final report explicitly disclaims external IdP, multi-node HA, SLO, and production qualification."
+    },
+    {
+      "id": "AC-F001",
+      "area": "Final",
+      "scenario": "Version",
+      "expected": "VERSION/package/image equal 0.2.0",
+      "testType": "version",
+      "status": "PASS",
+      "evidence": [
+        "CHANGELOG.md",
+        "Dockerfile",
+        "README.md",
+        "VERSION",
+        "compose.yaml",
+        "docs/runbook.md",
+        "package.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Version/image surfaces and blocked-candidate operational documentation are present and statically verified."
+    },
+    {
+      "id": "AC-F002",
+      "area": "Final",
+      "scenario": "README",
+      "expected": "README describes executable v0.2 and GOWM 0.6.3",
+      "testType": "docs",
+      "status": "PASS",
+      "evidence": [
+        "CHANGELOG.md",
+        "Dockerfile",
+        "README.md",
+        "VERSION",
+        "compose.yaml",
+        "docs/runbook.md",
+        "package.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Version/image surfaces and blocked-candidate operational documentation are present and statically verified."
+    },
+    {
+      "id": "AC-F003",
+      "area": "Final",
+      "scenario": "CHANGELOG",
+      "expected": "Upgrade and compatibility recorded",
+      "testType": "docs",
+      "status": "PASS",
+      "evidence": [
+        "CHANGELOG.md",
+        "Dockerfile",
+        "README.md",
+        "VERSION",
+        "compose.yaml",
+        "docs/runbook.md",
+        "package.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Version/image surfaces and blocked-candidate operational documentation are present and statically verified."
+    },
+    {
+      "id": "AC-F004",
+      "area": "Final",
+      "scenario": "Runbook",
+      "expected": "Model/GOWM/DB/Auth setup documented",
+      "testType": "docs",
+      "status": "PASS",
+      "evidence": [
+        "CHANGELOG.md",
+        "Dockerfile",
+        "README.md",
+        "VERSION",
+        "compose.yaml",
+        "docs/runbook.md",
+        "package.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "Version/image surfaces and blocked-candidate operational documentation are present and statically verified."
+    },
+    {
+      "id": "AC-F005",
+      "area": "Final",
+      "scenario": "Acceptance ledger",
+      "expected": "Every Required case has evidence",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/acceptance-evidence-groups.json",
+        "reports/wsgs-v0.2/required-acceptance-ledger.json"
+      ],
+      "note": "Every Required matrix ID occurs exactly once with a terminal status and evidence; this does not imply all cases pass."
+    },
+    {
+      "id": "AC-F006",
+      "area": "Final",
+      "scenario": "No failed required",
+      "expected": "Required failure/not-run count is zero",
+      "testType": "report",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/final-stable-candidate.md",
+        "reports/wsgs-v0.2/required-acceptance-ledger.json"
+      ],
+      "note": "Required blockers remain, the PR must remain Draft, and readiness/completion markers are intentionally withheld."
+    },
+    {
+      "id": "AC-F007",
+      "area": "Final",
+      "scenario": "Exact SHA",
+      "expected": "Local/tracking/ls-remote candidate SHA match",
+      "testType": "git",
+      "status": "NOT_RUN",
+      "evidence": [
+        "reports/wsgs-v0.2/sync-state.json",
+        "reports/wsgs-v0.2/verification-summary.json"
+      ],
+      "note": "The working tree is not yet committed as a final candidate, so local/tracking/ls-remote final SHA equality cannot be asserted."
+    },
+    {
+      "id": "AC-F008",
+      "area": "Final",
+      "scenario": "PR Ready",
+      "expected": "Draft becomes Ready only after gates",
+      "testType": "github",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/final-stable-candidate.md",
+        "reports/wsgs-v0.2/required-acceptance-ledger.json"
+      ],
+      "note": "Required blockers remain, the PR must remain Draft, and readiness/completion markers are intentionally withheld."
+    },
+    {
+      "id": "AC-F009",
+      "area": "Final",
+      "scenario": "Protected actions",
+      "expected": "No merge/tag/release/publish/deploy",
+      "testType": "github",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/final-stable-candidate.md",
+        "reports/wsgs-v0.2/sync-state.json"
+      ],
+      "note": "No merge, tag, release, publish, deployment, force-push, or upstream-repository modification was performed."
+    },
+    {
+      "id": "AC-F010",
+      "area": "Final",
+      "scenario": "Final markers",
+      "expected": "All final markers appear in report",
+      "testType": "report",
+      "status": "BLOCKED",
+      "evidence": [
+        "reports/wsgs-v0.2/final-stable-candidate.md",
+        "reports/wsgs-v0.2/required-acceptance-ledger.json"
+      ],
+      "note": "Required blockers remain, the PR must remain Draft, and readiness/completion markers are intentionally withheld."
+    }
+  ]
+}

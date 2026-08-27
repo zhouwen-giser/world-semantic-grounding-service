@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W05",
+  "status": "PASS",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 22, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 0 },
+  "groups": [
+    { "ids": ["AC-M001..AC-M012", "AC-M016..AC-M022"], "status": "PASS", "evidence": ["packages/deterministic-parser/src/parser.test.ts", "packages/semantic-model/src/policy.test.ts", "packages/grounding-graph/src/builder.test.ts", "reports/wsgs-v0.2/verification-summary.json"] },
+    { "ids": ["AC-M013..AC-M015"], "status": "PASS", "evidence": ["reports/wsgs-v0.2/real-model-gate.json", "validation/scripts/real-model-gate.ts"] }
+  ]
+}

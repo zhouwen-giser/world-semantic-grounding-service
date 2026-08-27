@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0",
+  "gate": "validation/scripts/real-gowm-gate.ts",
+  "status": "BLOCKED",
+  "recordedAt": "2026-08-27T15:36:20.174Z",
+  "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+  "environmentCategory": "REAL_GOWM_0_6_3_DIAGNOSTIC_AFTER_FAIL_CLOSED_DRIFT",
+  "source": {
+    "gowmVersion": "0.6.3",
+    "gowmSourceSha": "17dd221330d9af540ec815a39eca96550690299a",
+    "wsgsImplementationSha": "72b911ed9fc453d7c1d736ab551957e4ff4b8850"
+  },
+  "exitCode": 2,
+  "executionClassification": "DIAGNOSTIC_ONLY_AFTER_FAIL_CLOSED_CONTRACT_DRIFT",
+  "summary": {
+    "diagnosticPass": 7,
+    "blocked": 2,
+    "fail": 0,
+    "trustedRealE2ePass": 0
+  },
+  "checks": [
+    { "id": "live-contract-endpoints", "status": "DIAGNOSTIC_PASS" },
+    { "id": "consumer-semantic-lock", "status": "BLOCKED", "reason": "UPSTREAM_0_6_3_SEMANTIC_CATALOG_CANONICALIZATION_MISMATCH" },
+    { "id": "business-2号车-current-state", "status": "DIAGNOSTIC_PASS" },
+    { "id": "business-滨河路-ambiguity", "status": "DIAGNOSTIC_PASS" },
+    { "id": "business-A区-exact-in-area", "status": "DIAGNOSTIC_PASS" },
+    { "id": "async-world-query-nearby-1km", "status": "DIAGNOSTIC_PASS" },
+    { "id": "bounded-receipt-fetch", "status": "DIAGNOSTIC_PASS" },
+    { "id": "world-query-cancel", "status": "DIAGNOSTIC_PASS" },
+    { "id": "direct-operation-202", "status": "BLOCKED", "reason": "GOWM_0_6_3_DIRECT_ROUTE_HAS_NO_ASYNC_JOB_RESPONSE" }
+  ],
+  "semanticAuthority": {
+    "expectedConsumerBundleHash": "sha256:540e9b169cfefa5707e7ba7bd59d304c7671d8d0f2f1f0f4f16d5c5210b08b3e",
+    "observedLiveRuntimeHash": "sha256:0153c0ab1884f1ca8222d59a28a2d14774099b7b7cd66faa8a75a020769b9d90",
+    "match": false,
+    "wsgsBehavior": "FAIL_CLOSED"
+  },
+  "directOperationAsync": {
+    "requiredStatus": 202,
+    "observedStatus": 200,
+    "supported": false,
+    "worldQueryAsyncLifecycleIsNotASubstitute": true
+  },
+  "productionReadinessObservation": {
+    "httpStatus": 503,
+    "status": "not_ready",
+    "reasons": ["SEMANTIC_CATALOG_DRIFT"],
+    "classification": "EXPECTED_FAIL_CLOSED"
+  },
+  "redaction": {
+    "gatewayEndpointIncluded": false,
+    "transportCredentialIncluded": false,
+    "delegationTokenIncluded": false,
+    "privateKeyPathIncluded": false,
+    "rawReferenceReceiptOrJobIdsIncluded": false
+  },
+  "blockedClaims": [
+    "TRUSTED_REAL_GOWM_EXECUTION",
+    "DIRECT_OPERATION_202_LIFECYCLE",
+    "PINNED_PRIOR_RESULT_REPLAY",
+    "FULL_PRODUCTION_PIPELINE_E2E"
+  ]
+}
