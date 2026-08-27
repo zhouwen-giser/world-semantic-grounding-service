@@ -20,7 +20,7 @@
     "localSha": null,
     "remoteSha": null,
     "baseSha": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
-    "pullRequest": null
+    "pullRequest": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/2"
   },
   "milestones": {
     "gowmContractLocked": false,
@@ -40,12 +40,13 @@
       "AC-B006",
       "AC-B007",
       "AC-B008",
+      "AC-B009",
       "AC-B010"
     ],
     "failed": [],
-    "notRun": ["AC-B009"],
+    "notRun": [],
     "blocked": []
   },
   "blockers": [],
-  "next": "Commit and push W00, create the Draft PR, then begin exact GOWM 0.6.3 consumer intake."
+  "next": "Begin W01 exact GOWM 0.6.3 consumer intake and update Draft PR #2."
 }

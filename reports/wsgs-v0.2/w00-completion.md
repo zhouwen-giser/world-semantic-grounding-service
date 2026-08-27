@@ -34,7 +34,7 @@ No frozen contract or migration was changed. `contracts/wsgs-v0.1` remains Git t
 
 ## Acceptance cases
 
-AC-B001–AC-B008 and AC-B010 pass. AC-B009 remains pending until the initial commit is pushed and the Draft PR exists.
+AC-B001–AC-B010 pass. The target branch is pushed and Draft PR #2 exists.
 
 ## Security/authority review
 
@@ -46,11 +46,11 @@ See the living ExecPlan and source-reconciliation report for the Python alias, w
 
 ## Commit/push/PR
 
-Pending this report's initial semantic commit and Draft PR creation.
+Initial semantic commit `d1da280` is pushed. Draft PR #2 is open at https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/2.
 
 ## Blockers
 
-None for W00 implementation. Publication evidence is the remaining action.
+None.
 
 ## Next phase
 

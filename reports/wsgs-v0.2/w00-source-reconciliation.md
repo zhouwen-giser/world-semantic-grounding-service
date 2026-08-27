@@ -2,7 +2,7 @@
 
 ## Decision
 
-`PASS_WITH_PUBLICATION_PENDING`
+`PASS`
 
 The fetched WSGS and GOWM+ refs exactly match the task-package baselines. No forward drift was present, no unrelated tracked state was changed, and the WSGS 0.1.0 baseline passes with a real PostgreSQL 17.10 instance.
 
@@ -49,6 +49,9 @@ GOWM 0.6.3 also supports asynchronous World Queries but not asynchronous direct 
 
 No merge, tag, release, package publication, production deployment, force-push, or GOWM modification was performed.
 
-## Remaining W00 action
+## Publication evidence
 
-Push the target branch, create the Draft PR, record its URL/SHA, and then mark AC-B009 PASS.
+- Initial W00 commit: `d1da280`.
+- Remote branch: `origin/codex/wsgs-v0.2-gowm-0.6.3-integration`.
+- Draft PR: https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/2
+- AC-B001 through AC-B010: PASS.

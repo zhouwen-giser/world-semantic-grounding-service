@@ -26,7 +26,7 @@ This is the living execution plan for WSGS 0.2.0.
 
 ## Progress
 
-- [ ] W00 Baseline reconciliation and Draft PR
+- [x] W00 Baseline reconciliation and Draft PR
 - [ ] W01 GOWM 0.6.3 consumer contract intake
 - [ ] W02 Gateway client v2
 - [ ] W03 Delegated identity
@@ -75,4 +75,4 @@ This is the living execution plan for WSGS 0.2.0.
 
 ## Remaining work
 
-Complete W00 publication evidence, then execute W01-W14. Merge, tag, release, publish, and production deployment remain prohibited.
+Execute W01-W14. Draft PR #2 is the publication surface; merge, tag, release, publish, and production deployment remain prohibited.
