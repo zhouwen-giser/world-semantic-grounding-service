@@ -27,7 +27,7 @@ This is the living execution plan for WSGS 0.2.0.
 ## Progress
 
 - [x] W00 Baseline reconciliation and Draft PR
-- [ ] W01 GOWM 0.6.3 consumer contract intake
+- [x] W01 GOWM 0.6.3 consumer contract intake
 - [ ] W02 Gateway client v2
 - [ ] W03 Delegated identity
 - [ ] W04 Production backend, worker, and pipeline
@@ -72,7 +72,8 @@ This is the living execution plan for WSGS 0.2.0.
 - Frozen northbound Git tree: `55169cf5157ecb3a9e440d109cebf4ccc82bacbf`.
 - Baseline local check without database: 15 test files passed, 1 integration file skipped; 107 tests passed and 9 skipped.
 - Baseline with isolated PostgreSQL 17.10: contract freeze, architecture boundary, generated types, strict TypeScript, 16 test files, and all 116 tests passed.
+- W01 intake: 25 independent contract/supply-chain checks pass; 62/62 MANIFEST records and 64/64 archive/extracted files verify; three exact-source materializations have identical tarball SHA-256; 7/7 focused positive/negative tests pass.
 
 ## Remaining work
 
-Execute W01-W14. Draft PR #2 is the publication surface; merge, tag, release, publish, and production deployment remain prohibited.
+Execute W02-W14. Draft PR #2 is the publication surface; merge, tag, release, publish, and production deployment remain prohibited.
