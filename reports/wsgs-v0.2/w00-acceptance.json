@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W00",
+  "status": "IN_PROGRESS",
+  "cases": [
+    { "id": "AC-B001", "status": "PASS", "evidence": ["Fetched WSGS origin/main equals 2fdefe3769189fa8e8be4302a9e98ca55cf686d4."] },
+    { "id": "AC-B002", "status": "PASS", "evidence": ["GOWM commit 17dd221330d9af540ec815a39eca96550690299a exists and fetched origin/main equals it."] },
+    { "id": "AC-B003", "status": "PASS", "evidence": ["Independent worktree and target branch created; original main was not reset, stashed, or switched."] },
+    { "id": "AC-B004", "status": "PASS", "evidence": ["All 116 WSGS baseline tests passed with PostgreSQL 17.10."] },
+    { "id": "AC-B005", "status": "PASS", "evidence": ["Frozen northbound tree remains 55169cf5157ecb3a9e440d109cebf4ccc82bacbf."] },
+    { "id": "AC-B006", "status": "PASS", "evidence": ["Architecture scan reports no SDAR or A2A runtime dependency."] },
+    { "id": "AC-B007", "status": "PASS", "evidence": ["Architecture scan reports Gateway-only access and no GOWM database/provider route."] },
+    { "id": "AC-B008", "status": "PASS", "evidence": ["No terrain, visibility, raster, or elevation algorithm was introduced."] },
+    { "id": "AC-B009", "status": "NOT_RUN", "evidence": ["Draft PR creation follows the initial branch push."] },
+    { "id": "AC-B010", "status": "PASS", "evidence": ["README now distinguishes the 0.1 baseline from the in-progress 0.2/GOWM 0.6.3 runtime candidate."] }
+  ]
+}

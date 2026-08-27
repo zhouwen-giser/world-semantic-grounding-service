@@ -2,8 +2,8 @@
 
 World Semantic Grounding Service (WSGS) grounds bounded world references and compiles typed queries for the GOWM World Capability Gateway.
 
-Version 0.1.0 targets GOWM 0.4.0 and the frozen `sacs-wsgs-grounding/1.0` northbound contract.
+The released baseline remains version 0.1.0 with the frozen `sacs-wsgs-grounding/1.0` northbound contract. The `codex/wsgs-v0.2-gowm-0.6.3-integration` candidate is now integrating the locked GOWM+ 0.6.3 consumer artifact, signed delegation, a PostgreSQL-backed worker pipeline, semantic requirement planning, capability matching, and typed query compilation without changing that public wire contract.
 
-Candidate status: **BLOCKED**. Contract, component, security, real PostgreSQL, build, and hardened-container gates pass. Real OpenAI-compatible model and GOWM Gateway/provider E2E are blocked because their endpoints, credentials, scope, and datasets were unavailable. The executable image intentionally reports readiness 503 until a production grounding backend is composed and those gates pass.
+Candidate status: **IN PROGRESS**. The exact WSGS 0.1.0 baseline and its real PostgreSQL regression suite pass. WSGS 0.2.0 runtime, real model/GOWM qualification, recovery gates, and the complete 279-case acceptance ledger remain required before the candidate can be called stable or made Ready for Review.
 
-See [the runbook](docs/runbook.md), [security and authority notes](docs/security.md), and the phase/final evidence under `reports/wsgs-v0.1/`.
+See [the v0.2 execution plan](execplans/EP-wsgs-v0.2-gowm-063.md), [the runbook](docs/runbook.md), [security and authority notes](docs/security.md), and phase evidence under `reports/wsgs-v0.2/`.
