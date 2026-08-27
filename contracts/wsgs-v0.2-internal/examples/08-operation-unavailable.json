@@ -1,0 +1,6 @@
+{
+  "operation": "spatial.find-nearby@1.0",
+  "availability": "UNAVAILABLE",
+  "expectedResult": "CAPABILITY_GAP",
+  "unrelatedReferenceRecipeAvailable": true
+}

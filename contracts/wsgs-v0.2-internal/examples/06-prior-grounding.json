@@ -1,0 +1,14 @@
+{
+  "input": "查询上一次结果中的第一个区域",
+  "priorGrounding": {
+    "groundingId": "grounding-previous-001",
+    "resultHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "selectedProductIds": [
+      "product-001"
+    ]
+  },
+  "requiredValidation": [
+    "reference.validate@1.0",
+    "result.validate@1.0"
+  ]
+}

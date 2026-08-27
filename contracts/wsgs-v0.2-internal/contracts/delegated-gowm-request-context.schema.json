@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2:delegated-gowm-request-context",
+  "title": "DelegatedGowmRequestContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "servicePrincipalId",
+    "actorId",
+    "dataScopes",
+    "datasetScopes",
+    "allowedOperations",
+    "authorizationContextHash",
+    "requestId"
+  ],
+  "properties": {
+    "servicePrincipalId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "actorId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "dataScopes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "datasetScopes": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowedOperations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9.-]+@[0-9]+\\.[0-9]+$"
+      }
+    },
+    "authorizationContextHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "requestId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    }
+  }
+}

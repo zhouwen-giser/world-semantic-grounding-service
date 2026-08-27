@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0",
+  "wsgsSource": {
+    "repository": "zhouwen-giser/world-semantic-grounding-service",
+    "commit": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
+    "version": "0.1.0"
+  },
+  "gowmSource": {
+    "repository": "zhouwen-giser/geospatial-operational-world-model",
+    "commit": "17dd221330d9af540ec815a39eca96550690299a",
+    "version": "0.6.3"
+  },
+  "consumerPackage": {
+    "name": "@gowm/world-gateway-contracts",
+    "version": "0.6.3",
+    "integrity": "sha512-Z2mLu+us4NM8hqthMSo48H33cFpzxK9zxyx8UeB04F7LdWN0e6Vz5q++fB7ohyRikbXdgYCrT8+SMqwcuWEBLA==",
+    "contractCatalogRevision": "sha256:1f49cdec6b5568c9ad57967f0b111e437c873e90b1213f17cc4006824a04c5d0",
+    "semanticCatalogHash": "sha256:540e9b169cfefa5707e7ba7bd59d304c7671d8d0f2f1f0f4f16d5c5210b08b3e",
+    "availabilityContractHash": "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036",
+    "snapshotContractHash": "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0",
+    "delegationContractHash": "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b",
+    "southboundLockSha256": "51c189f2a4359b245b652eeb196410c742231db69dc0232d3f7057bb4368cdf0"
+  },
+  "northboundContractVersion": "sacs-wsgs-grounding/1.0",
+  "targetVersion": "0.2.0"
+}

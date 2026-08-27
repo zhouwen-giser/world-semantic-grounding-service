@@ -1,0 +1,7 @@
+{
+  "mode": "MODEL_OPTIONAL",
+  "outputMode": "RESPONSES_STRICT",
+  "timeoutMs": 30000,
+  "maxRetries": 2,
+  "modelUnavailableBehavior": "DETERMINISTIC_PARTIAL"
+}

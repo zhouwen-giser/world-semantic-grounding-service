@@ -1,0 +1,178 @@
+{
+  "lockVersion": "1.0",
+  "taskPackageVersion": "R1",
+  "sourceCommitAtGeneration": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
+  "gowmSourceCommit": "17dd221330d9af540ec815a39eca96550690299a",
+  "artifacts": [
+    {
+      "path": "acceptance/acceptance-matrix.csv",
+      "lfBytes": 25504,
+      "lfSha256": "d667c24bd92caea8e9991fe2daed71e8807e674175dd31d8ac13697462ccb75a"
+    },
+    {
+      "path": "acceptance/traceability.csv",
+      "lfBytes": 565,
+      "lfSha256": "d042a12dda98249316cdb87bc30ffaba2e7fcce08a99ac94e9f0ed033904d03d"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/capability-binding.schema.json",
+      "lfBytes": 1711,
+      "lfSha256": "f96773ef90ba158911b5976af3e9cd711316979a5a864b812fc56ed7be55b385"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/contract-intake-report.schema.json",
+      "lfBytes": 1215,
+      "lfSha256": "8c82ff126ba1fc7018cb52bd0596c8987a7711a06193e1d58c0c7c7712f64307"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/delegated-gowm-request-context.schema.json",
+      "lfBytes": 1366,
+      "lfSha256": "6c927b9dc0d352bf5cf7930fba3dcea671ab4d76cfb379ea3fa28b1b678d2ad5"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/gowm-consumer-intake-lock.schema.json",
+      "lfBytes": 2777,
+      "lfSha256": "52b30b7bc8309b36f6104221fbffc1abb40812f3c7ef32558d7bbf50b9f586af"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/gowm-execution-record.schema.json",
+      "lfBytes": 1892,
+      "lfSha256": "def32ba885f8048955d33238b30e6dd8c0c6e4a682e3359da0f9f30a569e718b"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/model-policy.schema.json",
+      "lfBytes": 864,
+      "lfSha256": "26b9a21f760e5b72dd48dd52985e6070ca493aa577a50d449f696d940a81167b"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/pipeline-event.schema.json",
+      "lfBytes": 1526,
+      "lfSha256": "1befbfeca0bc2b048c447446515d75ab92d0117c321e32449e17f41992c41365"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/qualification-report.schema.json",
+      "lfBytes": 1444,
+      "lfSha256": "9e3a5daabfb634deb79c61fcc7e8660efbb69bf62f709887c34d3b80544cfcd0"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/recipe-catalog.schema.json",
+      "lfBytes": 1607,
+      "lfSha256": "7ef8b1bba74116079171ebf4ff22996f2e8842a47d4350b59da25c7ab09e1276"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/runtime-readiness.schema.json",
+      "lfBytes": 1030,
+      "lfSha256": "7bc153a45d31adb347001020b721bb418b54cd3bd2e289511b8486a02ad19e5f"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/trusted-capability-snapshot.schema.json",
+      "lfBytes": 3740,
+      "lfSha256": "513d4e0b38e3640d5c157e08666d5a51ccf7c248e1dd577ca8d7367b33c5c514"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/contracts/world-query-requirement-graph.schema.json",
+      "lfBytes": 2479,
+      "lfSha256": "f30b0734eaf790b7cc4668ea678dbe77138e12fdeb2e2e7d55af6bb8ada15bf9"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/dependencies/source-lock.json",
+      "lfBytes": 1292,
+      "lfSha256": "f347cde89355613428e3f4c0b0a32de76ac96ea2cfcc4072939388d792f07357"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/01-unique-reference-current-state.json",
+      "lfBytes": 211,
+      "lfSha256": "0f66c8954f7b1626f00fcab9900094508fa91182261e0ff69b09dca201b3f0e4"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/02-ambiguous-road.json",
+      "lfBytes": 181,
+      "lfSha256": "1d741711836e75374ce6316ae228ecd48b571d30f1e421f002cd4d381cdb3e06"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/03-area-vehicles.json",
+      "lfBytes": 222,
+      "lfSha256": "1f76e02c53078a6ef5376341a91c12a1af8bf74bc779404e6231ffde669c2856"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/04-nearby-distance.json",
+      "lfBytes": 173,
+      "lfSha256": "8d837bf75b3635d7cbe73ac1acf371a59de152962563e428e3d3f58882c1955e"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/05-model-unavailable-coordinate.json",
+      "lfBytes": 236,
+      "lfSha256": "ac837299ca2eccb946df37198ecd0e96db3488be1f5e3c509f02492ab3cf5948"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/06-prior-grounding.json",
+      "lfBytes": 366,
+      "lfSha256": "e08a7d6622993ed03504f5461a92bf63f30a842c1bbf1f34ddc6a2a7a5f307cc"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/07-contract-drift.json",
+      "lfBytes": 293,
+      "lfSha256": "6561c06d17dc518f8f4b41c985114ce10465159e8857d86824d7978d656ae3c2"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/08-operation-unavailable.json",
+      "lfBytes": 161,
+      "lfSha256": "8ca0e638e842af244020a4f9cc2c91db29044dcfb392fce7dfb594f5ded68216"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/09-snapshot-mismatch.json",
+      "lfBytes": 185,
+      "lfSha256": "b5706e41390e16429df037f240c9fabdbac912684bc19b599b6a3c1a43221984"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/10-terrain-visibility-gap.json",
+      "lfBytes": 372,
+      "lfSha256": "ce2b83583ce1fc2a20a89cad060a7d79c29e549fe7d13e6ca39504c7d5c77855"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/11-delegated-request-context.json",
+      "lfBytes": 377,
+      "lfSha256": "cde68e25c0e1d7fba42a923093178225b6329293081db5691488f2b2e17c6109"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/12-pipeline-event.json",
+      "lfBytes": 368,
+      "lfSha256": "6f6aaf72b98bd1101abf12ace54b3cf7806a58315096adc2736c80b167b9ee5b"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/examples/13-trusted-capability-snapshot.json",
+      "lfBytes": 1534,
+      "lfSha256": "266505f12775f5a44efe4e293f0ce1121e2f1d911bfb4f2819e4cf6a5d42d359"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/manifests/capability-gap-policy.json",
+      "lfBytes": 431,
+      "lfSha256": "f4399a3238081bd5b50ce0bbfc545b7b5946841c5a72578f5ae29f7bd29479f1"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/manifests/model-policy.json",
+      "lfBytes": 163,
+      "lfSha256": "539d1bfa65251e9c99bee918f6f8b9ef1393b827da502356df6f4ce6f3d00ced"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/manifests/pipeline-stage-policy.json",
+      "lfBytes": 613,
+      "lfSha256": "e4f3cc5a3c0d6d0a9e038b646d747da9fa3964461cd7ef821f9fe81b462273db"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/manifests/preview-recipe-catalog.json",
+      "lfBytes": 1704,
+      "lfSha256": "3b9b05bb5c9cced71d8fb59fa70a751452bbbbd911c4f6e76a77f263b2c9877f"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/manifests/stable-recipe-catalog.json",
+      "lfBytes": 3146,
+      "lfSha256": "66e40f462190db9c5b115dd8d9c511e598b773bb7f5720effe404975278056f8"
+    },
+    {
+      "path": "contracts/wsgs-v0.2-internal/openapi/wsgs-grounding-api-v0.2-overlay.yaml",
+      "lfBytes": 935,
+      "lfSha256": "3e87882a4f369660052c7af41531f3d0d204f7903c49d11e070404fc6cdcad48"
+    }
+  ]
+}

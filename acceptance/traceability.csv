@@ -1,0 +1,13 @@
+phase,acceptance,deliverable
+W00,AC-B001..AC-B010,dual baseline and branch
+W01,AC-C001..AC-C020,GOWM contract intake
+W02,AC-G001..AC-G025,gateway client v2
+W03,AC-I001..AC-I025,delegated identity
+W04,AC-P001..AC-P034,production backend and worker
+W05,AC-M001..AC-M022,parser/model/graph
+W06,AC-R001..AC-R020,reference grounding
+W07-W09,AC-Q001..AC-Q032,snapshot/planner/matcher/compiler
+W10-W11,AC-E001..AC-E025,GOWM execution/evidence/prior
+W12,AC-D001..AC-D031,persistence/API/security/recovery
+W13,AC-X001..AC-X025,real E2E
+W14,AC-F001..AC-F010,stable candidate

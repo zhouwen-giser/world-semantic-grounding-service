@@ -1,0 +1,280 @@
+id,required,area,scenario,expected,test_type
+AC-B001,yes,Baseline,Fetch WSGS main,Actual latest committed WSGS SHA/version recorded,source
+AC-B002,yes,Baseline,Fetch GOWM exact source,GOWM 0.6.3 exact commit remains available,source
+AC-B003,yes,Baseline,Worktree isolation,No unrelated work is reset/stashed/overwritten,git-safety
+AC-B004,yes,Baseline,v0.1 regression,Existing contracts/components/security/PostgreSQL tests pass,regression
+AC-B005,yes,Baseline,Northbound contract hash,sacs-wsgs-grounding/1.0 files remain byte-identical,contract
+AC-B006,yes,Baseline,No upper layer,No SACS/SDAR/A2A runtime dependency is introduced,architecture
+AC-B007,yes,Baseline,No GOWM internals,No Provider URL/DB/schema/implementation dependency enters WSGS,architecture
+AC-B008,yes,Baseline,No scope creep,Terrain/Visibility/Raster algorithms are not implemented,architecture
+AC-B009,yes,Baseline,Draft PR,Target branch and Draft PR are created from actual WSGS main,git
+AC-B010,yes,Baseline,Status truth,README/status no longer claims only GOWM 0.4.0 or fail-closed final backend,docs
+AC-C001,yes,ContractIntake,Exact GOWM commit,Intake source equals locked GOWM commit,source
+AC-C002,yes,ContractIntake,Package name/version,Package is @gowm/world-gateway-contracts@0.6.3,contract
+AC-C003,yes,ContractIntake,Package integrity,SHA-512 integrity matches locked value,supply-chain
+AC-C004,yes,ContractIntake,Bundle manifest,All bundle files match MANIFEST bytes and SHA-256,supply-chain
+AC-C005,yes,ContractIntake,Contract revision,Contract catalog revision matches lock,contract
+AC-C006,yes,ContractIntake,Semantic hash,Semantic catalog hash matches lock,contract
+AC-C007,yes,ContractIntake,Availability hash,Availability contract hash matches lock,contract
+AC-C008,yes,ContractIntake,Snapshot hash,Snapshot contract hash matches lock,contract
+AC-C009,yes,ContractIntake,Delegation hash,Delegation contract hash matches lock,contract
+AC-C010,yes,ContractIntake,Southbound lock,Lock v2 SHA-256 and schema validate,contract
+AC-C011,yes,ContractIntake,No provider topology,Artifact contains no Provider URL/container/database role,security
+AC-C012,yes,ContractIntake,No secrets,Artifact contains no token/private key/env secret,security
+AC-C013,yes,ContractIntake,Deterministic materialization,Two materializations produce identical intake tree,reproducibility
+AC-C014,yes,ContractIntake,Default branch drift,Unpinned newer GOWM main is rejected,security
+AC-C015,yes,ContractIntake,Manual schema copy,Runtime no longer consumes old vendored 0.4 schemas as authority,architecture
+AC-C016,yes,ContractIntake,Generated types,Generated WSGS types match GOWM bundle schemas,contract
+AC-C017,yes,ContractIntake,Compatibility report,Package compatibility report is retained,contract
+AC-C018,yes,ContractIntake,Source lock report,Machine-readable intake report is committed,report
+AC-C019,yes,ContractIntake,Missing package,Readiness fails closed when artifact is absent,fault
+AC-C020,yes,ContractIntake,Corrupted package,Readiness fails closed when integrity differs,security
+AC-G001,yes,GatewayClient,Capabilities endpoint,Capability catalog validates against consumer schemas,real-e2e
+AC-G002,yes,GatewayClient,Semantic endpoint,Explicit semantic catalog validates and hash matches,real-e2e
+AC-G003,yes,GatewayClient,Availability endpoint,Operation-level availability validates,real-e2e
+AC-G004,yes,GatewayClient,Content revision,sha256 contract revision is accepted,contract
+AC-G005,yes,GatewayClient,Legacy registry-N,Legacy registry-N is no longer required,regression
+AC-G006,yes,GatewayClient,No provider lock,Operation lock has no providerId dependency,architecture
+AC-G007,yes,GatewayClient,Schema hash,Input/output schema drift fails closed,security
+AC-G008,yes,GatewayClient,Semantic profile hash,Semantic profile drift fails closed,security
+AC-G009,yes,GatewayClient,Binding revision,"Binding changes trigger availability refresh, not contract drift",integration
+AC-G010,yes,GatewayClient,Direct execute,Locked direct operation executes,real-e2e
+AC-G011,yes,GatewayClient,World query submit,Typed query submission executes,real-e2e
+AC-G012,yes,GatewayClient,Async job,202 response is polled to terminal,real-e2e
+AC-G013,yes,GatewayClient,Cancel,Gateway query cancel propagates,real-e2e
+AC-G014,yes,GatewayClient,Receipt,Receipt fetch is bounded and validated,real-e2e
+AC-G015,yes,GatewayClient,Response limit,Oversized response fails closed,security
+AC-G016,yes,GatewayClient,Request limit,Oversized request fails before network,security
+AC-G017,yes,GatewayClient,Retry policy,Only bounded retryable statuses retry,unit
+AC-G018,yes,GatewayClient,Circuit,Circuit opens and recovers deterministically,fault
+AC-G019,yes,GatewayClient,Deadline,Overall deadline aborts all transport,fault
+AC-G020,yes,GatewayClient,Traceparent,Valid trace context propagates without authority,integration
+AC-G021,yes,GatewayClient,Body authority,Actor/scope/permission fields are forbidden,security
+AC-G022,yes,GatewayClient,No topology logs,Errors/logs expose no provider endpoint,security
+AC-G023,yes,GatewayClient,Trusted snapshot persist,Capability snapshot is stored with job,real-db
+AC-G024,yes,GatewayClient,Restart snapshot,Restart reuses stored capability snapshot,recovery
+AC-G025,yes,GatewayClient,New contract drift,New job fails readiness on unexpected catalog revision,security
+AC-I001,yes,Identity,Static trusted,Existing static trusted mode remains,regression
+AC-I002,yes,Identity,JWT service,Existing JWT service mode remains,regression
+AC-I003,yes,Identity,Identity shape,"Service, actor, data/dataset scopes are separate",contract
+AC-I004,yes,Identity,Valid delegation,Valid RS256 delegation accepted by GOWM,real-e2e
+AC-I005,yes,Identity,Invalid signature,Forged delegation rejected,security
+AC-I006,yes,Identity,Wrong issuer,Unapproved issuer rejected,security
+AC-I007,yes,Identity,Wrong audience,Wrong audience rejected,security
+AC-I008,yes,Identity,Expired,Expired delegation rejected,security
+AC-I009,yes,Identity,Premature,nbf in future rejected,security
+AC-I010,yes,Identity,TTL,TTL above five minutes rejected,security
+AC-I011,yes,Identity,Service subject,sub equals authenticated WSGS principal,security
+AC-I012,yes,Identity,Actor required,Original actor cannot be omitted,security
+AC-I013,yes,Identity,Request binding,requestId mismatch rejected,security
+AC-I014,yes,Identity,Depth,Delegation depth greater than one rejected,security
+AC-I015,yes,Identity,Data scope intersection,Delegation cannot expand allowed DataScope,security
+AC-I016,yes,Identity,Dataset scope intersection,Delegation cannot expand DatasetScope,security
+AC-I017,yes,Identity,Operation minimum,Only actual operation keys are authorized,security
+AC-I018,yes,Identity,Unknown operation,Unknown key grants no authority,security
+AC-I019,yes,Identity,No full-lock grant,World query delegation is limited to DAG operations,security
+AC-I020,yes,Identity,No raw SACS token,SACS bearer is not forwarded,architecture
+AC-I021,yes,Identity,No token persistence,Delegation token not stored in PostgreSQL,security
+AC-I022,yes,Identity,Redaction,Only JTI/context hashes are logged,security
+AC-I023,yes,Identity,Actor idempotency,Different actor cannot replay result,security
+AC-I024,yes,Identity,Equivalent resign,Equivalent valid re-sign can replay same actor request,integration
+AC-I025,yes,Identity,Signing key readiness,Missing signing key fails readiness,fault
+AC-P001,yes,Pipeline,LOAD_CONTEXT execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P002,yes,Pipeline,DETERMINISTIC_PARSE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P003,yes,Pipeline,SEMANTIC_MODEL_PARSE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P004,yes,Pipeline,SEMANTIC_FRAME_VALIDATE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P005,yes,Pipeline,GROUNDING_GRAPH_BUILD execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P006,yes,Pipeline,REFERENCE_RESOLVE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P007,yes,Pipeline,REFERENCE_VALIDATE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P008,yes,Pipeline,REQUIREMENT_PLAN execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P009,yes,Pipeline,CAPABILITY_MATCH execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P010,yes,Pipeline,WORLD_QUERY_COMPILE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P011,yes,Pipeline,GOWM_EXECUTE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P012,yes,Pipeline,EVIDENCE_NORMALIZE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P013,yes,Pipeline,PRODUCT_ASSEMBLE execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P014,yes,Pipeline,RESULT_PERSIST execution,Stage writes deterministic start/terminal pipeline events and hashes,integration
+AC-P015,yes,Pipeline,Production backend,FailClosed backend is not used in configured deployment,real-e2e
+AC-P016,yes,Pipeline,API submit,POST grounding creates result/job,real-e2e
+AC-P017,yes,Pipeline,Worker claim,Worker claims queued job safely,real-db
+AC-P018,yes,Pipeline,Lease heartbeat,Long job heartbeat extends lease,real-db
+AC-P019,yes,Pipeline,Lease expiry,Expired job can be reclaimed with new generation,recovery
+AC-P020,yes,Pipeline,Old generation,Old generation cannot publish late result,race
+AC-P021,yes,Pipeline,GROUND_REFERENCES stop,No non-reference world query is executed,architecture
+AC-P022,yes,Pipeline,VALIDATE_REFERENCES stop,Model is not invoked,architecture
+AC-P023,yes,Pipeline,COMPILE stop,Plan returned without upstream execution,architecture
+AC-P024,yes,Pipeline,EXECUTE full,Full pipeline executes and persists,real-e2e
+AC-P025,yes,Pipeline,Idempotent same payload,Same key/payload returns same grounding,real-db
+AC-P026,yes,Pipeline,Idempotent conflict,Same key/different payload conflicts,security
+AC-P027,yes,Pipeline,Cancel queued,Queued job becomes cancelled,real-db
+AC-P028,yes,Pipeline,Cancel running,Running model/GOWM work is aborted,fault
+AC-P029,yes,Pipeline,Late model,Late model output cannot overwrite cancel,race
+AC-P030,yes,Pipeline,Late GOWM,Late GOWM output cannot overwrite cancel,race
+AC-P031,yes,Pipeline,API restart,API restart preserves jobs/results,recovery
+AC-P032,yes,Pipeline,Worker restart,Worker restart resumes safe stage,recovery
+AC-P033,yes,Pipeline,DB restart,PostgreSQL restart preserves idempotency,recovery
+AC-P034,yes,Pipeline,Pipeline result hash,Same inputs/locks produce stable result hash,reproducibility
+AC-M001,yes,ParserModelGraph,Known alias,Known reference alias has highest text priority after map,unit
+AC-M002,yes,ParserModelGraph,Map selection,Map selection remains highest-priority explicit input,unit
+AC-M003,yes,ParserModelGraph,ReferenceKey,Full ReferenceKey is parsed and requires validation,unit
+AC-M004,yes,ParserModelGraph,H3,Valid H3 cell parsed as approximate candidate,unit
+AC-M005,yes,ParserModelGraph,Coordinate,Coordinate parsed with bounds and CRS candidate,unit
+AC-M006,yes,ParserModelGraph,Device code,Bounded code hint parsed,unit
+AC-M007,yes,ParserModelGraph,Distance km,"1公里 normalizes to 1,000,000 mm",unit
+AC-M008,yes,ParserModelGraph,Distance m,"200米 normalizes to 200,000 mm",unit
+AC-M009,yes,ParserModelGraph,English distance,3 km and 500 m parse deterministically,unit
+AC-M010,yes,ParserModelGraph,ISO time,Explicit ISO timestamp/time range parses,unit
+AC-M011,yes,ParserModelGraph,UTF16 spans,All surfaces exactly match UTF-16 slices,security
+AC-M012,yes,ParserModelGraph,Overlap,Priority/overlap resolution is deterministic,unit
+AC-M013,yes,ParserModelGraph,Model strict schema,Model output validates against frozen frame schema,model
+AC-M014,yes,ParserModelGraph,Model cannot operation,Model cannot select provider/operation/tool,security
+AC-M015,yes,ParserModelGraph,Model cannot reference key,Model-only output cannot create ReferenceKey,security
+AC-M016,yes,ParserModelGraph,Model required unavailable,MODEL_REQUIRED fails typed,model
+AC-M017,yes,ParserModelGraph,Model optional unavailable,Deterministic product returns PARTIAL,model
+AC-M018,yes,ParserModelGraph,No keyword fallback,No natural-language semantic fallback is fabricated,architecture
+AC-M019,yes,ParserModelGraph,Graph precedence,Map>Known>Deterministic>Model,unit
+AC-M020,yes,ParserModelGraph,Graph contradictions,Incompatible interpretations create explicit ambiguity,unit
+AC-M021,yes,ParserModelGraph,Graph bounds,Node/edge limits enforced,security
+AC-M022,yes,ParserModelGraph,Graph hash,Canonical graph hash is stable,reproducibility
+AC-R001,yes,ReferenceGrounding,Unique name,2号车 resolves and validates,real-e2e
+AC-R002,yes,ReferenceGrounding,Suggested unique,SUGGESTED_UNIQUE remains non-authoritative,real-e2e
+AC-R003,yes,ReferenceGrounding,Ambiguous road,"Two 滨河路 candidates, no selection",real-e2e
+AC-R004,yes,ReferenceGrounding,No data,Zero candidate becomes UNRESOLVED,real-e2e
+AC-R005,yes,ReferenceGrounding,Candidate order,Gateway order is retained,contract
+AC-R006,yes,ReferenceGrounding,Score separation,matchScore and stateConfidence remain distinct,contract
+AC-R007,yes,ReferenceGrounding,Current validation,VALID reference can be used,real-e2e
+AC-R008,yes,ReferenceGrounding,Stale,STALE marks revalidation required,real-e2e
+AC-R009,yes,ReferenceGrounding,Expired,EXPIRED is not current,real-e2e
+AC-R010,yes,ReferenceGrounding,Not found,NOT_FOUND remains explicit internally,real-e2e
+AC-R011,yes,ReferenceGrounding,Scope denied,External result is indistinguishable from not found,security
+AC-R012,yes,ReferenceGrounding,Type mismatch,TYPE_MISMATCH retained,real-e2e
+AC-R013,yes,ReferenceGrounding,Version conflict,VERSION_CONFLICT retained,real-e2e
+AC-R014,yes,ReferenceGrounding,Same snapshot,Resolve and validate adhere to same query snapshot,snapshot
+AC-R015,yes,ReferenceGrounding,Snapshot mismatch,"Mismatch yields partial/failure, not current reference",snapshot
+AC-R016,yes,ReferenceGrounding,Prior hash,Prior result bytes recompute to supplied hash,security
+AC-R017,yes,ReferenceGrounding,Prior scope,Cross-scope prior result is not visible,security
+AC-R018,yes,ReferenceGrounding,Missing product,Unknown selected product ID fails,security
+AC-R019,yes,ReferenceGrounding,Result validation,Historical query result is revalidated,real-e2e
+AC-R020,yes,ReferenceGrounding,Operation stop,Ambiguity blocks downstream required spatial query,architecture
+AC-Q001,yes,PlannerCompiler,Requirement no operation,Requirement graph contains no operation/provider ID,architecture
+AC-Q002,yes,PlannerCompiler,Requirement hash,Equivalent graph has stable hash,reproducibility
+AC-Q003,yes,PlannerCompiler,Unsupported terrain,Terrain requirement yields typed gap,real-e2e
+AC-Q004,yes,PlannerCompiler,Unsupported visibility,Visibility requirement yields typed gap,real-e2e
+AC-Q005,yes,PlannerCompiler,Stable default,Stable operation is eligible,unit
+AC-Q006,yes,PlannerCompiler,Preview opt-in,Preview only eligible when explicitly enabled,policy
+AC-Q007,yes,PlannerCompiler,Experimental reject,Experimental is never auto-selected,policy
+AC-Q008,yes,PlannerCompiler,Availability,Unavailable operation is not selected,real-e2e
+AC-Q009,yes,PlannerCompiler,Degraded policy,Degraded operation follows recipe policy,policy
+AC-Q010,yes,PlannerCompiler,Domain match,Semantic domain matches requirement,semantic
+AC-Q011,yes,PlannerCompiler,Relation match,Relation semantics match,semantic
+AC-Q012,yes,PlannerCompiler,Reference kinds,Accepted/produced reference kinds match,semantic
+AC-Q013,yes,PlannerCompiler,Spatial exactness,Exact requirement cannot bind candidate-only op,semantic
+AC-Q014,yes,PlannerCompiler,Time semantics,Temporal/snapshot semantics match,semantic
+AC-Q015,yes,PlannerCompiler,Result nature,Fact/plan/validation nature matches,semantic
+AC-Q016,yes,PlannerCompiler,Schema hashes,Schema hashes match lock,contract
+AC-Q017,yes,PlannerCompiler,Port value kind,Typed port kinds are compatible,contract
+AC-Q018,yes,PlannerCompiler,Unit semantics,Metres/discrete/coordinate units cannot be relabeled,contract
+AC-Q019,yes,PlannerCompiler,Multiple candidates,Tie without priority returns gap,security
+AC-Q020,yes,PlannerCompiler,No substitution,Similar operation is never substituted,security
+AC-Q021,yes,PlannerCompiler,Exact verification,Candidate chain adds exact verification,real-e2e
+AC-Q022,yes,PlannerCompiler,Verification target,Exact verifier exists and is available,real-e2e
+AC-Q023,yes,PlannerCompiler,Cycle,Requirement/plan cycle rejected,unit
+AC-Q024,yes,PlannerCompiler,Budget cost class,Budget allocation follows recipe/cost weights,unit
+AC-Q025,yes,PlannerCompiler,Budget aggregate,Node totals do not exceed caller limits,unit
+AC-Q026,yes,PlannerCompiler,Plan ports,Every binding and output endpoint validates,contract
+AC-Q027,yes,PlannerCompiler,Plan hash,Equivalent plan hash is stable,reproducibility
+AC-Q028,yes,PlannerCompiler,Reference current state,Recipe compiles correctly,real-e2e
+AC-Q029,yes,PlannerCompiler,Reference nearby,1 km recipe compiles with metres,real-e2e
+AC-Q030,yes,PlannerCompiler,Area query,In-area recipe compiles,real-e2e
+AC-Q031,yes,PlannerCompiler,Intersections,Exact intersections recipe compiles,real-e2e
+AC-Q032,yes,PlannerCompiler,Catalog,Catalog search recipe compiles,real-e2e
+AC-E001,yes,ExecutionEvidence,Direct sync,200 operation result normalizes,real-e2e
+AC-E002,yes,ExecutionEvidence,Direct async,202 job is polled and normalized,real-e2e
+AC-E003,yes,ExecutionEvidence,World query sync,Query result normalizes,real-e2e
+AC-E004,yes,ExecutionEvidence,World query async,Query job is polled,real-e2e
+AC-E005,yes,ExecutionEvidence,Cancel propagation,WSGS cancel invokes GOWM cancel,real-e2e
+AC-E006,yes,ExecutionEvidence,LATEST_AT_START,Manifest is preserved,snapshot
+AC-E007,yes,ExecutionEvidence,PINNED pass,Pinned history executes when supported,snapshot
+AC-E008,yes,ExecutionEvidence,PINNED unsupported,No silent latest fallback,snapshot
+AC-E009,yes,ExecutionEvidence,BEST_EFFORT,Mismatch warning is retained,snapshot
+AC-E010,yes,ExecutionEvidence,Node adherence,Adherence is stored per node,snapshot
+AC-E011,yes,ExecutionEvidence,Contract revision,Execution stores contract revision,contract
+AC-E012,yes,ExecutionEvidence,Semantic hash,Execution stores semantic profile hash,contract
+AC-E013,yes,ExecutionEvidence,Availability observation,Observed availability timestamp stored,contract
+AC-E014,yes,ExecutionEvidence,Receipt separation,Receipt IDs stay distinct,contract
+AC-E015,yes,ExecutionEvidence,Evidence separation,Evidence IDs stay authoritative,contract
+AC-E016,yes,ExecutionEvidence,Model receipt,Model receipt cannot become world evidence,security
+AC-E017,yes,ExecutionEvidence,NO_DATA,"NO_DATA becomes unknown, not false",real-e2e
+AC-E018,yes,ExecutionEvidence,INDETERMINATE,Indeterminate remains unknown,real-e2e
+AC-E019,yes,ExecutionEvidence,PARTIAL,Partial retains valid evidence and unknowns,real-e2e
+AC-E020,yes,ExecutionEvidence,FAILED,Failed upstream produces no evidence item,real-e2e
+AC-E021,yes,ExecutionEvidence,Large payload,Large payload is summarized and referenced,security
+AC-E022,yes,ExecutionEvidence,Small payload,Bounded safe payload can be copied,contract
+AC-E023,yes,ExecutionEvidence,Requested products,Only caller-requested product kinds returned,contract
+AC-E024,yes,ExecutionEvidence,Optional product,Missing optional product yields non-substituting gap,real-e2e
+AC-E025,yes,ExecutionEvidence,Result hash,Canonical product/result hash stable,reproducibility
+AC-D001,yes,PersistenceRuntime,Migration 001 immutable,Migration 001 byte hash unchanged,contract
+AC-D002,yes,PersistenceRuntime,Fresh DB,001+002 install from empty database,real-db
+AC-D003,yes,PersistenceRuntime,Upgrade,0.1 database upgrades without loss,real-db
+AC-D004,yes,PersistenceRuntime,Replay,Applied migrations skip by checksum,real-db
+AC-D005,yes,PersistenceRuntime,Rollback,Failed 002 leaves no residue,real-db
+AC-D006,yes,PersistenceRuntime,Request actor,Actor and scopes persist separately,real-db
+AC-D007,yes,PersistenceRuntime,Capability snapshot,Trusted snapshot persists,real-db
+AC-D008,yes,PersistenceRuntime,Execution records,Direct/query execution records persist,real-db
+AC-D009,yes,PersistenceRuntime,Pipeline events,Append-only stage events persist,real-db
+AC-D010,yes,PersistenceRuntime,Source retention,Source expiration does not remove retained result,real-db
+AC-D011,yes,PersistenceRuntime,Scope queries,All get/list operations filter by scope,security
+AC-D012,yes,PersistenceRuntime,Job ownership,Actor cannot access another actor job,security
+AC-D013,yes,PersistenceRuntime,Signed cursor,Cursor tampering is rejected,security
+AC-D014,yes,PersistenceRuntime,API backend,Configured API uses production backend,real-e2e
+AC-D015,yes,PersistenceRuntime,Worker service,Worker starts and claims jobs,real-e2e
+AC-D016,yes,PersistenceRuntime,Only API exposed,Worker and DB are internal,container
+AC-D017,yes,PersistenceRuntime,Non-root,API and worker run non-root/read-only,container
+AC-D018,yes,PersistenceRuntime,Readiness DB,DB failure makes readiness fail,fault
+AC-D019,yes,PersistenceRuntime,Readiness contract,Contract integrity failure makes readiness fail,fault
+AC-D020,yes,PersistenceRuntime,Readiness catalog,Catalog revision drift makes readiness fail,fault
+AC-D021,yes,PersistenceRuntime,Readiness operations,Required stable operation unavailable fails readiness,fault
+AC-D022,yes,PersistenceRuntime,Readiness model required,MODEL_REQUIRED checks model,fault
+AC-D023,yes,PersistenceRuntime,Readiness model optional,MODEL_OPTIONAL can be ready with degraded model,fault
+AC-D024,yes,PersistenceRuntime,Rate limit,Per-principal bounded rate limit,security
+AC-D025,yes,PersistenceRuntime,Request body limit,Oversized grounding request rejected,security
+AC-D026,yes,PersistenceRuntime,Response redaction,Typed errors exclude source/model/output/token,security
+AC-D027,yes,PersistenceRuntime,Prompt injection,Source text cannot select tool/provider/operation,security
+AC-D028,yes,PersistenceRuntime,No GOWM DB,WSGS config/deps contain no GOWM DB credential,architecture
+AC-D029,yes,PersistenceRuntime,No SDAR,No SDAR/A2A import or endpoint,architecture
+AC-D030,yes,PersistenceRuntime,Health live,Liveness is process-only,real-e2e
+AC-D031,yes,PersistenceRuntime,Health ready,Readiness reflects executable pipeline,real-e2e
+AC-X001,yes,RealE2E,2号车在哪里,Real model/GOWM returns resolved current state,real-e2e
+AC-X002,yes,RealE2E,滨河路歧义,Real fixture returns ambiguity without spatial execution,real-e2e
+AC-X003,yes,RealE2E,A区内车辆,Real resolve + exact in-area returns scoped set,real-e2e
+AC-X004,yes,RealE2E,附近1公里,Real 1000m nearby executes,real-e2e
+AC-X005,yes,RealE2E,模型不可用,Deterministic coordinate returns PARTIAL,real-e2e
+AC-X006,yes,RealE2E,Prior grounding,Stored prior result revalidates,real-e2e
+AC-X007,yes,RealE2E,Scope attack,Cross-scope object/result is not leaked,security
+AC-X008,yes,RealE2E,Contract drift,New task fails closed,security
+AC-X009,yes,RealE2E,Operation down,Spatial gap localized; reference remains,fault
+AC-X010,yes,RealE2E,Snapshot mismatch,Strict mismatch does not fabricate consistency,snapshot
+AC-X011,yes,RealE2E,API restart,Same idempotent result after API restart,recovery
+AC-X012,yes,RealE2E,Worker restart,No duplicate model/GOWM execution,recovery
+AC-X013,yes,RealE2E,DB restart,Jobs/results recover,recovery
+AC-X014,yes,RealE2E,Cancel,Cancelled result remains terminal,race
+AC-X015,yes,RealE2E,Model schema invalid,Invalid model output fails/repairs boundedly,model
+AC-X016,yes,RealE2E,Gateway 429,Bounded retry obeys deadline,fault
+AC-X017,yes,RealE2E,Gateway 503,Circuit/gap behavior is typed,fault
+AC-X018,yes,RealE2E,Large evidence,Payload reference behavior works,real-e2e
+AC-X019,yes,RealE2E,Stable recipe catalog,All stable recipes pass real E2E,real-e2e
+AC-X020,yes,RealE2E,Preview disabled,Preview recipes are not default,policy
+AC-X021,yes,RealE2E,Terrain/visibility gap,No fabricated result,real-e2e
+AC-X022,yes,RealE2E,Northbound compatibility,v1 SACS client fixtures still pass,contract
+AC-X023,yes,RealE2E,Container restart,Compose services recover,container
+AC-X024,yes,RealE2E,Performance measurement,p50/p95 and model/GOWM stage timing reported,performance
+AC-X025,yes,RealE2E,No production overclaim,Docs state IdP/HA/SLO limitations,docs
+AC-F001,yes,Final,Version,VERSION/package/image equal 0.2.0,version
+AC-F002,yes,Final,README,README describes executable v0.2 and GOWM 0.6.3,docs
+AC-F003,yes,Final,CHANGELOG,Upgrade and compatibility recorded,docs
+AC-F004,yes,Final,Runbook,Model/GOWM/DB/Auth setup documented,docs
+AC-F005,yes,Final,Acceptance ledger,Every Required case has evidence,report
+AC-F006,yes,Final,No failed required,Required failure/not-run count is zero,report
+AC-F007,yes,Final,Exact SHA,Local/tracking/ls-remote candidate SHA match,git
+AC-F008,yes,Final,PR Ready,Draft becomes Ready only after gates,github
+AC-F009,yes,Final,Protected actions,No merge/tag/release/publish/deploy,github
+AC-F010,yes,Final,Final markers,All final markers appear in report,report

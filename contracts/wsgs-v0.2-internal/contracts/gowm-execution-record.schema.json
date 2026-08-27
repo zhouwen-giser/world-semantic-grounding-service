@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2:gowm-execution-record",
+  "title": "GowmExecutionRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "executionId",
+    "groundingId",
+    "executionKind",
+    "requestHash",
+    "normalizedStatus",
+    "upstreamStatus",
+    "receiptIds",
+    "evidenceIds",
+    "startedAt",
+    "finishedAt"
+  ],
+  "properties": {
+    "executionId": {
+      "type": "string"
+    },
+    "groundingId": {
+      "type": "string"
+    },
+    "executionKind": {
+      "enum": [
+        "DIRECT_OPERATION",
+        "WORLD_QUERY",
+        "WORLD_QUERY_NODE"
+      ]
+    },
+    "operationId": {
+      "type": "string"
+    },
+    "operationVersion": {
+      "type": "string"
+    },
+    "gatewayQueryId": {
+      "type": "string"
+    },
+    "gatewayJobId": {
+      "type": "string"
+    },
+    "requestHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "resultHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "normalizedStatus": {
+      "enum": [
+        "COMPLETED",
+        "PARTIAL",
+        "NO_DATA",
+        "AMBIGUOUS",
+        "INDETERMINATE",
+        "NO_FEASIBLE_RESULT",
+        "STALE",
+        "FAILED",
+        "CANCELLED"
+      ]
+    },
+    "upstreamStatus": {
+      "type": "string"
+    },
+    "dataSnapshot": {
+      "type": "object"
+    },
+    "computeSnapshot": {
+      "type": "object"
+    },
+    "snapshotAdherence": {
+      "type": "object"
+    },
+    "receiptIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidenceIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finishedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

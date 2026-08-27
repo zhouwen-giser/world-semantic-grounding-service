@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "1.0",
+  "recipes": [
+    {
+      "recipeId": "H3_EXACT_VERIFY",
+      "maturity": "PREVIEW",
+      "requirements": [
+        "EXACT_VERIFY"
+      ],
+      "requestedProducts": [
+        "REFERENCE_SETS",
+        "WORLD_EVIDENCE"
+      ],
+      "defaultSnapshotPolicy": "LATEST_AT_START",
+      "allowApproximation": true
+    },
+    {
+      "recipeId": "OPERATIONAL_CORRELATION_TIMELINE",
+      "maturity": "PREVIEW",
+      "requirements": [
+        "VALIDATE_REFERENCE"
+      ],
+      "requestedProducts": [
+        "OPERATIONAL_TASKS",
+        "EVENT_TIMELINES",
+        "CORRELATION_FINDINGS"
+      ],
+      "defaultSnapshotPolicy": "LATEST_AT_START",
+      "allowApproximation": false
+    },
+    {
+      "recipeId": "NETWORK_ROUTE_PLAN",
+      "maturity": "PREVIEW",
+      "requirements": [
+        "RESOLVE_REFERENCE",
+        "READ_CURRENT_STATE"
+      ],
+      "requestedProducts": [
+        "DERIVED_REFERENCES",
+        "WORLD_EVIDENCE"
+      ],
+      "defaultSnapshotPolicy": "LATEST_AT_START",
+      "allowApproximation": false
+    },
+    {
+      "recipeId": "ROAD_COVERAGE_PLAN",
+      "maturity": "PREVIEW",
+      "requirements": [
+        "RESOLVE_REFERENCE",
+        "READ_GEOMETRY"
+      ],
+      "requestedProducts": [
+        "DERIVED_REFERENCES",
+        "WORLD_EVIDENCE"
+      ],
+      "defaultSnapshotPolicy": "LATEST_AT_START",
+      "allowApproximation": false
+    },
+    {
+      "recipeId": "STAS_PROXIMITY",
+      "maturity": "PREVIEW",
+      "requirements": [
+        "VALIDATE_REFERENCE"
+      ],
+      "requestedProducts": [
+        "WORLD_EVIDENCE"
+      ],
+      "defaultSnapshotPolicy": "LATEST_AT_START",
+      "allowApproximation": false
+    }
+  ]
+}

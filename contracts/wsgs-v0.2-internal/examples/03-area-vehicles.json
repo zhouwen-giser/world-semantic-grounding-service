@@ -1,0 +1,9 @@
+{
+  "input": "A区内有哪些车辆？",
+  "expectedRecipe": "REFERENCE_IN_AREA",
+  "requiredOperations": [
+    "reference.resolve@1.0",
+    "spatial.find-in-area@1.0"
+  ],
+  "expectedSnapshotPolicy": "LATEST_AT_START"
+}

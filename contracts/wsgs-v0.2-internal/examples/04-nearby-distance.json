@@ -1,0 +1,6 @@
+{
+  "input": "2号车附近1公里内有哪些区域？",
+  "expectedRecipe": "REFERENCE_NEARBY",
+  "normalizedDistanceMillimetres": 1000000,
+  "gowmDistanceMetres": 1000
+}

@@ -19,3 +19,16 @@ export type { WSGSCapabilitiesResponse } from "./generated/capabilities-response
 export type { WorldSemanticFrame } from "./generated/world-semantic-frame.js";
 export type { GroundingGraph } from "./generated/grounding-graph.js";
 
+export type { CapabilityBinding } from "./generated-internal-v02/capability-binding.js";
+export type { ContractIntakeReport } from "./generated-internal-v02/contract-intake-report.js";
+export type { DelegatedGowmRequestContext } from "./generated-internal-v02/delegated-gowm-request-context.js";
+export type { GowmConsumerIntakeLock } from "./generated-internal-v02/gowm-consumer-intake-lock.js";
+export type { GowmExecutionRecord } from "./generated-internal-v02/gowm-execution-record.js";
+export type { ModelPolicy } from "./generated-internal-v02/model-policy.js";
+export type { PipelineEvent } from "./generated-internal-v02/pipeline-event.js";
+export type { QualificationReport } from "./generated-internal-v02/qualification-report.js";
+export type { RecipeCatalog } from "./generated-internal-v02/recipe-catalog.js";
+export type { RuntimeReadiness } from "./generated-internal-v02/runtime-readiness.js";
+export type { TrustedCapabilitySnapshot } from "./generated-internal-v02/trusted-capability-snapshot.js";
+export type { WorldQueryRequirementGraph } from "./generated-internal-v02/world-query-requirement-graph.js";
+

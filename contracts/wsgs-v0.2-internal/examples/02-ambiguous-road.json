@@ -1,0 +1,6 @@
+{
+  "input": "滨河路附近有哪些设备？",
+  "fixture": "two roads share the same display name",
+  "expectedStatus": "AMBIGUOUS",
+  "downstreamSpatialQueryExecuted": false
+}

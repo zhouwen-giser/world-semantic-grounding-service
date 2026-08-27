@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2:gowm-consumer-intake-lock",
+  "title": "GowmConsumerIntakeLock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "wsgsSource",
+    "gowmSource",
+    "consumerPackage",
+    "northboundContractVersion",
+    "targetVersion"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "wsgsSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "commit",
+        "version"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "gowmSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "commit",
+        "version"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "version": {
+          "const": "0.6.3"
+        }
+      }
+    },
+    "consumerPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "integrity",
+        "contractCatalogRevision",
+        "semanticCatalogHash",
+        "availabilityContractHash",
+        "snapshotContractHash",
+        "delegationContractHash",
+        "southboundLockSha256"
+      ],
+      "properties": {
+        "name": {
+          "const": "@gowm/world-gateway-contracts"
+        },
+        "version": {
+          "const": "0.6.3"
+        },
+        "integrity": {
+          "type": "string",
+          "pattern": "^sha512-[A-Za-z0-9+/=]+$"
+        },
+        "contractCatalogRevision": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "semanticCatalogHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "availabilityContractHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "snapshotContractHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "delegationContractHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "southboundLockSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "northboundContractVersion": {
+      "const": "sacs-wsgs-grounding/1.0"
+    },
+    "targetVersion": {
+      "const": "0.2.0"
+    }
+  }
+}

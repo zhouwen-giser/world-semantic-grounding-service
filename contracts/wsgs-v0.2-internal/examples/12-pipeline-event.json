@@ -1,0 +1,11 @@
+{
+  "groundingId": "grounding-001",
+  "stage": "REFERENCE_RESOLVE",
+  "attempt": 1,
+  "generation": 1,
+  "status": "COMPLETED",
+  "inputHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "outputHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "elapsedMs": 42,
+  "createdAt": "2026-08-27T09:00:00Z"
+}

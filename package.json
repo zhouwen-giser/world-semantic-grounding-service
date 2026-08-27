@@ -19,7 +19,7 @@
     "test": "vitest run",
     "contracts:generate": "node validation/scripts/generate-contract-types.mjs",
     "contracts:types:check": "node validation/scripts/generate-contract-types.mjs --check",
-    "contracts:check": "tsx validation/scripts/verify-gowm-intake.ts && node validation/scripts/verify-wsgs-contracts.mjs && npm run contracts:types:check",
+    "contracts:check": "tsx validation/scripts/verify-gowm-intake.ts && node validation/scripts/verify-wsgs-contracts.mjs && node validation/scripts/verify-wsgs-v02-internal.mjs && npm run contracts:types:check",
     "architecture:check": "node validation/scripts/architecture-boundary.mjs",
     "acceptance:check": "node validation/scripts/generate-acceptance-ledger.mjs",
     "check": "npm run contracts:check && npm run architecture:check && npm run acceptance:check && npm run typecheck && npm test"
