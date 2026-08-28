@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "wsgs-gdps-recipe-lock-validation/1.0",
+  "status": "PASS",
+  "evidenceClass": "CONTRACT_TEST",
+  "globalPreviewAloneRejected": true,
+  "exactRecipeAllowlistRequired": true,
+  "providerIdUsedForSemanticSelection": false,
+  "directGdpsRuntimeAccess": false,
+  "hardcodedProductIds": false,
+  "recipes": [
+    {
+      "recipeId": "GDPS_BLOCKED_AREAS_IN_AREA",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "traversability.find-blocked@1.0"
+      ],
+      "maturity": "PREVIEW"
+    },
+    {
+      "recipeId": "GDPS_ELEVATION_AT_REFERENCE",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "elevation.sample@1.0"
+      ],
+      "maturity": "PREVIEW"
+    },
+    {
+      "recipeId": "GDPS_HIGH_GROUND_IN_AREA",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "terrain.find-high-ground@1.0"
+      ],
+      "maturity": "PREVIEW"
+    },
+    {
+      "recipeId": "GDPS_LAND_COVER_AT_REFERENCE",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "landcover.get-class@1.0"
+      ],
+      "maturity": "PREVIEW"
+    },
+    {
+      "recipeId": "GDPS_OBSTACLES_NEAR_REFERENCE",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "obstacle.find-nearby@1.0"
+      ],
+      "maturity": "PREVIEW"
+    },
+    {
+      "recipeId": "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "traversability.explain@1.0"
+      ],
+      "maturity": "PREVIEW"
+    },
+    {
+      "recipeId": "GDPS_WETLANDS_IN_AREA",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "hydrology.find-wetlands@1.0"
+      ],
+      "maturity": "PREVIEW"
+    }
+  ],
+  "recipeLockHash": "sha256:6d85822c659fb3a443ce2c68026395df53fec85d3c0d23d28ee9402f016ffb3d",
+  "marker": "GDPS_CAPABILITY_MATCHER_READY"
+}

@@ -10,6 +10,18 @@ export const requirementTypes = [
   "SPATIAL_NEARBY",
   "SPATIAL_IN_AREA",
   "SPATIAL_INTERSECTS",
+  "READ_LAND_COVER",
+  "READ_TERRAIN_CLASS",
+  "READ_ELEVATION",
+  "READ_SURFACE_MATERIAL",
+  "READ_TRAVERSABILITY",
+  "FIND_HIGH_GROUND",
+  "FIND_WATER",
+  "FIND_WETLANDS",
+  "FIND_BUILDINGS",
+  "FIND_OBSTACLES",
+  "FIND_BLOCKED_AREAS",
+  "EXPLAIN_TRAVERSABILITY",
   "EXACT_VERIFY",
   "VALIDATE_RESULT"
 ] as const;
@@ -84,14 +96,21 @@ export const stableRecipeIds = [
   "REFERENCE_NEARBY",
   "REFERENCE_IN_AREA",
   "REFERENCE_INTERSECTIONS",
-  "PRIOR_RESULT_REVALIDATION"
+  "PRIOR_RESULT_REVALIDATION",
+  "GDPS_LAND_COVER_AT_REFERENCE",
+  "GDPS_WETLANDS_IN_AREA",
+  "GDPS_OBSTACLES_NEAR_REFERENCE",
+  "GDPS_BLOCKED_AREAS_IN_AREA",
+  "GDPS_HIGH_GROUND_IN_AREA",
+  "GDPS_ELEVATION_AT_REFERENCE",
+  "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE"
 ] as const;
 
 export type StableRecipeId = (typeof stableRecipeIds)[number];
 
 export interface StableRequirementRecipe {
   recipeId: StableRecipeId;
-  maturity: "STABLE";
+  maturity: "STABLE" | "PREVIEW";
   requirements: readonly RequirementType[];
   requestedProducts: readonly RequestedProduct[];
   defaultSnapshotPolicy: SnapshotPolicy;
@@ -101,7 +120,8 @@ export interface StableRequirementRecipe {
 export type PlannerCapabilityGapReason =
   | "UNSUPPORTED_EXPRESSION"
   | "TERRAIN_CAPABILITY_REQUIRED"
-  | "VISIBILITY_CAPABILITY_REQUIRED";
+  | "VISIBILITY_CAPABILITY_REQUIRED"
+  | "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED";
 
 export interface PlannerCapabilityGap {
   gapId: string;

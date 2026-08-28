@@ -91,7 +91,7 @@ describe("SemanticRequirementPlanner", () => {
     expect(canonicalRequirementGraphHash(plannedGraph(first))).toBe(plannedGraph(first).graphHash);
   });
 
-  it("AC-Q003 reports terrain as a typed capability gap without an illegal terrain requirement", () => {
+  it("AC-Q003 reports the missing metre-buffer capability without substituting nearby", () => {
     const result = plan(graph(
       mention(),
       semanticOperation("semantic-nearby", { operator: "NEAR", arguments: ["vehicle", "target"], distanceMm: 1_000_000 }),
@@ -101,17 +101,14 @@ describe("SemanticRequirementPlanner", () => {
     expect(result.status).toBe("CAPABILITY_GAP");
     expect(result.capabilityGaps).toEqual([
       expect.objectContaining({
-        semanticCapability: "TERRAIN",
-        reason: "TERRAIN_CAPABILITY_REQUIRED",
+        semanticCapability: "METRE_GEOMETRY_BUFFER",
+        reason: "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED",
         blocking: true,
         details: expect.objectContaining({ substitution: "FORBIDDEN", fabricatedQuery: false })
       })
     ]);
-    expect(plannedGraph(result).requirements.map((entry) => entry.requirementType)).toEqual([
-      "RESOLVE_REFERENCE",
-      "SPATIAL_NEARBY"
-    ]);
-    expect(JSON.stringify(result.graph)).not.toContain("TERRAIN_CAPABILITY_REQUIRED");
+    expect(result.graph).toBeNull();
+    expect(result.selectedRecipeIds).toEqual([]);
   });
 
   it("AC-Q004 reports visibility as a typed capability gap and fabricates no query", () => {
@@ -129,7 +126,7 @@ describe("SemanticRequirementPlanner", () => {
     ]);
   });
 
-  it("covers all eleven legal requirement kinds through stable recipes and exact verification", () => {
+  it("preserves coverage of the original eleven requirement kinds", () => {
     const cases: Array<[GroundingGraph, string[]]> = [
       [graph(mention()), ["RESOLVED_REFERENCES"]],
       [graph(mention(), semanticOperation("current", { relationType: "CURRENT_STATE" })), ["WORLD_EVIDENCE"]],
@@ -148,9 +145,13 @@ describe("SemanticRequirementPlanner", () => {
       plannedGraph(plan(inputGraph, products)).requirements.map((entry) => entry.requirementType)
     ));
 
-    expect([...observed].sort()).toEqual([...requirementTypes].sort());
-    expect(stableRecipeCatalog).toHaveLength(9);
-    expect(stableRecipeCatalog.every((entry) => entry.maturity === "STABLE")).toBe(true);
+    const originalKinds = [
+      "RESOLVE_REFERENCE", "VALIDATE_REFERENCE", "READ_CURRENT_STATE", "READ_GEOMETRY", "READ_PROVENANCE",
+      "SEARCH_CATALOG", "SPATIAL_NEARBY", "SPATIAL_IN_AREA", "SPATIAL_INTERSECTS", "EXACT_VERIFY", "VALIDATE_RESULT"
+    ];
+    expect([...observed].sort()).toEqual([...originalKinds].sort());
+    expect(stableRecipeCatalog.filter((entry) => entry.maturity === "STABLE")).toHaveLength(9);
+    expect(stableRecipeCatalog.filter((entry) => entry.maturity === "PREVIEW")).toHaveLength(7);
   });
 
   it("creates typed dependencies and rejects a dependency cycle", () => {

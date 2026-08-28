@@ -1,5 +1,6 @@
 export { canonicalJson, hashCanonicalJson, hashExactBytes } from "./canonical.js";
 export { TrustedCapabilitySnapshotCoordinator } from "./coordinator.js";
+export * from "./gdps.js";
 export {
   buildTrustedCapabilitySnapshot,
   evaluateNewJobSnapshotReadiness,

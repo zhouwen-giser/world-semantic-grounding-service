@@ -178,6 +178,7 @@ interface Runtime {
   model: SemanticModelParser;
   modelPolicy: SemanticModelPolicyMode;
   allowPreview: boolean;
+  previewRecipeIds: QuerySemanticPattern[];
 }
 
 type PersistedSemanticModelResult = SemanticModelPolicyResult & { receiptId?: string };
@@ -350,7 +351,10 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     signer,
     model: createModel(modelPolicy),
     modelPolicy,
-    allowPreview: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES"
+    allowPreview: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES",
+    previewRecipeIds: environmentList("WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST")
+      .filter((entry): entry is QuerySemanticPattern => entry.startsWith("GDPS_") &&
+        queryTemplateRules.some((rule) => rule.pattern === entry))
   };
 }
 
@@ -870,6 +874,7 @@ export interface RecipeOperationInputOptions {
   references: ReferenceGroundingResult;
   locale?: string;
   maximumCandidates: number;
+  originalText?: string;
 }
 
 function stringArray(value: unknown): string[] {
@@ -1015,6 +1020,31 @@ export function buildRecipeOperationInput(options: RecipeOperationInputOptions):
   );
   if (!operationInput) return recipeInputGap(options.recipeId, requiredForProduct, "REFERENCE_MENTION_INPUT_MISSING");
   const parameterValues: JsonObject = {};
+  if (options.recipeId.startsWith("GDPS_")) {
+    const semanticRequirement = chain.at(-1)!;
+    const productIds = stringArray(semanticRequirement.inputs["explicitProductIds"]);
+    if (productIds.length > 1) {
+      return recipeInputGap(options.recipeId, requiredForProduct, "EXPLICIT_PRODUCT_PREFERENCE_AMBIGUOUS", {
+        productCount: productIds.length
+      });
+    }
+    if (productIds[0]) parameterValues["explicitProductId"] = productIds[0];
+    if (options.recipeId === "GDPS_OBSTACLES_NEAR_REFERENCE") {
+      const constraints = Array.isArray(semanticRequirement.inputs["spatialConstraints"])
+        ? semanticRequirement.inputs["spatialConstraints"] : [];
+      const distances = constraints.flatMap((raw) => {
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
+        const distanceMm = (raw as JsonObject)["distanceMm"];
+        return Number.isSafeInteger(distanceMm) && (distanceMm as number) > 0 ? [distanceMm as number] : [];
+      }).filter((entry, index, values) => values.indexOf(entry) === index);
+      if (distances.length !== 1) {
+        return recipeInputGap(options.recipeId, requiredForProduct, "NEARBY_DISTANCE_MM_MISSING_OR_AMBIGUOUS", {
+          distanceCount: distances.length
+        });
+      }
+      parameterValues["distanceMetres"] = distances[0]! / 1_000;
+    }
+  }
   if (options.recipeId === "REFERENCE_NEARBY") {
     const spatial = chain.find((entry) => entry.requirementType === "SPATIAL_NEARBY");
     const constraints = Array.isArray(spatial?.inputs["spatialConstraints"])
@@ -1652,6 +1682,7 @@ export async function createPipelineStageExecutor(
           references,
           ...(typeof parts.source["locale"] === "string" ? { locale: parts.source["locale"] } : {}),
           maximumCandidates: integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID")
+          , originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING")
         });
         if (recipeInput.status === "CAPABILITY_GAP") {
           const result: CompileResult = recipeInput;
@@ -1671,6 +1702,7 @@ export async function createPipelineStageExecutor(
           operationLocks: allGatewayLocks(authority.southboundLock),
           availability: authority.availability.operations,
           maturityPolicy: { allowPreview: value.allowPreview },
+          previewRecipeIds: value.previewRecipeIds,
           observedAt: authority.availability.checkedAt,
           snapshotPolicy: PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
           budgets: {

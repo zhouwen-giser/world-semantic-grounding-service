@@ -72,5 +72,61 @@ export const stableRecipeCatalog = [
     requestedProducts: ["RESOLVED_REFERENCES"],
     defaultSnapshotPolicy: "PINNED",
     allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_LAND_COVER_AT_REFERENCE",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_CURRENT_STATE", "READ_LAND_COVER"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_WETLANDS_IN_AREA",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_GEOMETRY", "FIND_WETLANDS"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_OBSTACLES_NEAR_REFERENCE",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_CURRENT_STATE", "FIND_OBSTACLES"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_BLOCKED_AREAS_IN_AREA",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_GEOMETRY", "FIND_BLOCKED_AREAS"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_HIGH_GROUND_IN_AREA",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_GEOMETRY", "FIND_HIGH_GROUND"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_ELEVATION_AT_REFERENCE",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_CURRENT_STATE", "READ_ELEVATION"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_CURRENT_STATE", "EXPLAIN_TRAVERSABILITY"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
   }
 ] as const satisfies readonly StableRequirementRecipe[];
