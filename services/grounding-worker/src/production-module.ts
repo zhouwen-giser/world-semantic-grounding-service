@@ -1283,10 +1283,11 @@ export function computeWorldQueryNodeRequestHashes(
       const hashState = typeof errorDetails?.["schemaHash"] === "string" && typeof errorDetails["canonicalHash"] === "string"
         ? errorDetails["schemaHash"] === errorDetails["canonicalHash"] ? "HASH_MATCH" : "HASH_DRIFT"
         : "NO_HASH_COMPARISON";
-      throw new ProductionStageModuleError(
-        `WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE_${safeOperation}_${safeStatus}_${safeError}_${safeStage}` +
-        `_${hashState}_${issueKeyword}_${issuePath}`
-      );
+      const diagnosticCode = [
+        "WQ_NODE", safeOperation.slice(0, 28), safeStatus, safeError.slice(0, 32), safeStage.slice(0, 24),
+        hashState, issueKeyword.slice(0, 20), issuePath.slice(0, 32)
+      ].join("_").slice(0, 128);
+      throw new ProductionStageModuleError(diagnosticCode);
     }
     const envelope = object(source["result"], "WORLD_QUERY_SOURCE_ENVELOPE_MISSING");
     const output = object(envelope["output"], "WORLD_QUERY_SOURCE_OUTPUT_MISSING");
