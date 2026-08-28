@@ -1271,8 +1271,21 @@ export function computeWorldQueryNodeRequestHashes(
       const safeStage = typeof nodeStage === "string"
         ? nodeStage.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 64)
         : "NO_STAGE";
+      const errorDetails = nestedError?.["details"] && typeof nestedError["details"] === "object" && !Array.isArray(nestedError["details"])
+        ? nestedError["details"] as JsonObject : undefined;
+      const firstIssue = Array.isArray(errorDetails?.["issues"]) && errorDetails["issues"][0] &&
+        typeof errorDetails["issues"][0] === "object" && !Array.isArray(errorDetails["issues"][0])
+        ? errorDetails["issues"][0] as JsonObject : undefined;
+      const issueKeyword = typeof firstIssue?.["keyword"] === "string"
+        ? firstIssue["keyword"].toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 48) : "NO_KEYWORD";
+      const issuePath = typeof firstIssue?.["path"] === "string"
+        ? firstIssue["path"].toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 96) : "NO_PATH";
+      const hashState = typeof errorDetails?.["schemaHash"] === "string" && typeof errorDetails["canonicalHash"] === "string"
+        ? errorDetails["schemaHash"] === errorDetails["canonicalHash"] ? "HASH_MATCH" : "HASH_DRIFT"
+        : "NO_HASH_COMPARISON";
       throw new ProductionStageModuleError(
-        `WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE_${safeOperation}_${safeStatus}_${safeError}_${safeStage}`
+        `WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE_${safeOperation}_${safeStatus}_${safeError}_${safeStage}` +
+        `_${hashState}_${issueKeyword}_${issuePath}`
       );
     }
     const envelope = object(source["result"], "WORLD_QUERY_SOURCE_ENVELOPE_MISSING");
