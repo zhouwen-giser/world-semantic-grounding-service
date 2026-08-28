@@ -1,0 +1,970 @@
+{
+  "schemaVersion": "wsgs-gdps-real-e2e/1.0",
+  "gate": "validation/scripts/real-development-pipeline-gate.ts",
+  "sourceCommit": "9bbbafeef97e4bd9f0b65a11ad340d223e7ec4ca",
+  "status": "PASS",
+  "executionClassification": "TRUSTED",
+  "readiness": {
+    "liveHttpStatus": 200,
+    "readyHttpStatus": 200,
+    "currentOperationalLock": "PASS",
+    "modelRequired": "PASS",
+    "modelOptionalWithoutModel": "PASS"
+  },
+  "realDependencies": {
+    "api": true,
+    "postgres": true,
+    "worker": true,
+    "model": true,
+    "gowm": true
+  },
+  "recipes": [
+    {
+      "recipeId": "E2E-01",
+      "requestHash": "sha256:7f6116044a674cc1639990c68ce93222804ac8eb6e0e5873bd7772d732c7e249",
+      "groundingIdHash": "sha256:27bdd504fefcfc98c319948c59e3c35acafed157307e064f6c608e072a959d56",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:b2cc00c0f9d9193390d0431dbf23a46477ff1ab74154d6f9c464bc5e2da5429d",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:d492cf89a38638d99e60d2c184f904cf0ad272739d353cbf6cbda8bb7e8ea1f7"
+      ],
+      "upstreamResultHashes": [
+        "sha256:d846ff343103c337c9d49cdb996cde688fc07d1c92dae134ec626638bcc77ad0"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "landcover.get-class@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:8370457b8823fefa4c28e95d847bdd7dfd53fc6cd944120c594310d9c7926220"
+        },
+        {
+          "operationKey": "world.get-current-state@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:a5ad6843f9f2dced605c59ff3e368a9738a5c1ea4ed205481bd786e77857a67d"
+        },
+        {
+          "operationKey": "landcover.get-class@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:15aa1a794844215d61f581721f21f9aefba4cd89bdb318cc040033ce1b4c8c55"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:fd9a434eb8c69873dcbba5b12161e20da0f49da268524c3883a3198f9c1265a9"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:3c9d1e86cfbace50acff4d3bb6745b227ab0947dc3dca8e9aa8a092412b8f05c"
+      ],
+      "productIds": [
+        "gdps-sample-landcover",
+        "reference-product-e6679b0b7aa55cd6a831320b"
+      ],
+      "contentHashes": [
+        "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+      ],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 14980,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "E2E-02",
+      "requestHash": "sha256:3dfeca0cc3d0d5ee04af6a124ec7bdc29b6d02d843fef4bb77ed1a715e3f3615",
+      "groundingIdHash": "sha256:1179744e04d2b57b7a35daadecb557fbfb0750dc22afb86c837b0c7d98b9033a",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:0c121c6ccb52f521bdb4f5cbd56f1fa4102659ae76fc5d9bcc4177669d70e364",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:7c0cee1900b610215151716063d4a2d9f698ccad8ee0a55104323c45bf0d0a0c"
+      ],
+      "upstreamResultHashes": [
+        "sha256:24c62bde9701bc94afa8a5867049b72befd45079b221185d8024232e12724164"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "hydrology.find-wetlands@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:f01bb02b7dbfb8f0f78997a200bd9feec91d87920b35fc12faa5542dbe50d4a3"
+        },
+        {
+          "operationKey": "world.get-geometry@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:47d25343f541203dff22db268d7ba93eb63b7ed49f89a61f0f6e825e7be57f2c"
+        },
+        {
+          "operationKey": "hydrology.find-wetlands@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:d5ef76155637e136166f5970f2bf5ab02c8bed6a4cd4d17fe184cd0a05ea48cc"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:f543a3c6db4a61e015dfde8e80b034926830b04875240ead4ffc311deaf40c43"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:66ec273ca01c45628724265ef67735a73c379a4feced518e65efcd86cdb6fae2"
+      ],
+      "productIds": [
+        "gdps-sample-wetland",
+        "reference-product-1016de418b510723fc2ae244"
+      ],
+      "contentHashes": [
+        "sha256:4c95ea5525efc09339909f8a6e1388fef70f9cc1d4d8e816595d5e522d70bd1b"
+      ],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 17663,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "E2E-03",
+      "requestHash": "sha256:708a43df0f2659d8ff0faefb41841e469089609a228435e71c874a4e20e5182f",
+      "groundingIdHash": "sha256:8d587bb1816598a1978805436659789438608d44429b5867d86ffa73d2cbf20e",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:a3f8eb88ddf206efc28a6e75690223a1c1efe1463f917659fdf3d306b0b387cc",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:50d5b64b1d033fb19549c9427dc412a40943b5d3ea3e1804a9c46092a86103ef"
+      ],
+      "upstreamResultHashes": [
+        "sha256:ee1a79a6e89fd1e1d5e27df45e9d73f1f9fc1e871cabba642dcdd3120d292ea6"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "obstacle.find-nearby@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:5f793fcf4600d184f34d80e4ab73c6acce409be74088de742f572b103b592ae7"
+        },
+        {
+          "operationKey": "world.get-current-state@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:bace46634ed8a7fd589709561b38d1fde8fd403d662466085fe552a198068478"
+        },
+        {
+          "operationKey": "obstacle.find-nearby@1.0",
+          "status": "NO_DATA",
+          "resultHash": "sha256:e422e80b03cd8fb8d39666958da1d35f81b03241a8c7dcf436f9e645a135efb3"
+        }
+      ],
+      "normalizedStatuses": [
+        "PARTIAL",
+        "COMPLETED",
+        "NO_DATA"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:e328633eacdb54766a9dd74ba964ef9805c365c542af15f25cfb2adec16d3982"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:5ecbb56409dfa0c9df3a1e5480a5e13d0655d527c3555b314cd6ad831e285534"
+      ],
+      "productIds": [
+        "reference-product-e6679b0b7aa55cd6a831320b"
+      ],
+      "contentHashes": [],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 14237,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "E2E-04",
+      "requestHash": "sha256:8e1912f3e0e5e656dd44b712dad31671fa1634dd738223e138dd59f0e77e84bb",
+      "groundingIdHash": "sha256:8fea0358aa661772f7d69ff11038f40f0b03ab6651fb9c5d4f24d8219fb74933",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:487a303e83a28f01b8d01d7ba0d136226f4096fb3abe95e495a0298f3006bbc6",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:7b1488a27ce1ff4c09e8c86bb4c0bace7a5c46380f361e4763d0716653c8bdd9"
+      ],
+      "upstreamResultHashes": [
+        "sha256:67656ecbe4a8d94952a639bc53f6d53ec8c04828f19212f1157a628d92094ad6"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "traversability.find-blocked@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:941255459e2b4dac66342efb69f546537e363d20caef00ed5a60c0ba33f7759a"
+        },
+        {
+          "operationKey": "world.get-geometry@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:569eb97581ee758e4dfc39a27009727d3b2cfb299187008fe60be55abd4b313f"
+        },
+        {
+          "operationKey": "traversability.find-blocked@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:a5eafe1daf6da7e645a54624117dc89432c99e99a5278d39e1a1fb108b1721e6"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:d71543dcdd3667296259b993f1fc3d2d4645e0f38590d6477c0008abfe12cd43"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:4e23ab0877748c8224484b0ea6e6aed7cb2a34a237496349a80dfc735cf0b9c0"
+      ],
+      "productIds": [
+        "gdps-sample-traversability",
+        "reference-product-1016de418b510723fc2ae244"
+      ],
+      "contentHashes": [
+        "sha256:0e4550b4f743c0df58534021ab408e6a960e1cc4e68336104fe4b5f03c5953f2"
+      ],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 18658,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "E2E-05",
+      "requestHash": "sha256:dabbb87a476f7e8c41650848c41e93738f49d911364a594068e568a7cf08dd6d",
+      "groundingIdHash": "sha256:9e14611dee5eadfe58d60deccaf18a6b42f43ebc96e28ce5cf924a533febe044",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:6ff2ba82ae0998b72dc71bbed7da044f906483239b378c6404c5c4d76e035b2f",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:caf453db8f80ee800a9928e6339b17a52bca5de4679e99072e657b1402d9af21"
+      ],
+      "upstreamResultHashes": [
+        "sha256:2866f0617d52a0d264aa45fd1155c98c854031e5fa37b8ec3f0c4162293af8f0"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "terrain.find-high-ground@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:87bf55789521e8ad7563d35c1100296efa4ad98db147e33110e3eaa9c021f4c5"
+        },
+        {
+          "operationKey": "world.get-geometry@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:694fe32316737901be02e63644e4d98b3e94e9ca73aa10ab22c7db1bb3d79e56"
+        },
+        {
+          "operationKey": "terrain.find-high-ground@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:4318799c09cbb043233fd8ade4b75130206d01b01b7a5e1e89e5bc638a6cc0c7"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:71822d4f889a9cee8ad6502aec874b74605a463dfb72770571b1aebd1feff9a2"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:73b28631ba3c9dd996e53be452a0a4b88eeefd3f431bb511c9fa15e1d9517d39"
+      ],
+      "productIds": [
+        "gdps-sample-terrain",
+        "reference-product-1016de418b510723fc2ae244"
+      ],
+      "contentHashes": [
+        "sha256:22bc655548a4ac5ac5e074442b546389b5246d3ee4d1b61d70901c14cf13fb03"
+      ],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 15586,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "E2E-06",
+      "requestHash": "sha256:ac0b7ec2190875c0211769ea54e07d051c04c865fbafa6dbb1e119d0ac85b783",
+      "groundingIdHash": "sha256:4f2baf19895965d2ae2f6bb5bcf131fbf8cd8d65ade7fca8e24f87b9c0937f46",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:7f0066c65eb17afc85e6a00163e6f6137062a5891446410d2695dd2cf00fb508",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:5a71fc4eb230f917e42fd74a37c94c6edec6e4191fb996e11fd4db606e88b9bf"
+      ],
+      "upstreamResultHashes": [
+        "sha256:118e84c35d56b41c57593f4870d2620f8bbdac1df880d6c60def404020c06d22"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "elevation.sample@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:0b442881a88edc4df3ef56def99722d9dc715a80d1a24ca14f4bb4ed6800dc01"
+        },
+        {
+          "operationKey": "world.get-current-state@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:12a9338b61340eb053c84164a10bce17a8379790dea2ea3ffd45e9c8170afb19"
+        },
+        {
+          "operationKey": "elevation.sample@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:f2872f3c656e0e1b69ea7f2feccd85e2671c047caab53d6dd32b948551a2fc4a"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:1b51543ba2c579ed04ccc1d34547016023134d4e7fe052f4d0163b4ace60a96b"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:3bd2dcf6a529a9b21f870cc9aaf1ab6f0c0b1565f61313be7dfdd75314e8ab23"
+      ],
+      "productIds": [
+        "gdps-sample-dtm",
+        "reference-product-e6679b0b7aa55cd6a831320b"
+      ],
+      "contentHashes": [
+        "sha256:3f63a8f48effc413de9d6ab723c87b5bb80956ef20e39c823873e9ccb2763076"
+      ],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 17887,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "E2E-07",
+      "requestHash": "sha256:7630e77974101fceabea496c7bf2fbf8964cd8cfa3d322e9e2cc889a9a1e0c7f",
+      "groundingIdHash": "sha256:92922b3ef2953192771f2908c32762084a80171d7ca923fab461da5a5911b0f7",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:f1d771193232eaf9d52ec7724a845e76ecd4bb2e2bbd35d07ebe4747ea674eb1",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:6bb32a395c3a0822a9f62b300db162e86ae7f22a5b95f52555f338ddf8a5f651"
+      ],
+      "upstreamResultHashes": [
+        "sha256:ee442ba1eda786d319063a7cbd5fc71584348b8e6f73fd49e5f5c617d9f9c318"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "traversability.explain@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:8458b62070d8bfdc33366c95bc0f4f5dafc56cf209799ca279226388e4e68cfc"
+        },
+        {
+          "operationKey": "world.get-current-state@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:e1e64f333b6fad0a620aa637d9662d31f74f88f3d7fa5152e6a5e95b3d49f891"
+        },
+        {
+          "operationKey": "traversability.explain@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:01ef86d71921b9c9dc0aa099b6266627b94232035c837aec2d1d65425c75e35d"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:69fec2e178aee093c0f656be0d85a7bfc84a2b5a30badec91a61afc12bb991e0"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:d8a8cae235a6abe1331a9562c55ae411d5a90202889486e047c0d79e8f01f41a"
+      ],
+      "productIds": [
+        "gdps-sample-traversability",
+        "reference-product-a1a9f10e52b55a5d03daa6ad"
+      ],
+      "contentHashes": [
+        "sha256:0e4550b4f743c0df58534021ab408e6a960e1cc4e68336104fe4b5f03c5953f2"
+      ],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 18275,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R1",
+      "requestHash": "sha256:274ba57ee1dd1fb020f80b45b8c9f0e21e622a375cbc857fe53da46ec6f82e54",
+      "groundingIdHash": "sha256:33024c3ae633031b829f0098b5122b1c6aac32fb0f1a7dd072adc9780ea1b40f",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:ca8b8bd3dffe25d5d28b78e83db7b9781153b351eeb9a553583b9d50d8a5da51",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:ed458592de4572500265e89432acc45d41e2b9411599dbb832560eadb95c83f3"
+      ],
+      "upstreamResultHashes": [
+        "sha256:512d3a954a1371bc6344b18cc587d952df87d0512ab80752c0b0cf3d80d12e1d"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:82d7bf6d93d949208d4f59c1d8d34e3d29a75a8bcb7fb6c3cbed6f2d875003e1"
+        },
+        {
+          "operationKey": "world.get-current-state@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:f4c4a35ac45bf2bbdfae90997af117a8f731944cbbf58ee518a42a1fa80359e5"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:5296b62039696e9483a07c37c770fe172fb0df00cab8916746a338fce332b290"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:90c1454e25d874e1a647cbe3ac0a90798f529faf8bc285aa8d85ed57323a4169"
+      ],
+      "productIds": [
+        "reference-product-e6679b0b7aa55cd6a831320b"
+      ],
+      "contentHashes": [],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 12421,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R2",
+      "requestHash": "sha256:fd96462f331342d2c354054dce1e26aab094174ecd2317a821e1df914885429b",
+      "groundingIdHash": "sha256:7a0d9b3dc0c755d5b5cca7c46585d6f512f587437763e639ba83ab1da1e9f874",
+      "terminalStatus": "AMBIGUOUS",
+      "resultHash": "sha256:62c91fc1d7347d9c5c8558fd0e5b650db7c5c87050112f356f5988d0b9c786da",
+      "stageCount": 14,
+      "planHashes": [],
+      "upstreamResultHashes": [],
+      "worldQueryCount": 0,
+      "spatialExecutionCount": 0,
+      "operationKeys": [],
+      "operationStatuses": [],
+      "normalizedStatuses": [],
+      "gatewayQueryIdHashes": [],
+      "gatewayJobIdHashes": [],
+      "productIds": [
+        "reference-product-65b6a3f6b93666c554f2c94f",
+        "reference-product-e0edb1a32ece35efde520f1d"
+      ],
+      "contentHashes": [],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 12174,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R3",
+      "requestHash": "sha256:bc4ad12f87356bf161964f38ab703d558dee7ff5e29774058874523badde3628",
+      "groundingIdHash": "sha256:5d85daea4ea783ebbf4700d3b1ff5ad23bad2f76d75524acdf5248d0bdd98452",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:a9422ba2131c09fca5566199dfd53c14bc1869469a758160c1a68bd68d3f225d",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:fb6f25b7a5fa630ff13e3ee35eda377c454a26bae1580b04c59d4c7d96eff1c0"
+      ],
+      "upstreamResultHashes": [
+        "sha256:4d1a8f2679a723f455a77ad4b1dd4254c5a9195fc4cf7aa8606e81dfcbbc2413"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 1,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "spatial.find-in-area@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:3630fa424a6de35a05ce1dd53932e45679aa921140ffb0c9aea335485a7fbb4c"
+        },
+        {
+          "operationKey": "world.get-geometry@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:c20d7658b66b34ae187f2938405862e2a6d8739ddcb589f75241438b0ce7fbf1"
+        },
+        {
+          "operationKey": "spatial.find-in-area@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:8930a84db607b38740de4e29bad4cdbf39d9b7805421da773d4293b343a6cbb8"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:ddbb60e440b86d660e6d652e86302e93680d75f46ac3d209d91839c6d400d02b"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:56e950235559b125ef5824aa7d8a960faf05bec5b1df2ca29243f954fc1d7d50"
+      ],
+      "productIds": [
+        "reference-product-1016de418b510723fc2ae244"
+      ],
+      "contentHashes": [],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 16919,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R4",
+      "requestHash": "sha256:c169a65d1c2e59917a9519f92cac7c63cd35e7284146c31e32a81a107ac10940",
+      "groundingIdHash": "sha256:8d8d1e7ba84140251b07b956aaa09f893e32d8034517b721cabaf8342b376dd5",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:461a0979d184eed4e319fba826e220ff61fa3eeafd9cd461230d7251c7265cd1",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:5b078f03111f0ec5544ac535a962b3e36b7687edc6c78da5773172f0cc7b6236"
+      ],
+      "upstreamResultHashes": [
+        "sha256:f002c49480ee6e85e265ece9868575583303731d4f33d4ca0dc1792e69d8f825"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 1,
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "spatial.find-nearby@1.0"
+      ],
+      "operationStatuses": [
+        {
+          "operationKey": "reference.resolve@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:91c4fae2254269574814a8ace83c7df659e768375ce055c53392a3190e6cc31b"
+        },
+        {
+          "operationKey": "world.get-current-state@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:55f3e3842137cbfcccac994ce192551d27b7d4daee4a94334096f8a6e05b6b0e"
+        },
+        {
+          "operationKey": "spatial.find-nearby@1.0",
+          "status": "COMPLETED",
+          "resultHash": "sha256:0ac001e2150b6a42eb477ded9980987bf9cc0799888814e1115758b261c296fb"
+        }
+      ],
+      "normalizedStatuses": [
+        "COMPLETED"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:532447b6568552bd88aca09d32e9d616261f39815485ab53b29072af0c08f2b0"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:89d1040754952bec116031b8b8854a9762ae395533605a4a3f88ea682d5db130"
+      ],
+      "productIds": [
+        "reference-product-e6679b0b7aa55cd6a831320b"
+      ],
+      "contentHashes": [],
+      "truncated": false,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 12918,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R5",
+      "requestHash": "sha256:b662b1ff2c5e734fc7cd152c2b395e9e7e3567c2e8dfe529ef909fdaeeb734e4",
+      "groundingIdHash": "sha256:bde90d80abdd4f476235bac60e2c5f8a89d0c3c0fdd740fc078b98f643ecc26e",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:10fda13896649cb3c89a4c14abdf473eea1c884217e279a412061112e49c5174",
+      "stageCount": 3,
+      "planHashes": [],
+      "upstreamResultHashes": [],
+      "worldQueryCount": 0,
+      "spatialExecutionCount": 0,
+      "operationKeys": [],
+      "operationStatuses": [],
+      "normalizedStatuses": [],
+      "gatewayQueryIdHashes": [],
+      "gatewayJobIdHashes": [],
+      "productIds": [
+        "known-reference-0-5ce5046eb19b55d4"
+      ],
+      "contentHashes": [],
+      "truncated": false,
+      "modelReceiptCount": 0,
+      "totalStageElapsedMs": 138,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R6",
+      "requestHash": "sha256:9a412e84fa6d4df2726a701b7e1aee12cd46799766bbdba4f3787a29a571c721",
+      "groundingIdHash": "sha256:a50ad47840ae90d65c99fab6a9dabf32d3bfc8f3136aba71010b88fa847e9e71",
+      "terminalStatus": "UNRESOLVED",
+      "resultHash": "sha256:0d420598c74d6ba8c9fc47db8e5b6bc7c2b1910c4451694db355c16da4b60182",
+      "stageCount": 8,
+      "planHashes": [],
+      "upstreamResultHashes": [],
+      "worldQueryCount": 0,
+      "spatialExecutionCount": 0,
+      "operationKeys": [],
+      "operationStatuses": [],
+      "normalizedStatuses": [],
+      "gatewayQueryIdHashes": [],
+      "gatewayJobIdHashes": [],
+      "productIds": [],
+      "contentHashes": [],
+      "truncated": false,
+      "modelReceiptCount": 0,
+      "totalStageElapsedMs": 138,
+      "status": "PASS"
+    }
+  ],
+  "additionalSemantics": {
+    "noData": {
+      "requestHash": "sha256:86422985cf023949326a2ed625391e62f3772880d0dd712bd9b8a4937e4e69b8",
+      "terminalStatus": "UNRESOLVED",
+      "status": "PASS"
+    },
+    "partial": {
+      "requestHash": "sha256:94593a1bd60103cde583452d2d2f6c2b1db8867e204d8bd5ff4019d56e7b4e96",
+      "terminalStatus": "PARTIAL",
+      "status": "PASS"
+    }
+  },
+  "gdps": {
+    "enabled": true,
+    "gatewayOnly": true,
+    "directProviderCalls": false,
+    "cases": [
+      {
+        "caseId": "E2E-01",
+        "terminalStatus": "COMPLETED",
+        "operationKeys": [
+          "reference.resolve@1.0",
+          "world.get-current-state@1.0",
+          "landcover.get-class@1.0"
+        ],
+        "operationStatuses": [
+          {
+            "operationKey": "reference.resolve@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:8370457b8823fefa4c28e95d847bdd7dfd53fc6cd944120c594310d9c7926220"
+          },
+          {
+            "operationKey": "world.get-current-state@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:a5ad6843f9f2dced605c59ff3e368a9738a5c1ea4ed205481bd786e77857a67d"
+          },
+          {
+            "operationKey": "landcover.get-class@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:15aa1a794844215d61f581721f21f9aefba4cd89bdb318cc040033ce1b4c8c55"
+          }
+        ],
+        "productIds": [
+          "gdps-sample-landcover",
+          "reference-product-e6679b0b7aa55cd6a831320b"
+        ],
+        "contentHashes": [
+          "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+        ],
+        "truncated": false,
+        "status": "PASS"
+      },
+      {
+        "caseId": "E2E-02",
+        "terminalStatus": "COMPLETED",
+        "operationKeys": [
+          "reference.resolve@1.0",
+          "world.get-geometry@1.0",
+          "hydrology.find-wetlands@1.0"
+        ],
+        "operationStatuses": [
+          {
+            "operationKey": "reference.resolve@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:f01bb02b7dbfb8f0f78997a200bd9feec91d87920b35fc12faa5542dbe50d4a3"
+          },
+          {
+            "operationKey": "world.get-geometry@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:47d25343f541203dff22db268d7ba93eb63b7ed49f89a61f0f6e825e7be57f2c"
+          },
+          {
+            "operationKey": "hydrology.find-wetlands@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:d5ef76155637e136166f5970f2bf5ab02c8bed6a4cd4d17fe184cd0a05ea48cc"
+          }
+        ],
+        "productIds": [
+          "gdps-sample-wetland",
+          "reference-product-1016de418b510723fc2ae244"
+        ],
+        "contentHashes": [
+          "sha256:4c95ea5525efc09339909f8a6e1388fef70f9cc1d4d8e816595d5e522d70bd1b"
+        ],
+        "truncated": false,
+        "status": "PASS"
+      },
+      {
+        "caseId": "E2E-03",
+        "terminalStatus": "COMPLETED",
+        "operationKeys": [
+          "reference.resolve@1.0",
+          "world.get-current-state@1.0",
+          "obstacle.find-nearby@1.0"
+        ],
+        "operationStatuses": [
+          {
+            "operationKey": "reference.resolve@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:5f793fcf4600d184f34d80e4ab73c6acce409be74088de742f572b103b592ae7"
+          },
+          {
+            "operationKey": "world.get-current-state@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:bace46634ed8a7fd589709561b38d1fde8fd403d662466085fe552a198068478"
+          },
+          {
+            "operationKey": "obstacle.find-nearby@1.0",
+            "status": "NO_DATA",
+            "resultHash": "sha256:e422e80b03cd8fb8d39666958da1d35f81b03241a8c7dcf436f9e645a135efb3"
+          }
+        ],
+        "productIds": [
+          "reference-product-e6679b0b7aa55cd6a831320b"
+        ],
+        "contentHashes": [],
+        "truncated": false,
+        "status": "PASS"
+      },
+      {
+        "caseId": "E2E-04",
+        "terminalStatus": "COMPLETED",
+        "operationKeys": [
+          "reference.resolve@1.0",
+          "world.get-geometry@1.0",
+          "traversability.find-blocked@1.0"
+        ],
+        "operationStatuses": [
+          {
+            "operationKey": "reference.resolve@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:941255459e2b4dac66342efb69f546537e363d20caef00ed5a60c0ba33f7759a"
+          },
+          {
+            "operationKey": "world.get-geometry@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:569eb97581ee758e4dfc39a27009727d3b2cfb299187008fe60be55abd4b313f"
+          },
+          {
+            "operationKey": "traversability.find-blocked@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:a5eafe1daf6da7e645a54624117dc89432c99e99a5278d39e1a1fb108b1721e6"
+          }
+        ],
+        "productIds": [
+          "gdps-sample-traversability",
+          "reference-product-1016de418b510723fc2ae244"
+        ],
+        "contentHashes": [
+          "sha256:0e4550b4f743c0df58534021ab408e6a960e1cc4e68336104fe4b5f03c5953f2"
+        ],
+        "truncated": false,
+        "status": "PASS"
+      },
+      {
+        "caseId": "E2E-05",
+        "terminalStatus": "COMPLETED",
+        "operationKeys": [
+          "reference.resolve@1.0",
+          "world.get-geometry@1.0",
+          "terrain.find-high-ground@1.0"
+        ],
+        "operationStatuses": [
+          {
+            "operationKey": "reference.resolve@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:87bf55789521e8ad7563d35c1100296efa4ad98db147e33110e3eaa9c021f4c5"
+          },
+          {
+            "operationKey": "world.get-geometry@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:694fe32316737901be02e63644e4d98b3e94e9ca73aa10ab22c7db1bb3d79e56"
+          },
+          {
+            "operationKey": "terrain.find-high-ground@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:4318799c09cbb043233fd8ade4b75130206d01b01b7a5e1e89e5bc638a6cc0c7"
+          }
+        ],
+        "productIds": [
+          "gdps-sample-terrain",
+          "reference-product-1016de418b510723fc2ae244"
+        ],
+        "contentHashes": [
+          "sha256:22bc655548a4ac5ac5e074442b546389b5246d3ee4d1b61d70901c14cf13fb03"
+        ],
+        "truncated": false,
+        "status": "PASS"
+      },
+      {
+        "caseId": "E2E-06",
+        "terminalStatus": "COMPLETED",
+        "operationKeys": [
+          "reference.resolve@1.0",
+          "world.get-current-state@1.0",
+          "elevation.sample@1.0"
+        ],
+        "operationStatuses": [
+          {
+            "operationKey": "reference.resolve@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:0b442881a88edc4df3ef56def99722d9dc715a80d1a24ca14f4bb4ed6800dc01"
+          },
+          {
+            "operationKey": "world.get-current-state@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:12a9338b61340eb053c84164a10bce17a8379790dea2ea3ffd45e9c8170afb19"
+          },
+          {
+            "operationKey": "elevation.sample@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:f2872f3c656e0e1b69ea7f2feccd85e2671c047caab53d6dd32b948551a2fc4a"
+          }
+        ],
+        "productIds": [
+          "gdps-sample-dtm",
+          "reference-product-e6679b0b7aa55cd6a831320b"
+        ],
+        "contentHashes": [
+          "sha256:3f63a8f48effc413de9d6ab723c87b5bb80956ef20e39c823873e9ccb2763076"
+        ],
+        "truncated": false,
+        "status": "PASS"
+      },
+      {
+        "caseId": "E2E-07",
+        "terminalStatus": "COMPLETED",
+        "operationKeys": [
+          "reference.resolve@1.0",
+          "world.get-current-state@1.0",
+          "traversability.explain@1.0"
+        ],
+        "operationStatuses": [
+          {
+            "operationKey": "reference.resolve@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:8458b62070d8bfdc33366c95bc0f4f5dafc56cf209799ca279226388e4e68cfc"
+          },
+          {
+            "operationKey": "world.get-current-state@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:e1e64f333b6fad0a620aa637d9662d31f74f88f3d7fa5152e6a5e95b3d49f891"
+          },
+          {
+            "operationKey": "traversability.explain@1.0",
+            "status": "COMPLETED",
+            "resultHash": "sha256:01ef86d71921b9c9dc0aa099b6266627b94232035c837aec2d1d65425c75e35d"
+          }
+        ],
+        "productIds": [
+          "gdps-sample-traversability",
+          "reference-product-a1a9f10e52b55a5d03daa6ad"
+        ],
+        "contentHashes": [
+          "sha256:0e4550b4f743c0df58534021ab408e6a960e1cc4e68336104fe4b5f03c5953f2"
+        ],
+        "truncated": false,
+        "status": "PASS"
+      }
+    ],
+    "geometryBuffer": {
+      "caseId": "E2E-08",
+      "status": "NOT_RUN",
+      "reason": "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED"
+    },
+    "status": "PASS"
+  },
+  "security": {
+    "bodyAuthorityInjection": {
+      "httpStatus": 400,
+      "status": "PASS"
+    },
+    "crossScopeNonDisclosure": {
+      "httpStatus": 404,
+      "status": "PASS"
+    },
+    "credentialPersistence": false,
+    "status": "PASS"
+  },
+  "recovery": {
+    "status": "PASS",
+    "groundingIdHash": "sha256:0dd3fe79365b16977c7bfd21f7ef9404f0ef41fdc340fdf1ce4f01597d8a8146",
+    "requestHash": "sha256:6ef015ba287f4a2f3595842b62677a9d5614e574d45e7bef95e04997b9bf3dfc",
+    "generationCount": 2,
+    "modelCompletedCount": 1,
+    "gowmCompletedCount": 1,
+    "resultHash": "sha256:07f52bbf87609e2e161f02ed24860bcecece0b2fb159f5d6e6889f68de0e04d7"
+  },
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawBusinessResponsesIncluded": false,
+    "rawGroundingIdsIncluded": false,
+    "externalJobIdsIncluded": false
+  },
+  "gdpsTargetStatuses": {
+    "E2E-01": "COMPLETED",
+    "E2E-02": "COMPLETED",
+    "E2E-03": "NO_DATA",
+    "E2E-04": "COMPLETED",
+    "E2E-05": "COMPLETED",
+    "E2E-06": "COMPLETED",
+    "E2E-07": "COMPLETED"
+  },
+  "geometryBuffer": {
+    "caseId": "E2E-08",
+    "status": "NOT_RUN",
+    "reason": "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED"
+  },
+  "marker": "GDPS_REAL_E2E_READY"
+}

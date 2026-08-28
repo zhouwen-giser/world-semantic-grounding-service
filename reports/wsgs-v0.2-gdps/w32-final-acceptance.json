@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "wsgs-gdps-final-acceptance/1.0",
+  "capturedAt": "2026-08-28T17:10:23.913Z",
+  "status": "DEVELOPMENT_READY",
+  "productionQualified": false,
+  "sourceCommit": "9bbbafeef97e4bd9f0b65a11ad340d223e7ec4ca",
+  "phases": {
+    "W20": "PASS",
+    "W21": "PASS",
+    "W22": "PASS",
+    "W23": "PASS",
+    "W24": "PASS",
+    "W25": "PASS",
+    "W26": "PASS",
+    "W27": "PASS",
+    "W28": "PASS",
+    "W29": "PASS",
+    "W30": "PASS",
+    "W31": "PASS",
+    "W32": "PASS"
+  },
+  "realE2E": {
+    "gdpsCases": 7,
+    "pass": 7,
+    "notRun": 1,
+    "notRunCase": "E2E-08",
+    "notRunReason": "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED"
+  },
+  "regression": {
+    "rootCheck": "PASS",
+    "security": "PASS",
+    "recovery": "PASS"
+  },
+  "evidence": [
+    "reports/wsgs-v0.2-gdps/w20-source-baseline.json",
+    "reports/wsgs-v0.2-gdps/w21-capability-snapshot.json",
+    "reports/wsgs-v0.2-gdps/w26-combined-southbound-operation-lock.json",
+    "reports/wsgs-v0.2-gdps/w28-integration-instance.json",
+    "reports/wsgs-v0.2-gdps/w29-real-e2e.json",
+    "reports/wsgs-v0.2-gdps/w30-current-only-replay.json",
+    "reports/wsgs-v0.2-gdps/w31-safety-boundaries.json"
+  ],
+  "protectedActions": {
+    "merge": false,
+    "tag": false,
+    "release": false,
+    "deploy": false
+  },
+  "credentialsIncluded": false,
+  "marker": "WSGS_V0_2_GDPS_DEVELOPMENT_READY"
+}

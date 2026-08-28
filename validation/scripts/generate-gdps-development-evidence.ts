@@ -18,6 +18,16 @@ const baseline = JSON.parse(readFileSync(resolve(reportRoot, "w20-source-baselin
 const write = process.argv.includes("--write");
 const recipeIds = Object.keys(GDPS_PREVIEW_RECIPE_OPERATION_KEYS) as GdpsPreviewRecipeId[];
 
+let existingLiveRegistration: Record<string, unknown> | undefined;
+try {
+  const existingSnapshot = JSON.parse(readFileSync(resolve(reportRoot, "w21-capability-snapshot.json"), "utf8")) as Record<string, unknown>;
+  if (existingSnapshot.liveRegistration && typeof existingSnapshot.liveRegistration === "object" && !Array.isArray(existingSnapshot.liveRegistration)) {
+    existingLiveRegistration = existingSnapshot.liveRegistration as Record<string, unknown>;
+  }
+} catch {
+  existingLiveRegistration = undefined;
+}
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
@@ -120,7 +130,10 @@ if (write) {
   writeFileSync(resolve(reportRoot, "w21-capability-snapshot.json"), `${JSON.stringify({
     ...snapshot,
     status: "PASS",
-    registrationStateAtCapture: "CURRENT_SHARED_GATEWAY_NOT_REGISTERED",
+    registrationStateAtCapture: existingLiveRegistration
+      ? "CURRENT_SHARED_GATEWAY_REGISTERED"
+      : "SOURCE_SNAPSHOT_RUNTIME_REGISTRATION_NOT_CAPTURED",
+    ...(existingLiveRegistration ? { liveRegistration: existingLiveRegistration } : {}),
     marker: "GDPS_CAPABILITY_SNAPSHOT_READY"
   }, null, 2)}\n`, "utf8");
   writeFileSync(resolve(reportRoot, "w23-semantic-planning-evidence.json"), `${JSON.stringify(planningEvidence, null, 2)}\n`, "utf8");

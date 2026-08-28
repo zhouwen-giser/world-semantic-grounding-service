@@ -1,204 +1,32 @@
 {
-  "schemaVersion": "wsgs-gdps-combined-gateway/1.0",
-  "capturedAt": "2026-08-28T14:02:49.692Z",
+  "schemaVersion": "wsgs-gdps-integration-instance/1.0",
+  "capturedAt": "2026-08-28T17:10:23.913Z",
+  "status": "PASS",
   "executionClassification": "REAL_EXTERNAL_DEPENDENCIES",
   "authenticationMode": "SIGNED_DELEGATION_V1",
-  "persistenceMode": "MEMORY_ISOLATED_GATEWAY",
+  "gatewayTarget": "CURRENT_SHARED_GATEWAY",
+  "gatewayBaseUrlHash": "sha256:f9e89e06b585192798c9b95e553ee40e4cc5cb07525e1815624764dcb4529ad1",
   "registry": {
-    "capabilityCount": 62,
-    "providerCount": 6,
-    "contractCatalogRevision": "sha256:67001a0d92f9260a99ef51cc6c47e1ef30d5eca1bfb7b1247aee22b913fedc73",
-    "bindingRevision": "sha256:81cf5991b244dbbbfe6fb02314f379314c0366fd70877fb995fe17c0adb3e483",
-    "semanticCatalogHash": "sha256:4267e49c0456f9758df0b1e2c683d95171eec3b585156e32e72f60c4bb08db86"
+    "capabilityCount": 145,
+    "providerCount": 16,
+    "contractCatalogRevision": "sha256:3c779d10d580b44ce35383981f9bba6aecec56f29f9063fe76d8e196a6b96f81",
+    "bindingRevision": "sha256:3d57ce20ead082f3273279285306060f18dfb7dbc1ea0dba8cd5696508021523",
+    "semanticCatalogHash": "sha256:cf06efc8c23e7eb49acd7b79ca1a006e7c3372943691a0caf72fabaac2a7730d"
   },
   "gdps": {
     "providerId": "gdps.geospatial-products",
-    "providerVersion": "0.1.0",
-    "manifestHash": "sha256:5c66d1b37f45c7d30ae66a856e04189f8cc1ba69c327e533269b4432717bcaea",
-    "capabilityCount": 23
+    "registeredCapabilityCount": 23,
+    "selectedPreviewOperations": 7,
+    "currentOperationalLock": "PASS"
   },
-  "requiredOperations": [
-    {
-      "operationId": "catalog.get",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "catalog.search",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "elevation.sample",
-      "operationVersion": "1.0",
-      "maturity": "PREVIEW",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "hydrology.find-wetlands",
-      "operationVersion": "1.0",
-      "maturity": "PREVIEW",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "landcover.get-class",
-      "operationVersion": "1.0",
-      "maturity": "PREVIEW",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "obstacle.find-nearby",
-      "operationVersion": "1.0",
-      "maturity": "PREVIEW",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "reference.get",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "reference.resolve",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "reference.validate",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "result.validate",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "spatial.find-in-area",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "spatial.find-intersections",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "spatial.find-nearby",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "terrain.find-high-ground",
-      "operationVersion": "1.0",
-      "maturity": "PREVIEW",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "traversability.explain",
-      "operationVersion": "1.0",
-      "maturity": "PREVIEW",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "traversability.find-blocked",
-      "operationVersion": "1.0",
-      "maturity": "PREVIEW",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "world.get-current-state",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "world.get-geometry",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    },
-    {
-      "operationId": "world.get-provenance",
-      "operationVersion": "1.0",
-      "maturity": "STABLE",
-      "availability": "AVAILABLE",
-      "reasonCodes": [
-        "READY"
-      ]
-    }
+  "southboundLock": {
+    "stableOperations": 12,
+    "previewOperations": 7,
+    "exactFileHash": "sha256:4a2c093ba41c91b64ae698b8c814aa089b697b59bb30a1a01c9e552d1944004f"
+  },
+  "evidence": [
+    "reports/wsgs-v0.2-gdps/development-closure-gate.json"
   ],
-  "exactOperationLockHash": "sha256:5bb1f298b61416226398f6155e8f277187ef2d02236433ea7da6be3e56af8348",
-  "providersReady": [
-    "gdps.geospatial-products",
-    "gowm.dataset-catalog",
-    "gowm.platform-validation",
-    "gowm.reference-catalog",
-    "gowm.spatial-analysis.bridge",
-    "gowm.world-evidence"
-  ],
-  "status": "PASS",
-  "marker": "WSGS_GDPS_INTEGRATION_INSTANCE_READY"
+  "credentialsIncluded": false,
+  "marker": "GDPS_SHARED_INTEGRATION_INSTANCE_READY"
 }

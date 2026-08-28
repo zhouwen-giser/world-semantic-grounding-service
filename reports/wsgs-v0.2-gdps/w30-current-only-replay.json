@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "wsgs-gdps-current-only-replay/1.0",
+  "status": "PASS",
+  "executionClassification": "REAL_EXTERNAL_DEPENDENCIES",
+  "gatewayOnly": true,
+  "directProviderCalls": false,
+  "sourceCaseId": "E2E-01",
+  "productId": "gdps-sample-landcover",
+  "contentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1",
+  "operation": "geo-product.check-current@1.0",
+  "liveChecks": {
+    "current": {
+      "currentness": "CURRENT",
+      "currentContentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1",
+      "status": "PASS"
+    },
+    "changed": {
+      "currentness": "CHANGED",
+      "currentContentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1",
+      "status": "PASS"
+    },
+    "notAvailable": {
+      "currentness": "NOT_AVAILABLE",
+      "status": "PASS"
+    }
+  },
+  "decisions": {
+    "current": [
+      {
+        "status": "REPLAY_ALLOWED",
+        "mode": "PINNED",
+        "source": {
+          "productId": "gdps-sample-landcover",
+          "contentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+        },
+        "warnings": []
+      },
+      {
+        "status": "REPLAY_ALLOWED",
+        "mode": "STRICT",
+        "source": {
+          "productId": "gdps-sample-landcover",
+          "contentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+        },
+        "warnings": []
+      },
+      {
+        "status": "REPLAY_ALLOWED",
+        "mode": "BEST_EFFORT",
+        "source": {
+          "productId": "gdps-sample-landcover",
+          "contentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+        },
+        "warnings": []
+      }
+    ],
+    "changed": [
+      {
+        "status": "SNAPSHOT_MISMATCHED",
+        "mode": "PINNED",
+        "source": {
+          "productId": "gdps-sample-landcover",
+          "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "actualContentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1",
+        "executionBlocked": true,
+        "warnings": [
+          "SOURCE_CHANGED"
+        ]
+      },
+      {
+        "status": "SNAPSHOT_MISMATCHED",
+        "mode": "STRICT",
+        "source": {
+          "productId": "gdps-sample-landcover",
+          "contentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "actualContentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1",
+        "executionBlocked": true,
+        "warnings": [
+          "SOURCE_CHANGED"
+        ]
+      },
+      {
+        "status": "REPLAY_ALLOWED",
+        "mode": "BEST_EFFORT",
+        "source": {
+          "productId": "gdps-sample-landcover",
+          "contentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+        },
+        "priorContentHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "warnings": [
+          "SOURCE_ADVANCED"
+        ]
+      }
+    ],
+    "notAvailable": [
+      {
+        "status": "STALE",
+        "mode": "PINNED",
+        "source": {
+          "productId": "wsgs-missing-product",
+          "contentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+        },
+        "executionBlocked": true,
+        "warnings": [
+          "SOURCE_NOT_AVAILABLE"
+        ]
+      },
+      {
+        "status": "STALE",
+        "mode": "STRICT",
+        "source": {
+          "productId": "wsgs-missing-product",
+          "contentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+        },
+        "executionBlocked": true,
+        "warnings": [
+          "SOURCE_NOT_AVAILABLE"
+        ]
+      },
+      {
+        "status": "UNRESOLVED",
+        "mode": "BEST_EFFORT",
+        "source": {
+          "productId": "wsgs-missing-product",
+          "contentHash": "sha256:016fbc32b359d3afa73cc69ae5d4366885aad7f5fe70cb4e133f71547c6221d1"
+        },
+        "gapKind": "DATA_GAP",
+        "executionBlocked": true,
+        "warnings": [
+          "SOURCE_NOT_AVAILABLE"
+        ]
+      }
+    ]
+  },
+  "productVersionSemanticsPresent": false,
+  "credentialsIncluded": false,
+  "marker": "GDPS_CURRENT_ONLY_REPLAY_READY"
+}

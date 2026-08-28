@@ -328,6 +328,17 @@
   "recipeLockHash": "sha256:6d85822c659fb3a443ce2c68026395df53fec85d3c0d23d28ee9402f016ffb3d",
   "snapshotHash": "sha256:c3900ff6efed419a668a2459d9d7024dfbffae1b80740a48ca02adef3825480d",
   "status": "PASS",
-  "registrationStateAtCapture": "CURRENT_SHARED_GATEWAY_NOT_REGISTERED",
-  "marker": "GDPS_CAPABILITY_SNAPSHOT_READY"
+  "registrationStateAtCapture": "CURRENT_SHARED_GATEWAY_REGISTERED",
+  "marker": "GDPS_CAPABILITY_SNAPSHOT_READY",
+  "liveRegistration": {
+    "capturedAt": "2026-08-28T17:10:23.913Z",
+    "capabilityCount": 145,
+    "providerCount": 16,
+    "contractCatalogRevision": "sha256:3c779d10d580b44ce35383981f9bba6aecec56f29f9063fe76d8e196a6b96f81",
+    "bindingRevision": "sha256:3d57ce20ead082f3273279285306060f18dfb7dbc1ea0dba8cd5696508021523",
+    "semanticCatalogHash": "sha256:cf06efc8c23e7eb49acd7b79ca1a006e7c3372943691a0caf72fabaac2a7730d",
+    "selectedStableOperations": 12,
+    "selectedPreviewOperations": 7,
+    "currentOperationalLock": "PASS"
+  }
 }

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "wsgs-gdps-safety-boundaries/1.0",
+  "status": "PASS",
+  "evidenceClassification": "MIXED_REAL_AND_CONTRACT",
+  "boundaries": {
+    "ambiguityStopsExecution": {
+      "status": "PASS",
+      "terminalStatus": "AMBIGUOUS",
+      "worldQueryCount": 0,
+      "spatialExecutionCount": 0
+    },
+    "dataGapNotNegativeFact": {
+      "status": "PASS",
+      "targetStatus": "NO_DATA",
+      "replayNotAvailable": [
+        {
+          "mode": "PINNED",
+          "status": "STALE",
+          "executionBlocked": true
+        },
+        {
+          "mode": "STRICT",
+          "status": "STALE",
+          "executionBlocked": true
+        },
+        {
+          "mode": "BEST_EFFORT",
+          "status": "UNRESOLVED",
+          "executionBlocked": true,
+          "gapKind": "DATA_GAP"
+        }
+      ]
+    },
+    "sourceChangedPolicy": {
+      "status": "PASS",
+      "decisions": [
+        {
+          "mode": "PINNED",
+          "status": "SNAPSHOT_MISMATCHED",
+          "executionBlocked": true,
+          "warnings": [
+            "SOURCE_CHANGED"
+          ]
+        },
+        {
+          "mode": "STRICT",
+          "status": "SNAPSHOT_MISMATCHED",
+          "executionBlocked": true,
+          "warnings": [
+            "SOURCE_CHANGED"
+          ]
+        },
+        {
+          "mode": "BEST_EFFORT",
+          "status": "REPLAY_ALLOWED",
+          "warnings": [
+            "SOURCE_ADVANCED"
+          ]
+        }
+      ]
+    },
+    "truncation": {
+      "status": "PASS",
+      "realCasesTruncated": 0,
+      "contractBehavior": "TRUNCATED_NORMALIZES_TO_PARTIAL"
+    },
+    "capabilityGap": {
+      "status": "PASS",
+      "functionalStatus": "NOT_RUN",
+      "reason": "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED",
+      "noFabricatedPass": true
+    },
+    "authorityAndScope": {
+      "status": "PASS",
+      "bodyAuthorityInjectionHttpStatus": 400,
+      "crossScopeNonDisclosureHttpStatus": 404
+    },
+    "architecture": {
+      "status": "PASS",
+      "gatewayOnly": true,
+      "directProviderCalls": false,
+      "credentialsIncluded": false,
+      "productVersionSemanticsPresent": false
+    }
+  },
+  "geometryBufferFunctionalStatus": "NOT_RUN",
+  "marker": "GDPS_SAFETY_BOUNDARIES_READY"
+}
