@@ -117,6 +117,21 @@ const evidenceProducts = new Set<OperationalRequestedProduct>([
   "PREDICATE_EVALUATIONS"
 ]);
 
+export const PRODUCTION_STABLE_OPERATION_IDS = Object.freeze([
+  "reference.get",
+  "reference.resolve",
+  "world.get-current-state",
+  "world.get-geometry",
+  "world.get-provenance",
+  "catalog.get",
+  "catalog.search",
+  "spatial.find-nearby",
+  "spatial.find-in-area",
+  "spatial.find-intersections",
+  "reference.validate",
+  "result.validate"
+] as const);
+
 export class ProductionStageModuleError extends Error {
   constructor(
     readonly code: string,
@@ -247,6 +262,23 @@ function allGatewayLocks(lock: OperationalGowmLock): OperationLock[] {
   return [...lock.defaultOperations, ...lock.previewOperations].map(gatewayLock);
 }
 
+export function selectProductionSouthboundLock(lock: OperationalGowmLock): OperationalGowmLock {
+  const available = [...lock.defaultOperations, ...lock.previewOperations];
+  const selected = PRODUCTION_STABLE_OPERATION_IDS.map((operationId) => {
+    const entry = available.find((candidate) =>
+      candidate.operationId === operationId && candidate.operationVersion === "1.0");
+    if (!entry || entry.maturity !== "STABLE") {
+      throw new ProductionStageModuleError(`PRODUCTION_STABLE_OPERATION_LOCK_MISSING_${operationId}`);
+    }
+    return entry;
+  });
+  return {
+    ...lock,
+    defaultOperations: selected,
+    previewOperations: []
+  };
+}
+
 class UnavailableSemanticModel implements SemanticModelParser {
   async parse(): Promise<never> {
     throw new SemanticModelError("MODEL_NOT_CONFIGURED", false);
@@ -273,7 +305,8 @@ function createModel(policy: SemanticModelPolicyMode): SemanticModelParser {
 function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const operationalLock = readOperationalLock();
   const lock = operationalLock.lock;
-  const trustedOperationKeys = [...lock.defaultOperations, ...lock.previewOperations]
+  const productionLock = selectProductionSouthboundLock(lock);
+  const trustedOperationKeys = productionLock.defaultOperations
     .map((entry) => `${entry.operationId}@${entry.operationVersion}`);
   const modelPolicy = (process.env["WSGS_MODEL_POLICY"]?.trim() ?? "MODEL_REQUIRED") as SemanticModelPolicyMode;
   if (modelPolicy !== "MODEL_REQUIRED" && modelPolicy !== "MODEL_OPTIONAL") {
@@ -347,6 +380,7 @@ async function liveAuthority(
     staticIntakeVerified = true;
   }
   const lock = value.operationalLock.lock;
+  const productionLock = selectProductionSouthboundLock(lock);
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
     actorId: principal.actorId,
@@ -358,7 +392,7 @@ async function liveAuthority(
     identity: principal,
     requestId,
     plan: {
-      nodes: lock.defaultOperations.map((entry, index) => ({
+      nodes: productionLock.defaultOperations.map((entry, index) => ({
         nodeId: `Readiness_${index + 1}`,
         operation: { operationId: entry.operationId, operationVersion: entry.operationVersion }
       }))
@@ -380,7 +414,7 @@ async function liveAuthority(
     catalog: catalog as never,
     semantics,
     availability,
-    southboundLock: validatedLock(lock),
+    southboundLock: validatedLock(productionLock),
     southboundLockHash: value.operationalLock.lockHash,
     capturedAt: new Date()
   });
@@ -388,11 +422,8 @@ async function liveAuthority(
     catalog,
     semantics,
     availability,
-    required: lock.defaultOperations.map(gatewayLock),
-    optional: lock.previewOperations.map((entry) => ({
-      operationId: entry.operationId,
-      operationVersion: entry.operationVersion
-    })),
+    required: productionLock.defaultOperations.map(gatewayLock),
+    optional: [],
     expectedContractCatalogRevision: lock.contractCatalogRevision,
     expectedSemanticCatalogHash: lock.semanticCatalogHash
   });
@@ -407,7 +438,7 @@ async function liveAuthority(
     capabilityCatalog: catalog,
     semanticCatalog: semantics,
     availability,
-    southboundLock: validatedLock(lock)
+    southboundLock: validatedLock(productionLock)
   };
   const admission: ProductionAdmissionSnapshot = {
     immutableLocks: persisted as unknown as Readonly<Record<string, unknown>>,

@@ -375,7 +375,10 @@ try {
   const ready = await fetchJson(baseUrl, "/health/ready");
   if (live.status !== 200 || live.body["status"] !== "live") throw new Error("CURRENT_LOCK_LIVENESS_FAILED");
   if (ready.status !== 200 || ready.body["status"] !== "ready") {
-    throw new Error(`CURRENT_LOCK_READINESS_FAILED_${ready.status}_${String(ready.body["status"])}`);
+    const reasons = Array.isArray(ready.body["reasons"])
+      ? ready.body["reasons"].filter((entry): entry is string => typeof entry === "string").join("_")
+      : "NO_REASON";
+    throw new Error(`CURRENT_LOCK_READINESS_FAILED_${ready.status}_${String(ready.body["status"])}_${reasons}`);
   }
 
   const vehicle = visibleReference("ugv-002", "currentWorldReferenceKey");

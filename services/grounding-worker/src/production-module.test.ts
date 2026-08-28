@@ -10,6 +10,7 @@ import type { Pool } from "pg";
 import { describe, expect, it } from "vitest";
 
 import {
+  PRODUCTION_STABLE_OPERATION_IDS,
   assertPriorGroundingReplaySupport,
   buildRecipeOperationInput,
   capabilityCatalogHash,
@@ -17,7 +18,8 @@ import {
   computeWorldQueryNodeRequestHashes,
   normalizeReferenceResolution,
   oversizedEvidencePayload,
-  persistAcceptedWorldQueryJob
+  persistAcceptedWorldQueryJob,
+  selectProductionSouthboundLock
 } from "./production-module.js";
 
 const digest = (character: string): `sha256:${string}` => `sha256:${character.repeat(64)}`;
@@ -157,6 +159,19 @@ describe("production stage module authority boundaries", () => {
 
     expect(canonicalLfSha256(checkedOut)).toBe(expected);
     expect(canonicalLfSha256(canonical)).toBe(expected);
+  });
+
+  it("narrows the full consumer catalog to the twelve production stable operations", () => {
+    const lock = JSON.parse(readFileSync(resolve(
+      import.meta.dirname,
+      "..", "..", "..",
+      "contracts", "upstream", "gowm-0.6.3", "extracted", "package", "bundle", "locks",
+      "wsgs-southbound-operation-lock-v2.json"
+    ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
+    const selected = selectProductionSouthboundLock(lock);
+    expect(selected.defaultOperations.map((entry) => entry.operationId)).toEqual(PRODUCTION_STABLE_OPERATION_IDS);
+    expect(selected.previewOperations).toEqual([]);
+    expect(lock.defaultOperations.length + lock.previewOperations.length).toBeGreaterThan(selected.defaultOperations.length);
   });
 
   it("publishes candidate rank without leaking provider topology", () => {
