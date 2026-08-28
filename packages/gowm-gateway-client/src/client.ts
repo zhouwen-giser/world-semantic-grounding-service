@@ -173,6 +173,20 @@ async function readBoundedJson<T>(response: Response, maximumBytes: number): Pro
   }
 }
 
+function upstreamErrorCode(value: unknown): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const nested = record["error"];
+  const candidate = typeof record["code"] === "string"
+    ? record["code"]
+    : nested && typeof nested === "object" && !Array.isArray(nested) && typeof (nested as Record<string, unknown>)["code"] === "string"
+      ? (nested as Record<string, unknown>)["code"] as string
+      : null;
+  if (!candidate) return null;
+  const normalized = candidate.trim().toUpperCase().replace(/[^A-Z0-9_:-]+/gu, "_");
+  return /^[A-Z][A-Z0-9_:-]{0,127}$/u.test(normalized) ? normalized : null;
+}
+
 export class GowmGatewayClient {
   readonly #baseUrl: URL;
   readonly #fetch: typeof fetch;
@@ -534,7 +548,17 @@ export class GowmGatewayClient {
         if (!expectedStatuses.includes(response.status)) {
           const retryable = retryableStatuses.has(response.status);
           if (retryable) this.#circuit.failure();
-          throw new GatewayProtocolError(`HTTP_${response.status}`, response.status, retryable);
+          let protocolCode: string | null = null;
+          try {
+            protocolCode = upstreamErrorCode(await readBoundedJson<unknown>(response, this.#maxResponseBytes));
+          } catch {
+            // The status is authoritative even when an error body is absent or malformed.
+          }
+          throw new GatewayProtocolError(
+            `HTTP_${response.status}${protocolCode ? `_${protocolCode}` : ""}`,
+            response.status,
+            retryable
+          );
         }
         const value = await readBoundedJson<T>(response, this.#maxResponseBytes);
         const responseSchema = schemaPolicy.responses?.[response.status];
