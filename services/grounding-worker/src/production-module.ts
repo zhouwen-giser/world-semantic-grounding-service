@@ -694,11 +694,15 @@ export function normalizeReferenceResolution(
   const grounded: ReferenceGroundingResult["mentions"] = [];
   const ambiguities: ReferenceGroundingResult["ambiguities"] = [];
   const unresolved: ReferenceGroundingResult["unresolvedMentions"] = [];
+  const handledMentionIds = new Set<string>();
   for (const raw of resolutions) {
     const entry = object(raw, "INVALID_REFERENCE_RESOLUTION");
     const mentionId = text(entry["mentionId"], "INVALID_REFERENCE_MENTION");
     const mention = byMention.get(mentionId);
-    if (!mention || !Array.isArray(entry["candidates"])) throw new ProductionStageModuleError("UNKNOWN_REFERENCE_MENTION");
+    if (!mention || handledMentionIds.has(mentionId) || !Array.isArray(entry["candidates"])) {
+      throw new ProductionStageModuleError("UNKNOWN_REFERENCE_MENTION");
+    }
+    handledMentionIds.add(mentionId);
     const status = text(entry["status"], "INVALID_REFERENCE_STATUS") as ReferenceGroundingResult["mentions"][number]["status"];
     const ids: string[] = [];
     for (const [rank, rawCandidate] of entry["candidates"].entries()) {
@@ -727,10 +731,58 @@ export function normalizeReferenceResolution(
     }
     if (status === "UNRESOLVED" || status === "INVALID") unresolved.push({ mentionId, surfaceText: mention.surfaceText, reason: status });
   }
+  for (const mention of mentions) {
+    if (handledMentionIds.has(mention.mentionId)) continue;
+    grounded.push({ ...mention, status: "UNRESOLVED", candidateProductIds: [] });
+    unresolved.push({ mentionId: mention.mentionId, surfaceText: mention.surfaceText, reason: "UPSTREAM_RESULT_MISSING" });
+  }
   return {
     mentions: grounded, referenceProducts: products, ambiguities, unresolvedMentions: unresolved,
     validationResults: [], worldVersion, resolverVersion: text(body["resolverVersion"], "INVALID_RESOLVER_VERSION")
   };
+}
+
+const stableReferenceKinds = new Set([
+  "WORLD_OBJECT", "SPATIAL_OBJECT", "DATA_SCOPE", "DATASET", "LAYER", "LAYER_FEATURE",
+  "QUERY_RESULT", "DERIVED_REFERENCE", "REFERENCE_SET", "OPERATIONAL_TASK"
+]);
+const nonReferenceKinds = new Set([
+  "PUNCTUATION", "QUERY", "QUESTION", "INTERROGATIVE", "PRONOUN", "QUERY_WORD", "QUESTION_WORD"
+]);
+const interrogativeSurfaces = new Set([
+  "哪里", "哪儿", "何处", "什么", "哪些", "哪个", "谁", "多少", "怎么", "如何",
+  "where", "what", "which", "who", "how"
+]);
+
+function canonicalReferenceKind(raw: string): string | null {
+  const normalized = raw.trim().toUpperCase().replace(/[ .-]+/gu, "_");
+  if (stableReferenceKinds.has(normalized)) return normalized;
+  if (["VEHICLE", "DEVICE", "SENSOR", "CAMERA", "TARGET", "OBJECT", "ENTITY"].includes(normalized)) {
+    return "WORLD_OBJECT";
+  }
+  if (["ROAD", "STREET", "ZONE", "AREA", "REGION", "LOCATION", "PLACE", "FEATURE"].includes(normalized)) {
+    return "LAYER_FEATURE";
+  }
+  return null;
+}
+
+export function productionReferenceMentions(mentions: readonly MergedMention[]): MergedMention[] {
+  return mentions.flatMap((mention) => {
+    const modelOnly = mention.extractionSources.every((source) => source === "DOMAIN_MODEL");
+    const surface = mention.surfaceText.trim();
+    const role = mention.semanticRole?.trim().toUpperCase().replace(/[ .-]+/gu, "_") ?? "";
+    const rawKinds = mention.expectedKinds.map((kind) => kind.trim().toUpperCase().replace(/[ .-]+/gu, "_"));
+    const punctuationOnly = /^[\p{P}\p{S}\s]+$/u.test(surface);
+    const interrogative = interrogativeSurfaces.has(surface.toLocaleLowerCase("en-US"));
+    const nonReferenceRole = nonReferenceKinds.has(role);
+    const onlyNonReferenceKinds = rawKinds.length > 0 && rawKinds.every((kind) => nonReferenceKinds.has(kind));
+    if (modelOnly && (punctuationOnly || interrogative || nonReferenceRole || onlyNonReferenceKinds)) return [];
+    const expectedKinds = [...new Set(mention.expectedKinds.flatMap((kind) => {
+      const canonical = canonicalReferenceKind(kind);
+      return canonical ? [canonical] : [];
+    }))].sort();
+    return [{ ...mention, expectedKinds }];
+  });
 }
 
 function normalizeValidation(value: unknown): ReferenceValidationProduct[] {
@@ -1412,19 +1464,20 @@ export async function createPipelineStageExecutor(
     REFERENCE_RESOLVE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
-      if (graph.mergedMentions.length === 0) return normalizeReferenceResolution(null, []);
+      const referenceMentions = productionReferenceMentions(graph.mergedMentions);
+      if (referenceMentions.length === 0) return normalizeReferenceResolution(null, []);
       const parts = requestParts(context);
       const lock = operationLock(authority, "reference.resolve");
       const envelope = await executeOperation(value, context, lock, {
         schemaVersion: "1.0",
-        mentions: graph.mergedMentions.map((mention) => ({
+        mentions: referenceMentions.map((mention) => ({
           mentionId: mention.mentionId, surfaceText: mention.surfaceText,
           ...(mention.expectedKinds.length > 0 ? { expectedKinds: mention.expectedKinds } : {})
         })),
         context: { language: parts.source["locale"], anchorReferenceKeys: [] },
         limitPerMention: parts.policy["maxCandidatesPerMention"]
       }, "reference-resolve");
-      return normalizeReferenceResolution(envelopeValue(envelope, lock), graph.mergedMentions);
+      return normalizeReferenceResolution(envelopeValue(envelope, lock), referenceMentions);
     },
 
     REFERENCE_VALIDATE: async (context) => {

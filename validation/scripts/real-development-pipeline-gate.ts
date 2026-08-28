@@ -292,7 +292,19 @@ async function submitAndRun(
   if (fetched.status !== 200) throw new Error(`PUBLIC_API_GET_FAILED_${recipeId}_${fetched.status}`);
   const terminalStatus = string(fetched.body["status"], "GROUNDING_STATUS_MISSING");
   if (!acceptedStatuses.includes(terminalStatus)) {
-    throw new Error(`UNEXPECTED_TERMINAL_STATUS_${recipeId}_${terminalStatus}`);
+    const count = (name: string): number => Array.isArray(fetched.body[name]) ? fetched.body[name].length : 0;
+    const gapReasons = Array.isArray(fetched.body["capabilityGaps"])
+      ? fetched.body["capabilityGaps"].flatMap((entry) => {
+        if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+        const reason = (entry as JsonObject)["reason"];
+        return typeof reason === "string" ? [reason] : [];
+      }).join("-") || "NONE"
+      : "NONE";
+    throw new Error(
+      `UNEXPECTED_TERMINAL_STATUS_${recipeId}_${terminalStatus}` +
+      `_M${count("mentions")}_R${count("referenceProducts")}_U${count("unresolvedMentions")}` +
+      `_A${count("ambiguities")}_G${count("capabilityGaps")}_${gapReasons}`
+    );
   }
   const evidence = await collect(groundingId, requestHash);
   if (evidence.resultHash !== fetched.body["resultHash"]) throw new Error(`RESULT_HASH_MISMATCH_${recipeId}`);

@@ -6,6 +6,7 @@ export interface MergedMention {
   surfaceText: string;
   span: TextSpan;
   expectedKinds: string[];
+  semanticRole?: string;
   extractionSources: Array<"CLIENT_MAP" | "KNOWN_REFERENCE" | "DETERMINISTIC" | "DOMAIN_MODEL">;
 }
 

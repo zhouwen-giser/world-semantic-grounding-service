@@ -83,6 +83,7 @@ function modelMention(value: WorldSemanticFrame["mentions"][number]): MergedMent
     surfaceText: value.surfaceText,
     span: value.span,
     expectedKinds: [...(value.expectedKinds ?? [])].sort(),
+    ...(value.semanticRole ? { semanticRole: value.semanticRole } : {}),
     extractionSources: ["DOMAIN_MODEL"]
   };
 }
@@ -161,6 +162,7 @@ export function buildGroundingGraph(
     if (sameSpan && conflict.surfaceText === mention.surfaceText && compatibleKinds(conflict.expectedKinds, mention.expectedKinds ?? [])) {
       const existing = merged.find((entry) => entry.mentionId === conflict.mentionId)!;
       existing.expectedKinds = [...new Set([...existing.expectedKinds, ...(mention.expectedKinds ?? [])])].sort();
+      if (mention.semanticRole) existing.semanticRole = mention.semanticRole;
       if (!existing.extractionSources.includes("DOMAIN_MODEL")) existing.extractionSources.push("DOMAIN_MODEL");
       nodeIds.set(mention.mentionId, nodeIds.get(conflict.mentionId)!);
       const node = nodes.find((entry) => entry.nodeId === nodeIds.get(conflict.mentionId));

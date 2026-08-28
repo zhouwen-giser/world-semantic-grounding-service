@@ -19,6 +19,7 @@ import {
   normalizeReferenceResolution,
   oversizedEvidencePayload,
   persistAcceptedWorldQueryJob,
+  productionReferenceMentions,
   selectProductionSouthboundLock
 } from "./production-module.js";
 
@@ -211,6 +212,51 @@ describe("production stage module authority boundaries", () => {
     expect(result.referenceProducts[0]?.safeSummary).toEqual({ candidateRank: 0 });
     expect(JSON.stringify(result)).not.toContain("providerId");
     expect(JSON.stringify(result)).not.toContain("providerRank");
+  });
+
+  it("passes only canonical business references to the production resolver", () => {
+    const span = (start: number, end: number) => ({ encoding: "UTF16_CODE_UNIT" as const, start, end });
+    expect(productionReferenceMentions([
+      {
+        mentionId: "vehicle", surfaceText: "2号车", span: span(0, 3), expectedKinds: ["vehicle"],
+        semanticRole: "location", extractionSources: ["DOMAIN_MODEL"]
+      },
+      {
+        mentionId: "where", surfaceText: "哪里", span: span(3, 5), expectedKinds: ["location"],
+        semanticRole: "question", extractionSources: ["DOMAIN_MODEL"]
+      },
+      {
+        mentionId: "punctuation", surfaceText: "？", span: span(5, 6), expectedKinds: ["punctuation"],
+        extractionSources: ["DOMAIN_MODEL"]
+      },
+      {
+        mentionId: "road", surfaceText: "滨河路", span: span(0, 3), expectedKinds: ["road"],
+        extractionSources: ["DOMAIN_MODEL"]
+      },
+      {
+        mentionId: "known", surfaceText: "A区", span: span(0, 2), expectedKinds: ["area"],
+        extractionSources: ["KNOWN_REFERENCE"]
+      }
+    ])).toEqual([
+      expect.objectContaining({ mentionId: "vehicle", expectedKinds: ["WORLD_OBJECT"] }),
+      expect.objectContaining({ mentionId: "road", expectedKinds: ["LAYER_FEATURE"] }),
+      expect.objectContaining({ mentionId: "known", expectedKinds: ["LAYER_FEATURE"] })
+    ]);
+  });
+
+  it("fails closed when a requested reference mention is absent from the upstream result", () => {
+    const mention = {
+      mentionId: "missing", surfaceText: "2号车",
+      span: { encoding: "UTF16_CODE_UNIT" as const, start: 0, end: 3 },
+      expectedKinds: ["WORLD_OBJECT"], extractionSources: ["DOMAIN_MODEL" as const]
+    };
+    const result = normalizeReferenceResolution({
+      schemaVersion: "1.0", worldVersion: 42, resolverVersion: "resolver-1", resolutions: []
+    }, [mention]);
+    expect(result.mentions).toEqual([expect.objectContaining({ mentionId: "missing", status: "UNRESOLVED" })]);
+    expect(result.unresolvedMentions).toEqual([{
+      mentionId: "missing", surfaceText: "2号车", reason: "UPSTREAM_RESULT_MISSING"
+    }]);
   });
 
   it("keeps catalog identity distinct from the enclosing authority snapshot", () => {
