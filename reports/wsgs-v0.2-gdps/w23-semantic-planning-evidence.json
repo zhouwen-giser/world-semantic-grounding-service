@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "wsgs-gdps-semantic-planning-evidence/1.0",
+  "status": "PASS",
+  "evidenceClass": "CONTRACT_TEST",
+  "semanticVocabulary": [
+    "LAND_COVER",
+    "TERRAIN_CLASS",
+    "ELEVATION",
+    "SURFACE_MATERIAL",
+    "TRAVERSABILITY",
+    "HIGH_GROUND",
+    "DEPRESSION",
+    "WATER",
+    "WETLAND",
+    "BUILDING",
+    "OBSTACLE",
+    "PASSABLE",
+    "BLOCKED",
+    "EXPLAIN_TRAVERSABILITY",
+    "EXPLICIT_PRODUCT_PREFERENCE"
+  ],
+  "naturalLanguageCasesCovered": 7,
+  "operationIdsInRequirements": false,
+  "providerIdsInRequirements": false,
+  "markers": [
+    "GDPS_SEMANTIC_FRAME_READY",
+    "GDPS_SEMANTIC_REQUIREMENT_PLANNER_READY"
+  ]
+}

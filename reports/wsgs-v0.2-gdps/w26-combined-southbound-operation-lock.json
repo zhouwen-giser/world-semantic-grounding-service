@@ -1,0 +1,246 @@
+{
+  "schemaVersion": "2.0",
+  "gatewayContractVersion": "0.6.3",
+  "consumerContractPackage": {
+    "name": "@gowm/world-gateway-contracts",
+    "version": "0.6.3",
+    "integrity": "sha512-KekpsVw943+iWwWcKepSxl408uBqH6oQ/ZzHcsrQrq2EjP+r2zYtljOfFekP6Vksxx1oSbE66rqaHE2rUGv6xw=="
+  },
+  "contractCatalogRevision": "sha256:3c779d10d580b44ce35383981f9bba6aecec56f29f9063fe76d8e196a6b96f81",
+  "semanticCatalogHash": "sha256:cf06efc8c23e7eb49acd7b79ca1a006e7c3372943691a0caf72fabaac2a7730d",
+  "availabilityContractHash": "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036",
+  "snapshotContractHash": "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0",
+  "delegationContractHash": "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b",
+  "defaultOperations": [
+    {
+      "operationId": "reference.get",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:dbfccaff85081bcc161d9e83c4e8959f6ecc35c3c726e01ce83547925dcc7772",
+      "outputSchemaHash": "sha256:276d3d168e37dd13abfd705d308b16b128b6e6519daf00f98830bd570593a25c",
+      "semanticProfileHash": "sha256:50dd04d66852777d5bd7d5312aab402e4124a90b86ef2ac93e824add0161db48",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "reference.resolve",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:90f4610871c7077358e9ce09bbf139194bf10feebc5eacd448fec0bd81817329",
+      "outputSchemaHash": "sha256:5e0779610b6e8f0ec12c2d47cbfa99d23a2e92f503eaabf06969b732fa21cb41",
+      "semanticProfileHash": "sha256:2345427b162f36cc0792116f20cd337f1e95e0e8284b000ab556b876c45328ad",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "world.get-current-state",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:dbfccaff85081bcc161d9e83c4e8959f6ecc35c3c726e01ce83547925dcc7772",
+      "outputSchemaHash": "sha256:56a451b6f9c62e15cb6dfb67821f907124551d96410be1f0cd8626284e46abf9",
+      "semanticProfileHash": "sha256:d41323fdb7bb22db3100e45a3024b978e9325504ab865c5b08852a3caf91a12a",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "world.get-geometry",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:dbfccaff85081bcc161d9e83c4e8959f6ecc35c3c726e01ce83547925dcc7772",
+      "outputSchemaHash": "sha256:56a451b6f9c62e15cb6dfb67821f907124551d96410be1f0cd8626284e46abf9",
+      "semanticProfileHash": "sha256:cc8df371406aff181616832bf4b6824e30d2cbc50186164b21c1a55e61680d11",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "world.get-provenance",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:dbfccaff85081bcc161d9e83c4e8959f6ecc35c3c726e01ce83547925dcc7772",
+      "outputSchemaHash": "sha256:56a451b6f9c62e15cb6dfb67821f907124551d96410be1f0cd8626284e46abf9",
+      "semanticProfileHash": "sha256:d41323fdb7bb22db3100e45a3024b978e9325504ab865c5b08852a3caf91a12a",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "catalog.get",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:dbfccaff85081bcc161d9e83c4e8959f6ecc35c3c726e01ce83547925dcc7772",
+      "outputSchemaHash": "sha256:d3ed28efd4b24c21ed91fda200e656a9b492bac88e1fe8d8dd2488ee78c76cf4",
+      "semanticProfileHash": "sha256:76736ff33a0568e7ba253b29c210a92cd7ee09f7780856de9c9faa8cb8fa8e00",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "catalog.search",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:d15fc90c9641712ef22d536c931bedf0a6f8e7af46a93172a48aec8f373e51aa",
+      "outputSchemaHash": "sha256:85c9b79082dca6abba93becc6ffca0bcb5a86934c61685a6e0a05863bd6430fc",
+      "semanticProfileHash": "sha256:384d9f9fdd83f9c6799148478e12955385b3d4adca375ab2e2399f6d2fa8c33a",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "spatial.find-nearby",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:17f7d021a954e30721adb28d02aae1803061455da9f153c1af019779d92ae846",
+      "outputSchemaHash": "sha256:d62bb6f78c53bdd5f7a714682edb91b18a90c9e520f6e642ee5a43d92d61fe23",
+      "semanticProfileHash": "sha256:80e56fb4f234644890de458056d66b78903f1f458460b8a066da75a4a2f18eff",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "spatial.find-in-area",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:f902acdbe64e91474b7f3d2a94d8cad72a7a2d6182265981a770fb472a8914dd",
+      "outputSchemaHash": "sha256:8aa8231c04110a4fcf235e759bcdd4f2e97db20097bbff62f9161b4ce6f4d161",
+      "semanticProfileHash": "sha256:fecded8fb9803f556acd8030ab05b52e377ab6a95121c9007273f2735233422b",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "spatial.find-intersections",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:8f347f836dd9c299f16cb60d2fc22dcfc5b4addab9c77024f530a9bdd4d7bea0",
+      "outputSchemaHash": "sha256:3bbfc710db6a82e02592075ec75bafb648575242794dbfd3ff39c6df9c53979c",
+      "semanticProfileHash": "sha256:3ff34f5452a95f91988e3dce183a83e27b4ea80ac5995dc92cf1764957b21024",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "reference.validate",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:02b86151775176b13aa80fc0a8c595621941ab6ca5b6ba777c78d300ec59fc4b",
+      "outputSchemaHash": "sha256:e5f544f8d40c72dc1dc8039c4f5c83ed94b5d16624e05a68d47c65207941c75c",
+      "semanticProfileHash": "sha256:a79f3acf2cb9a825b367a63da65b63ed0f59746f0847ae30f9fb173082be79fc",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "result.validate",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:02b86151775176b13aa80fc0a8c595621941ab6ca5b6ba777c78d300ec59fc4b",
+      "outputSchemaHash": "sha256:e5f544f8d40c72dc1dc8039c4f5c83ed94b5d16624e05a68d47c65207941c75c",
+      "semanticProfileHash": "sha256:a79f3acf2cb9a825b367a63da65b63ed0f59746f0847ae30f9fb173082be79fc",
+      "maturity": "STABLE",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    }
+  ],
+  "previewOperations": [
+    {
+      "operationId": "elevation.sample",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:054650feb398324eb96e49e675c965da197a733a8007995d9febac61c92daf4e",
+      "outputSchemaHash": "sha256:03b2019c95ac57880d4453d78188a2f9b9ea51f1d7bd2f5de65b194cae8f2a58",
+      "semanticProfileHash": "sha256:af2b429ae0e5a714ad678d523601f3f80549255d6097f3de392ac830d692e02c",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "hydrology.find-wetlands",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:7e909d7dd465a9c63eab485bd6b6d1ddee77b1737e2efb66bbe9e3fc825b85cf",
+      "outputSchemaHash": "sha256:fe04bcaf65a8cb4c76d41101c555883da93d60aa57d6453f41401bed65fdb289",
+      "semanticProfileHash": "sha256:ef3e693da1770e1fa4293eb910eb855407569073e22642cef6c3f7112bb1e0e6",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "landcover.get-class",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:0eef12b2d785b5b72a9a4efdb61b30f5f50bd3dae47cebdba6a62068111cca39",
+      "outputSchemaHash": "sha256:873583ca27a06a82757d9e44476c0da989e1e94787af3c9a9ca9b012acf7e6dd",
+      "semanticProfileHash": "sha256:a78ca1f114e3c4de0ad4f497257bcd5a35f3b20789bb997c52a16e6b53a7d6eb",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "obstacle.find-nearby",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:7f632759afe1c542d164dd3bf6f330d2347fb499997e200c562f3450473f5b78",
+      "outputSchemaHash": "sha256:e5cff958e7e0f84e88bc600126462fc29ed97ce2f60cff8ef76c97ecfd46ef41",
+      "semanticProfileHash": "sha256:50666af6121815d14b47be71e5969f759dd57eadc496a977e94ad6e8e46a2d5c",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "terrain.find-high-ground",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:80897dee0dbdbc864d2e302ed65e23b9f34bde167cdb22167ae112bb2fece264",
+      "outputSchemaHash": "sha256:b71c4881c6f4b8107dd287f3608230b75cbe23073f1ab674fad0397240525f19",
+      "semanticProfileHash": "sha256:ef3e693da1770e1fa4293eb910eb855407569073e22642cef6c3f7112bb1e0e6",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "traversability.explain",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:bf72fc65e9aa3adb68a80d23fb30c1b4e72c727e6f9aafb6b22464d4c82eb709",
+      "outputSchemaHash": "sha256:681ad9732de478d69c1a227e0b586666e32d107fbe848435593036c5d5370d3c",
+      "semanticProfileHash": "sha256:d6eb99ab7fa2f3eb231e77c35e0ce02f0c3edfec411ea24f2b0094ca40b3a945",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "traversability.find-blocked",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:7250c16ca6dafdb793ca1f424f598f7ec578ae0953beee8b75aa2fdb18fc8c03",
+      "outputSchemaHash": "sha256:27fdc31a5f2949f81c63e0e51646a34adeda4047172da4a5d5f05ed3086ef683",
+      "semanticProfileHash": "sha256:7ef17a329e54a881b86a61614d8978304cc4189d43ffd80f20f0b9d7c4968d18",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    }
+  ]
+}

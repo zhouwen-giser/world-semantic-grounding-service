@@ -24,6 +24,7 @@ export interface QueryTemplateRequestBinding {
   path: string;
   targetPath: string;
   port?: SchemaPort;
+  optional?: boolean;
 }
 
 export interface QueryTemplateLiteralBinding {
@@ -192,6 +193,87 @@ function spatialStep(
       resultNature: "FACT",
       inputPorts: [requestPort()],
       outputPorts: [resultPort("ROW_SET")]
+    })
+  };
+}
+
+const gdpsProductBinding: QueryTemplateRequestBinding = {
+  inputName: "explicitProductId",
+  path: "/explicitProductId",
+  targetPath: "/productId",
+  port: stringLiteralPort,
+  optional: true
+};
+
+const geoJsonPointType: QueryTemplateLiteralBinding = {
+  inputName: "pointType",
+  value: "Point",
+  targetPath: "/point/type",
+  port: stringLiteralPort
+};
+
+function gdpsPointStep(
+  stepId: string,
+  operationId: string,
+  domain: "SPATIAL" | "ANALYSIS",
+  resultNature: "FACT" | "DERIVED",
+  extraRequestBindings: readonly QueryTemplateRequestBinding[] = [],
+  relationSemantics: readonly string[] = ["DESCRIBES"]
+): QueryTemplateStep {
+  return {
+    stepId,
+    costWeight: 3,
+    failurePolicy: "FAIL_FAST",
+    links: [{
+      sourceStepId: "read-current-position",
+      outputPort: "positionCoordinates",
+      inputName: "pointCoordinates",
+      targetPath: "/point/coordinates"
+    }],
+    requestBindings: [gdpsProductBinding, ...extraRequestBindings],
+    literalBindings: [geoJsonPointType],
+    requirement: contract(`${operationId}@1.0`, {
+      domain,
+      relationSemantics,
+      acceptedReferenceKinds: [],
+      producedReferenceKinds: [],
+      spatialSemantics: "EXACT",
+      timeSemantics: "CURRENT",
+      resultNature,
+      inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
+      outputPorts: [resultPort()]
+    })
+  };
+}
+
+function gdpsAreaStep(
+  stepId: string,
+  operationId: string,
+  domain: "SPATIAL" | "ANALYSIS"
+): QueryTemplateStep {
+  return {
+    stepId,
+    costWeight: 4,
+    failurePolicy: "FAIL_FAST",
+    links: [{
+      sourceStepId: "read-geometry",
+      outputPort: "geometry",
+      inputName: "selector",
+      targetPath: "/selector"
+    }],
+    requestBindings: [gdpsProductBinding],
+    requirement: contract(`${operationId}@1.0`, {
+      domain,
+      relationSemantics: ["INSIDE"],
+      acceptedReferenceKinds: [],
+      producedReferenceKinds: [],
+      spatialSemantics: "EXACT",
+      timeSemantics: "CURRENT",
+      resultNature: "DERIVED",
+      inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
+      // GDPS exposes a generic result envelope here; the operation schema,
+      // not the capability port kind, discriminates FeatureCollection values.
+      outputPorts: [resultPort()]
     })
   };
 }
@@ -476,6 +558,79 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
         outputPorts: [resultPort()]
       })
     }]
+  },
+  {
+    templateId: "gdps-land-cover-at-reference",
+    pattern: "GDPS_LAND_COVER_AT_REFERENCE",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readCurrentPosition,
+      gdpsPointStep("read-land-cover", "landcover.get-class", "SPATIAL", "FACT")]
+  },
+  {
+    templateId: "gdps-wetlands-in-area",
+    pattern: "GDPS_WETLANDS_IN_AREA",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readGeometry,
+      gdpsAreaStep("find-wetlands", "hydrology.find-wetlands", "SPATIAL")]
+  },
+  {
+    templateId: "gdps-obstacles-near-reference",
+    pattern: "GDPS_OBSTACLES_NEAR_REFERENCE",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readCurrentPosition,
+      gdpsPointStep("find-obstacles", "obstacle.find-nearby", "SPATIAL", "DERIVED", [{
+        inputName: "distanceMetres",
+        path: "/distanceMetres",
+        targetPath: "/distanceMetres",
+        port: {
+          schemaUri: "urn:gowm:v0.2:value:number",
+          schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348",
+          valueKind: "ANY",
+          unitSemantics: "LINEAR_METERS"
+        }
+      }], ["NEAR"])]
+  },
+  {
+    templateId: "gdps-blocked-areas-in-area",
+    pattern: "GDPS_BLOCKED_AREAS_IN_AREA",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readGeometry,
+      gdpsAreaStep("find-blocked-areas", "traversability.find-blocked", "ANALYSIS")]
+  },
+  {
+    templateId: "gdps-high-ground-in-area",
+    pattern: "GDPS_HIGH_GROUND_IN_AREA",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readGeometry,
+      gdpsAreaStep("find-high-ground", "terrain.find-high-ground", "SPATIAL")]
+  },
+  {
+    templateId: "gdps-elevation-at-reference",
+    pattern: "GDPS_ELEVATION_AT_REFERENCE",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readCurrentPosition,
+      gdpsPointStep("read-elevation", "elevation.sample", "ANALYSIS", "FACT")]
+  },
+  {
+    templateId: "gdps-traversability-explain-at-reference",
+    pattern: "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readCurrentPosition,
+      gdpsPointStep("explain-traversability", "traversability.explain", "ANALYSIS", "DERIVED")]
   }
 ] as const;
 

@@ -46,7 +46,9 @@ function descriptorMaturity(operationId: string): "STABLE" | "PREVIEW" {
     operationId === "world.get-event-timeline" ||
     operationId === "spatial.find-containing-area" ||
     operationId === "correlation.resolve" ||
-    operationId === "predicate.evaluate"
+    operationId === "predicate.evaluate" ||
+    ["landcover.", "hydrology.", "obstacle.", "traversability.", "terrain.", "elevation."]
+      .some((prefix) => operationId.startsWith(prefix))
   ) ? "PREVIEW" : "STABLE";
 }
 
@@ -215,7 +217,7 @@ export function compileInput(pattern: QuerySemanticPattern): CompileInput {
       context: { anchorReferenceKeys: [] },
       limitPerMention: 5
     },
-    parameterValues: { distanceM: 1_000 },
+    parameterValues: { distanceM: 1_000, distanceMetres: 1_000 },
     ...catalog,
     maturityPolicy: { allowPreview: false },
     degradedPolicy: "REJECT",

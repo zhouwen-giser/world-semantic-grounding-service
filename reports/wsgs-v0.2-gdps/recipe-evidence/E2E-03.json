@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0",
+  "recipeId": "E2E-03",
+  "requestHash": "sha256:708a43df0f2659d8ff0faefb41841e469089609a228435e71c874a4e20e5182f",
+  "compilerOrigin": "WSGS_PRODUCTION_PIPELINE",
+  "planHash": "sha256:50d5b64b1d033fb19549c9427dc412a40943b5d3ea3e1804a9c46092a86103ef",
+  "terminalStatus": "COMPLETED",
+  "status": "PASS"
+}

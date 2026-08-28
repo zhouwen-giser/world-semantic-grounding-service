@@ -70,6 +70,26 @@ describe("operational GOWM lock intake", () => {
     expect(loaded.lockHash).toBe(pinned.hash);
   });
 
+  it("accepts a schema-valid hash-locked extension subset under the explicit count policy", () => {
+    const candidate = JSON.parse(readFileSync(bundledLockPath, "utf8")) as {
+      defaultOperations: unknown[];
+      previewOperations: unknown[];
+    };
+    candidate.defaultOperations = candidate.defaultOperations.slice(0, 12);
+    candidate.previewOperations = candidate.previewOperations.slice(0, 7);
+    const pinned = temporaryLock(candidate);
+
+    const loaded = loadOperationalGowmLock({
+      lockPath: pinned.path,
+      expectedSha256: pinned.hash,
+      hashMode: "EXACT_BYTES",
+      operationCountPolicy: "HASH_LOCKED_EXTENSION"
+    });
+
+    expect(loaded.lock.defaultOperations).toHaveLength(12);
+    expect(loaded.lock.previewOperations).toHaveLength(7);
+  });
+
   it("fails closed on hash drift before trusting candidate JSON", () => {
     const candidate = JSON.parse(readFileSync(bundledLockPath, "utf8")) as unknown;
     const pinned = temporaryLock(candidate);

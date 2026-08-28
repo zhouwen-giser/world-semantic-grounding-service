@@ -72,6 +72,7 @@ interface ParsedEvidenceReference {
 
 interface ParsedCapabilityEnvelope {
   readonly status: "COMPLETED" | "PARTIAL" | "NO_DATA" | "INDETERMINATE" | "FAILED";
+  readonly normalizedStatus: "COMPLETED" | "PARTIAL" | "NO_DATA" | "INDETERMINATE" | "FAILED";
   readonly dataSnapshot?: Readonly<Record<string, unknown>>;
   readonly computeSnapshot: Readonly<Record<string, unknown>>;
   readonly receipts: readonly ParsedReceipt[];
@@ -298,8 +299,15 @@ function parseCapabilityEnvelope(
   if (receiptIds.some((id) => evidenceIds.includes(id))) {
     throw new ExecutionEvidenceError("RECEIPT_EVIDENCE_ID_COLLISION");
   }
+  const truncated = output !== undefined
+    && output["value"] !== null
+    && typeof output["value"] === "object"
+    && !Array.isArray(output["value"])
+    && (output["value"] as Record<string, unknown>)["truncated"] === true;
+  const normalizedStatus = status === "COMPLETED" && truncated ? "PARTIAL" : status;
   const warnings = uniqueSorted([
     ...stringArray(envelope["warnings"], 256, "INVALID_GATEWAY_ENVELOPE"),
+    ...(truncated ? ["TRUNCATED_RESULT"] : []),
     ...availabilityWarnings(trace)
   ]);
   const dataSnapshot = envelope["dataSnapshot"] === undefined
@@ -313,9 +321,9 @@ function parseCapabilityEnvelope(
             : status === "FAILED" ? "FAILED" : "NO_OUTPUT"
       }
     : boundPayload(output["value"], maximumInlineBytes, objectReference);
-  const unknowns = status === "NO_DATA" ? ["NO_DATA"]
-    : status === "INDETERMINATE" ? ["INDETERMINATE"]
-      : status === "PARTIAL" ? ["PARTIAL_RESULT"] : [];
+  const unknowns = normalizedStatus === "NO_DATA" ? ["NO_DATA"]
+    : normalizedStatus === "INDETERMINATE" ? ["INDETERMINATE"]
+      : normalizedStatus === "PARTIAL" ? ["PARTIAL_RESULT"] : [];
   const evidenceItem = status === "FAILED" ? undefined : {
     evidenceProductId: evidenceId(executionId, trace, status, resultHash, evidenceIds),
     productKind: evidenceProductKindForOperation(trace.operationId),
@@ -323,6 +331,7 @@ function parseCapabilityEnvelope(
     sourceOperation: trace.operationId,
     ...(trace.nodeId === undefined ? {} : { sourceNodeId: trace.nodeId }),
     upstreamStatus: status,
+    normalizedStatus: normalizedStatus as Exclude<typeof normalizedStatus, "FAILED">,
     payloadSchemaUri: trace.outputSchemaUri,
     payloadSchemaHash: trace.outputSchemaHash,
     payload,
@@ -337,6 +346,7 @@ function parseCapabilityEnvelope(
 
   return {
     status,
+    normalizedStatus,
     ...(dataSnapshot === undefined ? {} : { dataSnapshot }),
     computeSnapshot,
     receipts,
@@ -399,8 +409,8 @@ function resolveOutcome(
   };
 }
 
-function normalizedCapabilityStatus(status: ParsedCapabilityEnvelope["status"]): NormalizedExecutionStatus {
-  return status;
+function normalizedCapabilityStatus(parsed: ParsedCapabilityEnvelope): NormalizedExecutionStatus {
+  return parsed.normalizedStatus;
 }
 
 function normalizedTerminalStatus(status: string): NormalizedExecutionStatus {
@@ -520,7 +530,7 @@ export function normalizeDirectExecution(input: DirectExecutionNormalizationInpu
   const snapshot = parsed.status === "FAILED"
     ? { gaps: [] as readonly SnapshotGap[], warnings: [] as readonly string[] }
     : assessDirectSnapshot(parsed.dataSnapshot, input.snapshotExpectation);
-  let normalizedStatus = normalizedCapabilityStatus(parsed.status);
+  let normalizedStatus = normalizedCapabilityStatus(parsed);
   if (snapshot.gaps.length > 0 && !["FAILED", "CANCELLED"].includes(normalizedStatus)) normalizedStatus = "PARTIAL";
   const receiptIds = parsed.receipts.map((receipt) => receipt.id);
   const evidenceIds = parsed.evidenceReferences.map((reference) => reference.id);
@@ -627,7 +637,7 @@ function parseWorldResult(value: unknown): ParsedWorldResult {
 }
 
 function normalizedWorldNodeStatus(status: string, parsed?: ParsedCapabilityEnvelope): NormalizedExecutionStatus {
-  if (parsed !== undefined) return normalizedCapabilityStatus(parsed.status);
+  if (parsed !== undefined) return normalizedCapabilityStatus(parsed);
   if (status === "FAILED") return "FAILED";
   if (status === "CANCELLED") return "CANCELLED";
   if (status === "SKIPPED") return "INDETERMINATE";
@@ -794,6 +804,7 @@ export function normalizeWorldQueryExecution(input: WorldQueryExecutionNormaliza
   assertUnique(evidenceIds, "DUPLICATE_EVIDENCE_ID");
   assertIdentitySeparation(validated.modelReceiptIds, receiptIds, evidenceIds);
   let normalizedStatus = normalizedTerminalStatus(world.status);
+  if (nodeRecords.some((record) => record.normalizedStatus === "PARTIAL")) normalizedStatus = "PARTIAL";
   if (snapshot.gaps.length > 0 && !["FAILED", "CANCELLED"].includes(normalizedStatus)) normalizedStatus = "PARTIAL";
   const record: GowmExecutionRecord = {
     executionId: input.context.executionId,

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "sourceCommit": "9bbbafeef97e4bd9f0b65a11ad340d223e7ec4ca",
+  "requestHash": "sha256:274ba57ee1dd1fb020f80b45b8c9f0e21e622a375cbc857fe53da46ec6f82e54",
+  "terminalStatus": "COMPLETED",
+  "stageHashes": [
+    "sha256:8160928e6bcef839e0cfe32dfdd07fd92e6cc7f9116c2dc644e1143a9d398d00",
+    "sha256:4a647cb557eae14abf8551eb92c329e7a204fc6cb4cd243d1c1d024404448018",
+    "sha256:c08a5345e954e94c4d76ab78130b96e30c9508bfa34d92b9e1dae20b38a938d9",
+    "sha256:bf00489f92f964a09447e35d4af9cc9c94fd1d11629db42379a1f72f30417218",
+    "sha256:8946ccbf1576c3572e6113d97db565379973ff08b1ba662eab51ec05f3ea0190",
+    "sha256:00f8d973b184b3ee4d72b3c219a3e63e918c2f7480fa81128d9460ca7cc98c98",
+    "sha256:47ec21004b10d75b0a79e24004b5751e91172834c70f7cb2937ca248989f18d8",
+    "sha256:6ae73be01ebfcde20e731915028ce6688354145f6764e665e150615312f30460",
+    "sha256:60258203ebd7805c53b6ab8c0d35f3fa2f380dbc8e4cdff53a32e924c5dd736a",
+    "sha256:1cfd0bb9e34ca6163c6084e779e3851bc77f5c401a3a500c3d0f6073086cbf28",
+    "sha256:c435347b8903c8b540c616c2bc3b9efffa072317e43961c00d8a7357f48bcab1",
+    "sha256:77208b03bb3276b90e1cfe4778b2303726e663442d2ad8b153ebe5d54e1af34a",
+    "sha256:17c0eebb88cbf93873e10500ee072152d1b47ced1679abf1abfd761f2c89646b",
+    "sha256:17c0eebb88cbf93873e10500ee072152d1b47ced1679abf1abfd761f2c89646b"
+  ],
+  "resultHash": "sha256:ca8b8bd3dffe25d5d28b78e83db7b9781153b351eeb9a553583b9d50d8a5da51",
+  "realDependencies": {
+    "api": true,
+    "postgres": true,
+    "worker": true,
+    "model": true,
+    "gowm": true
+  },
+  "status": "PASS"
+}

@@ -184,6 +184,15 @@ export class TypedWorldQueryCompiler {
         previewEnabled: false
       });
     }
+    if (rule.maturity === "PREVIEW" && rule.pattern.startsWith("GDPS_") &&
+      !(input.previewRecipeIds ?? []).includes(rule.pattern)) {
+      return gap(input, "MATURITY_NOT_ALLOWED", {
+        pattern: input.pattern,
+        recipeMaturity: rule.maturity,
+        globalPreviewEnabled: input.maturityPolicy.allowPreview,
+        explicitRecipeAuthorized: false
+      });
+    }
     const policy = snapshotPolicy(input, rule);
     if (!policy) {
       return gap(input, "SNAPSHOT_UNSUPPORTED", {
@@ -319,6 +328,9 @@ export class TypedWorldQueryCompiler {
         }
       }
       for (const requestBinding of unit.requestBindings) {
+        if (requestBinding.optional && !Object.hasOwn(input.parameterValues ?? {}, requestBinding.path.replace(/^\//u, ""))) {
+          continue;
+        }
         if (nodeInputs[requestBinding.inputName] !== undefined) {
           throw new QueryCompilationError("TEMPLATE_INPUT_NAME_COLLISION");
         }

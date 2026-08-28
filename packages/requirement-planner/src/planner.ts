@@ -39,8 +39,16 @@ const currentStateTokens = new Set(["CURRENT_STATE", "LOCATION", "POSITION", "ST
 const geometryTokens = new Set(["GEOMETRY", "SHAPE", "FOOTPRINT", "READ_GEOMETRY"]);
 const provenanceTokens = new Set(["PROVENANCE", "SOURCE_PROVENANCE", "READ_PROVENANCE"]);
 const catalogTokens = new Set(["CATALOG_SEARCH", "SEARCH_CATALOG"]);
-const terrainTokens = new Set(["TERRAIN", "HIGH_GROUND", "ELEVATION", "SLOPE", "RELIEF", "TERRAIN_ANALYSIS"]);
+const terrainTokens = new Set(["TERRAIN", "SLOPE", "RELIEF", "TERRAIN_ANALYSIS"]);
 const visibilityTokens = new Set(["VISIBILITY", "VISIBLE", "VISIBLE_FROM", "LINE_OF_SIGHT", "OBSERVABILITY", "CAN_OBSERVE"]);
+const landCoverTokens = new Set(["LAND_COVER", "LAND_COVER_AT_LOCATION"]);
+const wetlandTokens = new Set(["WETLAND", "WETLANDS", "FIND_WETLANDS"]);
+const obstacleTokens = new Set(["OBSTACLE", "OBSTACLES", "FIND_OBSTACLES"]);
+const blockedAreaTokens = new Set(["BLOCKED_AREA", "BLOCKED_AREAS", "FIND_BLOCKED_AREAS"]);
+const highGroundTokens = new Set(["HIGH_GROUND", "FIND_HIGH_GROUND"]);
+const elevationTokens = new Set(["ELEVATION", "ELEVATION_AT_LOCATION"]);
+const traversabilityExplainTokens = new Set(["TRAVERSABILITY_EXPLAIN", "EXPLAIN_TRAVERSABILITY"]);
+const floodRiskTokens = new Set(["FLOOD_RISK"]);
 const localProducts = new Set<RequestedProduct>(["MENTIONS", "GROUNDING_GRAPH"]);
 const previewOnlyProducts = new Set<RequestedProduct>([
   "DERIVED_REFERENCES",
@@ -61,6 +69,18 @@ const outputByRequirement: Record<RequirementType, string> = {
   SPATIAL_NEARBY: "nearbyCandidates",
   SPATIAL_IN_AREA: "areaCandidates",
   SPATIAL_INTERSECTS: "intersectionCandidates",
+  READ_LAND_COVER: "landCover",
+  READ_TERRAIN_CLASS: "terrainClass",
+  READ_ELEVATION: "elevation",
+  READ_SURFACE_MATERIAL: "surfaceMaterial",
+  READ_TRAVERSABILITY: "traversability",
+  FIND_HIGH_GROUND: "highGround",
+  FIND_WATER: "waterFeatures",
+  FIND_WETLANDS: "wetlandFeatures",
+  FIND_BUILDINGS: "buildings",
+  FIND_OBSTACLES: "obstacles",
+  FIND_BLOCKED_AREAS: "blockedAreas",
+  EXPLAIN_TRAVERSABILITY: "traversabilityExplanation",
   EXACT_VERIFY: "verifiedReferences",
   VALIDATE_RESULT: "validatedResult"
 };
@@ -75,6 +95,18 @@ const targetByRequirement: Record<RequirementType, string> = {
   SPATIAL_NEARBY: "/anchorReferences",
   SPATIAL_IN_AREA: "/areaReferences",
   SPATIAL_INTERSECTS: "/references",
+  READ_LAND_COVER: "/point",
+  READ_TERRAIN_CLASS: "/point",
+  READ_ELEVATION: "/point",
+  READ_SURFACE_MATERIAL: "/point",
+  READ_TRAVERSABILITY: "/point",
+  FIND_HIGH_GROUND: "/selector",
+  FIND_WATER: "/selector",
+  FIND_WETLANDS: "/selector",
+  FIND_BUILDINGS: "/selector",
+  FIND_OBSTACLES: "/point",
+  FIND_BLOCKED_AREAS: "/selector",
+  EXPLAIN_TRAVERSABILITY: "/point",
   EXACT_VERIFY: "/candidates",
   VALIDATE_RESULT: "/result"
 };
@@ -96,6 +128,7 @@ interface GraphSignals {
   tokenSourceNodeIds: Map<string, Set<string>>;
   unsupportedSpatialNodeIds: string[];
   hasApproximateCandidate: boolean;
+  explicitProductIds: string[];
 }
 
 interface SelectedRecipe {
@@ -220,7 +253,8 @@ function collectSignals(graph: GroundingGraph): GraphSignals {
     semanticTokens: new Set(),
     tokenSourceNodeIds: new Map(),
     unsupportedSpatialNodeIds: [],
-    hasApproximateCandidate: false
+    hasApproximateCandidate: false,
+    explicitProductIds: []
   };
   const expectedKinds = new Set<string>();
   for (const node of [...graph.nodes].sort((left, right) => left.nodeId.localeCompare(right.nodeId))) {
@@ -245,6 +279,11 @@ function collectSignals(graph: GroundingGraph): GraphSignals {
     if (node.kind !== "SEMANTIC_OPERATION") continue;
     addToken(signals, payload["category"], node.nodeId);
     const expression = plainObject(payload["expression"]) ? payload["expression"] : {};
+    const relationType = expression["relationType"];
+    if (typeof relationType === "string") {
+      const preference = /^EXPLICIT_PRODUCT_PREFERENCE:(?<productId>[a-z][a-z0-9-]{2,63})$/u.exec(relationType);
+      if (preference?.groups?.["productId"]) signals.explicitProductIds.push(preference.groups["productId"]);
+    }
     for (const key of ["relationType", "semanticCapability", "resultNature"]) addToken(signals, expression[key], node.nodeId);
     if (Array.isArray(expression["capabilityRequirements"])) {
       for (const value of expression["capabilityRequirements"]) addToken(signals, value, node.nodeId);
@@ -281,6 +320,7 @@ function collectSignals(graph: GroundingGraph): GraphSignals {
   signals.expectedReferenceKinds = [...expectedKinds].sort();
   signals.spatialConstraints.sort((left, right) => left.sourceNodeId.localeCompare(right.sourceNodeId));
   signals.unsupportedSpatialNodeIds.sort();
+  signals.explicitProductIds = [...new Set(signals.explicitProductIds)].sort();
   return signals;
 }
 
@@ -350,6 +390,29 @@ function inputsForRequirement(
     case "READ_GEOMETRY":
     case "READ_PROVENANCE":
       return { ...common, referenceNodeIds: signals.referenceNodeIds };
+    case "READ_LAND_COVER":
+    case "READ_TERRAIN_CLASS":
+    case "READ_ELEVATION":
+    case "READ_SURFACE_MATERIAL":
+    case "READ_TRAVERSABILITY":
+    case "FIND_HIGH_GROUND":
+    case "FIND_WATER":
+    case "FIND_WETLANDS":
+    case "FIND_BUILDINGS":
+    case "FIND_OBSTACLES":
+    case "FIND_BLOCKED_AREAS":
+    case "EXPLAIN_TRAVERSABILITY":
+      return {
+        ...common,
+        referenceNodeIds: signals.referenceNodeIds,
+        spatialConstraints: signals.spatialConstraints.map((constraint) => ({
+          sourceNodeId: constraint.sourceNodeId,
+          operator: constraint.operator,
+          approximate: constraint.approximate,
+          ...(constraint.distanceMm === undefined ? {} : { distanceMm: constraint.distanceMm })
+        })),
+        explicitProductIds: signals.explicitProductIds
+      };
     case "SEARCH_CATALOG":
       return {
         ...common,
@@ -411,6 +474,8 @@ export class SemanticRequirementPlanner {
     if (signals.unsupportedSpatialNodeIds.length > 0) {
       gaps.push(makeGap("UNSUPPORTED_EXPRESSION", "UNSUPPORTED_SPATIAL_RELATION", primaryProduct, signals.unsupportedSpatialNodeIds));
     }
+    const floodSources = tokenSources(signals, floodRiskTokens);
+    if (floodSources.length > 0) gaps.push(makeGap("UNSUPPORTED_EXPRESSION", "FLOOD_RISK", primaryProduct, floodSources));
     for (const product of products.filter((value) => previewOnlyProducts.has(value))) {
       gaps.push(makeGap("UNSUPPORTED_EXPRESSION", product, product, []));
     }
@@ -431,19 +496,44 @@ export class SemanticRequirementPlanner {
     const nearbySources = signals.spatialConstraints.filter((entry) => entry.operator === "NEAR").map((entry) => entry.sourceNodeId);
     const inAreaSources = signals.spatialConstraints.filter((entry) => entry.operator === "WITHIN" || entry.operator === "CONTAINS").map((entry) => entry.sourceNodeId);
     const intersectionSources = signals.spatialConstraints.filter((entry) => entry.operator === "INTERSECTS").map((entry) => entry.sourceNodeId);
+    const gdpsSelections: Array<readonly [StableRecipeId, readonly string[]]> = [
+      ["GDPS_LAND_COVER_AT_REFERENCE", tokenSources(signals, landCoverTokens)],
+      ["GDPS_WETLANDS_IN_AREA", tokenSources(signals, wetlandTokens)],
+      ["GDPS_OBSTACLES_NEAR_REFERENCE", tokenSources(signals, obstacleTokens)],
+      ["GDPS_BLOCKED_AREAS_IN_AREA", tokenSources(signals, blockedAreaTokens)],
+      ["GDPS_ELEVATION_AT_REFERENCE", tokenSources(signals, elevationTokens)],
+      ["GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE", tokenSources(signals, traversabilityExplainTokens)]
+    ];
+    for (const [recipeId, sources] of gdpsSelections) {
+      if (sources.length > 0 && needsQuery) addRecipe(recipeId, queryProduct, sources);
+    }
+    const highGroundSources = tokenSources(signals, highGroundTokens);
+    if (highGroundSources.length > 0 && needsQuery) {
+      if (nearbySources.length > 0) {
+        gaps.push(makeGap("GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED", "METRE_GEOMETRY_BUFFER", queryProduct, highGroundSources));
+      } else if (inAreaSources.length > 0) {
+        addRecipe("GDPS_HIGH_GROUND_IN_AREA", queryProduct, highGroundSources);
+      }
+    }
+    const gdpsRecipeSelected = [...selected.keys()].some((id) => id.startsWith("GDPS_")) || highGroundSources.length > 0;
     if (needsQuery || needsReferenceSet) {
-      if (nearbySources.length > 0) addRecipe("REFERENCE_NEARBY", queryProduct, nearbySources);
-      if (inAreaSources.length > 0) addRecipe("REFERENCE_IN_AREA", queryProduct, inAreaSources);
-      if (intersectionSources.length > 0) addRecipe("REFERENCE_INTERSECTIONS", queryProduct, intersectionSources);
+      if (!gdpsRecipeSelected && nearbySources.length > 0) addRecipe("REFERENCE_NEARBY", queryProduct, nearbySources);
+      if (!gdpsRecipeSelected && inAreaSources.length > 0) addRecipe("REFERENCE_IN_AREA", queryProduct, inAreaSources);
+      if (!gdpsRecipeSelected && intersectionSources.length > 0) addRecipe("REFERENCE_INTERSECTIONS", queryProduct, intersectionSources);
     }
 
     if (signals.priorResultNodeIds.length > 0 && (needsQuery || products.includes("RESOLVED_REFERENCES"))) {
       addRecipe("PRIOR_RESULT_REVALIDATION", products.includes("RESOLVED_REFERENCES") ? "RESOLVED_REFERENCES" : queryProduct, signals.priorResultNodeIds);
     }
 
-    const spatialRecipeSelected = ["REFERENCE_NEARBY", "REFERENCE_IN_AREA", "REFERENCE_INTERSECTIONS"]
+    const spatialRecipeSelected = ["REFERENCE_NEARBY", "REFERENCE_IN_AREA", "REFERENCE_INTERSECTIONS",
+      "GDPS_LAND_COVER_AT_REFERENCE", "GDPS_WETLANDS_IN_AREA", "GDPS_OBSTACLES_NEAR_REFERENCE",
+      "GDPS_BLOCKED_AREAS_IN_AREA", "GDPS_HIGH_GROUND_IN_AREA", "GDPS_ELEVATION_AT_REFERENCE",
+      "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE"]
       .some((id) => selected.has(id as StableRecipeId));
-    if (needsReferenceSet && !spatialRecipeSelected) addRecipe("CATALOG_SEARCH", "REFERENCE_SETS", tokenSources(signals, catalogTokens));
+    if (needsReferenceSet && !spatialRecipeSelected && !gdpsRecipeSelected) {
+      addRecipe("CATALOG_SEARCH", "REFERENCE_SETS", tokenSources(signals, catalogTokens));
+    }
 
     if (needsQuery && !spatialRecipeSelected) {
       const currentSources = tokenSources(signals, currentStateTokens);

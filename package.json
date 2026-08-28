@@ -34,6 +34,12 @@
     "gate:real:model": "tsx validation/scripts/real-model-gate.ts",
     "gate:real:readiness": "tsx validation/scripts/real-production-readiness-gate.ts",
     "gate:real:development": "tsx validation/scripts/real-development-pipeline-gate.ts",
+    "gdps:w20:check": "node validation/scripts/generate-gdps-source-baseline.mjs",
+    "gdps:w20:write": "node validation/scripts/generate-gdps-source-baseline.mjs --write",
+    "gdps:development:check": "tsx validation/scripts/generate-gdps-development-evidence.ts",
+    "gdps:development:write": "tsx validation/scripts/generate-gdps-development-evidence.ts --write",
+    "gdps:current-only:real": "tsx validation/scripts/real-gdps-current-only-gate.ts",
+    "gdps:closure:check": "tsx validation/scripts/generate-gdps-closure-evidence.ts",
     "check": "npm run contracts:check && npm run architecture:check && npm run acceptance:check && npm run acceptance:v0.2:check && npm run development:check && npm run typecheck && npm test"
   },
   "dependencies": {

@@ -66,7 +66,9 @@ function inferredKind(surfaceText: string): string[] {
 
 function namedEntityCandidates(sourceText: string): Array<{ surfaceText: string; start: number; end: number; expectedKinds: string[] }> {
   const patterns: Array<{ expression: RegExp; expectedKinds: string[] }> = [
-    { expression: /[\p{L}\p{N}]+号车/gu, expectedKinds: ["WORLD_OBJECT"] },
+    // Vehicle identifiers are bounded labels, not arbitrary preceding prose;
+    // e.g. "为什么2号车..." must anchor "2号车", never "为什么2号车".
+    { expression: /(?:[A-Za-z0-9]+|[一二三四五六七八九十百千]+)号车/gu, expectedKinds: ["WORLD_OBJECT"] },
     { expression: /[\p{L}\p{N}]+路/gu, expectedKinds: ["LAYER_FEATURE"] },
     { expression: /[A-Za-z0-9一二三四五六七八九十]+区/gu, expectedKinds: ["LAYER_FEATURE"] }
   ];
@@ -102,7 +104,9 @@ export function stabilizeSemanticFrame(frame: WorldSemanticFrame, originalText: 
       expectedKinds: expectedKinds.length > 0 ? expectedKinds : inferredKind(mention.surfaceText)
     };
   }).filter((mention) => mention.expectedKinds.length > 0);
-  const candidates = [...proposedCandidates, ...namedEntityCandidates(originalText)]
+  // Deterministic source forms are authoritative for reference kind. A model
+  // proposal for the same span cannot reclassify a vehicle, road, or area.
+  const candidates = [...namedEntityCandidates(originalText), ...proposedCandidates]
     .sort((left, right) => left.start - right.start || right.end - left.end)
     .filter((value, index, all) => !all.slice(0, index).some((prior) => prior.start === value.start && prior.end === value.end));
 
@@ -130,7 +134,9 @@ export function stabilizeSemanticFrame(frame: WorldSemanticFrame, originalText: 
   const explicitSpatial: WorldSemanticFrame["spatialExpressions"] = [];
   for (const mention of mentions) {
     const suffix = originalText.slice(mention.span.end);
-    const operator = /^\s*附近/u.test(suffix) ? "NEAR" : /^\s*内/u.test(suffix) ? "WITHIN" : null;
+    const areaMention = (mention.expectedKinds ?? []).includes("LAYER_FEATURE");
+    const operator = /^\s*附近/u.test(suffix) ? "NEAR"
+      : /^\s*内/u.test(suffix) || (areaMention && /^\s*(?:有哪些|有什么)/u.test(suffix)) ? "WITHIN" : null;
     if (!operator) continue;
     explicitSpatial.push({
       expressionId: stableIdentifier("spatial", [operator, mention.mentionId, distanceM ?? null]),
@@ -160,6 +166,32 @@ export function stabilizeSemanticFrame(frame: WorldSemanticFrame, originalText: 
       });
     }
   }
+  const semanticSubject = mentions[0]?.mentionId;
+  const addSemanticRelation = (relationType: string): void => {
+    if (!semanticSubject) return;
+    explicitRelations.push({
+      expressionId: stableIdentifier("relation", [relationType, semanticSubject]),
+      relationType,
+      subjectMentionId: semanticSubject
+    });
+  };
+  if (/(?:地表覆盖|土地覆盖|land\s*cover)/iu.test(originalText)) addSemanticRelation("LAND_COVER_AT_LOCATION");
+  if (/(?:湿地|wetlands?)/iu.test(originalText)) addSemanticRelation("FIND_WETLANDS");
+  if (/(?:障碍物|obstacles?)/iu.test(originalText)) addSemanticRelation("FIND_OBSTACLES");
+  if (/(?:不可通行区域|阻塞区域|blocked\s+areas?)/iu.test(originalText)) addSemanticRelation("FIND_BLOCKED_AREAS");
+  if (/(?:高地|high\s+ground)/iu.test(originalText)) addSemanticRelation("FIND_HIGH_GROUND");
+  if (/(?:高程|海拔|elevation)/iu.test(originalText)) addSemanticRelation("ELEVATION_AT_LOCATION");
+  if (/(?:为什么.*通行性|通行性.*为什么|explain.*traversability)/iu.test(originalText)) {
+    addSemanticRelation("EXPLAIN_TRAVERSABILITY");
+  }
+  if (/(?:可见性|视域|visibility|line\s+of\s+sight)/iu.test(originalText)) addSemanticRelation("VISIBILITY");
+  if (/(?:洪水风险|淹没风险|flood\s+risk)/iu.test(originalText)) addSemanticRelation("FLOOD_RISK");
+  if (/(?:地表材质|surface\s+material)/iu.test(originalText)) addSemanticRelation("SURFACE_MATERIAL");
+  if (/(?:水体|surface\s+water)/iu.test(originalText)) addSemanticRelation("FIND_WATER");
+  if (/(?:建筑物|buildings?)/iu.test(originalText)) addSemanticRelation("FIND_BUILDINGS");
+  if (/(?:地形类别|terrain\s+class)/iu.test(originalText)) addSemanticRelation("TERRAIN_CLASS");
+  const productPreference = /(?:使用|采用|use)\s*([a-z][a-z0-9-]{2,63})\s*(?:数据|data)?/iu.exec(originalText);
+  if (productPreference?.[1]) addSemanticRelation(`EXPLICIT_PRODUCT_PREFERENCE:${productPreference[1].toLowerCase()}`);
   const proposedRelations = frame.relationExpressions.flatMap((expression) => {
     const subjectMentionId = oldMentionIds.get(expression.subjectMentionId);
     const objectMentionId = expression.objectMentionId ? oldMentionIds.get(expression.objectMentionId) : undefined;
@@ -171,7 +203,10 @@ export function stabilizeSemanticFrame(frame: WorldSemanticFrame, originalText: 
       ...(objectMentionId ? { objectMentionId } : {})
     }];
   });
-  const relationExpressions = explicitRelations.length > 0 ? explicitRelations : proposedRelations;
+  const relationExpressions = explicitRelations.length > 0
+    ? [...explicitRelations, ...proposedRelations]
+      .filter((entry, index, values) => values.findIndex((candidate) => candidate.expressionId === entry.expressionId) === index)
+    : proposedRelations;
 
   return validateSemanticFrame({
     schemaVersion: "1.0", mentions, spatialExpressions, relationExpressions,

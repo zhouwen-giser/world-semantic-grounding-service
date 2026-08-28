@@ -480,7 +480,11 @@ describe("GOWM Gateway client v2", () => {
   });
 
   it("retains a bounded upstream protocol code on unexpected HTTP responses", async () => {
-    const gateway = client(async () => jsonResponse({ error: { code: "INPUT_SCHEMA_INVALID", detail: "not retained" } }, 422));
+    const gateway = client(async () => jsonResponse({ error: {
+      code: "INPUT_SCHEMA_INVALID",
+      detail: "not retained",
+      details: { stage: "DAG_VALIDATION", nodeId: "Node_2", secret: "not retained" }
+    } }, 422));
     await expect(gateway.executeOperation(lock, {
       requestVersion: "1.0",
       requestId: "request-1",
@@ -494,7 +498,12 @@ describe("GOWM Gateway client v2", () => {
         maximumResultBytes: 4_096,
         maximumCostClass: "LOW"
       }
-    })).rejects.toMatchObject({ code: "HTTP_422_INPUT_SCHEMA_INVALID", status: 422, retryable: false });
+    })).rejects.toMatchObject({
+      code: "HTTP_422_INPUT_SCHEMA_INVALID",
+      status: 422,
+      retryable: false,
+      details: { stage: "DAG_VALIDATION", nodeId: "Node_2" }
+    });
   });
 
   it("requests asynchronous world-query execution and polls terminal jobs", async () => {

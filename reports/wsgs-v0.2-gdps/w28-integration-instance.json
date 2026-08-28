@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "wsgs-gdps-integration-instance/1.0",
+  "capturedAt": "2026-08-28T17:10:23.913Z",
+  "status": "PASS",
+  "executionClassification": "REAL_EXTERNAL_DEPENDENCIES",
+  "authenticationMode": "SIGNED_DELEGATION_V1",
+  "gatewayTarget": "CURRENT_SHARED_GATEWAY",
+  "gatewayBaseUrlHash": "sha256:f9e89e06b585192798c9b95e553ee40e4cc5cb07525e1815624764dcb4529ad1",
+  "registry": {
+    "capabilityCount": 145,
+    "providerCount": 16,
+    "contractCatalogRevision": "sha256:3c779d10d580b44ce35383981f9bba6aecec56f29f9063fe76d8e196a6b96f81",
+    "bindingRevision": "sha256:3d57ce20ead082f3273279285306060f18dfb7dbc1ea0dba8cd5696508021523",
+    "semanticCatalogHash": "sha256:cf06efc8c23e7eb49acd7b79ca1a006e7c3372943691a0caf72fabaac2a7730d"
+  },
+  "gdps": {
+    "providerId": "gdps.geospatial-products",
+    "registeredCapabilityCount": 23,
+    "selectedPreviewOperations": 7,
+    "currentOperationalLock": "PASS"
+  },
+  "southboundLock": {
+    "stableOperations": 12,
+    "previewOperations": 7,
+    "exactFileHash": "sha256:4a2c093ba41c91b64ae698b8c814aa089b697b59bb30a1a01c9e552d1944004f"
+  },
+  "evidence": [
+    "reports/wsgs-v0.2-gdps/development-closure-gate.json"
+  ],
+  "credentialsIncluded": false,
+  "marker": "GDPS_SHARED_INTEGRATION_INSTANCE_READY"
+}

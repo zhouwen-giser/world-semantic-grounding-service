@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "wsgs-gdps-typed-plan-evidence/1.0",
+  "status": "PASS",
+  "evidenceClass": "CONTRACT_TEST",
+  "note": "Real Gateway executions are recorded separately by W29; this file proves compiler shape and policy.",
+  "plans": [
+    {
+      "recipeId": "GDPS_LAND_COVER_AT_REFERENCE",
+      "planHash": "sha256:c44229acf44233e5efc3df5a0b21496c23a4e81a9b0af86ec722d32014703c90",
+      "operations": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "landcover.get-class@1.0"
+      ],
+      "snapshotMode": "BEST_EFFORT",
+      "explicitProductId": null,
+      "providerIdInPlan": false,
+      "budget": {
+        "maximumNodes": 16,
+        "maximumDepth": 16,
+        "maximumRows": 1000,
+        "maximumCandidates": 1000,
+        "maximumOutputBytes": 1000000,
+        "maximumExecutionMs": 30000
+      }
+    },
+    {
+      "recipeId": "GDPS_WETLANDS_IN_AREA",
+      "planHash": "sha256:b0fd19cbf6282a29aa7942a70e0e5b29673cf4876c77a063ee7fbba27ccc1f28",
+      "operations": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "hydrology.find-wetlands@1.0"
+      ],
+      "snapshotMode": "BEST_EFFORT",
+      "explicitProductId": null,
+      "providerIdInPlan": false,
+      "budget": {
+        "maximumNodes": 16,
+        "maximumDepth": 16,
+        "maximumRows": 1000,
+        "maximumCandidates": 1000,
+        "maximumOutputBytes": 1000000,
+        "maximumExecutionMs": 30000
+      }
+    },
+    {
+      "recipeId": "GDPS_OBSTACLES_NEAR_REFERENCE",
+      "planHash": "sha256:ac63045ff08176f10b961d9c663ae8e3ec46d4a553bc00bf0994885f266342b9",
+      "operations": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "obstacle.find-nearby@1.0"
+      ],
+      "snapshotMode": "BEST_EFFORT",
+      "explicitProductId": null,
+      "providerIdInPlan": false,
+      "budget": {
+        "maximumNodes": 16,
+        "maximumDepth": 16,
+        "maximumRows": 1000,
+        "maximumCandidates": 1000,
+        "maximumOutputBytes": 1000000,
+        "maximumExecutionMs": 30000
+      }
+    },
+    {
+      "recipeId": "GDPS_BLOCKED_AREAS_IN_AREA",
+      "planHash": "sha256:7d910a228ccfa7c5dca1cae09ca08e3248f56e14c98e298d3d4d131177c55514",
+      "operations": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "traversability.find-blocked@1.0"
+      ],
+      "snapshotMode": "BEST_EFFORT",
+      "explicitProductId": null,
+      "providerIdInPlan": false,
+      "budget": {
+        "maximumNodes": 16,
+        "maximumDepth": 16,
+        "maximumRows": 1000,
+        "maximumCandidates": 1000,
+        "maximumOutputBytes": 1000000,
+        "maximumExecutionMs": 30000
+      }
+    },
+    {
+      "recipeId": "GDPS_HIGH_GROUND_IN_AREA",
+      "planHash": "sha256:a8958cd5d9b0b4052e450f3b050af8a61848162cddbb1bb568922f56297efe26",
+      "operations": [
+        "reference.resolve@1.0",
+        "world.get-geometry@1.0",
+        "terrain.find-high-ground@1.0"
+      ],
+      "snapshotMode": "BEST_EFFORT",
+      "explicitProductId": "terrain-main",
+      "providerIdInPlan": false,
+      "budget": {
+        "maximumNodes": 16,
+        "maximumDepth": 16,
+        "maximumRows": 1000,
+        "maximumCandidates": 1000,
+        "maximumOutputBytes": 1000000,
+        "maximumExecutionMs": 30000
+      }
+    },
+    {
+      "recipeId": "GDPS_ELEVATION_AT_REFERENCE",
+      "planHash": "sha256:62704f3c455027f8eef0f99bd91c723ba02f00fbe77efcd9d7c9ad999ee46e1c",
+      "operations": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "elevation.sample@1.0"
+      ],
+      "snapshotMode": "BEST_EFFORT",
+      "explicitProductId": null,
+      "providerIdInPlan": false,
+      "budget": {
+        "maximumNodes": 16,
+        "maximumDepth": 16,
+        "maximumRows": 1000,
+        "maximumCandidates": 1000,
+        "maximumOutputBytes": 1000000,
+        "maximumExecutionMs": 30000
+      }
+    },
+    {
+      "recipeId": "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+      "planHash": "sha256:b359c81161e57d89b65420328ed629eaf8cf6c5d815bb8ecd8db9865482a4941",
+      "operations": [
+        "reference.resolve@1.0",
+        "world.get-current-state@1.0",
+        "traversability.explain@1.0"
+      ],
+      "snapshotMode": "BEST_EFFORT",
+      "explicitProductId": null,
+      "providerIdInPlan": false,
+      "budget": {
+        "maximumNodes": 16,
+        "maximumDepth": 16,
+        "maximumRows": 1000,
+        "maximumCandidates": 1000,
+        "maximumOutputBytes": 1000000,
+        "maximumExecutionMs": 30000
+      }
+    }
+  ],
+  "implicitProductIdAbsent": true,
+  "explicitProductIdSource": "USER_TEXT_ONLY",
+  "marker": "GDPS_TYPED_QUERY_PLAN_READY"
+}

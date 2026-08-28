@@ -135,6 +135,7 @@ export interface NormalizedExecutionEvidenceItem {
   readonly sourceOperation: string;
   readonly sourceNodeId?: string;
   readonly upstreamStatus: "COMPLETED" | "PARTIAL" | "NO_DATA" | "INDETERMINATE";
+  readonly normalizedStatus: "COMPLETED" | "PARTIAL" | "NO_DATA" | "INDETERMINATE";
   readonly payloadSchemaUri: string;
   readonly payloadSchemaHash: Sha256Digest;
   readonly payload: PayloadStorage;

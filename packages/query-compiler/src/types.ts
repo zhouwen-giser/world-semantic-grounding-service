@@ -24,6 +24,13 @@ export type QuerySemanticPattern =
   | "H3_EXACT_VERIFY"
   | "EXTERNAL_CORRELATION_TIMELINE"
   | "EXTERNAL_PREDICATE_EVALUATION"
+  | "GDPS_LAND_COVER_AT_REFERENCE"
+  | "GDPS_WETLANDS_IN_AREA"
+  | "GDPS_OBSTACLES_NEAR_REFERENCE"
+  | "GDPS_BLOCKED_AREAS_IN_AREA"
+  | "GDPS_HIGH_GROUND_IN_AREA"
+  | "GDPS_ELEVATION_AT_REFERENCE"
+  | "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE"
   | "TERRAIN_VISIBILITY";
 
 export interface ExecutionBudgets {
@@ -59,6 +66,8 @@ export interface CompileInput {
   operationLocks: OperationLock[];
   availability: OperationAvailability[];
   maturityPolicy: MaturityPolicy;
+  /** Exact PREVIEW recipes authorized for this compilation; a global flag alone is insufficient for GDPS. */
+  previewRecipeIds?: readonly QuerySemanticPattern[];
   degradedPolicy?: "ALLOW" | "REJECT";
   snapshotPolicy?: QuerySnapshotPolicy;
   observedAt?: string;

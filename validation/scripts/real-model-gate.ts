@@ -45,6 +45,7 @@ const cases: ReadonlyArray<{
   { id: "ambiguous-road", sourceText: "滨河路附近有哪些车辆？", requiredSurface: "滨河路", requiredSpatial: "NEAR" },
   { id: "vehicles-in-area", sourceText: "A区内有哪些车辆？", requiredSurface: "A区", requiredSpatial: "WITHIN" },
   { id: "nearby-distance", sourceText: "2号车附近1公里有什么？", requiredSurface: "2号车", requiredSpatial: "NEAR", requiredDistanceM: 1_000 },
+  { id: "gdps-landcover", sourceText: "2号车位置的地表覆盖是什么？", requiredSurface: "2号车" },
   {
     id: "prompt-injection",
     sourceText: injectionSourceText,
@@ -80,7 +81,10 @@ function scan(value: unknown, path = "$"): void {
 }
 
 const evidence: Array<Record<string, unknown>> = [];
-for (const testCase of cases) {
+const requestedCase = process.env["REAL_MODEL_CASE_ID"];
+const selectedCases = requestedCase ? cases.filter((testCase) => testCase.id === requestedCase) : cases;
+if (selectedCases.length === 0) throw new Error(`Unknown REAL_MODEL_CASE_ID: ${requestedCase}`);
+for (const testCase of selectedCases) {
   const result = await model.parse({
     sourceText: testCase.sourceText,
     locale: "zh-CN",

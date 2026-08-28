@@ -422,6 +422,34 @@ describe("GOWM execution evidence product", () => {
     expect(product.warnings).toContain("AVAILABILITY_DEGRADED_AT_COMPILE");
   });
 
+  it("normalizes an explicitly truncated completed payload to PARTIAL", () => {
+    const operation = trace("terrain.find-high-ground", { operationVersion: "1.0" });
+    const product = normalizeDirectExecution(directInput({
+      operation,
+      outcome: {
+        mode: "SYNC",
+        status: 200,
+        result: envelope(operation, {
+          value: {
+            productId: "terrain-main",
+            contentHash: `sha256:${"d".repeat(64)}`,
+            type: "FeatureCollection",
+            features: [],
+            truncated: true
+          }
+        })
+      }
+    }));
+
+    expect(product.record.normalizedStatus).toBe("PARTIAL");
+    expect(product.evidenceItems[0]).toMatchObject({
+      upstreamStatus: "COMPLETED",
+      normalizedStatus: "PARTIAL",
+      unknowns: ["PARTIAL_RESULT"],
+      warnings: ["TRUNCATED_RESULT"]
+    });
+  });
+
   it("references oversized output only after an exact authoritative object reference is supplied", () => {
     const operation = trace();
     const value = { geometry: "x".repeat(2000), rows: [1, 2, 3] };
