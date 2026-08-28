@@ -295,17 +295,31 @@ async function submitAndRun(
   if (terminalResult["status"] !== terminalStatus) throw new Error(`GROUNDING_RESULT_STATUS_MISMATCH_${recipeId}`);
   if (!acceptedStatuses.includes(terminalStatus)) {
     const count = (name: string): number => Array.isArray(terminalResult[name]) ? terminalResult[name].length : 0;
-    const gapReasons = Array.isArray(terminalResult["capabilityGaps"])
-      ? terminalResult["capabilityGaps"].flatMap((entry) => {
+    const capabilityGaps = Array.isArray(terminalResult["capabilityGaps"])
+      ? terminalResult["capabilityGaps"]
+      : [];
+    const gapReasons = capabilityGaps
+      .flatMap((entry) => {
         if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
         const reason = (entry as JsonObject)["reason"];
         return typeof reason === "string" ? [reason] : [];
-      }).join("-") || "NONE"
+      }).join("-") || "NONE";
+    const firstGap = capabilityGaps.find((entry) => entry && typeof entry === "object" && !Array.isArray(entry)) as JsonObject | undefined;
+    const gapDetails = firstGap && firstGap["details"] && typeof firstGap["details"] === "object" && !Array.isArray(firstGap["details"])
+      ? firstGap["details"] as JsonObject
+      : undefined;
+    const safeCode = (value: unknown): string => typeof value === "string"
+      ? value.toUpperCase().replace(/[^A-Z0-9@._-]+/gu, "-").slice(0, 160) || "NONE"
+      : "NONE";
+    const allowedOperationKeys = Array.isArray(gapDetails?.["allowedOperationKeys"])
+      ? gapDetails["allowedOperationKeys"].map(safeCode).join("-") || "NONE"
       : "NONE";
     throw new Error(
       `UNEXPECTED_TERMINAL_STATUS_${recipeId}_${terminalStatus}` +
       `_M${count("mentions")}_R${count("referenceProducts")}_U${count("unresolvedMentions")}` +
-      `_A${count("ambiguities")}_G${count("capabilityGaps")}_${gapReasons}`
+      `_A${count("ambiguities")}_G${count("capabilityGaps")}_${gapReasons}` +
+      `_CAP_${safeCode(firstGap?.["semanticCapability"])}_DETAIL_${safeCode(gapDetails?.["code"])}` +
+      `_ALLOWED_${allowedOperationKeys}`
     );
   }
   const evidence = await collect(groundingId, requestHash);
