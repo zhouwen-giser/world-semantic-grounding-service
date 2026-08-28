@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   PRODUCTION_STABLE_OPERATION_IDS,
+  PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
   assertPriorGroundingReplaySupport,
   buildRecipeOperationInput,
   capabilityCatalogHash,
@@ -154,6 +155,13 @@ function worldQuerySubmission() {
 }
 
 describe("production stage module authority boundaries", () => {
+  it("uses per-node best effort for mixed world-independent and snapshot-bound DAGs", () => {
+    expect(PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY).toEqual({
+      mode: "BEST_EFFORT",
+      allowDowngrade: false
+    });
+  });
+
   it("hashes a checked-out CRLF lock as its canonical LF bytes", () => {
     const canonical = Buffer.from("{\n  \"schemaVersion\": \"2.0\"\n}\n", "utf8");
     const checkedOut = Buffer.from("{\r\n  \"schemaVersion\": \"2.0\"\r\n}\r\n", "utf8");

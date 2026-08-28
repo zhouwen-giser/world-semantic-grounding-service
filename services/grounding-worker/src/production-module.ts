@@ -132,6 +132,18 @@ export const PRODUCTION_STABLE_OPERATION_IDS = Object.freeze([
   "result.validate"
 ] as const);
 
+/**
+ * Stable grounding recipes combine world-independent catalog resolution with
+ * snapshot-bound world evidence. GOWM cannot attest a world-independent node
+ * to LATEST_AT_START, so the mixed DAG preserves each node's observed
+ * adherence under BEST_EFFORT. Historical PINNED replay is rejected separately
+ * and is never weakened to a latest snapshot.
+ */
+export const PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY = Object.freeze({
+  mode: "BEST_EFFORT",
+  allowDowngrade: false
+} as const);
+
 export class ProductionStageModuleError extends Error {
   constructor(
     readonly code: string,
@@ -1660,6 +1672,7 @@ export async function createPipelineStageExecutor(
           availability: authority.availability.operations,
           maturityPolicy: { allowPreview: value.allowPreview },
           observedAt: authority.availability.checkedAt,
+          snapshotPolicy: PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
           budgets: {
             maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
             maximumDepth: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
