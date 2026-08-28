@@ -1267,8 +1267,12 @@ export function computeWorldQueryNodeRequestHashes(
       const safeError = typeof nodeError === "string"
         ? nodeError.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 96)
         : "NO_ERROR_CODE";
+      const nodeStage = nestedError?.["stage"] ?? errorEnvelope?.["stage"];
+      const safeStage = typeof nodeStage === "string"
+        ? nodeStage.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 64)
+        : "NO_STAGE";
       throw new ProductionStageModuleError(
-        `WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE_${safeOperation}_${safeStatus}_${safeError}`
+        `WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE_${safeOperation}_${safeStatus}_${safeError}_${safeStage}`
       );
     }
     const envelope = object(source["result"], "WORLD_QUERY_SOURCE_ENVELOPE_MISSING");
