@@ -1259,7 +1259,14 @@ export function computeWorldQueryNodeRequestHashes(
       const safeStatus = /^[A-Z][A-Z0-9_]{0,63}$/u.test(sourceStatus) ? sourceStatus : "INVALID";
       const sourceOperation = planByNode.get(sourceNodeId)?.operation.operationId ?? "unknown";
       const safeOperation = sourceOperation.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 64);
-      throw new ProductionStageModuleError(`WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE_${safeOperation}_${safeStatus}`);
+      const nodeError = source["error"] && typeof source["error"] === "object" && !Array.isArray(source["error"])
+        ? (source["error"] as JsonObject)["code"] : undefined;
+      const safeError = typeof nodeError === "string"
+        ? nodeError.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 96)
+        : "NO_ERROR_CODE";
+      throw new ProductionStageModuleError(
+        `WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE_${safeOperation}_${safeStatus}_${safeError}`
+      );
     }
     const envelope = object(source["result"], "WORLD_QUERY_SOURCE_ENVELOPE_MISSING");
     const output = object(envelope["output"], "WORLD_QUERY_SOURCE_OUTPUT_MISSING");
