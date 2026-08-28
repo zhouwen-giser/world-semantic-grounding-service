@@ -393,7 +393,7 @@ describe("production stage module authority boundaries", () => {
     expect(hashes["Node_1"]).not.toBe(digest("f"));
   });
 
-  it("reconstructs a linked nearby node input from the submitted radius and actual upstream geometry", () => {
+  it("reconstructs a linked nearby node input from the submitted radius and current position coordinates", () => {
     const submission = worldQuerySubmission();
     submission.parameters["distanceM"] = 1_000;
     submission.plan.nodes.push({
@@ -408,14 +408,14 @@ describe("production stage module authority boundaries", () => {
         location: {
           kind: "NODE_OUTPUT",
           port: {
-            schemaUri: "urn:test:geometry",
+            schemaUri: "urn:test:position-coordinates",
             schemaHash: digest("7"),
-            valueKind: "GEOMETRY",
+            valueKind: "ANY",
             unitSemantics: "ANGULAR_DEGREES"
           },
           nodeId: "Node_1",
-          outputPort: "geometry",
-          path: "/facts/0/geometry",
+          outputPort: "positionCoordinates",
+          path: "/facts/0/position/coordinates",
           targetPath: "/location"
         },
         radiusM: {
@@ -438,26 +438,26 @@ describe("production stage module authority boundaries", () => {
         maximumExecutionMs: 1000
       }
     });
-    const geometry = { type: "Point", coordinates: [116.4, 39.9] };
+    const positionCoordinates = [116.4, 39.9];
     const hashes = computeWorldQueryNodeRequestHashes(submission, {
       nodes: [{
         nodeId: "Node_1",
         status: "COMPLETED",
-        result: { output: { value: { facts: [{ geometry }] } } }
+        result: { output: { value: { facts: [{ position: { type: "Point", coordinates: positionCoordinates } }] } } }
       }, { nodeId: "Node_2", status: "COMPLETED" }]
     }, [{
       operationId: "reference.resolve",
       operationVersion: "1.0",
       ports: {
         inputs: [{ name: "request" }],
-        outputs: [{ name: "geometry", path: "/facts/0/geometry" }]
+        outputs: [{ name: "positionCoordinates", path: "/facts/0/position/coordinates" }]
       }
     }, {
       operationId: "spatial.find-nearby",
       operationVersion: "1.0",
       ports: { inputs: [{ name: "request" }], outputs: [] }
     }] as never);
-    expect(hashes["Node_2"]).toBe(canonicalSha256({ location: geometry, radiusM: 1_000 }));
+    expect(hashes["Node_2"]).toBe(canonicalSha256({ location: positionCoordinates, radiusM: 1_000 }));
   });
 
   it("detects evidence that needs unavailable object storage before normalization", () => {

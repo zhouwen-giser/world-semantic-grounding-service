@@ -179,10 +179,18 @@ export function compilerCatalog(): CompilerCatalog {
   for (const rule of queryTemplateRules) {
     for (const step of rule.steps) {
       const key = step.requirement.allowedOperationKeys?.[0];
-      if (!key || operations.has(key)) continue;
+      if (!key) continue;
       const splitAt = key.lastIndexOf("@");
       const operationId = key.slice(0, splitAt);
       const operationVersion = key.slice(splitAt + 1);
+      const existing = operations.get(key);
+      if (existing) {
+        for (const requirementPort of step.requirement.outputPorts) {
+          if (existing.descriptor.ports.outputs.some((entry) => entry.name === requirementPort.name)) continue;
+          existing.descriptor.ports.outputs.push(port(requirementPort, key, "output"));
+        }
+        continue;
+      }
       operations.set(key, makeOperation(operationId, operationVersion, step.requirement));
     }
   }

@@ -17,7 +17,7 @@ describe("TypedWorldQueryCompiler v2", () => {
     ["REFERENCE_GEOMETRY", ["reference.resolve", "world.get-geometry"]],
     ["REFERENCE_PROVENANCE", ["reference.resolve", "world.get-provenance"]],
     ["CATALOG_SEARCH", ["catalog.search"]],
-    ["REFERENCE_NEARBY", ["reference.resolve", "world.get-geometry", "spatial.find-nearby"]],
+    ["REFERENCE_NEARBY", ["reference.resolve", "world.get-current-state", "spatial.find-nearby"]],
     ["REFERENCE_IN_AREA", ["reference.resolve", "world.get-geometry", "spatial.find-in-area"]],
     ["REFERENCE_INTERSECTIONS", ["reference.resolve", "world.get-geometry", "spatial.find-intersections"]]
   ] as const)("compiles stable recipe %s to its frozen typed DAG", (pattern, expectedOperations) => {
@@ -138,6 +138,13 @@ describe("TypedWorldQueryCompiler v2", () => {
         schemaUri: "urn:gowm:v0.2:value:number",
         schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348"
       }
+    });
+    expect(result.submission.plan.nodes.at(-1)?.inputs["location"]).toMatchObject({
+      kind: "NODE_OUTPUT",
+      nodeId: "Node_2",
+      outputPort: "positionCoordinates",
+      targetPath: "/location",
+      port: { valueKind: "ANY", unitSemantics: "ANGULAR_DEGREES" }
     });
     expect(result.submission.plan.nodes[1]?.inputs["schemaVersion"]).toEqual({
       kind: "LITERAL",

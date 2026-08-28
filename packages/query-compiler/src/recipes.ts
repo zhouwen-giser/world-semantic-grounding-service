@@ -157,6 +157,17 @@ const readGeometry = worldFactStep("read-geometry", "world.get-geometry", ["HAS_
   { name: "geometry", valueKind: "GEOMETRY", unitSemantics: "ANGULAR_DEGREES" }
 ]);
 
+const readCurrentPosition = worldFactStep("read-current-position", "world.get-current-state", [], [
+  { name: "positionCoordinates", valueKind: "ANY", unitSemantics: "ANGULAR_DEGREES" }
+]);
+
+const positionCoordinatesLink: QueryTemplateLink = {
+  sourceStepId: "read-current-position",
+  outputPort: "positionCoordinates",
+  inputName: "location",
+  targetPath: "/location"
+};
+
 function spatialStep(
   stepId: string,
   operationId: string,
@@ -263,10 +274,9 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     allowDegraded: false,
     steps: [
       resolveReference,
-      readGeometry,
+      readCurrentPosition,
       spatialStep("find-nearby", "spatial.find-nearby", "NEAR", {
-        ...geometryLink,
-        targetPath: "/location"
+        ...positionCoordinatesLink
       }, ["WORLD_OBJECT"], [{
         inputName: "radiusM",
         path: "/distanceM",
