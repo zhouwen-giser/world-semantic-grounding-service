@@ -17,6 +17,7 @@ import {
   canonicalLfSha256,
   computeWorldQueryNodeRequestHashes,
   normalizeReferenceResolution,
+  normalizeValidation,
   oversizedEvidencePayload,
   persistAcceptedWorldQueryJob,
   productionReferenceMentions,
@@ -257,6 +258,23 @@ describe("production stage module authority boundaries", () => {
     expect(result.unresolvedMentions).toEqual([{
       mentionId: "missing", surfaceText: "2号车", reason: "UPSTREAM_RESULT_MISSING"
     }]);
+  });
+
+  it("maps the unified locked validation result into the frozen WSGS status", () => {
+    const key = { namespace: "gowm", kind: "WORLD_OBJECT", id: `wrf_${"a".repeat(32)}`, version: "v1" };
+    expect(normalizeValidation({
+      schemaVersion: "1.0",
+      results: [{
+        schemaVersion: "1.0", referenceKey: key, existence: "AVAILABLE", freshness: "CURRENT",
+        snapshot: "CURRENT", usable: "YES", reasons: []
+      }, {
+        schemaVersion: "1.0", referenceKey: key, existence: "AVAILABLE", freshness: "CURRENT",
+        snapshot: "UNKNOWN", usable: "REVALIDATE", reasons: ["Snapshot currentness is unknown"]
+      }]
+    })).toEqual([
+      { referenceKey: key, status: "VALID", revalidationRequired: false, warnings: [] },
+      { referenceKey: key, status: "STALE", revalidationRequired: true, warnings: ["Snapshot currentness is unknown"] }
+    ]);
   });
 
   it("keeps catalog identity distinct from the enclosing authority snapshot", () => {

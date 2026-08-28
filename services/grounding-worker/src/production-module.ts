@@ -787,13 +787,34 @@ export function productionReferenceMentions(mentions: readonly MergedMention[]):
   });
 }
 
-function normalizeValidation(value: unknown): ReferenceValidationProduct[] {
+export function normalizeValidation(value: unknown): ReferenceValidationProduct[] {
   const body = object(value, "INVALID_REFERENCE_VALIDATE_RESULT");
   if (body["schemaVersion"] !== "1.0" || !Array.isArray(body["results"])) {
     throw new ProductionStageModuleError("INVALID_REFERENCE_VALIDATE_RESULT");
   }
   return body["results"].map((raw): ReferenceValidationProduct => {
     const entry = object(raw, "INVALID_REFERENCE_VALIDATION");
+    if (typeof entry["status"] !== "string") {
+      const existence = text(entry["existence"], "INVALID_REFERENCE_EXISTENCE");
+      const freshness = text(entry["freshness"], "INVALID_REFERENCE_FRESHNESS");
+      const usable = text(entry["usable"], "INVALID_REFERENCE_USABILITY");
+      const snapshot = text(entry["snapshot"], "INVALID_REFERENCE_SNAPSHOT");
+      const status: ReferenceValidationProduct["status"] = existence === "SCOPE_DENIED" ? "SCOPE_DENIED"
+        : existence === "NOT_FOUND" ? "NOT_FOUND"
+          : existence === "RETIRED" ? "EXPIRED"
+            : freshness === "EXPIRED" ? "EXPIRED"
+              : freshness === "STALE" || snapshot === "STALE" || usable === "REVALIDATE" ? "STALE"
+                : usable === "YES" ? "VALID" : "NOT_FOUND";
+      const warnings = Array.isArray(entry["reasons"])
+        ? entry["reasons"].filter((item): item is string => typeof item === "string").slice(0, 64)
+        : [];
+      return {
+        referenceKey: referenceKey(entry["referenceKey"]),
+        status,
+        revalidationRequired: usable !== "YES" || snapshot !== "CURRENT",
+        warnings
+      };
+    }
     return {
       referenceKey: referenceKey(entry["referenceKey"]),
       status: text(entry["status"], "INVALID_REFERENCE_VALIDATION_STATUS") as ReferenceValidationProduct["status"],
@@ -1489,8 +1510,8 @@ export async function createPipelineStageExecutor(
       const known = Array.isArray(parts.capsule["knownWorldReferences"])
         ? parts.capsule["knownWorldReferences"].map((entry) => object(entry, "INVALID_KNOWN_REFERENCE")) : [];
       const references = resolved?.referenceProducts.map((entry) => ({
-        referenceKey: entry.referenceKey, expectedType: entry.referenceType, minimumWorldVersion: entry.sourceWorldVersion
-      })) ?? known.map((entry) => ({ referenceKey: referenceKey(entry["referenceKey"]), expectedType: entry["referenceType"] }));
+        referenceKey: entry.referenceKey, requireCurrentSnapshot: true
+      })) ?? known.map((entry) => ({ referenceKey: referenceKey(entry["referenceKey"]), requireCurrentSnapshot: true }));
       if (references.length === 0) return resolved ?? normalizeReferenceResolution(null, []);
       const lock = operationLock(authority, "reference.validate");
       const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", references }, "reference-validate");
