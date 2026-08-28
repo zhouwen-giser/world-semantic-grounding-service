@@ -128,6 +128,12 @@ function cancellationError(signal: AbortSignal, now: number, deadlineAt: Date): 
   if (now >= deadlineAt.getTime()) return new PipelineDeadlineExceededError();
   if (signal.reason instanceof PipelineDeadlineExceededError) return signal.reason;
   if (signal.reason instanceof PipelineStageAttemptTimeoutError) return signal.reason;
+  // Preserve the worker runtime's typed shutdown/lease reasons. The worker
+  // uses those codes to requeue or fence a checkpointed job; arbitrary caller
+  // abort reasons remain normal pipeline cancellation.
+  if (signal.reason instanceof Error && /^WORKER_[A-Z0-9_]+$/u.test(
+    String((signal.reason as Error & { code?: unknown }).code ?? "")
+  )) return signal.reason;
   return new PipelineCancelledError();
 }
 

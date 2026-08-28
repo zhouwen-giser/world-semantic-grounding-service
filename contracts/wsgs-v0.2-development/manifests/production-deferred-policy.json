@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0",
+  "blockingForDevelopmentReady": false,
+  "categories": [
+    "REAL_DELEGATION_NEGATIVE_MATRIX",
+    "API_RESTART_MATRIX",
+    "POSTGRES_RESTART_MATRIX",
+    "GATEWAY_RESTART_MATRIX",
+    "MODEL_RESTART_MATRIX",
+    "COMPOSE_FAULT_MATRIX",
+    "MULTI_NODE_HA",
+    "PITR_DR",
+    "EXTERNAL_IDP_JWKS",
+    "KEY_ROTATION",
+    "OBJECT_STORAGE_INFRASTRUCTURE",
+    "P50_P95_SLO",
+    "PRODUCTION_LOAD"
+  ]
+}

@@ -24,13 +24,17 @@
     "acceptance:check": "node validation/scripts/generate-acceptance-ledger.mjs",
     "acceptance:v0.2:check": "node validation/scripts/generate-v02-acceptance-ledger.mjs",
     "acceptance:v0.2:write": "node validation/scripts/generate-v02-acceptance-ledger.mjs --write",
+    "acceptance:development:check": "node validation/scripts/generate-development-acceptance-ledger.mjs",
+    "acceptance:development:write": "node validation/scripts/generate-development-acceptance-ledger.mjs --write",
+    "development:check": "npm run acceptance:development:check && node validation/scripts/verify-development-closure.mjs",
     "db:migrate": "node packages/runtime/dist/migrate.js",
     "db:migrate:verify": "node packages/runtime/dist/migrate.js --assertions",
     "gate:real:gowm": "tsx validation/scripts/real-gowm-gate.ts",
     "gate:real:gowm:public-handoff": "tsx validation/scripts/verify-gowm-sample-handoff.ts",
     "gate:real:model": "tsx validation/scripts/real-model-gate.ts",
     "gate:real:readiness": "tsx validation/scripts/real-production-readiness-gate.ts",
-    "check": "npm run contracts:check && npm run architecture:check && npm run acceptance:check && npm run acceptance:v0.2:check && npm run typecheck && npm test"
+    "gate:real:development": "tsx validation/scripts/real-development-pipeline-gate.ts",
+    "check": "npm run contracts:check && npm run architecture:check && npm run acceptance:check && npm run acceptance:v0.2:check && npm run development:check && npm run typecheck && npm test"
   },
   "dependencies": {
     "ajv": "8.20.0",

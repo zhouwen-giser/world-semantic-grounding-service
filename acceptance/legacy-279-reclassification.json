@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0",
+  "legacyLedger": {
+    "total": 279,
+    "pass": 195,
+    "fail": 0,
+    "notRun": 17,
+    "blocked": 67
+  },
+  "policy": "PRESERVE_HISTORY_ADD_SEPARATE_DEVELOPMENT_GATE",
+  "errata": [
+    {
+      "id": "ERRATA-001",
+      "legacyIds": [
+        "AC-E002"
+      ],
+      "treatment": "CONDITIONAL_BY_EXECUTION_MODE"
+    },
+    {
+      "id": "ERRATA-002",
+      "legacyIds": [
+        "AC-E007",
+        "AC-R019",
+        "AC-X006"
+      ],
+      "treatment": "CURRENT_REVALIDATION_REQUIRED_PINNED_CAPABILITY_CONDITIONAL"
+    },
+    {
+      "id": "ERRATA-003",
+      "legacyIds": [
+        "AC-E021",
+        "AC-X018"
+      ],
+      "treatment": "PAYLOAD_REF_OR_TYPED_BOUNDED_FAILURE"
+    }
+  ],
+  "explicitDeferredLegacyIds": [
+    "AC-I005",
+    "AC-I006",
+    "AC-I007",
+    "AC-I008",
+    "AC-I009",
+    "AC-I013",
+    "AC-I014",
+    "AC-I024",
+    "AC-P031",
+    "AC-P033",
+    "AC-X011",
+    "AC-X013",
+    "AC-X023",
+    "AC-X024"
+  ]
+}

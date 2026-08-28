@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "goal": "WSGS_V0_2_DEVELOPMENT_READY",
+  "requiredProfiles": [
+    "L0_CONTRACT_COMPONENT",
+    "L1_DEVELOPMENT_E2E"
+  ],
+  "nonBlockingProfiles": [
+    "L3_PRODUCTION_HARDENING"
+  ],
+  "minimalSecurity": [
+    "NO_BODY_AUTHORITY_INJECTION",
+    "CROSS_SCOPE_NON_DISCLOSURE",
+    "NO_SECRET_PERSISTENCE_OR_LOGGING",
+    "NO_SDAR_A2A_SMPP_DEPENDENCY",
+    "NO_GOWM_PROVIDER_OR_DB_BYPASS",
+    "MODEL_AUTHORITY_BOUNDARY"
+  ],
+  "requiredRealRecipes": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6"
+  ],
+  "requiredRecovery": [
+    "WORKER_RESTART_ONCE",
+    "IDEMPOTENT_REPLAY",
+    "IDEMPOTENCY_CONFLICT"
+  ],
+  "productionQualified": false
+}

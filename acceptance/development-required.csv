@@ -1,0 +1,64 @@
+id,required,area,scenario,expected,test_type
+DEV-B001,yes,Baseline,PR head reconciliation,Actual PR #2 head/version recorded,source
+DEV-B002,yes,Baseline,GOWM lock unchanged,Pinned GOWM 0.6.3 lock matches,contract
+DEV-B003,yes,Baseline,Northbound unchanged,sacs-wsgs-grounding/1.0 remains compatible,contract
+DEV-B004,yes,Baseline,Existing regression,Core unit/contract/PostgreSQL suite has 0 FAIL,regression
+DEV-B005,yes,Acceptance,Historical ledger preserved,Original 279 inventory remains,report
+DEV-B006,yes,Acceptance,Development ledger,Independent development ledger generated,report
+DEV-B007,yes,Acceptance,Production deferred,Deferred inventory is non-blocking,report
+DEV-B008,yes,Acceptance,Errata applied,Three errata machine-validated,contract
+DEV-G001,yes,Gateway,Live contract/semantic/availability,Current pinned live values match,real-e2e
+DEV-G002,yes,Gateway,Direct SYNC,Advertised SYNC returns 200 and normalizes,real-e2e
+DEV-G003,yes,Gateway,World Query async,202 polls to COMPLETED,real-e2e
+DEV-G004,yes,Gateway,Cancel,Cancellation reaches CANCELLED,real-e2e
+DEV-G005,yes,Gateway,Receipt,Bounded receipt fetch works,real-e2e
+DEV-G006,yes,Gateway,Body authority,Actor/scope/permission body fields rejected,security
+DEV-P001,yes,Pipeline,Production backend,API uses production backend,real-e2e
+DEV-P002,yes,Pipeline,API submit,POST grounding creates result/job,real-e2e
+DEV-P003,yes,Pipeline,Queue,Real PostgreSQL job persists,real-db
+DEV-P004,yes,Pipeline,Worker claim,Real worker claims job,real-db
+DEV-P005,yes,Pipeline,Real model,Production worker invokes real model,real-e2e
+DEV-P006,yes,Pipeline,WSGS compiler,Plan originates from WSGS production compiler,real-e2e
+DEV-P007,yes,Pipeline,Real GOWM,Production worker invokes pinned real GOWM,real-e2e
+DEV-P008,yes,Pipeline,Evidence normalize,Production normalizer handles result,real-e2e
+DEV-P009,yes,Pipeline,Persist,Terminal GroundingResult persists,real-db
+DEV-P010,yes,Pipeline,API GET,GET returns persisted result,real-e2e
+DEV-P011,yes,Pipeline,Full-chain evidence,Stage hashes prove full chain,report
+DEV-P012,yes,Pipeline,No injected substitute,No injected stage backend in final proof,architecture
+DEV-R001,yes,Recipe,2号车 current state,R1 passes production pipeline,real-e2e
+DEV-R002,yes,Recipe,滨河路 ambiguity,R2 passes and Spatial executions=0,real-e2e
+DEV-R003,yes,Recipe,A区 in-area,R3 passes production pipeline,real-e2e
+DEV-R004,yes,Recipe,1km nearby,R4 passes and 1km=1000m,real-e2e
+DEV-R005,yes,Recipe,Current revalidation,R5 passes or returns typed stale,real-e2e
+DEV-R006,yes,Recipe,MODEL_OPTIONAL coordinate,R6 returns bounded deterministic result,real-e2e
+DEV-R007,yes,Recipe,NO_DATA,NO_DATA remains unknown/unresolved,real-e2e
+DEV-R008,yes,Recipe,PARTIAL,PARTIAL retains evidence and unknowns,real-e2e
+DEV-V001,yes,Validation,PINNED unsupported,Typed unavailable/stale is accepted,snapshot
+DEV-V002,yes,Validation,No latest fallback,Unsupported PINNED never silently uses latest,snapshot
+DEV-S001,yes,Security,Cross-scope,Reference/result is not leaked,security
+DEV-S002,yes,Security,Credential redaction,No credential/private key in evidence/log/repo,security
+DEV-S003,yes,Security,No SDAR/A2A/SMPP,Architecture remains clean,architecture
+DEV-S004,yes,Security,No GOWM bypass,No provider/DB bypass,architecture
+DEV-S005,yes,Security,Model authority,Model cannot choose op/provider or mint ReferenceKey,security
+DEV-S006,yes,Security,Valid delegation,One real positive signed delegation passes,real-e2e
+DEV-I001,yes,Recovery,Idempotent replay,Same key/payload returns same grounding,real-db
+DEV-I002,yes,Recovery,Conflict,Same key/different payload conflicts,real-db
+DEV-I003,yes,Recovery,Worker restart once,Job resumes safely,recovery
+DEV-I004,yes,Recovery,No duplicate execution,Restart does not duplicate logical model/GOWM,recovery
+DEV-I005,yes,Recovery,Generation fence,Old generation cannot publish,race
+DEV-L001,yes,Payload,payloadRef path,Large referenced payload remains bounded,integration
+DEV-L002,yes,Payload,Oversize no ref,Typed fail/partial without storage,integration
+DEV-L003,yes,Payload,No object storage,No S3/MinIO/Artifact dependency added,architecture
+DEV-H001,yes,Readiness,Live,/health/live=200,real-e2e
+DEV-H002,yes,Readiness,Current lock,Current operational lock trusted,real-e2e
+DEV-H003,yes,Readiness,MODEL_REQUIRED,All deps available => ready,real-e2e
+DEV-H004,yes,Readiness,MODEL_OPTIONAL,Missing model follows documented degraded readiness,real-e2e
+DEV-F001,yes,Final,Version,VERSION/package/image remain 0.2.0,version
+DEV-F002,yes,Final,Development report,Report says DEVELOPMENT_READY,report
+DEV-F003,yes,Final,Production disclaimer,productionQualified=false,report
+DEV-F004,yes,Final,Development ledger,Every development case PASS,report
+DEV-F005,yes,Final,SACS handoff,Machine handoff validates,contract
+DEV-F006,yes,Final,Exact SHA,Local/tracking/remote SHA match,git
+DEV-F007,yes,Final,PR body,DEVELOPMENT_READY / PRODUCTION_NOT_QUALIFIED,github
+DEV-F008,yes,Final,PR readiness,Ready only after dev gate passes,github
+DEV-F009,yes,Final,Protected actions,No merge/tag/release/deploy,github

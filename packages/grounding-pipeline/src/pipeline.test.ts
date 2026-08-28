@@ -261,6 +261,32 @@ describe("GroundingPipeline", () => {
     }
   );
 
+  it("preserves a typed worker shutdown so the owning worker can requeue the checkpoint", async () => {
+    const journal = new MemoryJournal();
+    const controller = new AbortController();
+    let releaseStarted!: () => void;
+    const started = new Promise<void>((resolve) => { releaseStarted = resolve; });
+    const pipeline = new GroundingPipeline({
+      executor: new ProductionPipelineStageExecutor(handlerMap([], {
+        GOWM_EXECUTE: async () => {
+          releaseStarted();
+          return await new Promise((resolve) => setTimeout(() => resolve({ late: true }), 30));
+        }
+      })),
+      journal,
+      policy: () => ({ maxAttempts: 1, attemptTimeoutMs: 1_000, baseBackoffMs: 0, retryable: () => false })
+    });
+    const shutdown = Object.assign(new Error("worker restart"), { code: "WORKER_SHUTDOWN" });
+    const running = pipeline.run(runInput({ signal: controller.signal }));
+    await started;
+    controller.abort(shutdown);
+    await expect(running).rejects.toBe(shutdown);
+    expect(journal.events.filter((entry) => entry.stage === "GOWM_EXECUTE").at(-1)).toMatchObject({
+      status: "CANCELLED",
+      errorCode: "WORKER_SHUTDOWN"
+    });
+  });
+
   it("resumes from the last atomic checkpoint without duplicating model or GOWM work", async () => {
     const journal = new MemoryJournal();
     const firstCalls: PipelineStage[] = [];

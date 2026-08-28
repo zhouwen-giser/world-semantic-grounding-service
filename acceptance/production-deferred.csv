@@ -1,0 +1,15 @@
+id,profile,area,scenario,blocking_for_development
+PROD-I001,DEFERRED_PRODUCTION,Security,Full real delegation negative matrix,no
+PROD-I002,DEFERRED_PRODUCTION,Identity,Key rotation and external IdP/JWKS,no
+PROD-R001,DEFERRED_PRODUCTION,Recovery,API restart matrix,no
+PROD-R002,DEFERRED_PRODUCTION,Recovery,PostgreSQL restart matrix,no
+PROD-R003,DEFERRED_PRODUCTION,Recovery,GOWM Gateway restart matrix,no
+PROD-R004,DEFERRED_PRODUCTION,Recovery,Model restart matrix,no
+PROD-R005,DEFERRED_PRODUCTION,Recovery,Compose combined fault matrix,no
+PROD-H001,DEFERRED_PRODUCTION,HA,Multi-node/multi-region HA,no
+PROD-D001,DEFERRED_PRODUCTION,DR,PITR/RPO/RTO/disaster recovery,no
+PROD-P001,DEFERRED_PRODUCTION,Performance,p50/p95/SLO qualification,no
+PROD-P002,DEFERRED_PRODUCTION,Performance,Production load/capacity,no
+PROD-L001,DEFERRED_PRODUCTION,Payload,Object-storage infrastructure,no
+PROD-L002,DEFERRED_PRODUCTION,Payload,Large-scale geometry/trajectory stress,no
+PROD-S001,DEFERRED_PRODUCTION,Security,Extended adversarial combinations,no

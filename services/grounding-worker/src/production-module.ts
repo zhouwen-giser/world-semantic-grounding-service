@@ -444,6 +444,29 @@ export async function checkReadiness(): Promise<{ ready: boolean; reasons: strin
   }
 }
 
+/**
+ * Uncached readiness probe used by qualification to exercise the current
+ * environment (including MODEL_OPTIONAL) without mutating the API process's
+ * cached production runtime.
+ */
+export async function checkReadinessForCurrentEnvironment(
+  options: ProductionFactoryOptions = {}
+): Promise<{ ready: boolean; reasons: string[] }> {
+  try {
+    const value = runtime(options);
+    await Promise.all([
+      value.pool.query("SELECT 1 FROM wsgs.pipeline_checkpoint LIMIT 0"),
+      liveAuthority(value, true)
+    ]);
+    return { ready: true, reasons: [] };
+  } catch (error) {
+    const code = error && typeof error === "object" && typeof (error as JsonObject)["code"] === "string"
+      ? (error as JsonObject)["code"] as string
+      : error instanceof Error ? error.name : "READINESS_FAILED";
+    return { ready: false, reasons: [code] };
+  }
+}
+
 export async function captureAdmissionSnapshot(context: {
   identity: GroundingIdentityV2;
 }): Promise<ProductionAdmissionSnapshot> {
@@ -1623,7 +1646,7 @@ export async function createPipelineStageExecutor(
           normalizationGaps.push({
             gapId: `gap-${canonicalSha256({
               queryId: outcome.submission.plan.queryId,
-              code: "EVIDENCE_OBJECT_STORAGE_UNAVAILABLE",
+              code: "PAYLOAD_REFERENCE_REQUIRED",
               ...oversized
             }).slice("sha256:".length, "sha256:".length + 24)}`,
             semanticCapability: "GOWM_EXECUTION_EVIDENCE_OBJECT_STORAGE",
@@ -1631,14 +1654,15 @@ export async function createPipelineStageExecutor(
             requiredForProduct: normalizationProducts[0] ?? "WORLD_EVIDENCE",
             blocking: true,
             details: {
-              code: "EVIDENCE_OBJECT_STORAGE_UNAVAILABLE",
+              code: "PAYLOAD_REFERENCE_REQUIRED",
               payloadPath: oversized.path,
               payloadBytes: oversized.byteCount,
               maximumInlinePayloadBytes,
-              objectStorageConfigured: false
+              authoritativePayloadRef: false,
+              objectStorageAdded: false
             }
           });
-          warnings.push("EVIDENCE_OBJECT_STORAGE_UNAVAILABLE");
+          warnings.push("PAYLOAD_REFERENCE_REQUIRED");
           continue;
         }
         const nodes = Array.isArray(world["nodes"]) ? world["nodes"] : [];

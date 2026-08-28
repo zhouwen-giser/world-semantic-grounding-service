@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "errata": [
+    {
+      "id": "ERRATA-001",
+      "legacyIds": [
+        "AC-E002"
+      ],
+      "rule": "SYNC->200; ASYNC->202+poll; AUTO->contract-allowed 200/202"
+    },
+    {
+      "id": "ERRATA-002",
+      "legacyIds": [
+        "AC-E007",
+        "AC-R019",
+        "AC-X006"
+      ],
+      "rule": "CURRENT_REVALIDATION required; PINNED replay capability-conditional; no silent latest fallback"
+    },
+    {
+      "id": "ERRATA-003",
+      "legacyIds": [
+        "AC-E021",
+        "AC-X018"
+      ],
+      "rule": "authoritative payloadRef or typed bounded failure; no WSGS object storage"
+    }
+  ]
+}
