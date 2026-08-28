@@ -294,6 +294,22 @@ async function submitAndRun(
   const terminalResult = object(fetched.body["result"], "GROUNDING_RESULT_MISSING");
   if (terminalResult["status"] !== terminalStatus) throw new Error(`GROUNDING_RESULT_STATUS_MISMATCH_${recipeId}`);
   if (!acceptedStatuses.includes(terminalStatus)) {
+    const executionDiagnostic = await pool.query<{
+      execution_kind: string;
+      operation_id: string | null;
+      upstream_status: string;
+    }>(
+      `SELECT execution_kind, operation_id, upstream_status
+         FROM wsgs.gowm_execution
+        WHERE grounding_id = $1
+        ORDER BY execution_kind, operation_id NULLS FIRST, execution_id`,
+      [groundingId]
+    );
+    const executionTrace = executionDiagnostic.rows.map((entry) => [
+      entry.execution_kind,
+      entry.operation_id ?? "QUERY",
+      entry.upstream_status
+    ].map((value) => value.toUpperCase().replace(/[^A-Z0-9@._-]+/gu, "-").slice(0, 96)).join("-")).join("--") || "NONE";
     const count = (name: string): number => Array.isArray(terminalResult[name]) ? terminalResult[name].length : 0;
     const capabilityGaps = Array.isArray(terminalResult["capabilityGaps"])
       ? terminalResult["capabilityGaps"]
@@ -319,7 +335,7 @@ async function submitAndRun(
       `_M${count("mentions")}_R${count("referenceProducts")}_U${count("unresolvedMentions")}` +
       `_A${count("ambiguities")}_G${count("capabilityGaps")}_${gapReasons}` +
       `_CAP_${safeCode(firstGap?.["semanticCapability"])}_DETAIL_${safeCode(gapDetails?.["code"])}` +
-      `_ALLOWED_${allowedOperationKeys}`
+      `_ALLOWED_${allowedOperationKeys}_EXEC_${executionTrace}`
     );
   }
   const evidence = await collect(groundingId, requestHash);
