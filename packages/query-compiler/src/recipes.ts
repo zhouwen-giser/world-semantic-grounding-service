@@ -217,7 +217,8 @@ function gdpsPointStep(
   operationId: string,
   domain: "SPATIAL" | "ANALYSIS",
   resultNature: "FACT" | "DERIVED",
-  extraRequestBindings: readonly QueryTemplateRequestBinding[] = []
+  extraRequestBindings: readonly QueryTemplateRequestBinding[] = [],
+  relationSemantics: readonly string[] = ["DESCRIBES"]
 ): QueryTemplateStep {
   return {
     stepId,
@@ -233,7 +234,7 @@ function gdpsPointStep(
     literalBindings: [geoJsonPointType],
     requirement: contract(`${operationId}@1.0`, {
       domain,
-      relationSemantics: ["DESCRIBES"],
+      relationSemantics,
       acceptedReferenceKinds: [],
       producedReferenceKinds: [],
       spatialSemantics: "EXACT",
@@ -270,7 +271,9 @@ function gdpsAreaStep(
       timeSemantics: "CURRENT",
       resultNature: "DERIVED",
       inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
-      outputPorts: [resultPort("ROW_SET")]
+      // GDPS exposes a generic result envelope here; the operation schema,
+      // not the capability port kind, discriminates FeatureCollection values.
+      outputPorts: [resultPort()]
     })
   };
 }
@@ -591,7 +594,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
           valueKind: "ANY",
           unitSemantics: "LINEAR_METERS"
         }
-      }])]
+      }], ["NEAR"])]
   },
   {
     templateId: "gdps-blocked-areas-in-area",

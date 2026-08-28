@@ -14,6 +14,28 @@ const empty: WorldSemanticFrame = {
 
 describe("GDPS semantic frame vocabulary", () => {
   it.each([
+    ["2号车当前位置的通行性为什么受限？", "2号车", "LAYER_FEATURE", "WORLD_OBJECT"],
+    ["A区内有哪些湿地？", "A区", "WORLD_OBJECT", "LAYER_FEATURE"]
+  ] as const)("keeps deterministic kind authority for %s", (text, surfaceText, proposedKind, expectedKind) => {
+    const start = text.indexOf(surfaceText);
+    const frame = stabilizeSemanticFrame({
+      ...empty,
+      mentions: [{
+        mentionId: "model-wrong-kind",
+        surfaceText,
+        span: { encoding: "UTF16_CODE_UNIT", start, end: start + surfaceText.length },
+        expectedKinds: [proposedKind]
+      }]
+    }, text);
+    expect(frame.mentions.find((mention) => mention.surfaceText === surfaceText)?.expectedKinds).toEqual([expectedKind]);
+  });
+
+  it("does not absorb leading question words into a vehicle mention", () => {
+    const frame = stabilizeSemanticFrame(empty, "为什么2号车当前位置的通行性受限？");
+    expect(frame.mentions.map((mention) => mention.surfaceText)).toEqual(["2号车"]);
+  });
+
+  it.each([
     ["2号车当前位置是什么地表覆盖？", "LAND_COVER_AT_LOCATION"],
     ["A区内有哪些湿地？", "FIND_WETLANDS"],
     ["2号车附近500米有哪些障碍物？", "FIND_OBSTACLES"],

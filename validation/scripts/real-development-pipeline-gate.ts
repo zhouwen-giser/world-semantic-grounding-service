@@ -83,6 +83,8 @@ function visibleReference(fixtureKey: string, field: "currentWorldReferenceKey" 
 
 const sourceCommit = required("WSGS_EVIDENCE_SOURCE_COMMIT");
 if (!/^[0-9a-f]{40}$/u.test(sourceCommit)) throw new Error("WSGS_EVIDENCE_SOURCE_COMMIT_INVALID");
+const gateRunId = process.env["WSGS_GATE_RUN_ID"]?.trim() || sourceCommit.slice(0, 12);
+if (!/^[A-Za-z0-9][A-Za-z0-9._-]{5,63}$/u.test(gateRunId)) throw new Error("WSGS_GATE_RUN_ID_INVALID");
 const databaseUrl = required("DATABASE_URL");
 const evidenceDirectory = resolve(process.env["WSGS_DEVELOPMENT_EVIDENCE_DIR"] ?? "reports/wsgs-v0.2");
 const recipeEvidenceDirectory = resolve(evidenceDirectory, "recipe-evidence");
@@ -108,6 +110,14 @@ interface CaseEvidence {
   modelReceiptCount: number;
   worldQueryCount: number;
   spatialExecutionCount: number;
+  operationKeys: string[];
+  operationStatuses: Array<{ operationKey: string; status: string; resultHash?: `sha256:${string}` }>;
+  normalizedStatuses: string[];
+  gatewayQueryIdHashes: `sha256:${string}`[];
+  gatewayJobIdHashes: `sha256:${string}`[];
+  productIds: string[];
+  contentHashes: string[];
+  truncated: boolean;
   totalStageElapsedMs: number;
 }
 
@@ -134,7 +144,7 @@ function requestBody(
   knownWorldReferences: JsonObject[] = [],
   maxResultBytes = 1_048_576
 ): JsonObject {
-  const requestId = `development-${caseId.toLowerCase()}-${sourceCommit.slice(0, 12)}`;
+  const requestId = `development-${caseId.toLowerCase()}-${gateRunId}`;
   return {
     schemaVersion: "1.0",
     requestId,
@@ -190,7 +200,28 @@ async function fetchJson(baseUrl: string, path: string, init?: RequestInit): Pro
   return { status: response.status, body: object(await response.json(), "API_RESPONSE_INVALID") };
 }
 
-async function collect(groundingId: string, requestHash: `sha256:${string}`): Promise<CaseEvidence> {
+function collectNamedStrings(value: unknown, names: ReadonlySet<string>, found = new Map<string, Set<string>>()): Map<string, Set<string>> {
+  if (Array.isArray(value)) {
+    value.forEach((entry) => collectNamedStrings(entry, names, found));
+    return found;
+  }
+  if (!value || typeof value !== "object") return found;
+  for (const [key, entry] of Object.entries(value as JsonObject)) {
+    if (names.has(key) && typeof entry === "string") {
+      const values = found.get(key) ?? new Set<string>();
+      values.add(entry);
+      found.set(key, values);
+    }
+    collectNamedStrings(entry, names, found);
+  }
+  return found;
+}
+
+async function collect(
+  groundingId: string,
+  requestHash: `sha256:${string}`,
+  terminalResult: JsonObject
+): Promise<CaseEvidence> {
   const job = await pool.query<{ job_id: string }>(
     "SELECT job_id FROM wsgs.grounding_job WHERE grounding_id = $1",
     [groundingId]
@@ -212,9 +243,12 @@ async function collect(groundingId: string, requestHash: `sha256:${string}`): Pr
     [groundingId]
   );
   const executions = await pool.query<{
-    operation_id: string | null; result_hash: `sha256:${string}` | null;
+    operation_id: string | null; operation_version: string | null;
+    result_hash: `sha256:${string}` | null; normalized_status: string;
+    gateway_query_id: string | null; gateway_job_id: string | null;
   }>(
-    "SELECT operation_id, result_hash FROM wsgs.gowm_execution WHERE grounding_id = $1 ORDER BY execution_id",
+    `SELECT operation_id, operation_version, result_hash, normalized_status, gateway_query_id, gateway_job_id
+       FROM wsgs.gowm_execution WHERE grounding_id = $1 ORDER BY execution_id`,
     [groundingId]
   );
   const model = await pool.query<{ count: string }>(
@@ -227,6 +261,8 @@ async function collect(groundingId: string, requestHash: `sha256:${string}`): Pr
   );
   const resultRow = result.rows[0];
   if (!resultRow) throw new Error("GROUNDING_RESULT_MISSING");
+  const named = collectNamedStrings(terminalResult, new Set(["productId", "contentHash"]));
+  const serializedResult = JSON.stringify(terminalResult);
   return {
     recipeId: "",
     requestHash,
@@ -240,6 +276,19 @@ async function collect(groundingId: string, requestHash: `sha256:${string}`): Pr
     modelReceiptCount: Number(model.rows[0]?.count ?? 0),
     worldQueryCount: queries.rowCount ?? 0,
     spatialExecutionCount: executions.rows.filter((row) => row.operation_id?.startsWith("spatial.")).length,
+    operationKeys: [...new Set(executions.rows.flatMap((row) =>
+      row.operation_id && row.operation_version ? [`${row.operation_id}@${row.operation_version}`] : []))],
+    operationStatuses: executions.rows.flatMap((row) => row.operation_id && row.operation_version ? [{
+      operationKey: `${row.operation_id}@${row.operation_version}`,
+      status: row.normalized_status,
+      ...(row.result_hash ? { resultHash: row.result_hash } : {})
+    }] : []),
+    normalizedStatuses: [...new Set(executions.rows.map((row) => row.normalized_status))],
+    gatewayQueryIdHashes: [...new Set(executions.rows.flatMap((row) => row.gateway_query_id ? [safeId(row.gateway_query_id)] : []))],
+    gatewayJobIdHashes: [...new Set(executions.rows.flatMap((row) => row.gateway_job_id ? [safeId(row.gateway_job_id)] : []))],
+    productIds: [...(named.get("productId") ?? [])].sort(),
+    contentHashes: [...(named.get("contentHash") ?? [])].filter((entry) => /^sha256:[0-9a-f]{64}$/u.test(entry)).sort(),
+    truncated: serializedResult.includes('"truncated":true'),
     totalStageElapsedMs: terminalEvents.reduce((sum, event) => sum + event.elapsed_ms, 0)
   };
 }
@@ -262,7 +311,13 @@ async function submitAndRun(
     body: JSON.stringify(body)
   });
   if (submitted.status !== 202 || submitted.body["status"] !== "ACCEPTED") {
-    throw new Error(`PUBLIC_API_SUBMIT_FAILED_${recipeId}_${submitted.status}`);
+    const errorEnvelope = submitted.body["error"] && typeof submitted.body["error"] === "object" &&
+      !Array.isArray(submitted.body["error"])
+      ? submitted.body["error"] as JsonObject
+      : submitted.body;
+    const rawCode = typeof errorEnvelope["code"] === "string" ? errorEnvelope["code"] : "NO_ERROR_CODE";
+    const safeCode = rawCode.toUpperCase().replace(/[^A-Z0-9_:-]+/gu, "_").slice(0, 96);
+    throw new Error(`PUBLIC_API_SUBMIT_FAILED_${recipeId}_${submitted.status}_${safeCode}`);
   }
   const groundingId = string(submitted.body["groundingId"], "GROUNDING_ID_MISSING");
   const outcome = await worker(executor, `development-${recipeId.toLowerCase()}`).runOnce();
@@ -338,7 +393,7 @@ async function submitAndRun(
       `_ALLOWED_${allowedOperationKeys}_EXEC_${executionTrace}`
     );
   }
-  const evidence = await collect(groundingId, requestHash);
+  const evidence = await collect(groundingId, requestHash, terminalResult);
   if (evidence.resultHash !== terminalResult["resultHash"]) throw new Error(`RESULT_HASH_MISMATCH_${recipeId}`);
   return { ...evidence, recipeId };
 }
@@ -456,11 +511,41 @@ try {
     sourceMessageId: "message-known-vehicle"
   };
   const cases: CaseEvidence[] = [];
+  const gdpsCaseIds = new Set<string>();
+  if (process.env["WSGS_RUN_GDPS_INTEGRATION_CASES"] === "YES") {
+    const gdpsCases = [
+      ["E2E-01", "2号车位置的地表覆盖是什么？", "landcover.get-class@1.0", ["COMPLETED", "PARTIAL"]],
+      ["E2E-02", "A区内有哪些湿地？", "hydrology.find-wetlands@1.0", ["COMPLETED", "PARTIAL"]],
+      ["E2E-03", "2号车附近500米有哪些障碍物？", "obstacle.find-nearby@1.0", ["COMPLETED", "PARTIAL", "NO_DATA"]],
+      ["E2E-04", "A区内有哪些不可通行区域？", "traversability.find-blocked@1.0", ["COMPLETED", "PARTIAL"]],
+      ["E2E-05", "A区内有哪些高地？", "terrain.find-high-ground@1.0", ["COMPLETED", "PARTIAL"]],
+      ["E2E-06", "2号车位置的高程是多少？", "elevation.sample@1.0", ["COMPLETED", "PARTIAL"]],
+      ["E2E-07", "为什么2号车当前位置的通行性受限？", "traversability.explain@1.0", ["COMPLETED", "PARTIAL"]]
+    ] as const;
+    const requestedGdpsCase = process.env["WSGS_GDPS_CASE_ID"];
+    const selectedGdpsCases = requestedGdpsCase
+      ? gdpsCases.filter(([caseId]) => caseId === requestedGdpsCase)
+      : gdpsCases;
+    if (selectedGdpsCases.length === 0) throw new Error(`UNKNOWN_GDPS_CASE_${requestedGdpsCase}`);
+    for (const [caseId, text, targetOperation, acceptedOperationStatuses] of selectedGdpsCases) {
+      gdpsCaseIds.add(caseId);
+      cases.push(await submitAndRun(baseUrl, productionExecutor, caseId, requestBody(
+        caseId, text, "EXECUTE_WORLD_QUERY", ["WORLD_EVIDENCE"]
+      ), ["COMPLETED", "PARTIAL", "UNRESOLVED"]));
+      const last = cases.at(-1)!;
+      const target = last.operationStatuses.find((entry) => entry.operationKey === targetOperation);
+      if (!target) throw new Error(`GDPS_OPERATION_NOT_EXECUTED_${caseId}`);
+      if (!(acceptedOperationStatuses as readonly string[]).includes(target.status)) {
+        throw new Error(`GDPS_OPERATION_STATUS_${caseId}_${target.status}`);
+      }
+    }
+  }
+
   cases.push(await submitAndRun(baseUrl, productionExecutor, "R1", requestBody(
     "R1", "2号车在哪里？", "EXECUTE_WORLD_QUERY", ["WORLD_EVIDENCE"]
   ), ["COMPLETED"]));
   cases.push(await submitAndRun(baseUrl, productionExecutor, "R2", requestBody(
-    "R2", "滨河路附近有哪些设备？", "EXECUTE_WORLD_QUERY", ["WORLD_EVIDENCE"]
+    "R2", "滨河路附近有哪些车辆？", "EXECUTE_WORLD_QUERY", ["WORLD_EVIDENCE"]
   ), ["AMBIGUOUS"]));
   if (cases.at(-1)?.spatialExecutionCount !== 0 || cases.at(-1)?.worldQueryCount !== 0) {
     throw new Error("AMBIGUOUS_REFERENCE_DID_NOT_STOP_SPATIAL_EXECUTION");
@@ -547,11 +632,14 @@ try {
   }
 
   const recovery = await recoveryCase(baseUrl, productionExecutor);
-  const r1 = cases[0]!;
+  const r1 = cases.find((entry) => entry.recipeId === "R1");
+  if (!r1) throw new Error("R1_EVIDENCE_MISSING");
   if (r1.completedStages.length !== 14 || r1.stageHashes.length !== 14 || r1.modelReceiptCount < 1 || r1.worldQueryCount < 1) {
     throw new Error("REAL_PIPELINE_STAGE_PROOF_INCOMPLETE");
   }
-  if (cases[3]?.planHashes.length === 0) throw new Error("R4_PLAN_HASH_MISSING");
+  if (cases.find((entry) => entry.recipeId === "R4")?.planHashes.length === 0) {
+    throw new Error("R4_PLAN_HASH_MISSING");
+  }
 
   mkdirSync(recipeEvidenceDirectory, { recursive: true });
   const realPipelineEvidence = {
@@ -602,6 +690,14 @@ try {
       upstreamResultHashes: entry.upstreamResultHashes,
       worldQueryCount: entry.worldQueryCount,
       spatialExecutionCount: entry.spatialExecutionCount,
+      operationKeys: entry.operationKeys,
+      operationStatuses: entry.operationStatuses,
+      normalizedStatuses: entry.normalizedStatuses,
+      gatewayQueryIdHashes: entry.gatewayQueryIdHashes,
+      gatewayJobIdHashes: entry.gatewayJobIdHashes,
+      productIds: entry.productIds,
+      contentHashes: entry.contentHashes,
+      truncated: entry.truncated,
       modelReceiptCount: entry.modelReceiptCount,
       totalStageElapsedMs: entry.totalStageElapsedMs,
       status: "PASS"
@@ -609,6 +705,27 @@ try {
     additionalSemantics: {
       noData: { requestHash: noData.requestHash, terminalStatus: noData.terminalStatus, status: "PASS" },
       partial: { requestHash: partial.requestHash, terminalStatus: partial.terminalStatus, status: "PASS" }
+    },
+    gdps: {
+      enabled: gdpsCaseIds.size > 0,
+      gatewayOnly: true,
+      directProviderCalls: false,
+      cases: cases.filter((entry) => gdpsCaseIds.has(entry.recipeId)).map((entry) => ({
+        caseId: entry.recipeId,
+        terminalStatus: entry.terminalStatus,
+        operationKeys: entry.operationKeys,
+        operationStatuses: entry.operationStatuses,
+        productIds: entry.productIds,
+        contentHashes: entry.contentHashes,
+        truncated: entry.truncated,
+        status: "PASS"
+      })),
+      geometryBuffer: {
+        caseId: "E2E-08",
+        status: "NOT_RUN",
+        reason: "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED"
+      },
+      status: gdpsCaseIds.size === 7 ? "PASS" : "NOT_RUN"
     },
     security: {
       bodyAuthorityInjection: { httpStatus: authorityInjection.status, status: "PASS" },
@@ -634,7 +751,8 @@ try {
     minimumSecurity: "PASS",
     workerRestart: "PASS",
     noData: "PASS",
-    partial: "PASS"
+    partial: "PASS",
+    gdpsCases: gdpsCaseIds.size
   }, null, 2)}\n`);
   exitCode = 0;
 } catch (error) {

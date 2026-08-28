@@ -30,6 +30,7 @@ import {
   type Sha256Digest
 } from "@wsgs/gowm-execution-evidence";
 import {
+  GatewayProtocolError,
   GowmGatewayClient,
   type CapabilityDescriptor,
   type CapabilityCatalog,
@@ -243,7 +244,8 @@ function readOperationalLock(): LoadedOperationalGowmLock {
     return loadOperationalGowmLock({
       lockPath: externalPath,
       expectedSha256: expectedSha256 as `sha256:${string}`,
-      hashMode: "EXACT_BYTES"
+      hashMode: "EXACT_BYTES",
+      operationCountPolicy: "HASH_LOCKED_EXTENSION"
     });
   }
   if (process.env["GOWM_SOUTHBOUND_LOCK_SHA256"]?.trim()) {
@@ -310,6 +312,22 @@ export function selectProductionSouthboundLock(
     defaultOperations: selected,
     previewOperations: selectedPreview
   };
+}
+
+function gatewayFailure(error: unknown): never {
+  if (!(error instanceof GatewayProtocolError)) throw error;
+  const details = error.details ?? {};
+  const safe = [details["stage"], details["nodeId"], details["operationId"]]
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.toUpperCase().replace(/[^A-Z0-9_]/gu, "_").slice(0, 32));
+  if (typeof details["schemaUri"] === "string") safe.push("SCHEMA");
+  if (typeof details["registeredHash"] === "string" || typeof details["canonicalHash"] === "string") {
+    safe.push("HASH");
+  }
+  for (const [label, value] of [["REQ", details["requested"]], ["ALLOW", details["allowed"]]] as const) {
+    if (typeof value === "number" && Number.isFinite(value)) safe.push(`${label}${Math.trunc(value)}`);
+  }
+  throw new ProductionStageModuleError([error.code, ...safe].join("_").slice(0, 127), error.retryable);
 }
 
 class UnavailableSemanticModel implements SemanticModelParser {
@@ -1398,6 +1416,49 @@ export function computeWorldQueryNodeRequestHashes(
   return hashes;
 }
 
+function worldQueryFailureCode(world: JsonObject, submission: WorldQuerySubmission): string {
+  const planned = new Map(submission.plan.nodes.map((node) => [node.nodeId, node.operation.operationId]));
+  const failed = (Array.isArray(world["nodes"]) ? world["nodes"] : [])
+    .map((entry) => object(entry, "WORLD_QUERY_NODE_INVALID"))
+    .find((node) => node["status"] === "FAILED");
+  if (!failed) return "WORLD_QUERY_FAILED_NO_FAILED_NODE";
+  const nodeId = text(failed["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
+  const operation = (planned.get(nodeId) ?? "unknown").toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 32);
+  const envelope = failed["error"] && typeof failed["error"] === "object" && !Array.isArray(failed["error"])
+    ? failed["error"] as JsonObject
+    : undefined;
+  const nested = envelope?.["error"] && typeof envelope["error"] === "object" && !Array.isArray(envelope["error"])
+    ? envelope["error"] as JsonObject
+    : undefined;
+  const rawCode = nested?.["code"] ?? envelope?.["code"];
+  const rawStage = nested?.["stage"] ?? envelope?.["stage"];
+  const code = typeof rawCode === "string"
+    ? rawCode.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 48)
+    : "NO_ERROR_CODE";
+  const stage = typeof rawStage === "string"
+    ? rawStage.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 32)
+    : "NO_STAGE";
+  const details = nested?.["details"] && typeof nested["details"] === "object" && !Array.isArray(nested["details"])
+    ? nested["details"] as JsonObject
+    : envelope?.["details"] && typeof envelope["details"] === "object" && !Array.isArray(envelope["details"])
+      ? envelope["details"] as JsonObject
+      : undefined;
+  const issue = Array.isArray(details?.["issues"]) && details["issues"][0] &&
+    typeof details["issues"][0] === "object" && !Array.isArray(details["issues"][0])
+    ? details["issues"][0] as JsonObject
+    : undefined;
+  const keyword = typeof issue?.["keyword"] === "string"
+    ? issue["keyword"].toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 24)
+    : "NO_KEYWORD";
+  const path = typeof issue?.["path"] === "string"
+    ? issue["path"].toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 48)
+    : "NO_PATH";
+  const hashState = typeof details?.["schemaHash"] === "string" && typeof details["canonicalHash"] === "string"
+    ? details["schemaHash"] === details["canonicalHash"] ? "HASH_MATCH" : "HASH_DRIFT"
+    : "NO_HASH_COMPARISON";
+  return `WQ_NODE_${operation}_${code}_${stage}_${hashState}_${keyword}_${path}`.slice(0, 180);
+}
+
 function jsonByteLength(value: unknown): number {
   const encoded = JSON.stringify(value);
   if (encoded === undefined) throw new ProductionStageModuleError("EVIDENCE_PAYLOAD_NOT_JSON");
@@ -1781,7 +1842,8 @@ export async function createPipelineStageExecutor(
           preferAsync: true
         };
         const startedAt = new Date().toISOString();
-        const response = await value.gateway.submitWorldQuery(item.submission as unknown as JsonObject, gatewayContext);
+        const response = await value.gateway.submitWorldQuery(item.submission as unknown as JsonObject, gatewayContext)
+          .catch(gatewayFailure);
         const accepted = response.status === 202 ? object(response.value, "WORLD_QUERY_ACCEPTANCE_INVALID") : undefined;
         if (accepted) {
           // This fenced write is deliberately before the first poll. A crash can
@@ -1852,6 +1914,7 @@ export async function createPipelineStageExecutor(
               JSON.stringify(world["snapshotAdherence"] ?? null), status, resultHash, context.groundingId]
           );
         });
+        if (status === "FAILED") throw new ProductionStageModuleError(worldQueryFailureCode(world, item.submission));
       }
       return { outcomes };
     },

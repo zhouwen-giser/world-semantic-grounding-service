@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TypedWorldQueryCompiler } from "./compiler.js";
+import { queryTemplateRules } from "./recipes.js";
 import { compileInput } from "./test-fixtures.js";
 import type { QuerySemanticPattern } from "./types.js";
 
@@ -15,6 +16,23 @@ const cases: Array<readonly [QuerySemanticPattern, readonly string[]]> = [
 
 describe("GDPS typed query plans", () => {
   const compiler = new TypedWorldQueryCompiler();
+
+  it.each([
+    "GDPS_WETLANDS_IN_AREA",
+    "GDPS_BLOCKED_AREAS_IN_AREA",
+    "GDPS_HIGH_GROUND_IN_AREA"
+  ] as const)("matches %s against the published generic GDPS result port", (pattern) => {
+    const domainRequirement = queryTemplateRules.find((rule) => rule.pattern === pattern)?.steps.at(-1)?.requirement;
+    expect(domainRequirement?.outputPorts).toEqual([
+      { name: "result", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }
+    ]);
+  });
+
+  it("matches obstacle.find-nearby against its published NEAR semantics", () => {
+    const requirement = queryTemplateRules
+      .find((rule) => rule.pattern === "GDPS_OBSTACLES_NEAR_REFERENCE")?.steps.at(-1)?.requirement;
+    expect(requirement?.relationSemantics).toEqual(["NEAR"]);
+  });
 
   it("rejects GDPS when only the global PREVIEW switch is enabled", () => {
     const input = compileInput("GDPS_LAND_COVER_AT_REFERENCE");

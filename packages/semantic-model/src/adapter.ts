@@ -278,6 +278,19 @@ function normalizeKnownExpressionPlacement(candidate: unknown): unknown {
   return frame;
 }
 
+function supplyRequiredEmptyCollections(candidate: unknown): unknown {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return candidate;
+  const frame = structuredClone(candidate) as Record<string, unknown>;
+  if (frame["schemaVersion"] === undefined) frame["schemaVersion"] = "1.0";
+  for (const key of [
+    "mentions", "spatialExpressions", "relationExpressions", "temporalConstraints",
+    "aggregationExpressions", "rankingExpressions"
+  ]) {
+    if (frame[key] === undefined) frame[key] = [];
+  }
+  return frame;
+}
+
 function makeBody(
   mode: ModelOutputMode,
   model: string,
@@ -486,7 +499,9 @@ export class OpenAICompatibleSemanticModel {
           await this.#backoff(attempt, controller.signal);
           continue;
         }
-        candidate = normalizeOpaqueIdentifiers(normalizeKnownExpressionPlacement(removeOptionalNulls(candidate, this.#schema)));
+        candidate = normalizeOpaqueIdentifiers(normalizeKnownExpressionPlacement(supplyRequiredEmptyCollections(
+          removeOptionalNulls(candidate, this.#schema)
+        )));
         if (!this.#validate(candidate)) {
           lastCode = "INVALID_MODEL_SCHEMA";
           if (attempt >= this.#maxRetries) throw new SemanticModelError(lastCode, false);

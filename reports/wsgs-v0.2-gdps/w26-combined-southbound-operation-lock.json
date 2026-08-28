@@ -6,8 +6,8 @@
     "version": "0.6.3",
     "integrity": "sha512-KekpsVw943+iWwWcKepSxl408uBqH6oQ/ZzHcsrQrq2EjP+r2zYtljOfFekP6Vksxx1oSbE66rqaHE2rUGv6xw=="
   },
-  "contractCatalogRevision": "sha256:67001a0d92f9260a99ef51cc6c47e1ef30d5eca1bfb7b1247aee22b913fedc73",
-  "semanticCatalogHash": "sha256:4267e49c0456f9758df0b1e2c683d95171eec3b585156e32e72f60c4bb08db86",
+  "contractCatalogRevision": "sha256:3c779d10d580b44ce35383981f9bba6aecec56f29f9063fe76d8e196a6b96f81",
+  "semanticCatalogHash": "sha256:cf06efc8c23e7eb49acd7b79ca1a006e7c3372943691a0caf72fabaac2a7730d",
   "availabilityContractHash": "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036",
   "snapshotContractHash": "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0",
   "delegationContractHash": "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b",
@@ -80,7 +80,7 @@
       "semanticProfileHash": "sha256:76736ff33a0568e7ba253b29c210a92cd7ee09f7780856de9c9faa8cb8fa8e00",
       "maturity": "STABLE",
       "requiredPermissions": [
-        "dataset:read"
+        "data:read"
       ],
       "snapshotSupport": "CONSISTENT_AT_START"
     },
@@ -92,7 +92,7 @@
       "semanticProfileHash": "sha256:384d9f9fdd83f9c6799148478e12955385b3d4adca375ab2e2399f6d2fa8c33a",
       "maturity": "STABLE",
       "requiredPermissions": [
-        "dataset:read"
+        "data:read"
       ],
       "snapshotSupport": "CONSISTENT_AT_START"
     },

@@ -56,7 +56,8 @@ export class GatewayProtocolError extends Error {
   constructor(
     readonly code: string,
     readonly status: number | null,
-    readonly retryable: boolean
+    readonly retryable: boolean,
+    readonly details?: Readonly<Record<string, unknown>>
   ) {
     super(`GOWM Gateway request failed: ${code}`);
   }
@@ -185,6 +186,20 @@ function upstreamErrorCode(value: unknown): string | null {
   if (!candidate) return null;
   const normalized = candidate.trim().toUpperCase().replace(/[^A-Z0-9_:-]+/gu, "_");
   return /^[A-Z][A-Z0-9_:-]{0,127}$/u.test(normalized) ? normalized : null;
+}
+
+function upstreamErrorDetails(value: unknown): Readonly<Record<string, unknown>> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const nested = (value as Record<string, unknown>)["error"];
+  if (!nested || typeof nested !== "object" || Array.isArray(nested)) return undefined;
+  const details = (nested as Record<string, unknown>)["details"];
+  if (!details || typeof details !== "object" || Array.isArray(details)) return undefined;
+  const allowed = new Set([
+    "stage", "nodeId", "operationId", "operationVersion", "requested", "allowed",
+    "schemaUri", "registeredHash", "canonicalHash", "issues", "path", "keyword"
+  ]);
+  return Object.fromEntries(Object.entries(details as Record<string, unknown>)
+    .filter(([key]) => allowed.has(key)));
 }
 
 export class GowmGatewayClient {
@@ -549,15 +564,19 @@ export class GowmGatewayClient {
           const retryable = retryableStatuses.has(response.status);
           if (retryable) this.#circuit.failure();
           let protocolCode: string | null = null;
+          let protocolDetails: Readonly<Record<string, unknown>> | undefined;
           try {
-            protocolCode = upstreamErrorCode(await readBoundedJson<unknown>(response, this.#maxResponseBytes));
+            const upstream = await readBoundedJson<unknown>(response, this.#maxResponseBytes);
+            protocolCode = upstreamErrorCode(upstream);
+            protocolDetails = upstreamErrorDetails(upstream);
           } catch {
             // The status is authoritative even when an error body is absent or malformed.
           }
           throw new GatewayProtocolError(
             `HTTP_${response.status}${protocolCode ? `_${protocolCode}` : ""}`,
             response.status,
-            retryable
+            retryable,
+            protocolDetails
           );
         }
         const value = await readBoundedJson<T>(response, this.#maxResponseBytes);

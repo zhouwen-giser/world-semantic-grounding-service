@@ -66,7 +66,9 @@ function inferredKind(surfaceText: string): string[] {
 
 function namedEntityCandidates(sourceText: string): Array<{ surfaceText: string; start: number; end: number; expectedKinds: string[] }> {
   const patterns: Array<{ expression: RegExp; expectedKinds: string[] }> = [
-    { expression: /[\p{L}\p{N}]+号车/gu, expectedKinds: ["WORLD_OBJECT"] },
+    // Vehicle identifiers are bounded labels, not arbitrary preceding prose;
+    // e.g. "为什么2号车..." must anchor "2号车", never "为什么2号车".
+    { expression: /(?:[A-Za-z0-9]+|[一二三四五六七八九十百千]+)号车/gu, expectedKinds: ["WORLD_OBJECT"] },
     { expression: /[\p{L}\p{N}]+路/gu, expectedKinds: ["LAYER_FEATURE"] },
     { expression: /[A-Za-z0-9一二三四五六七八九十]+区/gu, expectedKinds: ["LAYER_FEATURE"] }
   ];
@@ -102,7 +104,9 @@ export function stabilizeSemanticFrame(frame: WorldSemanticFrame, originalText: 
       expectedKinds: expectedKinds.length > 0 ? expectedKinds : inferredKind(mention.surfaceText)
     };
   }).filter((mention) => mention.expectedKinds.length > 0);
-  const candidates = [...proposedCandidates, ...namedEntityCandidates(originalText)]
+  // Deterministic source forms are authoritative for reference kind. A model
+  // proposal for the same span cannot reclassify a vehicle, road, or area.
+  const candidates = [...namedEntityCandidates(originalText), ...proposedCandidates]
     .sort((left, right) => left.start - right.start || right.end - left.end)
     .filter((value, index, all) => !all.slice(0, index).some((prior) => prior.start === value.start && prior.end === value.end));
 

@@ -307,6 +307,16 @@ describe("OpenAICompatibleSemanticModel", () => {
     }]);
   });
 
+  it("supplies omitted required empty collections without inventing semantic content", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => responseFor({
+      schemaVersion: "1.0",
+      mentions: [],
+      relationExpressions: []
+    }));
+    const result = await adapter(fetchMock).parse({ sourceText: "road" });
+    expect(result.frame).toEqual(emptyFrame);
+  });
+
   it("fails explicitly when the model is unavailable without keyword fallback", async () => {
     const unavailable = vi.fn<typeof fetch>(async () => { throw new Error("offline"); });
     const failure = await adapter(unavailable, { maxRetries: 0 }).parse({ sourceText: "nearest road" })

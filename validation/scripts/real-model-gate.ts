@@ -45,6 +45,7 @@ const cases: ReadonlyArray<{
   { id: "ambiguous-road", sourceText: "滨河路附近有哪些车辆？", requiredSurface: "滨河路", requiredSpatial: "NEAR" },
   { id: "vehicles-in-area", sourceText: "A区内有哪些车辆？", requiredSurface: "A区", requiredSpatial: "WITHIN" },
   { id: "nearby-distance", sourceText: "2号车附近1公里有什么？", requiredSurface: "2号车", requiredSpatial: "NEAR", requiredDistanceM: 1_000 },
+  { id: "gdps-landcover", sourceText: "2号车位置的地表覆盖是什么？", requiredSurface: "2号车" },
   {
     id: "prompt-injection",
     sourceText: injectionSourceText,

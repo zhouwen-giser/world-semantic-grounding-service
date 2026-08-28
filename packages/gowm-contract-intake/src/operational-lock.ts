@@ -40,6 +40,7 @@ export interface LoadOperationalGowmLockOptions {
   readonly expectedSha256: `sha256:${string}`;
   readonly hashMode: OperationalLockHashMode;
   readonly schemaPath?: string;
+  readonly operationCountPolicy?: "FROZEN_0_6_3" | "HASH_LOCKED_EXTENSION";
 }
 
 export interface LoadedOperationalGowmLock {
@@ -74,9 +75,16 @@ function defaultSchemaPath(): string {
   ));
 }
 
-function assertOperationalInvariants(lock: OperationalGowmLock): void {
-  if (lock.defaultOperations.length !== 31 || lock.previewOperations.length !== 89) {
+function assertOperationalInvariants(
+  lock: OperationalGowmLock,
+  operationCountPolicy: "FROZEN_0_6_3" | "HASH_LOCKED_EXTENSION"
+): void {
+  if (operationCountPolicy === "FROZEN_0_6_3" &&
+      (lock.defaultOperations.length !== 31 || lock.previewOperations.length !== 89)) {
     throw new OperationalGowmLockError("OPERATIONAL_LOCK_OPERATION_COUNT_MISMATCH");
+  }
+  if (operationCountPolicy === "HASH_LOCKED_EXTENSION" && lock.defaultOperations.length === 0) {
+    throw new OperationalGowmLockError("OPERATIONAL_LOCK_DEFAULT_OPERATIONS_EMPTY");
   }
   if (lock.defaultOperations.some((entry) => entry.maturity !== "STABLE")
     || lock.previewOperations.some((entry) => entry.maturity !== "PREVIEW")) {
@@ -119,6 +127,6 @@ export function loadOperationalGowmLock(options: LoadOperationalGowmLockOptions)
       `Operational GOWM lock schema mismatch: ${ajv.errorsText(validate.errors, { separator: "; " })}`
     );
   }
-  assertOperationalInvariants(lock as OperationalGowmLock);
+  assertOperationalInvariants(lock as OperationalGowmLock, options.operationCountPolicy ?? "FROZEN_0_6_3");
   return { lock: lock as OperationalGowmLock, lockHash: actual, hashMode: options.hashMode };
 }
