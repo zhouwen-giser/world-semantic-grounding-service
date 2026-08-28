@@ -1253,8 +1253,13 @@ export function computeWorldQueryNodeRequestHashes(
     if (binding.kind !== "NODE_OUTPUT") throw new ProductionStageModuleError("WORLD_QUERY_BINDING_KIND_UNSUPPORTED");
     const sourceNodeId = text(binding.nodeId, "WORLD_QUERY_SOURCE_NODE_MISSING");
     const source = results.get(sourceNodeId);
-    if (!source || !["COMPLETED", "PARTIAL", "NO_DATA"].includes(String(source["status"]))) {
-      throw new ProductionStageModuleError("WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE");
+    if (!source) throw new ProductionStageModuleError("WORLD_QUERY_SOURCE_NODE_OUTPUT_MISSING");
+    const sourceStatus = String(source["status"]);
+    if (!["COMPLETED", "PARTIAL", "NO_DATA"].includes(sourceStatus)) {
+      const safeStatus = /^[A-Z][A-Z0-9_]{0,63}$/u.test(sourceStatus) ? sourceStatus : "INVALID";
+      const sourceOperation = planByNode.get(sourceNodeId)?.operation.operationId ?? "unknown";
+      const safeOperation = sourceOperation.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 64);
+      throw new ProductionStageModuleError(`WORLD_QUERY_SOURCE_NODE_OUTPUT_UNAVAILABLE_${safeOperation}_${safeStatus}`);
     }
     const envelope = object(source["result"], "WORLD_QUERY_SOURCE_ENVELOPE_MISSING");
     const output = object(envelope["output"], "WORLD_QUERY_SOURCE_OUTPUT_MISSING");
