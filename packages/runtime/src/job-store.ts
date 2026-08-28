@@ -17,6 +17,9 @@ export interface CreateGroundingInput {
   jobId: string;
   requestId: string;
   dataScope: string;
+  actorId: string;
+  datasetScopes: readonly string[];
+  authorizationContextHash: string;
   principalId: string;
   idempotencyKey: string;
   payloadHash: string;
@@ -35,6 +38,7 @@ export interface ClaimedJob {
   jobId: string;
   groundingId: string;
   dataScope: string;
+  actorId: string;
   leaseToken: string;
   attempts: number;
   deadlineAt: Date;
@@ -89,10 +93,15 @@ export class PostgresJobStore {
   async createOrReplay(input: CreateGroundingInput): Promise<CreateGroundingOutcome> {
     assertSha256(input.payloadHash, "payloadHash");
     assertSha256(input.sourceTextSha256, "sourceTextSha256");
+    assertSha256(input.authorizationContextHash, "authorizationContextHash");
+    if (!input.actorId.trim()) throw new Error("actorId must not be empty");
+    if (input.datasetScopes.some((scope) => !scope.trim())) throw new Error("datasetScopes must not contain empty values");
     assertMetadataIsRedacted(input.requestMetadata);
     return transaction(this.pool, async (client) => {
       const lockDigest = createHash("sha256")
         .update(input.dataScope)
+        .update(Buffer.from([0]))
+        .update(input.actorId)
         .update(Buffer.from([0]))
         .update(input.idempotencyKey)
         .digest();
@@ -105,9 +114,9 @@ export class PostgresJobStore {
       }>(
         `SELECT payload_hash, grounding_id, result_bytes
            FROM wsgs.idempotency
-          WHERE data_scope = $1 AND idempotency_key = $2
+          WHERE data_scope = $1 AND actor_id = $2 AND idempotency_key = $3
           FOR UPDATE`,
-        [input.dataScope, input.idempotencyKey]
+        [input.dataScope, input.actorId, input.idempotencyKey]
       );
       const row = existing.rows[0];
       if (row) {
@@ -121,13 +130,17 @@ export class PostgresJobStore {
 
       await client.query(
         `INSERT INTO wsgs.grounding_request(
-           grounding_id, request_id, data_scope, principal_id, payload_hash,
-           source_text_sha256, source_text_ciphertext, source_expires_at, request_metadata
-         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+           grounding_id, request_id, data_scope, actor_id, dataset_scopes,
+           authorization_context_hash, principal_id, payload_hash, source_text_sha256,
+           source_text_ciphertext, source_expires_at, request_metadata
+         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
         [
           input.groundingId,
           input.requestId,
           input.dataScope,
+          input.actorId,
+          JSON.stringify([...new Set(input.datasetScopes)].sort()),
+          input.authorizationContextHash,
           input.principalId,
           input.payloadHash,
           input.sourceTextSha256,
@@ -137,14 +150,14 @@ export class PostgresJobStore {
         ]
       );
       await client.query(
-        `INSERT INTO wsgs.grounding_job(job_id, grounding_id, data_scope, status, deadline_at)
-         VALUES ($1,$2,$3,'ACCEPTED',$4)`,
-        [input.jobId, input.groundingId, input.dataScope, input.deadlineAt]
+        `INSERT INTO wsgs.grounding_job(job_id, grounding_id, data_scope, actor_id, status, deadline_at)
+         VALUES ($1,$2,$3,$4,'ACCEPTED',$5)`,
+        [input.jobId, input.groundingId, input.dataScope, input.actorId, input.deadlineAt]
       );
       await client.query(
-        `INSERT INTO wsgs.idempotency(data_scope, idempotency_key, payload_hash, grounding_id)
-         VALUES ($1,$2,$3,$4)`,
-        [input.dataScope, input.idempotencyKey, input.payloadHash, input.groundingId]
+        `INSERT INTO wsgs.idempotency(data_scope, actor_id, idempotency_key, payload_hash, grounding_id)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [input.dataScope, input.actorId, input.idempotencyKey, input.payloadHash, input.groundingId]
       );
       return { kind: "CREATED", groundingId: input.groundingId, jobId: input.jobId };
     });
@@ -157,10 +170,11 @@ export class PostgresJobStore {
         job_id: string;
         grounding_id: string;
         data_scope: string;
+        actor_id: string;
         attempts: number;
         deadline_at: Date;
       }>(
-        `SELECT job_id, grounding_id, data_scope, attempts, deadline_at
+        `SELECT job_id, grounding_id, data_scope, actor_id, attempts, deadline_at
            FROM wsgs.grounding_job
           WHERE cancel_requested_at IS NULL
             AND deadline_at > clock_timestamp()
@@ -186,6 +200,7 @@ export class PostgresJobStore {
         jobId: row.job_id,
         groundingId: row.grounding_id,
         dataScope: row.data_scope,
+        actorId: row.actor_id,
         leaseToken,
         attempts: updated.rows[0]?.attempts ?? row.attempts + 1,
         deadlineAt: row.deadline_at
@@ -205,12 +220,12 @@ export class PostgresJobStore {
     return (updated.rowCount ?? 0) === 1;
   }
 
-  async cancel(dataScope: string, groundingId: string): Promise<JobStatus | null> {
+  async cancel(dataScope: string, actorId: string, groundingId: string): Promise<JobStatus | null> {
     return transaction(this.pool, async (client) => {
       const current = await client.query<{ job_id: string; status: JobStatus }>(
         `SELECT job_id, status FROM wsgs.grounding_job
-          WHERE data_scope = $1 AND grounding_id = $2 FOR UPDATE`,
-        [dataScope, groundingId]
+          WHERE data_scope = $1 AND actor_id = $2 AND grounding_id = $3 FOR UPDATE`,
+        [dataScope, actorId, groundingId]
       );
       const row = current.rows[0];
       if (!row) return null;
@@ -239,19 +254,20 @@ export class PostgresJobStore {
       const locked = await client.query<{
         grounding_id: string;
         data_scope: string;
+        actor_id: string;
         status: JobStatus;
         cancel_requested_at: Date | null;
         lease_token: string | null;
-      }>("SELECT grounding_id, data_scope, status, cancel_requested_at, lease_token FROM wsgs.grounding_job WHERE job_id = $1 FOR UPDATE", [jobId]);
+      }>("SELECT grounding_id, data_scope, actor_id, status, cancel_requested_at, lease_token FROM wsgs.grounding_job WHERE job_id = $1 FOR UPDATE", [jobId]);
       const row = locked.rows[0];
       if (!row) throw new Error("Grounding job not found");
       if (row.status === "CANCELLED" || row.cancel_requested_at || row.lease_token !== leaseToken || row.status !== "RUNNING") {
         return "LATE_RESULT_IGNORED";
       }
       await client.query(
-        `INSERT INTO wsgs.grounding_result(grounding_id, data_scope, status, result_hash, result_bytes)
-         VALUES ($1,$2,$3,$4,$5)`,
-        [row.grounding_id, row.data_scope, status, resultHash, Buffer.from(resultBytes)]
+        `INSERT INTO wsgs.grounding_result(grounding_id, data_scope, actor_id, status, result_hash, result_bytes)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [row.grounding_id, row.data_scope, row.actor_id, status, resultHash, Buffer.from(resultBytes)]
       );
       await client.query(
         `UPDATE wsgs.idempotency SET result_bytes = $2, updated_at = clock_timestamp()
@@ -269,16 +285,16 @@ export class PostgresJobStore {
     });
   }
 
-  async getResult(dataScope: string, groundingId: string): Promise<Uint8Array | null> {
+  async getResult(dataScope: string, actorId: string, groundingId: string): Promise<Uint8Array | null> {
     const result = await this.pool.query<{ result_bytes: Buffer }>(
-      "SELECT result_bytes FROM wsgs.grounding_result WHERE data_scope = $1 AND grounding_id = $2",
-      [dataScope, groundingId]
+      "SELECT result_bytes FROM wsgs.grounding_result WHERE data_scope = $1 AND actor_id = $2 AND grounding_id = $3",
+      [dataScope, actorId, groundingId]
     );
     const bytes = result.rows[0]?.result_bytes;
     return bytes ? new Uint8Array(bytes) : null;
   }
 
-  async getJob(dataScope: string, groundingId: string): Promise<StoredJob | null> {
+  async getJob(dataScope: string, actorId: string, groundingId: string): Promise<StoredJob | null> {
     const result = await this.pool.query<{
       job_id: string;
       grounding_id: string;
@@ -287,8 +303,8 @@ export class PostgresJobStore {
       cancel_requested_at: Date | null;
     }>(
       `SELECT job_id, grounding_id, status, attempts, cancel_requested_at
-         FROM wsgs.grounding_job WHERE data_scope = $1 AND grounding_id = $2`,
-      [dataScope, groundingId]
+         FROM wsgs.grounding_job WHERE data_scope = $1 AND actor_id = $2 AND grounding_id = $3`,
+      [dataScope, actorId, groundingId]
     );
     const row = result.rows[0];
     return row

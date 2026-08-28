@@ -41,7 +41,12 @@ export class ScopedRateBudget {
 
   consume(identity: GroundingIdentity): void {
     const now = this.#now();
-    const key = `${identity.principalId}\u0000${identity.dataScope}`;
+    const key = JSON.stringify([
+      identity.servicePrincipalId,
+      identity.actorId,
+      identity.dataScopes,
+      identity.datasetScopes
+    ]);
     let window = this.#windows.get(key);
     if (!window || now - window.startedAt >= this.#windowMs) {
       if (!window && this.#windows.size >= this.#maxTrackedKeys) this.#evictExpired(now);

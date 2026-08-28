@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "1.0",
+  "profile": "REQUIRED_DEVELOPMENT",
+  "decision": "DEVELOPMENT_READY",
+  "evidencePolicy": "Development PASS requires the declared test type. Historical 279-case status is preserved separately and production hardening remains non-blocking and unqualified.",
+  "groups": [
+    {
+      "ids": ["DEV-B001..DEV-B008"],
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "ids": ["DEV-G001..DEV-G006"],
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Pinned discovery, signed availability, advertised SYNC 200, World Query 202 polling, cancellation, receipt, and body-authority rejection have trusted live evidence."
+    },
+    {
+      "ids": ["DEV-P001..DEV-P012"],
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "ids": ["DEV-R001..DEV-R008"],
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "ids": ["DEV-V001..DEV-V002"],
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "The pinned operations advertise CONSISTENT_AT_START. WSGS emits PINNED_VALIDATION_OPERATION_UNAVAILABLE and never silently falls back to Latest."
+    },
+    {
+      "ids": ["DEV-S001..DEV-S006"],
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/architecture-boundary.mjs",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Cross-scope lookup is non-disclosing, authority injection is rejected, secrets are absent, architecture boundaries remain clean, model authority is bounded, and a valid signed delegation passes."
+    },
+    {
+      "ids": ["DEV-I001..DEV-I005"],
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Idempotent replay/conflict and generation fences have PostgreSQL coverage; a controlled worker restart resumes one production checkpoint with one completed model stage and one completed GOWM stage."
+    },
+    {
+      "ids": ["DEV-L001..DEV-L003"],
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "services/grounding-worker/src/production-module.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Authoritative payload references remain bounded; oversize inline payloads require a typed payload reference and WSGS adds no object-storage dependency."
+    },
+    {
+      "ids": ["DEV-H001..DEV-H004"],
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Live and current-lock readiness return 200 for MODEL_REQUIRED; a separate current-environment probe proves documented MODEL_OPTIONAL readiness with the model unavailable."
+    },
+    {
+      "ids": ["DEV-F001..DEV-F009"],
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    }
+  ]
+}

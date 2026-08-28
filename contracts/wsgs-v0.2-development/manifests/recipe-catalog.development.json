@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "recipes": [
+    {
+      "id": "R1",
+      "name": "REFERENCE_CURRENT_STATE",
+      "text": "2号车在哪里？"
+    },
+    {
+      "id": "R2",
+      "name": "AMBIGUOUS_REFERENCE_STOP",
+      "text": "滨河路附近有哪些设备？"
+    },
+    {
+      "id": "R3",
+      "name": "REFERENCE_IN_AREA",
+      "text": "A区内有哪些车辆？"
+    },
+    {
+      "id": "R4",
+      "name": "REFERENCE_NEARBY_1KM",
+      "text": "2号车附近1公里有什么？"
+    },
+    {
+      "id": "R5",
+      "name": "CURRENT_REFERENCE_REVALIDATION",
+      "operation": "VALIDATE_REFERENCES"
+    },
+    {
+      "id": "R6",
+      "name": "MODEL_OPTIONAL_COORDINATE",
+      "text": "查询坐标 113.93,22.54 附近对象"
+    }
+  ]
+}

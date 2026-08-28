@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-08-27T09:00:00Z",
+  "gatewayContractVersion": "0.6.3",
+  "contractCatalogRevision": "sha256:1f49cdec6b5568c9ad57967f0b111e437c873e90b1213f17cc4006824a04c5d0",
+  "semanticCatalogHash": "sha256:540e9b169cfefa5707e7ba7bd59d304c7671d8d0f2f1f0f4f16d5c5210b08b3e",
+  "bindingRevision": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "consumerPackageIntegrity": "sha512-Z2mLu+us4NM8hqthMSo48H33cFpzxK9zxyx8UeB04F7LdWN0e6Vz5q++fB7ohyRikbXdgYCrT8+SMqwcuWEBLA==",
+  "southboundLockHash": "sha256:51c189f2a4359b245b652eeb196410c742231db69dc0232d3f7057bb4368cdf0",
+  "capabilities": [
+    {
+      "operationId": "reference.resolve",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "outputSchemaHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "semanticProfileHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "maturity": "STABLE",
+      "snapshotSupport": "CONSISTENT_AT_START",
+      "requiredPermissions": [
+        "data:read"
+      ]
+    }
+  ],
+  "availability": [
+    {
+      "operationId": "reference.resolve",
+      "operationVersion": "1.0",
+      "availability": "AVAILABLE",
+      "checkedAt": "2026-08-27T09:00:00Z",
+      "validUntil": "2026-08-27T09:00:05Z",
+      "reasonCodes": [
+        "READY"
+      ]
+    }
+  ],
+  "snapshotHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

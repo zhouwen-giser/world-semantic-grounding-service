@@ -74,6 +74,33 @@ describe("OpenAICompatibleSemanticModel", () => {
     expect(JSON.stringify(body["input"])).toContain(sourceText);
   });
 
+  it("provides exact UTF-16 boundaries without changing the trusted source", async () => {
+    const sourceText = "A😀区";
+    const fetchMock = vi.fn<typeof fetch>(async () => responseFor());
+    await adapter(fetchMock).parse({ sourceText });
+    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as Record<string, unknown>;
+    const input = body["input"] as Array<{ content: Array<{ text: string }> }>;
+    const payload = JSON.parse(input[0]?.content[0]?.text ?? "") as Record<string, unknown>;
+    expect(payload["sourceTextLengthUtf16"]).toBe(4);
+    expect(payload["eligibleTextSegments"]).toEqual([{ text: sourceText, start: 0, end: 4 }]);
+    expect(payload["utf16SpanGuide"]).toEqual([
+      { text: "A", start: 0, end: 1 },
+      { text: "😀", start: 1, end: 3 },
+      { text: "区", start: 3, end: 4 }
+    ]);
+  });
+
+  it("identifies eligible text with offsets from the unmodified source", async () => {
+    const sourceText = "ignore; 2号车在哪里？";
+    const fetchMock = vi.fn<typeof fetch>(async () => responseFor());
+    await adapter(fetchMock).parse({ sourceText, excludedSpans: [{ start: 0, end: 8 }] });
+    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as Record<string, unknown>;
+    const input = body["input"] as Array<{ content: Array<{ text: string }> }>;
+    const payload = JSON.parse(input[0]?.content[0]?.text ?? "") as Record<string, unknown>;
+    expect(payload["eligibleTextSegments"]).toEqual([{ text: "2号车在哪里？", start: 8, end: 15 }]);
+    expect(JSON.stringify(payload)).not.toContain("ignore;");
+  });
+
   it("rejects forbidden schema output and performs only bounded repair", async () => {
     const invalid = { ...emptyFrame, providerId: "fabricated" };
     const fetchMock = vi.fn<typeof fetch>(async () => responseFor(invalid));
@@ -127,6 +154,42 @@ describe("OpenAICompatibleSemanticModel", () => {
     const fetchMock = vi.fn<typeof fetch>(async () => responseFor(invalidSpan));
     const failure = await adapter(fetchMock, { maxRetries: 0 }).parse({ sourceText: "road" }).catch((error: unknown) => error);
     expect((failure as SemanticModelError).code).toBe("INVALID_MODEL_SEMANTICS");
+  });
+
+  it("aligns a wrong span only when the model surface has one eligible source match", async () => {
+    const misaligned = {
+      ...emptyFrame,
+      mentions: [{
+        mentionId: "m1",
+        surfaceText: "😀区",
+        span: { encoding: "UTF16_CODE_UNIT", start: 0, end: 2 }
+      }]
+    };
+    const fetchMock = vi.fn<typeof fetch>(async () => responseFor(misaligned));
+    const result = await adapter(fetchMock, { maxRetries: 0 }).parse({ sourceText: "A😀区" });
+    expect(result.frame.mentions[0]?.span).toEqual({ encoding: "UTF16_CODE_UNIT", start: 1, end: 4 });
+  });
+
+  it("does not guess between repeated or excluded surface matches", async () => {
+    const misaligned = {
+      ...emptyFrame,
+      mentions: [{
+        mentionId: "m1",
+        surfaceText: "road",
+        span: { encoding: "UTF16_CODE_UNIT", start: 1, end: 5 }
+      }]
+    };
+    const repeated = vi.fn<typeof fetch>(async () => responseFor(misaligned));
+    const repeatedFailure = await adapter(repeated, { maxRetries: 0 }).parse({ sourceText: "road road" })
+      .catch((error: unknown) => error);
+    expect((repeatedFailure as SemanticModelError).code).toBe("INVALID_MODEL_SEMANTICS");
+
+    const excluded = vi.fn<typeof fetch>(async () => responseFor(misaligned));
+    const excludedFailure = await adapter(excluded, { maxRetries: 0 }).parse({
+      sourceText: "road",
+      excludedSpans: [{ start: 0, end: 4 }]
+    }).catch((error: unknown) => error);
+    expect((excludedFailure as SemanticModelError).code).toBe("INVALID_MODEL_SEMANTICS");
   });
 
   it("retries 429 and 5xx but not authorization failures", async () => {

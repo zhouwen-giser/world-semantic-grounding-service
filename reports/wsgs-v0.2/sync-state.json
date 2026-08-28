@@ -1,0 +1,58 @@
+{
+  "goal": "WSGS v0.2 GOWM 0.6.3 Integration",
+  "status": "BLOCKED",
+  "phase": "W14",
+  "baseline": {
+    "wsgs": {
+      "commit": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
+      "version": "0.1.0",
+      "originMain": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4"
+    },
+    "gowm": {
+      "commit": "17dd221330d9af540ec815a39eca96550690299a",
+      "version": "0.6.3",
+      "originMain": "17dd221330d9af540ec815a39eca96550690299a"
+    }
+  },
+  "candidate": {
+    "branch": "codex/wsgs-v0.2-gowm-0.6.3-integration",
+    "version": "0.2.0",
+    "implementationSha": "72b911ed9fc453d7c1d736ab551957e4ff4b8850",
+    "deploymentSha": "9cf1f897cfc400c61c434fe1b34b31ab7f59c99b",
+    "localSha": "8f6ab63ad0c508c9787a72568c7e83b5b48af95a",
+    "remoteSha": "8f6ab63ad0c508c9787a72568c7e83b5b48af95a",
+    "baseSha": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
+    "pullRequest": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/2",
+    "pullRequestState": "DRAFT",
+    "workingTreeDirty": true,
+    "finalCandidateShaVerified": false
+  },
+  "milestones": {
+    "gowmContractLocked": true,
+    "executablePipelineReady": false,
+    "referenceGroundingReady": false,
+    "semanticQueryCompilerReady": false,
+    "gowmRealE2EReady": false,
+    "stableCandidate": false
+  },
+  "acceptance": {
+    "ledger": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+    "decision": "BLOCKED",
+    "required": 279,
+    "summary": {
+      "PASS": 195,
+      "FAIL": 0,
+      "NOT_RUN": 17,
+      "BLOCKED": 67
+    }
+  },
+  "blockers": [
+    "GOWM_DIRECT_OPERATION_202_UNSUPPORTED",
+    "PINNED_VALIDATION_OPERATION_UNAVAILABLE",
+    "TRUSTED_PRODUCTION_PIPELINE_E2E_NOT_PROVEN",
+    "RESTART_RECOVERY_MATRIX_INCOMPLETE",
+    "LARGE_PAYLOAD_OBJECT_STORAGE_UNAVAILABLE",
+    "FINAL_CANDIDATE_SHA_NOT_FORMED"
+  ],
+  "next": "Keep Draft PR #2 blocked; run the full trusted API/worker/model/GOWM/PostgreSQL production and recovery matrix, and obtain direct-operation 202 plus PINNED validation capabilities before promotion."
+}

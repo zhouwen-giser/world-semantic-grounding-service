@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2:recipe-catalog",
+  "title": "RecipeCatalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recipes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "recipes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "recipeId",
+          "maturity",
+          "requirements",
+          "requestedProducts",
+          "defaultSnapshotPolicy",
+          "allowApproximation"
+        ],
+        "properties": {
+          "recipeId": {
+            "type": "string"
+          },
+          "maturity": {
+            "enum": [
+              "STABLE",
+              "PREVIEW"
+            ]
+          },
+          "requirements": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "requestedProducts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultSnapshotPolicy": {
+            "enum": [
+              "LATEST_AT_START",
+              "PINNED",
+              "BEST_EFFORT"
+            ]
+          },
+          "allowApproximation": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

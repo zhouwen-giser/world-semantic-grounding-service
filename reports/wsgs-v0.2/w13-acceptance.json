@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W13",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 3, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 22 },
+  "groups": [
+    { "ids": ["AC-X020", "AC-X022", "AC-X025"], "status": "PASS", "evidence": ["packages/query-compiler/src/matcher.test.ts", "validation/scripts/verify-wsgs-contracts.mjs", "reports/wsgs-v0.2/final-stable-candidate.md"] },
+    { "ids": ["AC-X001..AC-X019", "AC-X021", "AC-X023..AC-X024"], "status": "BLOCKED", "evidence": ["reports/wsgs-v0.2/real-model-gate.json", "reports/wsgs-v0.2/real-gowm-gate.json", "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"], "note": "Real model and trusted signed Sample World GOWM gates pass independently, but the full WSGS multi-process/recovery/performance matrix remains incomplete." }
+  ]
+}

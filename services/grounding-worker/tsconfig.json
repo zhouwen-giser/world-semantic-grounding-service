@@ -1,0 +1,40 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "paths": {
+      "@wsgs/delegated-identity": ["./../../packages/delegated-identity/dist/index.d.ts"],
+      "@wsgs/deterministic-parser": ["./../../packages/deterministic-parser/dist/index.d.ts"],
+      "@wsgs/evidence-normalizer": ["./../../packages/evidence-normalizer/dist/index.d.ts"],
+      "@wsgs/gowm-contract-intake": ["./../../packages/gowm-contract-intake/dist/index.d.ts"],
+      "@wsgs/gowm-execution-evidence": ["./../../packages/gowm-execution-evidence/dist/index.d.ts"],
+      "@wsgs/gowm-gateway-client": ["./../../packages/gowm-gateway-client/dist/index.d.ts"],
+      "@wsgs/grounding-graph": ["./../../packages/grounding-graph/dist/index.d.ts"],
+      "@wsgs/grounding-pipeline": ["./../../packages/grounding-pipeline/dist/index.d.ts"],
+      "@wsgs/query-compiler": ["./../../packages/query-compiler/dist/index.d.ts"],
+      "@wsgs/requirement-planner": ["./../../packages/requirement-planner/dist/index.d.ts"],
+      "@wsgs/semantic-frame": ["./../../packages/semantic-frame/dist/index.d.ts"],
+      "@wsgs/semantic-model": ["./../../packages/semantic-model/dist/index.d.ts"],
+      "@wsgs/trusted-capability-snapshot": ["./../../packages/trusted-capability-snapshot/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"],
+  "references": [
+    { "path": "../../packages/delegated-identity" },
+    { "path": "../../packages/deterministic-parser" },
+    { "path": "../../packages/evidence-normalizer" },
+    { "path": "../../packages/gowm-contract-intake" },
+    { "path": "../../packages/gowm-execution-evidence" },
+    { "path": "../../packages/gowm-gateway-client" },
+    { "path": "../../packages/grounding-graph" },
+    { "path": "../../packages/grounding-pipeline" },
+    { "path": "../../packages/query-compiler" },
+    { "path": "../../packages/requirement-planner" },
+    { "path": "../../packages/semantic-frame" },
+    { "path": "../../packages/semantic-model" },
+    { "path": "../../packages/trusted-capability-snapshot" }
+  ]
+}

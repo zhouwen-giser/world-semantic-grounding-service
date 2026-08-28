@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2:model-policy",
+  "title": "ModelPolicy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mode",
+    "outputMode",
+    "timeoutMs",
+    "maxRetries",
+    "modelUnavailableBehavior"
+  ],
+  "properties": {
+    "mode": {
+      "enum": [
+        "MODEL_REQUIRED",
+        "MODEL_OPTIONAL"
+      ]
+    },
+    "outputMode": {
+      "enum": [
+        "RESPONSES_STRICT",
+        "CHAT_COMPLETIONS_STRICT",
+        "CHAT_COMPLETIONS_JSON"
+      ]
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 300000
+    },
+    "maxRetries": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "modelUnavailableBehavior": {
+      "enum": [
+        "FAIL",
+        "DETERMINISTIC_PARTIAL"
+      ]
+    }
+  }
+}

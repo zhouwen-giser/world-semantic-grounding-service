@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W14",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 6, "FAIL": 0, "NOT_RUN": 1, "BLOCKED": 3 },
+  "groups": [
+    { "ids": ["AC-F001..AC-F005", "AC-F009"], "status": "PASS", "evidence": ["reports/wsgs-v0.2/required-acceptance-ledger.json", "reports/wsgs-v0.2/verification-summary.json", "reports/wsgs-v0.2/final-stable-candidate.md"] },
+    { "ids": ["AC-F006", "AC-F008", "AC-F010"], "status": "BLOCKED", "evidence": ["reports/wsgs-v0.2/required-acceptance-ledger.json", "reports/wsgs-v0.2/final-stable-candidate.md"], "note": "Required blockers remain; PR readiness and final readiness/completion markers are withheld." },
+    { "ids": ["AC-F007"], "status": "NOT_RUN", "evidence": ["reports/wsgs-v0.2/sync-state.json"], "note": "There is not yet a committed final candidate SHA." }
+  ]
+}

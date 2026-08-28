@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W08",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 2, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 2 },
+  "groups": [
+    { "ids": ["AC-Q001..AC-Q002"], "status": "PASS", "evidence": ["packages/requirement-planner/src/planner.test.ts", "reports/wsgs-v0.2/verification-summary.json"] },
+    { "ids": ["AC-Q003..AC-Q004"], "status": "BLOCKED", "evidence": ["packages/requirement-planner/src/planner.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"], "note": "Typed gaps are unit-proven, not trusted real-e2e." }
+  ]
+}

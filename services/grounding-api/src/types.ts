@@ -1,9 +1,6 @@
-export interface GroundingIdentity {
-  principalId: string;
-  actor: string;
-  dataScope: string;
-  permissions: string[];
-}
+import type { GroundingIdentityV2 } from "@wsgs/delegated-identity";
+
+export type GroundingIdentity = GroundingIdentityV2;
 
 export type ApiAuthConfig =
   | {

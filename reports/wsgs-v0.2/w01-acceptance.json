@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W01",
+  "status": "PASS",
+  "cases": [
+    { "id": "AC-C001", "status": "PASS", "evidence": ["SOURCE_LOCK and verifier pin GOWM commit 17dd221330d9af540ec815a39eca96550690299a."] },
+    { "id": "AC-C002", "status": "PASS", "evidence": ["Bundle package identity is @gowm/world-gateway-contracts@0.6.3."] },
+    { "id": "AC-C003", "status": "PASS", "evidence": ["GOWM-defined logical package integrity equals locked sha512-Z2mLu...; independent raw tar SHA-512 is recorded separately because the task helper conflates the two algorithms."] },
+    { "id": "AC-C004", "status": "PASS", "evidence": ["All 62 MANIFEST records match canonical LF byte counts and SHA-256 digests."] },
+    { "id": "AC-C005", "status": "PASS", "evidence": ["Contract catalog revision matches sha256:1f49cdec...a04c5d0."] },
+    { "id": "AC-C006", "status": "PASS", "evidence": ["Semantic catalog hash matches sha256:540e9b16...10b08b3e."] },
+    { "id": "AC-C007", "status": "PASS", "evidence": ["Availability contract hash matches sha256:66d6cfe2...7eb4036."] },
+    { "id": "AC-C008", "status": "PASS", "evidence": ["Snapshot contract hash matches sha256:35004422...3135ca0."] },
+    { "id": "AC-C009", "status": "PASS", "evidence": ["Delegation contract hash matches sha256:6edf4900...ee9344b."] },
+    { "id": "AC-C010", "status": "PASS", "evidence": ["Southbound lock LF SHA-256 and JSON Schema v2 validate; lock has 31 default and 89 preview operations."] },
+    { "id": "AC-C011", "status": "PASS", "evidence": ["Intake security scan found no provider URL, container, or database topology runtime material."] },
+    { "id": "AC-C012", "status": "PASS", "evidence": ["Intake security scan found no token, private key, or environment secret."] },
+    { "id": "AC-C013", "status": "PASS", "evidence": ["Three exact-commit npm pack materializations produced SHA-256 da86ab50c2cf4a925f958003a132902770bb2e6d2082cd0aaffb44d70e226501."] },
+    { "id": "AC-C014", "status": "PASS", "evidence": ["Negative test mutates the source lock to main and the verifier rejects it."] },
+    { "id": "AC-C015", "status": "PASS", "evidence": ["Runtime packages, services, validation, and tests contain no authority reference to the historical gowm-v0.4 directory or lock."] },
+    { "id": "AC-C016", "status": "PASS", "evidence": ["Bundle generated contracts.ts is MANIFEST-locked and passes strict standalone TypeScript compilation."] },
+    { "id": "AC-C017", "status": "PASS", "evidence": ["The exact package compatibility report is retained and verified as ADDITIVE with zero breaking changes."] },
+    { "id": "AC-C018", "status": "PASS", "evidence": ["SOURCE_LOCK.json, PACKAGE_INTEGRITY, and CONTRACT_INTAKE_REPORT.json are committed machine-readable evidence."] },
+    { "id": "AC-C019", "status": "PASS", "evidence": ["Negative test removes the package tarball and the intake verifier fails closed."] },
+    { "id": "AC-C020", "status": "PASS", "evidence": ["Negative tests corrupt archive and extracted bytes and the intake verifier fails closed."] }
+  ]
+}

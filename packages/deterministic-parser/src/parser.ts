@@ -4,10 +4,13 @@ import { isValidCell } from "h3-js";
 
 import type {
   DeterministicParseResult,
+  DistanceSourceUnit,
   MapSelectionInput,
   ParseAmbiguity,
   ParseInput,
+  ParsedAbsoluteTimeConstraint,
   ParsedCandidate,
+  ParsedDistance,
   ParsedMention,
   ReferenceKey,
   ModelSpanMention,
@@ -17,6 +20,9 @@ import type {
 const h3Pattern = /(?<![0-9a-f])8[0-9a-f]{14}(?![0-9a-f])/giu;
 const coordinatePattern = /(?:坐标|coordinates?)\s*[:：]?\s*\(?\s*(-?\d{1,3}(?:\.\d+)?)\s*[,，]\s*(-?\d{1,2}(?:\.\d+)?)\s*\)?/giu;
 const codePattern = /(?:设备|对象|device|object)?\s*(?:编码|编号|code)\s*[:：#]?\s*([A-Za-z][A-Za-z0-9._-]{1,63})/giu;
+const distancePattern = /(?<![A-Za-z0-9.+\-])(\d{1,9}(?:\.\d{1,6})?)\s*(公里|千米|kilometres?|kilometers?|km|米|metres?|meters?|m)(?![A-Za-z])/giu;
+const isoTimestampSource = "(?:\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+\\-]\\d{2}:\\d{2}))";
+const isoTimestampParts = /^(\d{4})-(\d{2})-(\d{2})[Tt](\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(?:[Zz]|([+\-])(\d{2}):(\d{2}))$/u;
 const wktPattern = /^(?:POINT|LINESTRING|POLYGON|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON)\s*\(/iu;
 const referenceIdPattern = /^wrf_[0-9a-f]{32}$/u;
 
@@ -29,21 +35,132 @@ export function assertValidUtf16Span(originalText: string, span: TextSpan, surfa
   if (!Number.isInteger(span.start) || !Number.isInteger(span.end) || span.start < 0 || span.end <= span.start || span.end > originalText.length) {
     throw new Error("Text span is outside the UTF-16 source bounds");
   }
+  if (splitsSurrogatePair(originalText, span.start) || splitsSurrogatePair(originalText, span.end)) {
+    throw new Error("Text span splits a UTF-16 surrogate pair");
+  }
   const slice = originalText.slice(span.start, span.end);
   if (surfaceText !== undefined && slice !== surfaceText) throw new Error("Text span does not match surfaceText");
   return slice;
+}
+
+function splitsSurrogatePair(value: string, offset: number): boolean {
+  if (offset <= 0 || offset >= value.length) return false;
+  const previous = value.charCodeAt(offset - 1);
+  const next = value.charCodeAt(offset);
+  return previous >= 0xd800 && previous <= 0xdbff && next >= 0xdc00 && next <= 0xdfff;
 }
 
 function isReferenceKey(value: unknown): value is ReferenceKey {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Record<string, unknown>;
   return (
+    Object.keys(candidate).length === 4 &&
     candidate["namespace"] === "gowm" &&
     typeof candidate["kind"] === "string" &&
+    candidate["kind"].length >= 1 && candidate["kind"].length <= 64 &&
     typeof candidate["id"] === "string" &&
     referenceIdPattern.test(candidate["id"]) &&
-    typeof candidate["version"] === "string"
+    typeof candidate["version"] === "string" &&
+    candidate["version"].length >= 1 && candidate["version"].length <= 128
   );
+}
+
+function assertReferenceKey(value: unknown): asserts value is ReferenceKey {
+  if (!isReferenceKey(value)) throw new Error("ReferenceKey does not satisfy the frozen northbound contract");
+}
+
+function normalizeDistanceUnit(unit: string): DistanceSourceUnit {
+  if (unit === "公里" || unit === "千米") return "公里";
+  if (unit === "米") return "米";
+  return unit.toLowerCase().startsWith("k") ? "km" : "m";
+}
+
+function distanceMillimetres(decimal: string, unit: DistanceSourceUnit): number | null {
+  const [whole = "", fraction = ""] = decimal.split(".");
+  const scaleDigits = unit === "km" || unit === "公里" ? 6 : 3;
+  if (fraction.replace(/0+$/u, "").length > scaleDigits) return null;
+  const multiplier = 10n ** BigInt(scaleDigits);
+  const fractionValue = BigInt((fraction + "0".repeat(scaleDigits)).slice(0, scaleDigits) || "0");
+  const value = BigInt(whole) * multiplier + fractionValue;
+  if (value <= 0n || value > BigInt(Number.MAX_SAFE_INTEGER)) return null;
+  return Number(value);
+}
+
+function parseDistances(originalText: string): ParsedDistance[] {
+  const values: ParsedDistance[] = [];
+  for (const match of originalText.matchAll(distancePattern)) {
+    const decimal = match[1];
+    const rawUnit = match[2];
+    if (!decimal || !rawUnit) continue;
+    const sourceUnit = normalizeDistanceUnit(rawUnit);
+    const millimetres = distanceMillimetres(decimal, sourceUnit);
+    if (millimetres === null) continue;
+    const span: TextSpan = { encoding: "UTF16_CODE_UNIT", start: match.index, end: match.index + match[0].length };
+    const surfaceText = assertValidUtf16Span(originalText, span);
+    values.push({
+      distanceId: stableId("distance", `${span.start}:${span.end}:${millimetres}`),
+      surfaceText,
+      span,
+      millimetres,
+      sourceUnit
+    });
+  }
+  if (values.length > 32) throw new Error("Deterministic distance limit exceeded");
+  return values;
+}
+
+function isValidIsoTimestamp(value: string): boolean {
+  const match = isoTimestampParts.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const offsetHour = match[9] === undefined ? 0 : Number(match[9]);
+  const offsetMinute = match[10] === undefined ? 0 : Number(match[10]);
+  const daysInMonth = month >= 1 && month <= 12 ? new Date(Date.UTC(year, month, 0)).getUTCDate() : 0;
+  return day >= 1 && day <= daysInMonth && hour <= 23 && minute <= 59 && second <= 59 &&
+    offsetHour <= 23 && offsetMinute <= 59 && Number.isFinite(Date.parse(value));
+}
+
+function parseAbsoluteTimeConstraints(originalText: string): ParsedAbsoluteTimeConstraint[] {
+  const ranges = new RegExp(`(${isoTimestampSource})\\s*\\/\\s*(${isoTimestampSource})`, "giu");
+  const instants = new RegExp(isoTimestampSource, "giu");
+  const values: ParsedAbsoluteTimeConstraint[] = [];
+  const occupied: TextSpan[] = [];
+  for (const match of originalText.matchAll(ranges)) {
+    const from = match[1];
+    const to = match[2];
+    if (!from || !to || !isValidIsoTimestamp(from) || !isValidIsoTimestamp(to) || Date.parse(from) > Date.parse(to)) continue;
+    const span: TextSpan = { encoding: "UTF16_CODE_UNIT", start: match.index, end: match.index + match[0].length };
+    const surfaceText = assertValidUtf16Span(originalText, span);
+    occupied.push(span);
+    values.push({
+      constraintId: stableId("time", `${span.start}:${span.end}:${from}:${to}`),
+      surfaceText,
+      span,
+      kind: "RANGE",
+      from,
+      to
+    });
+  }
+  for (const match of originalText.matchAll(instants)) {
+    if (!isValidIsoTimestamp(match[0])) continue;
+    const span: TextSpan = { encoding: "UTF16_CODE_UNIT", start: match.index, end: match.index + match[0].length };
+    if (occupied.some((range) => span.start < range.end && range.start < span.end)) continue;
+    const surfaceText = assertValidUtf16Span(originalText, span);
+    values.push({
+      constraintId: stableId("time", `${span.start}:${span.end}:${match[0]}`),
+      surfaceText,
+      span,
+      kind: "INSTANT",
+      from: match[0]
+    });
+  }
+  if (values.length > 16) throw new Error("Deterministic absolute-time limit exceeded");
+  return values.sort((left, right) => left.span.start - right.span.start || right.span.end - left.span.end);
 }
 
 function mention(
@@ -157,6 +274,7 @@ export function parseDeterministicReferences(input: ParseInput): DeterministicPa
   const warnings: string[] = [];
 
   for (const known of input.knownWorldReferences ?? []) {
+    assertReferenceKey(known.referenceKey);
     if (!known.alias) continue;
     let from = 0;
     while (from < originalText.length) {
@@ -174,6 +292,7 @@ export function parseDeterministicReferences(input: ParseInput): DeterministicPa
   }
 
   for (const selection of input.mapSelections ?? []) {
+    if (selection.referenceKey) assertReferenceKey(selection.referenceKey);
     const surface = findMapSurface(originalText, selection);
     if (!surface) continue;
     candidates.push(mention(originalText, surface.start, surface.end, [selection.kind], "CLIENT_MAP", 500, {
@@ -248,7 +367,9 @@ export function parseDeterministicReferences(input: ParseInput): DeterministicPa
       resultHash: prior.resultHash,
       selectedProductIds: prior.selectedProductIds ?? []
     })),
-    warnings
+    warnings,
+    distances: parseDistances(originalText),
+    absoluteTimeConstraints: parseAbsoluteTimeConstraints(originalText)
   };
 }
 

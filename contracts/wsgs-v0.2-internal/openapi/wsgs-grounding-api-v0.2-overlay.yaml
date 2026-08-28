@@ -1,0 +1,30 @@
+openapi: 3.1.0
+info:
+  title: WSGS Grounding API v0.2 Runtime Overlay
+  version: 0.2.0
+  description: >
+    The public northbound wire contract remains sacs-wsgs-grounding/1.0.
+    This overlay documents runtime metadata and readiness behavior only.
+paths:
+  /health/ready:
+    get:
+      operationId: getGroundingReadiness
+      responses:
+        "200":
+          description: Executable pipeline is ready
+          content:
+            application/json:
+              schema:
+                $ref: ../contracts/runtime-readiness.schema.json
+        "503":
+          description: A required runtime dependency is not ready
+          content:
+            application/json:
+              schema:
+                $ref: ../contracts/runtime-readiness.schema.json
+  /v1/capabilities:
+    get:
+      operationId: getWsgsCapabilities
+      responses:
+        "200":
+          description: WSGS service and locked GOWM contract capabilities

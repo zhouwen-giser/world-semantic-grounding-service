@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W03",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 17, "FAIL": 0, "NOT_RUN": 8, "BLOCKED": 0 },
+  "groups": [
+    { "ids": ["AC-I001..AC-I003", "AC-I010..AC-I012", "AC-I015..AC-I023", "AC-I025"], "status": "PASS", "evidence": ["packages/delegated-identity/src/delegation.test.ts", "services/grounding-api/src/server.test.ts", "reports/wsgs-v0.2/verification-summary.json"] },
+    { "ids": ["AC-I004"], "status": "PASS", "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json"], "note": "Valid bounded delegation independently passed signed availability and trusted business execution." },
+    { "ids": ["AC-I005..AC-I009", "AC-I013..AC-I014", "AC-I024"], "status": "NOT_RUN", "evidence": ["packages/delegated-identity/src/delegation.test.ts"], "note": "No real verifier-negative or equivalent-resign run exists." }
+  ]
+}

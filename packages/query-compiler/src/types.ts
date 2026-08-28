@@ -1,12 +1,24 @@
-import type { CapabilityDescriptor, OperationLock } from "@wsgs/gowm-gateway-client";
+import type {
+  CapabilityDescriptor,
+  CapabilityPort,
+  CapabilitySemanticEntry,
+  CapabilitySemanticProfile,
+  OperationAvailability,
+  OperationLock,
+  SnapshotSupport
+} from "@wsgs/gowm-gateway-client";
 
 export type QuerySemanticPattern =
+  | "REFERENCE_IDENTITY"
   | "REFERENCE_CURRENT_STATE"
   | "REFERENCE_GEOMETRY"
   | "REFERENCE_PROVENANCE"
-  | "REFERENCE_EVENT_TIMELINE"
+  | "CATALOG_SEARCH"
   | "REFERENCE_NEARBY"
   | "REFERENCE_IN_AREA"
+  | "REFERENCE_INTERSECTIONS"
+  | "PRIOR_RESULT_REVALIDATION"
+  | "REFERENCE_EVENT_TIMELINE"
   | "REFERENCE_CONTAINING_AREA"
   | "H3_NEIGHBORHOOD"
   | "H3_EXACT_VERIFY"
@@ -23,23 +35,52 @@ export interface ExecutionBudgets {
   maximumExecutionMs: number;
 }
 
+export type SnapshotMode = "LATEST_AT_START" | "PINNED" | "BEST_EFFORT";
+
+export type QuerySnapshotPolicy =
+  | { mode: "LATEST_AT_START"; allowDowngrade: false }
+  | { mode: "BEST_EFFORT"; allowDowngrade: false }
+  | { mode: "PINNED"; pinnedSnapshot: Record<string, unknown>; allowDowngrade: false };
+
+export interface MaturityPolicy {
+  allowPreview: boolean;
+}
+
 export interface CompileInput {
   requestId: string;
   idempotencyKey: string;
   pattern: QuerySemanticPattern;
   requiredForProduct: string;
   operationInput: Record<string, unknown>;
+  /** Additional registered world-query parameters used by typed request bindings. */
+  parameterValues?: Record<string, unknown>;
   capabilities: CapabilityDescriptor[];
+  semanticProfiles: CapabilitySemanticEntry[];
   operationLocks: OperationLock[];
+  availability: OperationAvailability[];
+  maturityPolicy: MaturityPolicy;
+  degradedPolicy?: "ALLOW" | "REJECT";
+  snapshotPolicy?: QuerySnapshotPolicy;
+  observedAt?: string;
   budgets: ExecutionBudgets;
 }
 
-export interface SchemaPort {
-  schemaUri: string;
-  schemaHash: string;
-  valueKind: string;
-  unitSemantics: string;
-}
+export type SchemaPort = Pick<
+  CapabilityPort,
+  "schemaUri" | "schemaHash" | "valueKind" | "unitSemantics"
+>;
+
+export type WorldQueryInputBinding =
+  | { kind: "LITERAL"; port: SchemaPort; value: unknown; targetPath?: string }
+  | { kind: "REQUEST_PATH"; port: SchemaPort; path: string; targetPath?: string }
+  | {
+      kind: "NODE_OUTPUT";
+      port: SchemaPort;
+      nodeId: string;
+      outputPort: string;
+      path?: string;
+      targetPath?: string;
+    };
 
 export interface WorldQueryNode {
   nodeId: string;
@@ -49,15 +90,8 @@ export interface WorldQueryNode {
     inputSchemaHash: string;
     outputSchemaHash: string;
   };
-  inputs: Record<string, {
-    kind: "REQUEST_PATH" | "NODE_OUTPUT";
-    port: SchemaPort;
-    path?: string;
-    nodeId?: string;
-    outputPort?: string;
-    targetPath?: string;
-  }>;
-  failurePolicy: "FAIL_FAST" | "ALLOW_PARTIAL";
+  inputs: Record<string, WorldQueryInputBinding>;
+  failurePolicy: "FAIL_FAST" | "ALLOW_PARTIAL" | "SKIP_IF_PRECONDITION_FALSE";
   budget: {
     maximumRows: number;
     maximumCandidates: number;
@@ -77,6 +111,7 @@ export interface WorldQueryPlanV2 {
       port: SchemaPort;
       nodeId: string;
       outputPort: string;
+      path?: string;
     };
   }>;
   budgets: ExecutionBudgets;
@@ -88,23 +123,129 @@ export interface WorldQuerySubmission {
   plan: WorldQueryPlanV2;
   parameters: Record<string, unknown>;
   parameterSchemaHash: `sha256:${string}`;
+  snapshotPolicy: QuerySnapshotPolicy;
 }
+
+export type CapabilityGapReason =
+  | "NOT_REGISTERED"
+  | "MATURITY_NOT_ALLOWED"
+  | "SCHEMA_MISMATCH"
+  | "SEMANTIC_MISMATCH"
+  | "PORT_MISMATCH"
+  | "OPERATION_UNAVAILABLE"
+  | "OPERATION_DEGRADED"
+  | "AVAILABILITY_STALE"
+  | "AMBIGUOUS_MATCH"
+  | "SNAPSHOT_UNSUPPORTED"
+  | "EXACT_VERIFIER_REQUIRED"
+  | "EXACT_VERIFIER_UNAVAILABLE"
+  | "UNSUPPORTED_EXPRESSION"
+  | "BUDGET_EXCEEDED";
 
 export interface CapabilityGap {
   gapId: string;
   semanticCapability: string;
-  reason: "NOT_REGISTERED" | "MATURITY_NOT_ALLOWED" | "SCHEMA_MISMATCH" | "PROVIDER_UNAVAILABLE" | "UNSUPPORTED_EXPRESSION" | "BUDGET_EXCEEDED";
+  reason: CapabilityGapReason;
   requiredForProduct: string;
   blocking: boolean;
   details: Record<string, unknown>;
 }
 
+export interface PortRequirement {
+  name: string;
+  valueKind: CapabilityPort["valueKind"];
+  unitSemantics: CapabilityPort["unitSemantics"];
+  schemaHash?: CapabilityPort["schemaHash"];
+}
+
+export interface SemanticCapabilityRequirement {
+  requirementId: string;
+  semanticCapability: string;
+  requiredForProduct: string;
+  domain: string;
+  relationSemantics: readonly string[];
+  acceptedReferenceKinds: readonly string[];
+  producedReferenceKinds: readonly string[];
+  spatialSemantics: string;
+  timeSemantics: string;
+  resultNature: string;
+  inputPorts: readonly PortRequirement[];
+  outputPorts: readonly PortRequirement[];
+  snapshotMode: SnapshotMode;
+  allowCandidateWithExactVerification?: boolean;
+  allowedOperationKeys?: readonly string[];
+  selectionPriority?: readonly string[];
+}
+
+export interface CapabilityBinding {
+  requirementId: string;
+  operationId: string;
+  operationVersion: string;
+  inputSchemaHash: string;
+  outputSchemaHash: string;
+  semanticProfileHash: string;
+  maturity: "STABLE" | "PREVIEW";
+  availability: "AVAILABLE" | "DEGRADED";
+  snapshotSupport: SnapshotSupport;
+  requiredPermissions: string[];
+  matchEvidence: Record<string, unknown>;
+  selectionPolicy: string;
+}
+
+export interface CapabilityMatchInput {
+  requirement: SemanticCapabilityRequirement;
+  capabilities: readonly CapabilityDescriptor[];
+  semanticProfiles: readonly CapabilitySemanticEntry[];
+  operationLocks: readonly OperationLock[];
+  availability: readonly OperationAvailability[];
+  maturityPolicy: MaturityPolicy;
+  degradedPolicy: "ALLOW" | "REJECT";
+  observedAt: string;
+}
+
+export interface MatchedCapability {
+  descriptor: CapabilityDescriptor;
+  lock: OperationLock;
+  semanticProfile: CapabilitySemanticProfile;
+  availability: OperationAvailability;
+  binding: CapabilityBinding;
+}
+
+export type CapabilityMatchResult =
+  | {
+      status: "MATCHED";
+      primary: MatchedCapability;
+      exactVerification?: MatchedCapability;
+    }
+  | { status: "CAPABILITY_GAP"; gap: CapabilityGap };
+
 export type CompileResult =
   | {
       status: "COMPILED";
       templateId: string;
+      bindings: CapabilityBinding[];
       submission: WorldQuerySubmission;
       planHash: `sha256:${string}`;
-      policy: { approximateInput: boolean; exactVerificationRequired: boolean };
+      policy: {
+        approximateInput: boolean;
+        exactVerificationRequired: boolean;
+        snapshotMode: SnapshotMode;
+      };
     }
   | { status: "CAPABILITY_GAP"; gap: CapabilityGap };
+
+export interface ResolvedPlanCapability {
+  descriptor: CapabilityDescriptor;
+  semanticProfile: CapabilitySemanticProfile;
+  lock: OperationLock;
+  availability: OperationAvailability;
+}
+
+export type {
+  CapabilityDescriptor,
+  CapabilityPort,
+  CapabilitySemanticEntry,
+  CapabilitySemanticProfile,
+  OperationAvailability,
+  OperationLock
+};

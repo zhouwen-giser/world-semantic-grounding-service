@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W04",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 29, "FAIL": 0, "NOT_RUN": 2, "BLOCKED": 3 },
+  "groups": [
+    { "ids": ["AC-P001..AC-P014", "AC-P017..AC-P023", "AC-P025..AC-P030", "AC-P032", "AC-P034"], "status": "PASS", "evidence": ["packages/grounding-pipeline/src/pipeline.test.ts", "services/grounding-worker/src/worker.test.ts", "services/grounding-worker/src/postgres.integration.test.ts", "reports/wsgs-v0.2/verification-summary.json"] },
+    { "ids": ["AC-P015..AC-P016", "AC-P024"], "status": "BLOCKED", "evidence": ["services/grounding-worker/src/production-module.ts", "reports/wsgs-v0.2/real-gowm-gate.json"], "note": "No trusted full production chain completed." },
+    { "ids": ["AC-P031", "AC-P033"], "status": "NOT_RUN", "evidence": ["reports/wsgs-v0.2/verification-summary.json"], "note": "Actual API and PostgreSQL process restarts were not proven." }
+  ]
+}

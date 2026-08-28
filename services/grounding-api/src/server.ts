@@ -6,7 +6,30 @@ import { ApiSecurityError, assertSafeUnicodeText, ScopedRateBudget } from "./sec
 import type { GroundingApiConfig, GroundingIdentity } from "./types.js";
 
 const identifierPattern = /^[A-Za-z][A-Za-z0-9._:-]{0,255}$/u;
-const authorityFields = new Set(["dataScope", "data_scope", "actor", "permissions", "authorization"]);
+const authorityFields = new Set([
+  "servicePrincipalId",
+  "service_principal_id",
+  "principalId",
+  "principal_id",
+  "actorId",
+  "actor_id",
+  "actor",
+  "dataScopes",
+  "data_scopes",
+  "dataScope",
+  "data_scope",
+  "datasetScopes",
+  "dataset_scopes",
+  "datasetScope",
+  "dataset_scope",
+  "permissions",
+  "authorizationContextHash",
+  "authorization_context_hash",
+  "authorization",
+  "accessToken",
+  "access_token",
+  "token"
+]);
 
 class ApiProtocolError extends Error {
   constructor(readonly code: string, readonly statusCode: number) {
@@ -138,6 +161,21 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
     if (error instanceof ApiSecurityError) {
       metrics.increment("security_rejected");
       void reply.code(error.statusCode).send(checkedProtocolError(validators, request, error.code));
+      return;
+    }
+    if (error && typeof error === "object" && "code" in error && error.code === "IDEMPOTENCY_CONFLICT") {
+      metrics.increment("idempotency_conflict");
+      void reply.code(409).send(checkedProtocolError(validators, request, "IDEMPOTENCY_CONFLICT"));
+      return;
+    }
+    if (error && typeof error === "object" && "code" in error && error.code === "DATA_SCOPE_SELECTION_REQUIRED") {
+      metrics.increment("scope_rejected");
+      void reply.code(403).send(checkedProtocolError(validators, request, "DATA_SCOPE_SELECTION_REQUIRED"));
+      return;
+    }
+    if (error && typeof error === "object" && "code" in error && error.code === "NOT_READY") {
+      metrics.increment("not_ready");
+      void reply.code(503).send(checkedProtocolError(validators, request, "NOT_READY"));
       return;
     }
     const status = error && typeof error === "object" && "statusCode" in error && error.statusCode === 413 ? 413 : 500;

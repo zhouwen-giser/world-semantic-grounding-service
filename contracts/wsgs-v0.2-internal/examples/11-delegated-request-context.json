@@ -1,0 +1,16 @@
+{
+  "servicePrincipalId": "wsgs",
+  "actorId": "user-123",
+  "dataScopes": [
+    "tenant-a"
+  ],
+  "datasetScopes": [
+    "tenant-a-main"
+  ],
+  "allowedOperations": [
+    "reference.resolve@1.0",
+    "world.get-current-state@1.0"
+  ],
+  "authorizationContextHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "requestId": "gowm-request-001"
+}

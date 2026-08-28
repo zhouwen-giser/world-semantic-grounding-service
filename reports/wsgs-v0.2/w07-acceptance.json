@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W07",
+  "status": "BLOCKED",
+  "ownedRequiredIds": [],
+  "supportingIds": ["AC-G023", "AC-G024", "AC-G025", "AC-D007", "AC-D020"],
+  "supportingResult": "PASS",
+  "evidence": ["packages/trusted-capability-snapshot/src/snapshot.test.ts", "services/grounding-worker/src/postgres.integration.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+  "blocker": "Signed Sample World availability and semantic authority now pass, but the production worker has not persisted and recovered that live trusted snapshot through the full API/worker/PostgreSQL chain."
+}

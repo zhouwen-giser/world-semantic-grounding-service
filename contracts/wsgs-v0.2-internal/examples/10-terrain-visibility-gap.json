@@ -1,0 +1,14 @@
+{
+  "input": "2号车附近1公里范围内的高地可以观察到哪些任务目标？",
+  "requirements": [
+    "RESOLVE_REFERENCE",
+    "SPATIAL_NEARBY",
+    "TERRAIN_CAPABILITY_REQUIRED",
+    "VISIBILITY_CAPABILITY_REQUIRED"
+  ],
+  "expectedCapabilityGaps": [
+    "TERRAIN_CAPABILITY_REQUIRED",
+    "VISIBILITY_CAPABILITY_REQUIRED"
+  ],
+  "fabricatedResult": false
+}

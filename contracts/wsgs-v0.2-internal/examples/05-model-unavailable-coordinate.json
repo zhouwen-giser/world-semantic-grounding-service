@@ -1,0 +1,10 @@
+{
+  "input": "查询坐标 113.93,22.54 附近对象",
+  "modelPolicy": "MODEL_OPTIONAL",
+  "modelAvailable": false,
+  "expectedStatus": "PARTIAL",
+  "warnings": [
+    "MODEL_UNAVAILABLE"
+  ],
+  "deterministicCandidateRetained": true
+}

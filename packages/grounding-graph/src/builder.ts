@@ -83,6 +83,7 @@ function modelMention(value: WorldSemanticFrame["mentions"][number]): MergedMent
     surfaceText: value.surfaceText,
     span: value.span,
     expectedKinds: [...(value.expectedKinds ?? [])].sort(),
+    ...(value.semanticRole ? { semanticRole: value.semanticRole } : {}),
     extractionSources: ["DOMAIN_MODEL"]
   };
 }
@@ -161,6 +162,7 @@ export function buildGroundingGraph(
     if (sameSpan && conflict.surfaceText === mention.surfaceText && compatibleKinds(conflict.expectedKinds, mention.expectedKinds ?? [])) {
       const existing = merged.find((entry) => entry.mentionId === conflict.mentionId)!;
       existing.expectedKinds = [...new Set([...existing.expectedKinds, ...(mention.expectedKinds ?? [])])].sort();
+      if (mention.semanticRole) existing.semanticRole = mention.semanticRole;
       if (!existing.extractionSources.includes("DOMAIN_MODEL")) existing.extractionSources.push("DOMAIN_MODEL");
       nodeIds.set(mention.mentionId, nodeIds.get(conflict.mentionId)!);
       const node = nodes.find((entry) => entry.nodeId === nodeIds.get(conflict.mentionId));
@@ -213,27 +215,52 @@ export function buildGroundingGraph(
     }
   }
 
-  const operations: Array<{ id: string; category: string; value: Record<string, unknown>; targets: string[] }> = [
+  const operations: Array<{
+    id: string;
+    category: string;
+    value: Record<string, unknown>;
+    targets: string[];
+    source: "DETERMINISTIC" | "DOMAIN_MODEL";
+  }> = [
+    ...(deterministic.distances ?? []).map((value) => ({
+      id: value.distanceId,
+      category: "DISTANCE_LITERAL",
+      value: value as unknown as Record<string, unknown>,
+      targets: [],
+      source: "DETERMINISTIC" as const
+    })),
+    ...(deterministic.absoluteTimeConstraints ?? []).map((value) => ({
+      id: value.constraintId,
+      category: "ABSOLUTE_TIME_LITERAL",
+      value: value as unknown as Record<string, unknown>,
+      targets: [],
+      source: "DETERMINISTIC" as const
+    })),
     ...modelFrame.spatialExpressions.map((value) => ({
-      id: value.expressionId, category: "SPATIAL", value: value as unknown as Record<string, unknown>, targets: value.arguments
+      id: value.expressionId, category: "SPATIAL", value: value as unknown as Record<string, unknown>, targets: value.arguments,
+      source: "DOMAIN_MODEL" as const
     })),
     ...modelFrame.relationExpressions.map((value) => ({
       id: value.expressionId,
       category: "RELATION",
       value: value as unknown as Record<string, unknown>,
-      targets: [value.subjectMentionId, ...(value.objectMentionId ? [value.objectMentionId] : [])]
+      targets: [value.subjectMentionId, ...(value.objectMentionId ? [value.objectMentionId] : [])],
+      source: "DOMAIN_MODEL" as const
     })),
     ...modelFrame.temporalConstraints.map((value) => ({
-      id: value.constraintId, category: "TEMPORAL", value: value as unknown as Record<string, unknown>, targets: []
+      id: value.constraintId, category: "TEMPORAL", value: value as unknown as Record<string, unknown>, targets: [],
+      source: "DOMAIN_MODEL" as const
     })),
     ...modelFrame.aggregationExpressions.map((value) => ({
       id: value.expressionId,
       category: "AGGREGATION",
       value: value as unknown as Record<string, unknown>,
-      targets: value.targetExpressionId ? [value.targetExpressionId] : []
+      targets: value.targetExpressionId ? [value.targetExpressionId] : [],
+      source: "DOMAIN_MODEL" as const
     })),
     ...modelFrame.rankingExpressions.map((value) => ({
-      id: value.expressionId, category: "RANKING", value: value as unknown as Record<string, unknown>, targets: []
+      id: value.expressionId, category: "RANKING", value: value as unknown as Record<string, unknown>, targets: [],
+      source: "DOMAIN_MODEL" as const
     }))
   ];
   for (const operation of operations) {
@@ -242,7 +269,7 @@ export function buildGroundingGraph(
     addNode({
       nodeId,
       kind: "SEMANTIC_OPERATION",
-      payload: jsonPayload({ category: operation.category, expression: operation.value, source: "DOMAIN_MODEL" })
+      payload: jsonPayload({ category: operation.category, expression: operation.value, source: operation.source })
     });
   }
   for (const operation of operations) {

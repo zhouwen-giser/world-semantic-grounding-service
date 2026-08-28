@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2:sacs-development-handoff-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "wsgs",
+    "northboundContract",
+    "gowm",
+    "developmentLedgerHash",
+    "stableRecipes",
+    "knownDeferredCapabilities",
+    "productionQualified"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "status": {
+      "const": "DEVELOPMENT_READY"
+    },
+    "wsgs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "version"
+      ],
+      "properties": {
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "version": {
+          "const": "0.2.0"
+        }
+      }
+    },
+    "northboundContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "hash"
+      ],
+      "properties": {
+        "id": {
+          "const": "sacs-wsgs-grounding/1.0"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "gowm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "sourceCommit",
+        "contractCatalogRevision",
+        "semanticCatalogHash"
+      ],
+      "properties": {
+        "version": {
+          "const": "0.6.3"
+        },
+        "sourceCommit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "contractCatalogRevision": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "semanticCatalogHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "developmentLedgerHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "stableRecipes": {
+      "type": "array",
+      "minItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "knownDeferredCapabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "productionQualified": {
+      "const": false
+    }
+  }
+}

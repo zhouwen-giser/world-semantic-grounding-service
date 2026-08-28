@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W10",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 13, "FAIL": 0, "NOT_RUN": 0, "BLOCKED": 10 },
+  "groups": [
+    { "ids": ["AC-E006", "AC-E009..AC-E016", "AC-E021..AC-E023", "AC-E025"], "status": "PASS", "evidence": ["packages/gowm-execution-evidence/src/normalizer.test.ts", "reports/wsgs-v0.2/verification-summary.json"] },
+    { "ids": ["AC-E001..AC-E005", "AC-E017..AC-E020", "AC-E024"], "status": "BLOCKED", "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json"], "note": "Diagnostic live calls cannot satisfy trusted real-e2e acceptance." }
+  ]
+}

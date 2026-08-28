@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "wsgsCommit": "75c6d2731094087efd0c203814fcb8fa8b6fefe3",
+  "version": "0.2.0",
+  "status": "DEVELOPMENT_READY",
+  "developmentAcceptance": {
+    "total": 63,
+    "pass": 63,
+    "fail": 0,
+    "notRun": 0
+  },
+  "productionQualified": false,
+  "markers": [
+    "ACCEPTANCE_PROFILE_SPLIT_READY",
+    "REAL_GROUNDING_PIPELINE_READY",
+    "STABLE_RECIPE_E2E_READY",
+    "MINIMUM_DEVELOPMENT_SECURITY_READY",
+    "DEVELOPMENT_RECOVERY_READY",
+    "SACS_DEVELOPMENT_HANDOFF_READY",
+    "WSGS_V0_2_DEVELOPMENT_READY"
+  ],
+  "developmentLedgerHash": "sha256:fd2def26d5c34a68121fad531d336d46358b334213dfdefcb09c9e628f73bc74",
+  "realPipelineEvidenceHash": "sha256:c31e95285a1cc39994f8037e109942865477717827752806ea96d5a5901917a4"
+}

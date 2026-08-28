@@ -1,6 +1,8 @@
 import { readFileSync, readdirSync } from "node:fs";
+import { createGroundingIdentity } from "@wsgs/delegated-identity";
+import { createProductionBackendFromEnvironment } from "./production.js";
 import { createGroundingApi } from "./server.js";
-import type { ApiAuthConfig, GroundingApiBackend, GroundingIdentity } from "./types.js";
+import type { ApiAuthConfig } from "./types.js";
 
 const schemaDirectory = new URL("../../../contracts/wsgs-v0.1/contracts/", import.meta.url);
 
@@ -10,17 +12,34 @@ function required(name: string): string {
   return value;
 }
 
+function requiredEither(preferred: string, legacy: string): string {
+  return process.env[preferred] ?? process.env[legacy] ?? required(preferred);
+}
+
+function environmentList(plural: string, singular: string, allowMissing: boolean): string[] {
+  const pluralValue = process.env[plural];
+  const singularValue = process.env[singular];
+  if (pluralValue !== undefined && singularValue !== undefined) {
+    throw new Error(`${plural} and ${singular} cannot both be set`);
+  }
+  if (pluralValue !== undefined) return pluralValue.split(",").map((value) => value.trim());
+  if (singularValue !== undefined) return [singularValue];
+  if (allowMissing) return [];
+  return [required(plural)];
+}
+
 export function authFromEnvironment(): ApiAuthConfig {
   const mode = process.env["WSGS_AUTH_MODE"] ?? "JWT_SERVICE";
   if (mode === "STATIC_TRUSTED") {
     return {
       mode,
-      identity: {
-        principalId: required("WSGS_STATIC_PRINCIPAL_ID"),
-        actor: required("WSGS_STATIC_ACTOR"),
-        dataScope: required("WSGS_STATIC_DATA_SCOPE"),
-        permissions: ["grounding.read"]
-      }
+      identity: createGroundingIdentity({
+        servicePrincipalId: requiredEither("WSGS_STATIC_SERVICE_PRINCIPAL_ID", "WSGS_STATIC_PRINCIPAL_ID"),
+        actorId: requiredEither("WSGS_STATIC_ACTOR_ID", "WSGS_STATIC_ACTOR"),
+        dataScopes: environmentList("WSGS_STATIC_DATA_SCOPES", "WSGS_STATIC_DATA_SCOPE", false),
+        datasetScopes: environmentList("WSGS_STATIC_DATASET_SCOPES", "WSGS_STATIC_DATASET_SCOPE", true),
+        permissions: process.env["WSGS_STATIC_PERMISSIONS"]?.split(/[ ,]+/u).filter(Boolean) ?? ["grounding.read"]
+      })
     };
   }
   if (mode !== "JWT_SERVICE") throw new Error("WSGS_AUTH_MODE must be JWT_SERVICE or STATIC_TRUSTED");
@@ -40,47 +59,13 @@ export function loadFrozenSchemas(): Record<string, unknown> {
     .map((name) => [name, JSON.parse(readFileSync(new URL(name, schemaDirectory), "utf8")) as unknown]));
 }
 
-class FailClosedDeploymentBackend implements GroundingApiBackend {
-  async readiness(): Promise<{ ready: boolean; reasons: string[] }> {
-    return { ready: false, reasons: ["GROUNDING_PIPELINE_NOT_CONFIGURED"] };
-  }
-
-  async capabilities(_identity: GroundingIdentity): Promise<unknown> {
-    return {
-      service: "world-semantic-grounding-service",
-      version: "0.1.0",
-      contractVersion: "sacs-wsgs-grounding/1.0",
-      supportedOperations: ["GROUND_REFERENCES", "COMPILE_WORLD_QUERY", "EXECUTE_WORLD_QUERY", "VALIDATE_REFERENCES"],
-      supportedProducts: ["MENTIONS", "REFERENCE_PRODUCTS", "WORLD_EVIDENCE", "AMBIGUITIES", "CAPABILITY_GAPS"],
-      gowmContract: {
-        softwareVersion: "0.4.0",
-        commit: "db575f79c874a69f65a2043a7e463338524b713d",
-        sourcePackageArtifacts: 33
-      },
-      requiredCapabilitiesReady: false,
-      optionalCapabilities: []
-    };
-  }
-
-  async create(): Promise<never> {
-    throw new Error("Grounding pipeline is not configured");
-  }
-
-  async get(): Promise<null> {
-    return null;
-  }
-
-  async cancel(): Promise<null> {
-    return null;
-  }
-}
-
 const port = Number(process.env["PORT"] ?? "8080");
 if (!Number.isInteger(port) || port < 1 || port > 65_535) throw new Error("PORT must be an integer from 1 through 65535");
 
+const production = createProductionBackendFromEnvironment();
 const app = await createGroundingApi({
   auth: authFromEnvironment(),
-  backend: new FailClosedDeploymentBackend(),
+  backend: production.backend,
   schemas: loadFrozenSchemas(),
   logger: true
 });
@@ -91,6 +76,7 @@ async function shutdown(signal: string): Promise<void> {
   closing = true;
   app.log.info({ signal }, "shutdown requested");
   await app.close();
+  await production.close();
 }
 
 process.once("SIGTERM", () => { void shutdown("SIGTERM"); });

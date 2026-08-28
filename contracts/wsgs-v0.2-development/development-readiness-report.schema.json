@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2:development-readiness-report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "wsgsCommit",
+    "version",
+    "status",
+    "developmentAcceptance",
+    "productionQualified",
+    "markers"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "wsgsCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "version": {
+      "const": "0.2.0"
+    },
+    "status": {
+      "enum": [
+        "DEVELOPMENT_READY",
+        "BLOCKED"
+      ]
+    },
+    "developmentAcceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "pass",
+        "fail",
+        "notRun"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fail": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "notRun": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "productionQualified": {
+      "const": false
+    },
+    "markers": {
+      "type": "array",
+      "minItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "developmentLedgerHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "realPipelineEvidenceHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

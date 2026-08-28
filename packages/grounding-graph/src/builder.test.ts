@@ -1,5 +1,5 @@
 import type { GroundingGraph, WorldSemanticFrame } from "@wsgs/contracts";
-import type { DeterministicParseResult, ParsedMention } from "@wsgs/deterministic-parser";
+import { parseDeterministicReferences, type DeterministicParseResult, type ParsedMention } from "@wsgs/deterministic-parser";
 import { describe, expect, it } from "vitest";
 import {
   buildGroundingGraph,
@@ -131,6 +131,24 @@ describe("buildGroundingGraph", () => {
       node.kind === "UNKNOWN" && (node.payload as Record<string, unknown>)["candidateKind"] === "MAP_SELECTION"
     )).toBe(true);
     expect(degraded.graph.nodes.some((node) => node.kind === "FINDING")).toBe(false);
+  });
+
+  it("retains deterministic distance and absolute-time literals when the optional model is down", () => {
+    const sourceText = "2号车附近1公里，时间2026-08-27T09:00:00Z";
+    const parsed = parseDeterministicReferences({ originalText: sourceText });
+    const degraded = buildGroundingGraphWithDegradation(sourceText, parsed, {
+      status: "UNAVAILABLE",
+      failureCode: "MODEL_TRANSPORT_ERROR"
+    });
+    const deterministicOperations = degraded.graph.nodes.filter((node) =>
+      node.kind === "SEMANTIC_OPERATION" && (node.payload as Record<string, unknown>)["source"] === "DETERMINISTIC"
+    );
+    expect(degraded.completionStatus).toBe("PARTIAL");
+    expect(deterministicOperations.map((node) => (node.payload as Record<string, unknown>)["category"]).sort()).toEqual([
+      "ABSOLUTE_TIME_LITERAL",
+      "DISTANCE_LITERAL"
+    ]);
+    expect(JSON.stringify(deterministicOperations)).toContain("1000000");
   });
 
   it("enforces node and edge limits plus endpoint integrity", () => {

@@ -59,10 +59,16 @@ function stableId(prefix: string, value: unknown): string {
 function envelopeOutput(value: unknown, lock: OperationLock): unknown {
   const envelope = object(value, "INVALID_GATEWAY_ENVELOPE");
   const operation = object(envelope["operation"], "INVALID_GATEWAY_OPERATION");
-  const execution = object(envelope["execution"], "INVALID_GATEWAY_EXECUTION");
+  const computeSnapshot = object(envelope["computeSnapshot"], "INVALID_COMPUTE_SNAPSHOT");
+  const snapshotOperation = object(computeSnapshot["operation"], "INVALID_COMPUTE_SNAPSHOT_OPERATION");
+  const snapshotSchemas = object(computeSnapshot["schemas"], "INVALID_COMPUTE_SNAPSHOT_SCHEMAS");
   if (
     envelope["providerProtocolVersion"] !== "1.0" || operation["operationId"] !== lock.operationId ||
-    operation["operationVersion"] !== lock.operationVersion || execution["providerId"] !== lock.providerId
+    operation["operationVersion"] !== lock.operationVersion ||
+    snapshotOperation["operationId"] !== lock.operationId ||
+    snapshotOperation["operationVersion"] !== lock.operationVersion ||
+    snapshotSchemas["inputSchemaHash"] !== lock.inputSchemaHash ||
+    snapshotSchemas["outputSchemaHash"] !== lock.outputSchemaHash
   ) throw new ReferenceGroundingError("GATEWAY_AUTHORITY_MISMATCH");
   if (envelope["status"] === "NO_DATA") return null;
   if (envelope["status"] !== "COMPLETED" && envelope["status"] !== "PARTIAL") {

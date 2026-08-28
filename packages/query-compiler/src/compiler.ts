@@ -1,39 +1,56 @@
 import { createHash } from "node:crypto";
-import type { CapabilityDescriptor, CapabilityPort, OperationLock } from "@wsgs/gowm-gateway-client";
+import type { CapabilityDescriptor, CapabilityPort } from "@wsgs/gowm-gateway-client";
+import { CapabilityMatcher, capabilityGap } from "./matcher.js";
+import {
+  queryTemplateRules,
+  semanticRequirementFor,
+  type QueryTemplateLink,
+  type QueryTemplateLiteralBinding,
+  type QueryTemplateRequestBinding,
+  type QueryTemplateRule,
+  type QueryTemplateStep
+} from "./recipes.js";
 import type {
-  CapabilityGap,
+  CapabilityGapReason,
   CompileInput,
   CompileResult,
-  QuerySemanticPattern,
+  MatchedCapability,
+  QuerySnapshotPolicy,
   SchemaPort,
+  SemanticCapabilityRequirement,
+  SnapshotMode,
   WorldQueryNode,
   WorldQueryPlanV2,
   WorldQuerySubmission
 } from "./types.js";
 import { canonicalPlanHash, validateCompiledPlan } from "./validation.js";
 
-interface QueryTemplateRule {
-  templateId: string;
-  pattern: Exclude<QuerySemanticPattern, "TERRAIN_VISIBILITY">;
-  operations: readonly string[];
-  linkOutput?: string;
-  linkTargetPath?: string;
-  approximate: boolean;
+interface CompiledUnit {
+  unitId: string;
+  matched: MatchedCapability;
+  costWeight: number;
+  failurePolicy: WorldQueryNode["failurePolicy"];
+  links: readonly QueryTemplateLink[];
+  requestBindings: readonly QueryTemplateRequestBinding[];
+  literalBindings: readonly QueryTemplateLiteralBinding[];
 }
 
-export const queryTemplateRules: readonly QueryTemplateRule[] = [
-  { templateId: "reference-current-state", pattern: "REFERENCE_CURRENT_STATE", operations: ["reference.resolve", "world.get-current-state"], linkOutput: "candidateReferenceKey", linkTargetPath: "/referenceKey", approximate: false },
-  { templateId: "reference-geometry", pattern: "REFERENCE_GEOMETRY", operations: ["reference.resolve", "world.get-geometry"], linkOutput: "candidateReferenceKey", linkTargetPath: "/referenceKey", approximate: false },
-  { templateId: "reference-provenance", pattern: "REFERENCE_PROVENANCE", operations: ["reference.resolve", "world.get-provenance"], linkOutput: "candidateReferenceKey", linkTargetPath: "/referenceKey", approximate: false },
-  { templateId: "reference-event-timeline", pattern: "REFERENCE_EVENT_TIMELINE", operations: ["reference.resolve", "world.get-event-timeline"], linkOutput: "candidateReferenceKey", linkTargetPath: "/referenceKey", approximate: false },
-  { templateId: "nearby-world-objects", pattern: "REFERENCE_NEARBY", operations: ["reference.resolve", "spatial.find-nearby"], linkOutput: "candidateReferenceKey", linkTargetPath: "/anchorReferenceKey", approximate: false },
-  { templateId: "area-world-objects", pattern: "REFERENCE_IN_AREA", operations: ["reference.resolve", "spatial.find-in-area"], linkOutput: "candidateReferenceKey", linkTargetPath: "/areaReferenceKey", approximate: false },
-  { templateId: "containing-area", pattern: "REFERENCE_CONTAINING_AREA", operations: ["reference.resolve", "spatial.find-containing-area"], linkOutput: "candidateReferenceKey", linkTargetPath: "/referenceKey", approximate: false },
-  { templateId: "h3-neighborhood", pattern: "H3_NEIGHBORHOOD", operations: ["h3.neighborhood.disk"], approximate: true },
-  { templateId: "h3-exact-verify", pattern: "H3_EXACT_VERIFY", operations: ["h3.neighborhood.disk", "spatial.find-nearby"], linkOutput: "result", linkTargetPath: "/candidateCells", approximate: false },
-  { templateId: "operational-correlation-timeline", pattern: "EXTERNAL_CORRELATION_TIMELINE", operations: ["correlation.resolve", "operational-task.get-timeline"], linkOutput: "operationalTaskReferenceKey", linkTargetPath: "/referenceKey", approximate: false },
-  { templateId: "predicate-evaluation", pattern: "EXTERNAL_PREDICATE_EVALUATION", operations: ["predicate.evaluate"], approximate: false }
-] as const;
+export { queryTemplateRules };
+
+/** Canonical GOWM 0.6.3 registry hash for platform/world-query-parameters.schema.json. */
+export const GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH =
+  "sha256:12435544345b96060988d2260be7d2cd3356df710442023888a8c02911c26c97" as const;
+
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${canonical(entry)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
 
 function hash(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex");
@@ -52,22 +69,98 @@ function schemaPort(port: CapabilityPort): SchemaPort {
   };
 }
 
-function gap(input: CompileInput, reason: CapabilityGap["reason"], details: Record<string, unknown>): CompileResult {
+function placeholderRequirement(input: CompileInput): SemanticCapabilityRequirement {
   return {
-    status: "CAPABILITY_GAP",
-    gap: {
-      gapId: stableId("gap", `${input.pattern}:${reason}:${JSON.stringify(details)}`),
-      semanticCapability: input.pattern,
-      reason,
-      requiredForProduct: input.requiredForProduct,
-      blocking: true,
-      details
-    }
+    requirementId: `compile:${input.pattern}`,
+    semanticCapability: input.pattern,
+    requiredForProduct: input.requiredForProduct,
+    domain: "PLATFORM",
+    relationSemantics: [],
+    acceptedReferenceKinds: [],
+    producedReferenceKinds: [],
+    spatialSemantics: "NONE",
+    timeSemantics: "NONE",
+    resultNature: "VALIDATION",
+    inputPorts: [],
+    outputPorts: [],
+    snapshotMode: input.snapshotPolicy?.mode ?? "LATEST_AT_START"
   };
 }
 
-function allocate(total: number, count: number): number {
-  return Math.floor(total / count);
+function gap(input: CompileInput, reason: CapabilityGapReason, details: Record<string, unknown>): CompileResult {
+  return {
+    status: "CAPABILITY_GAP",
+    gap: capabilityGap(placeholderRequirement(input), reason, details)
+  };
+}
+
+function costClassWeight(descriptor: CapabilityDescriptor): number {
+  switch (descriptor.execution.costClass) {
+    case "HIGH": return 4;
+    case "MEDIUM": return 2;
+    case "LOW": return 1;
+    default: return 1;
+  }
+}
+
+function descriptorLimit(descriptor: CapabilityDescriptor, name: string): number | undefined {
+  const value = descriptor.limits[name as keyof CapabilityDescriptor["limits"]];
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? value : undefined;
+}
+
+function executionLimit(descriptor: CapabilityDescriptor): number | undefined {
+  const value = descriptor.execution.maximumTimeoutMs;
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? value : undefined;
+}
+
+function weightedAllocation(total: number, units: readonly CompiledUnit[]): number[] {
+  const allocations = units.map(() => 1);
+  let remaining = total - units.length;
+  const weights = units.map((unit) => unit.costWeight * costClassWeight(unit.matched.descriptor));
+  const weightTotal = weights.reduce((sum, value) => sum + value, 0);
+  const fractions = weights.map((weight, index) => {
+    const exact = remaining * weight / weightTotal;
+    const whole = Math.floor(exact);
+    allocations[index]! += whole;
+    return { index, remainder: exact - whole, unitId: units[index]!.unitId };
+  });
+  remaining -= allocations.reduce((sum, value) => sum + value, 0) - units.length;
+  fractions.sort((left, right) => right.remainder - left.remainder || left.unitId.localeCompare(right.unitId));
+  for (let index = 0; index < remaining; index += 1) {
+    allocations[fractions[index % fractions.length]!.index]! += 1;
+  }
+  return allocations;
+}
+
+function boundedAllocations(
+  total: number,
+  units: readonly CompiledUnit[],
+  limitName: "maximumRows" | "maximumCandidates" | "maximumOutputBytes" | "maximumExecutionMs"
+): number[] {
+  return weightedAllocation(total, units).map((value, index) => {
+    const descriptor = units[index]!.matched.descriptor;
+    const limit = limitName === "maximumExecutionMs"
+      ? executionLimit(descriptor)
+      : descriptorLimit(descriptor, limitName);
+    return limit === undefined ? value : Math.min(value, limit);
+  });
+}
+
+function isPositiveSafeInteger(value: number): boolean {
+  return Number.isSafeInteger(value) && value > 0;
+}
+
+function snapshotPolicy(input: CompileInput, rule: QueryTemplateRule): QuerySnapshotPolicy | undefined {
+  if (input.snapshotPolicy !== undefined) return input.snapshotPolicy;
+  if (rule.defaultSnapshotMode === "PINNED") return undefined;
+  return { mode: "LATEST_AT_START", allowDowngrade: false };
+}
+
+function sourceOutput(
+  source: { matched: MatchedCapability },
+  outputPort: string
+): CapabilityPort | undefined {
+  return source.matched.descriptor.ports.outputs.find((port) => port.name === outputPort);
 }
 
 export class QueryCompilationError extends Error {
@@ -77,90 +170,215 @@ export class QueryCompilationError extends Error {
 }
 
 export class TypedWorldQueryCompiler {
+  private readonly matcher = new CapabilityMatcher();
+
   compile(input: CompileInput): CompileResult {
     const rule = queryTemplateRules.find((entry) => entry.pattern === input.pattern);
-    if (!rule) return gap(input, "UNSUPPORTED_EXPRESSION", { pattern: input.pattern, substituted: false });
-    if (
-      !Number.isSafeInteger(input.budgets.maximumNodes) || !Number.isSafeInteger(input.budgets.maximumDepth) ||
-      input.budgets.maximumNodes < rule.operations.length || input.budgets.maximumDepth < rule.operations.length ||
-      [input.budgets.maximumRows, input.budgets.maximumCandidates, input.budgets.maximumOutputBytes, input.budgets.maximumExecutionMs]
-        .some((value) => !Number.isSafeInteger(value) || value < rule.operations.length)
-    ) return gap(input, "BUDGET_EXCEEDED", { requiredNodes: rule.operations.length });
-
-    const locks = new Map(input.operationLocks.map((lock) => [`${lock.operationId}@${lock.operationVersion}`, lock]));
-    const descriptors = new Map(input.capabilities.map((entry) => [`${entry.operationId}@${entry.operationVersion}`, entry]));
-    const resolved: Array<{ lock: OperationLock; descriptor: CapabilityDescriptor }> = [];
-    for (const operationId of rule.operations) {
-      const lock = [...input.operationLocks].find((entry) => entry.operationId === operationId);
-      if (!lock) return gap(input, "NOT_REGISTERED", { operationId, source: "operation-lock" });
-      const descriptor = descriptors.get(`${operationId}@${lock.operationVersion}`);
-      if (!descriptor) return gap(input, "NOT_REGISTERED", { operationId, operationVersion: lock.operationVersion });
-      if (descriptor.providerId === undefined || descriptor.providerId !== lock.providerId) {
-        return gap(input, "PROVIDER_UNAVAILABLE", { operationId, expectedProviderId: lock.providerId });
-      }
-      if (descriptor.maturity !== "PREVIEW" && descriptor.maturity !== "STABLE") {
-        return gap(input, "MATURITY_NOT_ALLOWED", { operationId, maturity: descriptor.maturity });
-      }
-      if (descriptor.inputSchemaHash !== lock.inputSchemaHash || descriptor.outputSchemaHash !== lock.outputSchemaHash) {
-        return gap(input, "SCHEMA_MISMATCH", { operationId, layer: "operation" });
-      }
-      if (!locks.has(`${operationId}@${lock.operationVersion}`)) throw new QueryCompilationError("LOCK_LOOKUP_DRIFT");
-      resolved.push({ lock, descriptor });
+    if (!rule) {
+      return gap(input, "UNSUPPORTED_EXPRESSION", { pattern: input.pattern, substituted: false });
     }
-
-    const rows = allocate(input.budgets.maximumRows, resolved.length);
-    const candidates = allocate(input.budgets.maximumCandidates, resolved.length);
-    const outputBytes = allocate(input.budgets.maximumOutputBytes, resolved.length);
-    const executionMs = allocate(input.budgets.maximumExecutionMs, resolved.length);
-    const nodes: WorldQueryNode[] = [];
-    for (const [index, entry] of resolved.entries()) {
-      const nodeId = `Node_${index + 1}`;
-      const inputPort = entry.descriptor.ports.inputs.find((port) => port.name === "request");
-      if (!inputPort) return gap(input, "SCHEMA_MISMATCH", { operationId: entry.lock.operationId, missingPort: "request" });
-      let binding: WorldQueryNode["inputs"][string];
-      if (index === 0) {
-        binding = { kind: "REQUEST_PATH", port: schemaPort(inputPort), path: "/operationInput" };
-      } else {
-        const prior = resolved[index - 1]!;
-        const outputName = index === 1 && rule.linkOutput ? rule.linkOutput : "result";
-        const outputPort = prior.descriptor.ports.outputs.find((port) => port.name === outputName);
-        if (!outputPort) {
-          return gap(input, "SCHEMA_MISMATCH", { operationId: prior.lock.operationId, missingPort: outputName });
-        }
-        if (
-          (outputPort.valueKind === "H3_CELL" || outputPort.valueKind === "H3_CELL_SET") &&
-          outputPort.unitSemantics !== "DISCRETE"
-        ) return gap(input, "SCHEMA_MISMATCH", { operationId: prior.lock.operationId, reason: "H3_UNIT_MISMATCH" });
-        binding = {
-          kind: "NODE_OUTPUT",
-          port: schemaPort(outputPort),
-          nodeId: `Node_${index}`,
-          outputPort: outputName,
-          ...(index === 1 && rule.linkTargetPath ? { targetPath: rule.linkTargetPath } : {})
-        };
-      }
-      nodes.push({
-        nodeId,
-        operation: {
-          operationId: entry.lock.operationId,
-          operationVersion: entry.lock.operationVersion,
-          inputSchemaHash: entry.lock.inputSchemaHash,
-          outputSchemaHash: entry.lock.outputSchemaHash
-        },
-        inputs: { request: binding },
-        failurePolicy: "FAIL_FAST",
-        budget: {
-          maximumRows: rows,
-          maximumCandidates: candidates,
-          maximumOutputBytes: outputBytes,
-          maximumExecutionMs: executionMs
-        }
+    if (rule.maturity === "PREVIEW" && !input.maturityPolicy.allowPreview) {
+      return gap(input, "MATURITY_NOT_ALLOWED", {
+        pattern: input.pattern,
+        recipeMaturity: rule.maturity,
+        previewEnabled: false
       });
     }
-    const finalDescriptor = resolved.at(-1)!.descriptor;
-    const finalOutput = finalDescriptor.ports.outputs.find((port) => port.name === "result") ?? finalDescriptor.ports.outputs[0];
-    if (!finalOutput) return gap(input, "SCHEMA_MISMATCH", { operationId: resolved.at(-1)!.lock.operationId, missingPort: "result" });
-    const queryId = stableId("query", `${input.requestId}:${rule.templateId}:${JSON.stringify(input.operationInput)}`);
+    const policy = snapshotPolicy(input, rule);
+    if (!policy) {
+      return gap(input, "SNAPSHOT_UNSUPPORTED", {
+        pattern: input.pattern,
+        requiredSnapshotMode: "PINNED",
+        pinnedSnapshotPresent: false
+      });
+    }
+    const budgetValues = Object.values(input.budgets);
+    if (!budgetValues.every(isPositiveSafeInteger)) {
+      return gap(input, "BUDGET_EXCEEDED", { reason: "INVALID_CALLER_BUDGET" });
+    }
+
+    const observedAt = input.observedAt ??
+      [...input.availability].map((entry) => entry.checkedAt).sort().at(-1) ??
+      "1970-01-01T00:00:00.000Z";
+    const units: CompiledUnit[] = [];
+    const bindings: MatchedCapability["binding"][] = [];
+    for (const step of rule.steps) {
+      const requirement = semanticRequirementFor(rule, step, input.requiredForProduct, policy.mode);
+      const matched = this.matcher.match({
+        requirement,
+        capabilities: input.capabilities,
+        semanticProfiles: input.semanticProfiles,
+        operationLocks: input.operationLocks,
+        availability: input.availability,
+        maturityPolicy: input.maturityPolicy,
+        degradedPolicy: input.degradedPolicy ?? (rule.allowDegraded ? "ALLOW" : "REJECT"),
+        observedAt
+      });
+      if (matched.status === "CAPABILITY_GAP") return matched;
+      units.push({
+        unitId: step.stepId,
+        matched: matched.primary,
+        costWeight: step.costWeight,
+        failurePolicy: step.failurePolicy,
+        links: step.links,
+        requestBindings: step.requestBindings ?? [],
+        literalBindings: step.literalBindings ?? []
+      });
+      bindings.push(matched.primary.binding);
+      if (matched.exactVerification !== undefined) {
+        matched.exactVerification.binding.requirementId = `${requirement.requirementId}:exact-verification`;
+        const candidateOutput = matched.primary.descriptor.ports.outputs.find((port) => port.name === "cells") ??
+          matched.primary.descriptor.ports.outputs.find((port) => port.name === "result") ??
+          matched.primary.descriptor.ports.outputs[0];
+        if (!candidateOutput) {
+          return gap(input, "PORT_MISMATCH", {
+            operationId: matched.primary.descriptor.operationId,
+            missingPort: "candidate output"
+          });
+        }
+        units.push({
+          unitId: `${step.stepId}-exact-verification`,
+          matched: matched.exactVerification,
+          costWeight: Math.max(2, step.costWeight),
+          failurePolicy: "FAIL_FAST",
+          requestBindings: [{
+            inputName: "geometry",
+            path: "/operationInput/geometry",
+            targetPath: "/geometry"
+          }],
+          literalBindings: [],
+          links: [{
+            sourceStepId: step.stepId,
+            outputPort: candidateOutput.name,
+            inputName: "candidateReferences",
+            targetPath: "/candidateReferences"
+          }]
+        });
+        bindings.push(matched.exactVerification.binding);
+      }
+    }
+
+    if (
+      input.budgets.maximumNodes < units.length ||
+      input.budgets.maximumDepth < units.length ||
+      [
+        input.budgets.maximumRows,
+        input.budgets.maximumCandidates,
+        input.budgets.maximumOutputBytes,
+        input.budgets.maximumExecutionMs
+      ].some((value) => value < units.length)
+    ) {
+      return gap(input, "BUDGET_EXCEEDED", {
+        requiredNodes: units.length,
+        requiredDepth: units.length
+      });
+    }
+
+    const rows = boundedAllocations(input.budgets.maximumRows, units, "maximumRows");
+    const candidates = boundedAllocations(input.budgets.maximumCandidates, units, "maximumCandidates");
+    const outputBytes = boundedAllocations(input.budgets.maximumOutputBytes, units, "maximumOutputBytes");
+    const executionMs = boundedAllocations(input.budgets.maximumExecutionMs, units, "maximumExecutionMs");
+    const nodes: WorldQueryNode[] = [];
+    const resolvedByUnitId = new Map<string, { matched: MatchedCapability; node: WorldQueryNode }>();
+    for (const [index, unit] of units.entries()) {
+      const nodeId = `Node_${index + 1}`;
+      const requestPort = unit.matched.descriptor.ports.inputs.find((port) => port.name === "request") ??
+        unit.matched.descriptor.ports.inputs[0];
+      if (!requestPort) {
+        return gap(input, "PORT_MISMATCH", {
+          operationId: unit.matched.descriptor.operationId,
+          missingPort: "request"
+        });
+      }
+      const nodeInputs: WorldQueryNode["inputs"] = {};
+      if (unit.links.length === 0) {
+        nodeInputs["request"] = {
+          kind: "REQUEST_PATH",
+          port: schemaPort(requestPort),
+          path: "/operationInput"
+        };
+      } else {
+        for (const link of unit.links) {
+          const source = resolvedByUnitId.get(link.sourceStepId);
+          if (!source) throw new QueryCompilationError("TEMPLATE_DEPENDENCY_ORDER");
+          const outputPort = sourceOutput(source, link.outputPort);
+          if (!outputPort) {
+            return gap(input, "PORT_MISMATCH", {
+              operationId: source.matched.descriptor.operationId,
+              missingPort: link.outputPort
+            });
+          }
+          nodeInputs[link.inputName] = {
+            kind: "NODE_OUTPUT",
+            port: schemaPort(outputPort),
+            nodeId: source.node.nodeId,
+            outputPort: outputPort.name,
+            ...(outputPort.path === undefined ? {} : { path: outputPort.path }),
+            targetPath: link.targetPath
+          };
+        }
+      }
+      for (const requestBinding of unit.requestBindings) {
+        if (nodeInputs[requestBinding.inputName] !== undefined) {
+          throw new QueryCompilationError("TEMPLATE_INPUT_NAME_COLLISION");
+        }
+        nodeInputs[requestBinding.inputName] = {
+          kind: "REQUEST_PATH",
+          port: requestBinding.port ?? schemaPort(requestPort),
+          path: requestBinding.path,
+          targetPath: requestBinding.targetPath
+        };
+      }
+      for (const literalBinding of unit.literalBindings) {
+        if (nodeInputs[literalBinding.inputName] !== undefined) {
+          throw new QueryCompilationError("TEMPLATE_INPUT_NAME_COLLISION");
+        }
+        nodeInputs[literalBinding.inputName] = {
+          kind: "LITERAL",
+          port: literalBinding.port,
+          value: structuredClone(literalBinding.value),
+          targetPath: literalBinding.targetPath
+        };
+      }
+      const node: WorldQueryNode = {
+        nodeId,
+        operation: {
+          operationId: unit.matched.lock.operationId,
+          operationVersion: unit.matched.lock.operationVersion,
+          inputSchemaHash: unit.matched.lock.inputSchemaHash,
+          outputSchemaHash: unit.matched.lock.outputSchemaHash
+        },
+        inputs: nodeInputs,
+        failurePolicy: unit.failurePolicy,
+        budget: {
+          maximumRows: rows[index]!,
+          maximumCandidates: candidates[index]!,
+          maximumOutputBytes: outputBytes[index]!,
+          maximumExecutionMs: executionMs[index]!
+        }
+      };
+      nodes.push(node);
+      resolvedByUnitId.set(unit.unitId, { matched: unit.matched, node });
+    }
+
+    const finalUnit = units.at(-1)!;
+    const finalNode = nodes.at(-1)!;
+    const finalOutput = finalUnit.matched.descriptor.ports.outputs.find((port) => port.name === "result") ??
+      finalUnit.matched.descriptor.ports.outputs[0];
+    if (!finalOutput) {
+      return gap(input, "PORT_MISMATCH", {
+        operationId: finalUnit.matched.descriptor.operationId,
+        missingPort: "result"
+      });
+    }
+    const queryId = stableId("query", canonical({
+      requestId: input.requestId,
+      templateId: rule.templateId,
+      operationInput: input.operationInput,
+      parameterValues: input.parameterValues ?? {},
+      operationKeys: units.map((unit) =>
+        `${unit.matched.lock.operationId}@${unit.matched.lock.operationVersion}`)
+    }));
     const plan: WorldQueryPlanV2 = {
       queryPlanVersion: "2.0",
       queryId,
@@ -170,30 +388,50 @@ export class TypedWorldQueryCompiler {
         binding: {
           kind: "NODE_OUTPUT",
           port: schemaPort(finalOutput),
-          nodeId: nodes.at(-1)!.nodeId,
-          outputPort: finalOutput.name
+          nodeId: finalNode.nodeId,
+          outputPort: finalOutput.name,
+          ...(finalOutput.path === undefined ? {} : { path: finalOutput.path })
         }
       }],
       budgets: { ...input.budgets }
     };
-    validateCompiledPlan(plan);
-    const parameterSchema = '{"additionalProperties":false,"properties":{"operationInput":{"type":"object"}},"required":["operationInput"],"type":"object"}';
+    validateCompiledPlan(plan, units.map((unit) => unit.matched.descriptor));
+    if (Object.hasOwn(input.parameterValues ?? {}, "operationInput")) {
+      throw new QueryCompilationError("RESERVED_PARAMETER_NAME");
+    }
+    const parameters = {
+      operationInput: input.operationInput,
+      ...(input.parameterValues ?? {})
+    };
+    if (Object.keys(parameters).length > 256) {
+      return gap(input, "BUDGET_EXCEEDED", { reason: "WORLD_QUERY_PARAMETER_LIMIT" });
+    }
     const submission: WorldQuerySubmission = {
       requestId: input.requestId,
       idempotencyKey: input.idempotencyKey,
       plan,
-      parameters: { operationInput: input.operationInput },
-      parameterSchemaHash: `sha256:${hash(parameterSchema)}`
+      parameters,
+      parameterSchemaHash: GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH,
+      snapshotPolicy: policy
     };
     return {
       status: "COMPILED",
       templateId: rule.templateId,
+      bindings,
       submission,
       planHash: canonicalPlanHash(plan),
       policy: {
-        approximateInput: rule.pattern === "H3_NEIGHBORHOOD" || rule.pattern === "H3_EXACT_VERIFY",
-        exactVerificationRequired: rule.pattern === "H3_EXACT_VERIFY"
+        approximateInput: units.some((unit) => unit.matched.semanticProfile.spatialSemantics === "CANDIDATE"),
+        exactVerificationRequired: units.some((unit) =>
+          unit.matched.binding.selectionPolicy.startsWith("EXACT_VERIFIER:")),
+        snapshotMode: policy.mode
       }
     };
   }
 }
+
+export function recipeSnapshotMode(rule: QueryTemplateRule): SnapshotMode {
+  return rule.defaultSnapshotMode ?? "LATEST_AT_START";
+}
+
+export type { QueryTemplateRule, QueryTemplateStep };

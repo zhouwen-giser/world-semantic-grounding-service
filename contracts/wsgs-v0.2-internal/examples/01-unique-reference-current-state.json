@@ -1,0 +1,9 @@
+{
+  "input": "2号车在哪里？",
+  "expectedRecipe": "REFERENCE_CURRENT_STATE",
+  "expectedStatus": "COMPLETED",
+  "requiredOperations": [
+    "reference.resolve@1.0",
+    "world.get-current-state@1.0"
+  ]
+}

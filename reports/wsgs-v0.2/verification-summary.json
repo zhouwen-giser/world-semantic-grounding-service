@@ -1,0 +1,311 @@
+{
+  "schemaVersion": "1.0",
+  "candidate": {
+    "version": "0.2.0",
+    "branch": "codex/wsgs-v0.2-gowm-0.6.3-integration",
+    "baseSha": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
+    "implementationSha": "72b911ed9fc453d7c1d736ab551957e4ff4b8850",
+    "deploymentSha": "9cf1f897cfc400c61c434fe1b34b31ab7f59c99b",
+    "sampleWorldFollowupEvidenceBaseSha": "5ef1acacd9214928be16cb3aaef1904cdb88f115",
+    "signedSampleWorldFollowupEvidenceBaseSha": "8f6ab63ad0c508c9787a72568c7e83b5b48af95a",
+    "gowmSourceSha": "17dd221330d9af540ec815a39eca96550690299a"
+  },
+  "generatedAt": "2026-08-28T02:52:38.0998408+08:00",
+  "timePolicy": "Execution dates are retained at day precision because raw terminal transcripts were not persisted. Durations and finer timestamps are not inferred.",
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawTokensIncluded": false,
+    "privateKeyPathsIncluded": false,
+    "databaseUrlsIncluded": false,
+    "rawCommandLogsIncluded": false
+  },
+  "commands": [
+    {
+      "id": "contracts",
+      "command": "npm.cmd run contracts:check",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_NODE",
+      "counts": {
+        "gowmIntakeChecksPassed": 25,
+        "gowmManifestEntriesVerified": 62,
+        "gowmDefaultOperationLocks": 31,
+        "gowmPreviewOperationLocks": 89,
+        "frozenNorthboundSchemas": 19,
+        "frozenNorthboundExamples": 12,
+        "frozenNorthboundLockedArtifacts": 32,
+        "internalSchemas": 12,
+        "internalStableOperations": 9,
+        "internalPreviewOperations": 5,
+        "internalExamples": 13,
+        "requiredAcceptanceIds": 279,
+        "generatedTypeModules": 18,
+        "failures": 0
+      }
+    },
+    {
+      "id": "architecture",
+      "command": "npm.cmd run architecture:check",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_NODE",
+      "counts": { "violations": 0 }
+    },
+    {
+      "id": "typecheck",
+      "command": "npm.cmd run typecheck",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_NODE",
+      "counts": { "typeErrors": 0 }
+    },
+    {
+      "id": "unit-full-no-db",
+      "command": "npm.cmd test",
+      "exitCode": 0,
+      "status": "PASS_WITH_DB_SUITES_SKIPPED",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_NODE_NO_TEST_DATABASE_URLS",
+      "counts": {
+        "testFilesPassed": 32,
+        "testFilesSkipped": 4,
+        "testsPassed": 283,
+        "testsSkipped": 20,
+        "testsFailed": 0
+      }
+    },
+    {
+      "id": "targeted-compiler-worker",
+      "command": "npx.cmd vitest run packages/query-compiler/src/compiler.test.ts packages/query-compiler/src/matcher.test.ts services/grounding-worker/src/production-module.test.ts services/grounding-worker/src/pipeline-policy.test.ts services/grounding-worker/src/result-schema.test.ts",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_NODE",
+      "counts": { "testFilesPassed": 5, "testsPassed": 65, "testsSkipped": 0, "testsFailed": 0 }
+    },
+    {
+      "id": "postgres-current-schema",
+      "command": "[TEST_DATABASE_URL set out-of-band] npm.cmd test -- --no-file-parallelism --run packages/runtime/src/job-store.integration.test.ts services/grounding-api/src/production.integration.test.ts services/grounding-worker/src/postgres.integration.test.ts",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "REAL_POSTGRESQL_17_10_ISOLATED_CURRENT_SCHEMA_DATABASE",
+      "counts": {
+        "testFilesPassed": 3,
+        "jobStoreTestsPassed": 12,
+        "apiProductionTestsPassed": 1,
+        "workerPostgresTestsPassed": 5,
+        "testsPassed": 18,
+        "testsSkipped": 0,
+        "testsFailed": 0
+      },
+      "note": "Includes result-schema transactional rollback evidence."
+    },
+    {
+      "id": "postgres-fresh-upgrade",
+      "command": "[TEST_UPGRADE_DATABASE_URL set out-of-band] npm.cmd test -- --run packages/runtime/src/migration-002.integration.test.ts",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "REAL_POSTGRESQL_17_10_FRESH_ISOLATED_UPGRADE_DATABASE",
+      "counts": { "testFilesPassed": 1, "testsPassed": 2, "testsSkipped": 0, "testsFailed": 0 },
+      "note": "The fresh 001-to-002 upgrade and failed-002 transaction rollback both passed in a database isolated from the current-schema suites."
+    },
+    {
+      "id": "real-model-latest",
+      "command": "[scoped model environment set out-of-band] npm.cmd run gate:real:model",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "REAL_EXTERNAL_SEMANTIC_MODEL",
+      "counts": { "casesPassed": 4, "casesFailed": 0 }
+    },
+    {
+      "id": "real-model-prior-repeatability",
+      "command": "[scoped model environment set out-of-band] npm.cmd run gate:real:model (three consecutive invocations)",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "REAL_EXTERNAL_SEMANTIC_MODEL",
+      "counts": { "invocationsPassed": 3, "casesPerInvocation": 4, "caseExecutionsPassed": 12, "caseExecutionsFailed": 0 }
+    },
+    {
+      "id": "real-gowm-historical-exact-source",
+      "command": "[scoped GOWM environment set out-of-band] npm.cmd run gate:real:gowm",
+      "exitCode": 2,
+      "status": "BLOCKED_EXPECTED",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "REAL_GOWM_0_6_3_DIAGNOSTIC_AFTER_FAIL_CLOSED_DRIFT",
+      "counts": { "diagnosticChecksPassed": 7, "checksBlocked": 2, "checksFailed": 0 },
+      "note": "Historical exact-source negative gate retained: the non-zero exit was required while that bundled lock and runtime semantic authority differed."
+    },
+    {
+      "id": "gowm-operational-lock-tests",
+      "command": "npx.cmd vitest run packages/gowm-contract-intake/src/operational-lock.test.ts",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_NODE",
+      "counts": { "testFilesPassed": 1, "testsPassed": 4, "testsSkipped": 0, "testsFailed": 0 },
+      "note": "Covers exact-byte operational-lock intake, expected hash pinning, schema rejection, and fail-closed mismatch behavior."
+    },
+    {
+      "id": "real-gowm-sample-public-handoff",
+      "command": "[public handoff and GOWM base URL set; no credentials] npm.cmd run gate:real:gowm:public-handoff",
+      "exitCode": 0,
+      "status": "PASS_PUBLIC_NO_CREDENTIALS",
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
+      "environmentCategory": "REAL_GOWM_0_6_3_SAMPLE_WORLD_PUBLIC_DISCOVERY",
+      "counts": {
+        "handoffFilesVerified": 12,
+        "expectedCasesVerified": 13,
+        "recordedCanariesPassed": 28,
+        "liveCapabilitiesVerified": 122,
+        "liveSemanticProfilesVerified": 122,
+        "unauthenticatedRequestsRejected": 2,
+        "failures": 0
+      },
+      "observed": {
+        "marker": "WSGS_GOWM_SAMPLE_PUBLIC_HANDOFF_PASS",
+        "availability": { "method": "GET", "path": "/v1/operation-availability", "httpStatus": 403, "protocolErrorCode": "SCOPE_DENIED" },
+        "directAsync": { "method": "POST", "path": "/v1/operations/world.get-current-state:execute", "expectedCaseId": "WORLD-STATE-UGV2", "requestHash": "sha256:4d15ac6dacc9f64b036226de2b0f81d1b1f147047b398c0ca1962f5b01c6e431", "deadlineAt": "2026-08-28T13:03:46.516Z", "advertisedExecutionMode": "SYNC", "httpStatus": 403, "protocolErrorCode": "SCOPE_DENIED" }
+      },
+      "note": "Exact operational lock and live public semantics match. Signed availability and execution were not attempted: BLOCKED — secure credential handoff authorization required."
+    },
+    {
+      "id": "real-gowm-sample-signed",
+      "command": "[authorized test credentials loaded in-process and redacted] npm.cmd run gate:real:gowm",
+      "exitCode": 2,
+      "status": "PASS_TRUSTED_WITH_REQUIRED_PROTOCOL_BLOCKERS",
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
+      "environmentCategory": "REAL_GOWM_0_6_3_SAMPLE_WORLD_SIGNED_DELEGATION",
+      "counts": { "trustedChecksPassed": 8, "checksBlocked": 2, "checksFailed": 0, "authorizedOperationsAvailable": 5 },
+      "observed": {
+        "executionClassification": "TRUSTED",
+        "worldQuerySubmitStatus": 202,
+        "worldQueryTerminalStatus": "COMPLETED",
+        "cancelTerminalStatus": "CANCELLED",
+        "directOperationStatus": 200,
+        "directOperationMode": "SYNC",
+        "directOperationAsyncRequestHash": "sha256:8c2b25e307ca4e4ebab7cee00310f1daab9d24ffb341f77114b83975ff01d36d",
+        "pinnedValidationSupported": false
+      },
+      "note": "Credential values and paths were not logged or persisted. The non-zero exit is required for direct-operation 202 and PINNED validation blockers."
+    },
+    {
+      "id": "production-readiness-fail-closed",
+      "command": "[complete production dependency environment set out-of-band] npm.cmd run gate:real:readiness",
+      "exitCode": 0,
+      "status": "PASS_NEGATIVE_GATE",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "PRODUCTION_WIRING_WITH_REAL_MODEL_GOWM_AND_POSTGRESQL",
+      "counts": { "httpStatus": 503, "reasons": 1, "unexpectedReadyResponses": 0 },
+      "observed": { "status": "not_ready", "reasons": ["SEMANTIC_CATALOG_DRIFT"] }
+    },
+    {
+      "id": "wsgs-image-build",
+      "command": "docker build --pull=false --tag wsgs:0.2.0 .",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
+      "environmentCategory": "LOCAL_DOCKER_LINUX_AMD64_BUILD",
+      "counts": { "imagesBuilt": 1, "buildFailures": 0 }
+    },
+    {
+      "id": "wsgs-image-runtime-inspection",
+      "command": "docker run --rm --entrypoint node wsgs:0.2.0 -e [sanitized runtime file and identity assertions]",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_DOCKER_IMAGE_INSPECTION",
+      "counts": { "requiredRuntimeFilesPresent": 4, "requiredRuntimeFilesMissing": 0, "uid": 10001, "gid": 10001 }
+    },
+    {
+      "id": "wsgs-image-operational-lock-intake",
+      "command": "docker run --rm [read-only non-sensitive lock mount] wsgs:0.2.0 [exact operational-lock assertion]",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-28", "precision": "day" },
+      "environmentCategory": "LOCAL_DOCKER_IMAGE_INSPECTION",
+      "counts": { "uid": 10001, "gid": 10001, "defaultOperations": 31, "previewOperations": 89, "hashMismatches": 0 },
+      "observed": { "operationLockHash": "sha256:765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686", "mountMode": "READ_ONLY" }
+    },
+    {
+      "id": "postgres-image-digest",
+      "command": "docker image inspect postgres:17.10-alpine3.23@sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_DOCKER_IMAGE_INSPECTION",
+      "counts": { "matchingRepoDigests": 1, "mismatches": 0 }
+    },
+    {
+      "id": "compose-config",
+      "command": "docker compose --project-name wsgs-v02-w14-smoke --env-file [sanitized disposable env] config",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_DOCKER_COMPOSE_RENDER",
+      "counts": { "services": 4, "publishedPorts": 1, "configErrors": 0 },
+      "note": "A second render with the Sample World non-sensitive lock verifies the API and worker share the read-only in-container lock path and use http://host.docker.internal:18063."
+    },
+    {
+      "id": "compose-fresh-migration",
+      "command": "docker compose --project-name wsgs-v02-w14-smoke --env-file [sanitized disposable env] up [fresh PostgreSQL and one-shot migration scope]",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_DOCKER_COMPOSE_FRESH_POSTGRESQL_17_10",
+      "counts": { "postgresHealthChecksPassed": 1, "migrationsApplied": 2, "sqlAssertionFilesPassed": 2, "migrationFailures": 0 }
+    },
+    {
+      "id": "compose-smoke-cleanup",
+      "command": "docker compose --project-name wsgs-v02-w14-smoke down --volumes",
+      "exitCode": 0,
+      "status": "PASS",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_DOCKER_COMPOSE_DISPOSABLE_CLEANUP",
+      "counts": { "temporaryProjectVolumesRemaining": 0 }
+    },
+    {
+      "id": "acceptance-ledger-write",
+      "command": "npm.cmd run acceptance:v0.2:write",
+      "exitCode": 0,
+      "status": "PASS_BLOCKED_DECISION_RECORDED",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_REPORT_GENERATION",
+      "counts": { "required": 279, "pass": 195, "fail": 0, "notRun": 17, "blocked": 67 }
+    },
+    {
+      "id": "acceptance-ledger-check",
+      "command": "npm.cmd run acceptance:v0.2:check",
+      "exitCode": 0,
+      "status": "PASS_BLOCKED_DECISION_VALIDATED",
+      "executionTime": { "executedOn": "2026-08-27", "precision": "day" },
+      "environmentCategory": "LOCAL_WINDOWS_REPORT_VALIDATION",
+      "counts": { "required": 279, "pass": 195, "fail": 0, "notRun": 17, "blocked": 67 }
+    }
+  ],
+  "aggregate": {
+    "staticAndUnitStatus": "PASS",
+    "realPostgresqlStatus": "PASS",
+    "realModelStatus": "PASS",
+    "realGowmPublicDiscoveryStatus": "PASS",
+    "realGowmAuthenticatedExecutionStatus": "PASS_TRUSTED_WITH_PROTOCOL_BLOCKERS",
+    "productionReadinessStatus": "FAIL_CLOSED_AS_REQUIRED",
+    "deploymentArtifactStatus": "PASS",
+    "candidateDecision": "BLOCKED"
+  },
+  "blockedClaims": [
+    "TRUSTED_FULL_PRODUCTION_PIPELINE_E2E",
+    "PINNED_PRIOR_RESULT_REPLAY",
+    "DIRECT_OPERATION_202_LIFECYCLE",
+    "PROCESS_CRASH_RESTART_IN_FLIGHT_RECOVERY",
+    "LIVE_CANCEL_LATE_RESULT_FENCE_E2E",
+    "LARGE_PAYLOAD_OBJECT_STORAGE_PATH",
+    "FINAL_LOCAL_REMOTE_SHA_EQUALITY"
+  ]
+}

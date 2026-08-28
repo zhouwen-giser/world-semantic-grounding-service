@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W12",
+  "status": "BLOCKED",
+  "acceptanceSource": "reports/wsgs-v0.2/required-acceptance-ledger.json",
+  "summary": { "PASS": 22, "FAIL": 0, "NOT_RUN": 5, "BLOCKED": 4 },
+  "groups": [
+    { "ids": ["AC-D001..AC-D007", "AC-D009..AC-D013", "AC-D016..AC-D017", "AC-D019..AC-D020", "AC-D024..AC-D029"], "status": "PASS", "evidence": ["packages/runtime/src/job-store.integration.test.ts", "packages/runtime/src/migration-002.integration.test.ts", "services/grounding-worker/src/postgres.integration.test.ts", "services/grounding-api/src/server.test.ts", "validation/scripts/real-production-readiness-gate.ts", "compose.yaml", "reports/wsgs-v0.2/verification-summary.json"], "note": "Includes real fresh-upgrade rollback and a historical fail-closed 503 under the old bundled-lock semantic drift; this does not claim current Sample World readiness." },
+    { "ids": ["AC-D014..AC-D015", "AC-D030..AC-D031"], "status": "BLOCKED", "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "services/grounding-api/src/production.integration.test.ts"], "note": "No trusted deployed API/worker/readiness chain exists." },
+    { "ids": ["AC-D008", "AC-D018", "AC-D021..AC-D023"], "status": "NOT_RUN", "evidence": ["reports/wsgs-v0.2/verification-summary.json"], "note": "Current final-run evidence does not prove every execution-record write or the remaining readiness fault paths." }
+  ]
+}

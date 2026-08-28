@@ -4,14 +4,20 @@
     { "path": "packages/contracts" },
     { "path": "packages/gowm-contract-intake" },
     { "path": "packages/gowm-gateway-client" },
+    { "path": "packages/delegated-identity" },
     { "path": "packages/deterministic-parser" },
     { "path": "packages/semantic-model" },
     { "path": "packages/semantic-frame" },
     { "path": "packages/grounding-graph" },
+    { "path": "packages/trusted-capability-snapshot" },
+    { "path": "packages/requirement-planner" },
     { "path": "packages/query-compiler" },
+    { "path": "packages/gowm-execution-evidence" },
+    { "path": "packages/prior-grounding" },
     { "path": "packages/evidence-normalizer" },
     { "path": "packages/runtime" },
-    { "path": "services/grounding-api" }
+    { "path": "packages/grounding-pipeline" },
+    { "path": "services/grounding-api" },
+    { "path": "services/grounding-worker" }
   ]
 }
-

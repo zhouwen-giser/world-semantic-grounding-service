@@ -1,0 +1,9 @@
+{
+  "policy": "PINNED",
+  "nodeAdherence": "MISMATCHED",
+  "expected": {
+    "silentLatestFallback": false,
+    "status": "FAILED_OR_PARTIAL",
+    "snapshotWarningRetained": true
+  }
+}

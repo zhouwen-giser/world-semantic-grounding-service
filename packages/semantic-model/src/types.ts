@@ -8,6 +8,10 @@ export const modelOutputModes = [
 
 export type ModelOutputMode = (typeof modelOutputModes)[number];
 
+export const semanticModelPolicyModes = ["MODEL_REQUIRED", "MODEL_OPTIONAL"] as const;
+
+export type SemanticModelPolicyMode = (typeof semanticModelPolicyModes)[number];
+
 export interface SemanticModelInput {
   sourceText: string;
   locale?: string;
@@ -33,6 +37,27 @@ export interface SemanticModelResult {
   frame: WorldSemanticFrame;
   receipt: ModelReceipt;
 }
+
+export interface SemanticModelParser {
+  parse(input: SemanticModelInput, signal?: AbortSignal): Promise<SemanticModelResult>;
+}
+
+export type SemanticModelPolicyResult =
+  | {
+      status: "AVAILABLE";
+      completionStatus: "COMPLETE";
+      frame: WorldSemanticFrame;
+      receipt: ModelReceipt;
+      warnings: [];
+    }
+  | {
+      status: "UNAVAILABLE";
+      completionStatus: "PARTIAL";
+      frame: WorldSemanticFrame;
+      failureCode: string;
+      receipt?: ModelReceipt;
+      warnings: string[];
+    };
 
 export interface SemanticModelAdapterConfig {
   baseUrl: string | URL;

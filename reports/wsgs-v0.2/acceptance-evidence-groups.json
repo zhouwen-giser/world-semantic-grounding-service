@@ -1,0 +1,280 @@
+{
+  "version": "0.2.0",
+  "decision": "BLOCKED",
+  "evidencePolicy": "PASS requires evidence at the matrix test_type. Diagnostic-only real GOWM observations and unit substitutes for real-e2e remain BLOCKED. Missing negative or recovery execution remains NOT_RUN.",
+  "groups": [
+    {
+      "ids": ["AC-B001..AC-B010"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/w00-acceptance.json", "reports/wsgs-v0.2/w00-source-reconciliation.md"],
+      "note": "Exact dual baseline, isolated worktree, frozen northbound tree, architecture scan, baseline PostgreSQL regression, branch, and Draft PR were recorded in W00."
+    },
+    {
+      "ids": ["AC-C001..AC-C020"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/w01-acceptance.json", "contracts/upstream/gowm-0.6.3/CONTRACT_INTAKE_REPORT.json", "packages/gowm-contract-intake/src/index.test.ts"],
+      "note": "Exact-commit consumer intake, integrity, MANIFEST, revisions, generated contracts, and fail-closed negative cases are verified."
+    },
+
+    {
+      "ids": ["AC-G001..AC-G002"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "validation/scripts/verify-gowm-sample-handoff.ts"],
+      "note": "The pinned Sample World handoff and live public catalog/semantics validate against consumer schemas; contract, binding, catalog, and all profile content hashes agree."
+    },
+    {
+      "ids": ["AC-G003"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "packages/gowm-gateway-client/src/client.test.ts"],
+      "note": "Signed delegation availability returned HTTP 200 with all five required operations AVAILABLE against the exact Sample World operational lock."
+    },
+    {
+      "ids": ["AC-G004..AC-G009"],
+      "status": "PASS",
+      "evidence": ["packages/gowm-gateway-client/src/client.test.ts", "packages/trusted-capability-snapshot/src/snapshot.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Content revisions, legacy removal, provider-neutral locks, schema/semantic drift rejection, and binding refresh policy have direct automated coverage."
+    },
+    {
+      "ids": ["AC-G010..AC-G014"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "packages/gowm-gateway-client/src/client.test.ts"],
+      "note": "The signed Sample World gate passed direct sync execution, World Query 202 submission and polling, cancellation to CANCELLED, and bounded receipt retrieval. Direct-operation async 202 remains a separate blocked acceptance item."
+    },
+    {
+      "ids": ["AC-G015..AC-G022"],
+      "status": "PASS",
+      "evidence": ["packages/gowm-gateway-client/src/client.test.ts", "validation/scripts/architecture-boundary.mjs", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Bounds, retry, circuit, deadline, trace context, body-authority rejection, and topology-safe failures are directly tested."
+    },
+    {
+      "ids": ["AC-G023..AC-G025"],
+      "status": "PASS",
+      "evidence": ["packages/trusted-capability-snapshot/src/snapshot.test.ts", "services/grounding-worker/src/postgres.integration.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Immutable job snapshots, restart reuse, and new-job drift rejection have component and PostgreSQL evidence; this does not make the live catalog trusted."
+    },
+
+    {
+      "ids": ["AC-I001..AC-I003"],
+      "status": "PASS",
+      "evidence": ["services/grounding-api/src/server.test.ts", "packages/delegated-identity/src/delegation.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Static/JWT compatibility and separated identity dimensions are directly tested."
+    },
+    {
+      "ids": ["AC-I004"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/real-gowm-gate.json", "packages/delegated-identity/src/delegation.test.ts"],
+      "note": "WSGS independently signed bounded DIRECT_OPERATION and WORLD_QUERY delegations and completed authenticated Sample World calls without persisting or reporting credential material."
+    },
+    {
+      "ids": ["AC-I005..AC-I009", "AC-I013..AC-I014", "AC-I024"],
+      "status": "NOT_RUN",
+      "evidence": ["packages/delegated-identity/src/delegation.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "No current real GOWM verifier run proves these forged, issuer, audience, time, request/depth, or equivalent-resign cases end to end."
+    },
+    {
+      "ids": ["AC-I010..AC-I012", "AC-I015..AC-I023", "AC-I025"],
+      "status": "PASS",
+      "evidence": ["packages/delegated-identity/src/delegation.test.ts", "services/grounding-api/src/server.test.ts", "database/migrations/002_wsgs_gowm_063_runtime.sql", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "TTL, subject/actor, scope narrowing, operation minimization, token separation, redaction, actor fences, and signing-key failure are directly covered."
+    },
+
+    {
+      "ids": ["AC-P001..AC-P014"],
+      "status": "PASS",
+      "evidence": ["packages/grounding-pipeline/src/pipeline.test.ts", "services/grounding-worker/src/pipeline-policy.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "All fourteen stages produce deterministic start/terminal events and chained hashes in the executable pipeline harness."
+    },
+    {
+      "ids": ["AC-P015..AC-P016", "AC-P024"],
+      "status": "BLOCKED",
+      "evidence": ["services/grounding-worker/src/production-module.ts", "services/grounding-api/src/production.integration.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"],
+      "note": "No trusted real API to queue to worker to model/GOWM to persisted result chain has completed; injected readiness/stage backends are not real-e2e."
+    },
+    {
+      "ids": ["AC-P017..AC-P020", "AC-P025..AC-P030", "AC-P032"],
+      "status": "PASS",
+      "evidence": ["services/grounding-worker/src/postgres.integration.test.ts", "packages/runtime/src/job-store.integration.test.ts", "services/grounding-worker/src/worker.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Claim, lease, generation fencing, idempotency, cancellation, and late-result behavior have direct worker and isolated PostgreSQL coverage."
+    },
+    {
+      "ids": ["AC-P021..AC-P023", "AC-P034"],
+      "status": "PASS",
+      "evidence": ["packages/grounding-pipeline/src/pipeline.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Operation-specific stopping points and canonical result hashing are directly tested."
+    },
+    {
+      "ids": ["AC-P031", "AC-P033"],
+      "status": "NOT_RUN",
+      "evidence": ["services/grounding-worker/src/postgres.integration.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "No current evidence restarts the actual API process or PostgreSQL service and then proves preserved behavior."
+    },
+
+    {
+      "ids": ["AC-M001..AC-M012"],
+      "status": "PASS",
+      "evidence": ["packages/deterministic-parser/src/parser.test.ts", "packages/semantic-frame/src/index.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Deterministic reference, distance, time, UTF-16, priority, and overlap behavior is directly tested."
+    },
+    {
+      "ids": ["AC-M013..AC-M015"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/real-model-gate.json", "validation/scripts/real-model-gate.ts", "packages/semantic-model/src/adapter.test.ts"],
+      "note": "Four real Chinese cases ran three consecutive times with strict schema, exact spans, and authority scanning; model output cannot choose operations/providers or mint reference keys."
+    },
+    {
+      "ids": ["AC-M016..AC-M022"],
+      "status": "PASS",
+      "evidence": ["packages/semantic-model/src/policy.test.ts", "packages/grounding-graph/src/builder.test.ts", "packages/grounding-graph/src/internal-v2.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Required/optional model policy, no keyword fallback, graph precedence/ambiguity/bounds, and stable hashing are directly tested."
+    },
+
+    {
+      "ids": ["AC-R001..AC-R004", "AC-R007..AC-R015"],
+      "status": "BLOCKED",
+      "evidence": ["packages/grounding-graph/src/reference-grounding.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"],
+      "note": "Trusted signed unique/ambiguous Gateway observations now pass, but no full production reference resolve/validate chain proves the remaining real-E2E and snapshot matrix."
+    },
+    {
+      "ids": ["AC-R005..AC-R006"],
+      "status": "PASS",
+      "evidence": ["packages/grounding-graph/src/reference-grounding.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Candidate order and match/state confidence separation are directly verified."
+    },
+    {
+      "ids": ["AC-R016..AC-R018"],
+      "status": "PASS",
+      "evidence": ["packages/prior-grounding/src/validator.test.ts", "packages/runtime/src/context-loader.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Exact prior bytes/hash, scope hiding, and selected-product validation are directly tested."
+    },
+    {
+      "ids": ["AC-R019"],
+      "status": "BLOCKED",
+      "evidence": ["packages/prior-grounding/src/validator.test.ts", "services/grounding-worker/src/production-module.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"],
+      "note": "GOWM 0.6.3 locks reference.validate/result.validate as CONSISTENT_AT_START, not PINNED; production correctly fails closed instead of claiming historical revalidation."
+    },
+    {
+      "ids": ["AC-R020"],
+      "status": "NOT_RUN",
+      "evidence": ["services/grounding-worker/src/production-module.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "No full production test proves that a live ambiguity prevents every required downstream spatial execution."
+    },
+
+    {
+      "ids": ["AC-Q001..AC-Q002", "AC-Q005..AC-Q007", "AC-Q009..AC-Q020", "AC-Q023..AC-Q027"],
+      "status": "PASS",
+      "evidence": ["packages/requirement-planner/src/planner.test.ts", "packages/query-compiler/src/matcher.test.ts", "packages/query-compiler/src/compiler.test.ts", "services/grounding-worker/src/production-module.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Neutral requirements, policy/semantic matching, ambiguity/no-substitution, cycle/budget rules, canonical plan hashes, and production typed-plan input/port wiring are directly tested."
+    },
+    {
+      "ids": ["AC-Q003..AC-Q004", "AC-Q008", "AC-Q021..AC-Q022", "AC-Q028..AC-Q032"],
+      "status": "BLOCKED",
+      "evidence": ["packages/requirement-planner/src/planner.test.ts", "packages/query-compiler/src/compiler.test.ts", "reports/wsgs-v0.2/real-gowm-sample-public-handoff.json"],
+      "note": "Signed GOWM execution is trusted and passes, but these cases require the WSGS planner/compiler and full production pipeline rather than a gate-authored query plan."
+    },
+    {
+      "ids": ["AC-E001..AC-E005"],
+      "status": "BLOCKED",
+      "evidence": ["reports/wsgs-v0.2/real-gowm-sample-public-handoff.json", "reports/wsgs-v0.2/real-gowm-gate.json", "packages/gowm-execution-evidence/src/normalizer.test.ts"],
+      "note": "Signed direct sync, World Query 202/poll, and cancellation pass at the Gateway client boundary. These entries remain blocked as a group because direct async 202 and the full WSGS evidence-normalization path are not proven."
+    },
+    {
+      "ids": ["AC-E006", "AC-E008..AC-E016", "AC-E021..AC-E023", "AC-E025"],
+      "status": "PASS",
+      "evidence": ["packages/gowm-execution-evidence/src/normalizer.test.ts", "packages/prior-grounding/src/validator.test.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Snapshot semantics, no silent PINNED downgrade, trace separation, payload bounds, requested products, and canonical hashes are directly tested at their declared test types."
+    },
+    {
+      "ids": ["AC-E007"],
+      "status": "BLOCKED",
+      "evidence": ["packages/prior-grounding/src/validator.test.ts", "services/grounding-worker/src/production-module.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"],
+      "note": "The locked GOWM operations cannot provide required PINNED history execution."
+    },
+    {
+      "ids": ["AC-E017..AC-E020", "AC-E024"],
+      "status": "BLOCKED",
+      "evidence": ["packages/gowm-execution-evidence/src/normalizer.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"],
+      "note": "Normalizer semantics are unit-tested, but these matrix entries require trusted real-e2e upstream states/products."
+    },
+
+    {
+      "ids": ["AC-D001"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/w00-completion.md", "database/migrations/001_wsgs_core.sql"],
+      "note": "The W00 recorded migration-001 Git blob remains the frozen baseline."
+    },
+    {
+      "ids": ["AC-D002..AC-D007", "AC-D009..AC-D012", "AC-D019"],
+      "status": "PASS",
+      "evidence": ["packages/runtime/src/job-store.integration.test.ts", "packages/runtime/src/migration-002.integration.test.ts", "services/grounding-worker/src/postgres.integration.test.ts", "validation/scripts/real-production-readiness-gate.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Fresh install, upgrade, failed-002 rollback, checksum replay, authority persistence, immutable snapshots/events, retention, scope/actor fences, and production fail-closed semantic-drift readiness have direct isolated or real-dependency evidence."
+    },
+    {
+      "ids": ["AC-D008", "AC-D018", "AC-D021..AC-D023"],
+      "status": "NOT_RUN",
+      "evidence": ["packages/runtime/src/migration-002.integration.test.ts", "services/grounding-worker/src/postgres.integration.test.ts", "services/grounding-worker/src/production-module.ts", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Current final-run evidence does not yet prove every execution-record write or the remaining concrete production readiness fault paths."
+    },
+    {
+      "ids": ["AC-D013", "AC-D020", "AC-D024..AC-D029"],
+      "status": "PASS",
+      "evidence": ["packages/runtime/src/signed-cursor.test.ts", "packages/trusted-capability-snapshot/src/snapshot.test.ts", "services/grounding-api/src/server.test.ts", "validation/scripts/architecture-boundary.mjs", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Cursor integrity, catalog fail-closed, rate/body/redaction/prompt defenses, and architecture exclusions are directly tested."
+    },
+    {
+      "ids": ["AC-D014..AC-D015", "AC-D030..AC-D031"],
+      "status": "BLOCKED",
+      "evidence": ["services/grounding-api/src/production.integration.test.ts", "services/grounding-worker/src/postgres.integration.test.ts", "reports/wsgs-v0.2/real-gowm-gate.json"],
+      "note": "Injected PostgreSQL adapters do not prove deployed real API/worker processes. Signed Sample World availability/execution passes independently, but the deployed API/worker readiness chain has not been rerun with all real dependencies."
+    },
+    {
+      "ids": ["AC-D016..AC-D017"],
+      "status": "PASS",
+      "evidence": ["compose.yaml", "Dockerfile", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Rendered Compose exposes only API; image inspection and isolated migration smoke verify UID/GID 10001, read-only WSGS services, dependencies, and entrypoints."
+    },
+
+    {
+      "ids": ["AC-X001..AC-X019", "AC-X021", "AC-X023..AC-X024"],
+      "status": "BLOCKED",
+      "evidence": ["reports/wsgs-v0.2/real-model-gate.json", "reports/wsgs-v0.2/real-gowm-gate.json", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "The real model and trusted signed Sample World GOWM gates pass independently, but the multi-process business, fault, restart, cancellation, recipe, large-payload, and performance E2E matrix remains blocked."
+    },
+    {
+      "ids": ["AC-X020", "AC-X022", "AC-X025"],
+      "status": "PASS",
+      "evidence": ["packages/query-compiler/src/matcher.test.ts", "validation/scripts/verify-wsgs-contracts.mjs", "reports/wsgs-v0.2/final-stable-candidate.md", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Preview is opt-in, frozen northbound fixtures remain valid, and the final report explicitly disclaims external IdP, multi-node HA, SLO, and production qualification."
+    },
+
+    {
+      "ids": ["AC-F001..AC-F004"],
+      "status": "PASS",
+      "evidence": ["VERSION", "package.json", "Dockerfile", "compose.yaml", "README.md", "CHANGELOG.md", "docs/runbook.md", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "Version/image surfaces and blocked-candidate operational documentation are present and statically verified."
+    },
+    {
+      "ids": ["AC-F005"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/acceptance-evidence-groups.json", "reports/wsgs-v0.2/required-acceptance-ledger.json"],
+      "note": "Every Required matrix ID occurs exactly once with a terminal status and evidence; this does not imply all cases pass."
+    },
+    {
+      "ids": ["AC-F006", "AC-F008", "AC-F010"],
+      "status": "BLOCKED",
+      "evidence": ["reports/wsgs-v0.2/required-acceptance-ledger.json", "reports/wsgs-v0.2/final-stable-candidate.md"],
+      "note": "Required blockers remain, the PR must remain Draft, and readiness/completion markers are intentionally withheld."
+    },
+    {
+      "ids": ["AC-F007"],
+      "status": "NOT_RUN",
+      "evidence": ["reports/wsgs-v0.2/sync-state.json", "reports/wsgs-v0.2/verification-summary.json"],
+      "note": "The working tree is not yet committed as a final candidate, so local/tracking/ls-remote final SHA equality cannot be asserted."
+    },
+    {
+      "ids": ["AC-F009"],
+      "status": "PASS",
+      "evidence": ["reports/wsgs-v0.2/final-stable-candidate.md", "reports/wsgs-v0.2/sync-state.json"],
+      "note": "No merge, tag, release, publish, deployment, force-push, or upstream-repository modification was performed."
+    }
+  ]
+}

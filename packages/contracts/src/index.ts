@@ -1,7 +1,7 @@
 export const WSGS_VERSION = "0.1.0" as const;
 export const WSGS_CONTRACT_VERSION = "sacs-wsgs-grounding/1.0" as const;
-export const GOWM_VERSION = "0.4.0" as const;
-export const GOWM_COMMIT = "db575f79c874a69f65a2043a7e463338524b713d" as const;
+export const GOWM_VERSION = "0.6.3" as const;
+export const GOWM_COMMIT = "17dd221330d9af540ec815a39eca96550690299a" as const;
 
 export const groundingOperations = [
   "GROUND_REFERENCES",
@@ -18,4 +18,17 @@ export type { GroundingJob } from "./generated/grounding-job.js";
 export type { WSGSCapabilitiesResponse } from "./generated/capabilities-response.js";
 export type { WorldSemanticFrame } from "./generated/world-semantic-frame.js";
 export type { GroundingGraph } from "./generated/grounding-graph.js";
+
+export type { CapabilityBinding } from "./generated-internal-v02/capability-binding.js";
+export type { ContractIntakeReport } from "./generated-internal-v02/contract-intake-report.js";
+export type { DelegatedGowmRequestContext } from "./generated-internal-v02/delegated-gowm-request-context.js";
+export type { GowmConsumerIntakeLock } from "./generated-internal-v02/gowm-consumer-intake-lock.js";
+export type { GowmExecutionRecord } from "./generated-internal-v02/gowm-execution-record.js";
+export type { ModelPolicy } from "./generated-internal-v02/model-policy.js";
+export type { PipelineEvent } from "./generated-internal-v02/pipeline-event.js";
+export type { QualificationReport } from "./generated-internal-v02/qualification-report.js";
+export type { RecipeCatalog } from "./generated-internal-v02/recipe-catalog.js";
+export type { RuntimeReadiness } from "./generated-internal-v02/runtime-readiness.js";
+export type { TrustedCapabilitySnapshot } from "./generated-internal-v02/trusted-capability-snapshot.js";
+export type { WorldQueryRequirementGraph } from "./generated-internal-v02/world-query-requirement-graph.js";
 
