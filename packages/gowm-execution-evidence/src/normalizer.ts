@@ -742,7 +742,11 @@ export function normalizeWorldQueryExecution(input: WorldQueryExecutionNormaliza
       nodeRequestHash
     );
     assertNodeResultStatus(node, parsed);
-    if (node.outputHash !== undefined && parsed?.resultHash !== undefined && node.outputHash !== parsed.resultHash) {
+    // GOWM's World Query node outputHash attests the complete capability
+    // envelope. The nested execution.resultHash independently attests only
+    // output.value and is verified by parseCapabilityEnvelope above.
+    if (node.outputHash !== undefined && node.result !== undefined &&
+      node.outputHash !== canonicalSha256(node.result)) {
       throw new ExecutionEvidenceError("UPSTREAM_RESULT_HASH_MISMATCH");
     }
     const adherence = adherenceByNode.get(node.nodeId);

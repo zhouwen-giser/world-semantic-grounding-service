@@ -231,7 +231,7 @@ function worldFixture(options: WorldFixtureOptions = {}): {
       startedAt: "2026-08-27T09:00:00.100Z",
       finishedAt: "2026-08-27T09:00:00.500Z",
       inputHash: firstInputHash,
-      outputHash: canonicalSha256({ state: "ACTIVE" }),
+      outputHash: canonicalSha256(firstEnvelope),
       result: firstEnvelope
     },
     {
@@ -241,7 +241,7 @@ function worldFixture(options: WorldFixtureOptions = {}): {
       attempt: 1,
       inputHash: secondInputHash,
       ...(secondEnvelope === undefined ? {} : {
-        outputHash: (secondEnvelope["execution"] as Record<string, unknown>)["resultHash"],
+        outputHash: canonicalSha256(secondEnvelope),
         result: secondEnvelope
       }),
       ...(secondStatus === "FAILED" ? { error: { code: "UPSTREAM", message: "redacted", retryable: false } } : {})
@@ -639,6 +639,12 @@ describe("GOWM execution evidence product", () => {
     badOutput["outputHash"] = digest("9");
     expectExecutionError(() => normalizeWorldQueryExecution(worldInput({ ...outputFixture, result: badOutput })),
       "WORLD_QUERY_OUTPUT_HASH_MISMATCH");
+
+    const nodeFixture = worldFixture();
+    const badNode = structuredClone(nodeFixture.result);
+    ((badNode["nodes"] as Array<Record<string, unknown>>)[0] as Record<string, unknown>)["outputHash"] = digest("9");
+    expectExecutionError(() => normalizeWorldQueryExecution(worldInput({ ...nodeFixture, result: badNode })),
+      "UPSTREAM_RESULT_HASH_MISMATCH");
 
     const snapshotFixture = worldFixture();
     const badSnapshot = structuredClone(snapshotFixture.result);
