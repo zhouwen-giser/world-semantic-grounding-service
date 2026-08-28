@@ -578,6 +578,10 @@ async function executeOperation(
   suffix: string
 ): Promise<JsonObject> {
   const caller = identity(context);
+  const authority = persistedAuthority(context, value.gateway);
+  const descriptor = authority.capabilityCatalog.capabilities.find((candidate) =>
+    candidate.operationId === lock.operationId && candidate.operationVersion === lock.operationVersion);
+  if (!descriptor) throw new ProductionStageModuleError("GATEWAY_CAPABILITY_DESCRIPTOR_MISSING");
   const signed = await value.signer.sign({
     kind: "DIRECT_OPERATION",
     identity: caller,
@@ -586,6 +590,21 @@ async function executeOperation(
     dataScopes: [caller.dataScope],
     datasetScopes: caller.datasetScopes
   });
+  const callerPolicy = object(request(context)["executionPolicy"], "EXECUTION_POLICY_MISSING");
+  const callerMaximumResultBytes = integer(callerPolicy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID");
+  const maximumResultBytes = Math.min(
+    callerMaximumResultBytes,
+    descriptor.limits.maximumOutputBytes ?? callerMaximumResultBytes
+  );
+  const deadlineAt = new Date(Math.min(
+    context.deadlineAt.getTime(),
+    Date.now() + descriptor.execution.maximumTimeoutMs
+  ));
+  const preferredExecution = descriptor.execution.mode === "SYNC"
+    ? "SYNC" as const
+    : descriptor.execution.mode === "ASYNC"
+      ? "ASYNC" as const
+      : "AUTO" as const;
   const executionRequest = {
     requestVersion: "1.0",
     requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
@@ -595,19 +614,22 @@ async function executeOperation(
     outputSchemaHash: lock.outputSchemaHash,
     input,
     executionPolicy: {
-      deadlineAt: context.deadlineAt.toISOString(),
-      maximumResultBytes: integer(object(request(context)["executionPolicy"], "EXECUTION_POLICY_MISSING")["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
-      maximumCandidates: integer(object(request(context)["executionPolicy"], "EXECUTION_POLICY_MISSING")["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID") * 32,
-      maximumCostClass: "LOW",
-      preferredExecution: "AUTO"
+      deadlineAt: deadlineAt.toISOString(),
+      maximumResultBytes,
+      ...(descriptor.limits.maximumRows === undefined ? {} : { maximumRows: descriptor.limits.maximumRows }),
+      ...(descriptor.limits.maximumCandidates === undefined
+        ? {}
+        : { maximumCandidates: descriptor.limits.maximumCandidates }),
+      maximumCostClass: descriptor.execution.costClass,
+      preferredExecution
     }
   };
   const gatewayContext: GatewayRequestContext = {
     signal: context.signal,
-    deadlineAt: context.deadlineAt,
+    deadlineAt,
     requestId: executionRequest.requestId,
     delegationToken: signed.token,
-    preferAsync: true
+    preferAsync: preferredExecution !== "SYNC"
   };
   const response = await value.gateway.executeOperation(lock, executionRequest, gatewayContext);
   if (response.status === 200) return object(response.value, "INVALID_GATEWAY_ENVELOPE");

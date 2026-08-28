@@ -266,7 +266,28 @@ async function submitAndRun(
   }
   const groundingId = string(submitted.body["groundingId"], "GROUNDING_ID_MISSING");
   const outcome = await worker(executor, `development-${recipeId.toLowerCase()}`).runOnce();
-  if (outcome.kind !== "SUCCEEDED") throw new Error(`WORKER_${recipeId}_${outcome.kind}`);
+  if (outcome.kind !== "SUCCEEDED") {
+    const diagnostic = await pool.query<{ job_code: string | null; stage: string | null; event_code: string | null }>(
+      `SELECT job.error->>'code' AS job_code,
+              event.stage,
+              event.error_code AS event_code
+         FROM wsgs.grounding_job AS job
+         LEFT JOIN LATERAL (
+           SELECT stage, error_code
+             FROM wsgs.pipeline_event
+            WHERE grounding_id = job.grounding_id AND error_code IS NOT NULL
+            ORDER BY event_id DESC LIMIT 1
+         ) AS event ON true
+        WHERE job.grounding_id = $1`,
+      [groundingId]
+    );
+    const detail = diagnostic.rows[0];
+    throw new Error([
+      "WORKER", recipeId, outcome.kind,
+      detail?.stage ?? "NO_STAGE",
+      detail?.event_code ?? detail?.job_code ?? "NO_ERROR_CODE"
+    ].join("_"));
+  }
   const fetched = await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`);
   if (fetched.status !== 200) throw new Error(`PUBLIC_API_GET_FAILED_${recipeId}_${fetched.status}`);
   const terminalStatus = string(fetched.body["status"], "GROUNDING_STATUS_MISSING");
