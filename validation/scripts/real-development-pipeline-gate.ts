@@ -291,10 +291,12 @@ async function submitAndRun(
   const fetched = await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`);
   if (fetched.status !== 200) throw new Error(`PUBLIC_API_GET_FAILED_${recipeId}_${fetched.status}`);
   const terminalStatus = string(fetched.body["status"], "GROUNDING_STATUS_MISSING");
+  const terminalResult = object(fetched.body["result"], "GROUNDING_RESULT_MISSING");
+  if (terminalResult["status"] !== terminalStatus) throw new Error(`GROUNDING_RESULT_STATUS_MISMATCH_${recipeId}`);
   if (!acceptedStatuses.includes(terminalStatus)) {
-    const count = (name: string): number => Array.isArray(fetched.body[name]) ? fetched.body[name].length : 0;
-    const gapReasons = Array.isArray(fetched.body["capabilityGaps"])
-      ? fetched.body["capabilityGaps"].flatMap((entry) => {
+    const count = (name: string): number => Array.isArray(terminalResult[name]) ? terminalResult[name].length : 0;
+    const gapReasons = Array.isArray(terminalResult["capabilityGaps"])
+      ? terminalResult["capabilityGaps"].flatMap((entry) => {
         if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
         const reason = (entry as JsonObject)["reason"];
         return typeof reason === "string" ? [reason] : [];
@@ -307,7 +309,7 @@ async function submitAndRun(
     );
   }
   const evidence = await collect(groundingId, requestHash);
-  if (evidence.resultHash !== fetched.body["resultHash"]) throw new Error(`RESULT_HASH_MISMATCH_${recipeId}`);
+  if (evidence.resultHash !== terminalResult["resultHash"]) throw new Error(`RESULT_HASH_MISMATCH_${recipeId}`);
   return { ...evidence, recipeId };
 }
 
@@ -377,6 +379,8 @@ async function recoveryCase(baseUrl: string, productionExecutor: PipelineStageEx
   }
   const fetched = await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`);
   if (fetched.status !== 200 || fetched.body["status"] !== "COMPLETED") throw new Error("RECOVERY_RESULT_MISSING");
+  const terminalResult = object(fetched.body["result"], "RECOVERY_GROUNDING_RESULT_MISSING");
+  if (terminalResult["status"] !== "COMPLETED") throw new Error("RECOVERY_RESULT_STATUS_MISMATCH");
   return {
     status: "PASS",
     groundingIdHash: safeId(groundingId),
@@ -384,7 +388,7 @@ async function recoveryCase(baseUrl: string, productionExecutor: PipelineStageEx
     generationCount: generations.length,
     modelCompletedCount: modelCompleted.length,
     gowmCompletedCount: gowmCompleted.length,
-    resultHash: fetched.body["resultHash"]
+    resultHash: terminalResult["resultHash"]
   };
 }
 
