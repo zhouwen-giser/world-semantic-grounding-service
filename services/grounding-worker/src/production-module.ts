@@ -1259,8 +1259,11 @@ export function computeWorldQueryNodeRequestHashes(
       const safeStatus = /^[A-Z][A-Z0-9_]{0,63}$/u.test(sourceStatus) ? sourceStatus : "INVALID";
       const sourceOperation = planByNode.get(sourceNodeId)?.operation.operationId ?? "unknown";
       const safeOperation = sourceOperation.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 64);
-      const nodeError = source["error"] && typeof source["error"] === "object" && !Array.isArray(source["error"])
-        ? (source["error"] as JsonObject)["code"] : undefined;
+      const errorEnvelope = source["error"] && typeof source["error"] === "object" && !Array.isArray(source["error"])
+        ? source["error"] as JsonObject : undefined;
+      const nestedError = errorEnvelope?.["error"] && typeof errorEnvelope["error"] === "object" && !Array.isArray(errorEnvelope["error"])
+        ? errorEnvelope["error"] as JsonObject : undefined;
+      const nodeError = nestedError?.["code"] ?? errorEnvelope?.["code"];
       const safeError = typeof nodeError === "string"
         ? nodeError.toUpperCase().replace(/[^A-Z0-9]+/gu, "_").slice(0, 96)
         : "NO_ERROR_CODE";
