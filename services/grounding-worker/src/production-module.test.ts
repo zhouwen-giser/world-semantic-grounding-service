@@ -184,6 +184,39 @@ describe("production stage module authority boundaries", () => {
     expect(lock.defaultOperations.length + lock.previewOperations.length).toBeGreaterThan(selected.defaultOperations.length);
   });
 
+  it("admits only the PREVIEW operation selected by an exact GDPS recipe", () => {
+    const lock = JSON.parse(readFileSync(resolve(
+      import.meta.dirname,
+      "..", "..", "..",
+      "contracts", "upstream", "gowm-0.6.3", "extracted", "package", "bundle", "locks",
+      "wsgs-southbound-operation-lock-v2.json"
+    ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
+    const template = lock.previewOperations[0]!;
+    lock.previewOperations.push({
+      ...template,
+      operationId: "landcover.get-class",
+      operationVersion: "1.0",
+      maturity: "PREVIEW"
+    });
+
+    const selected = selectProductionSouthboundLock(lock, ["GDPS_LAND_COVER_AT_REFERENCE"]);
+
+    expect(selected.previewOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`))
+      .toEqual(["landcover.get-class@1.0"]);
+  });
+
+  it("fails closed when an enabled GDPS recipe is absent from the exact lock", () => {
+    const lock = JSON.parse(readFileSync(resolve(
+      import.meta.dirname,
+      "..", "..", "..",
+      "contracts", "upstream", "gowm-0.6.3", "extracted", "package", "bundle", "locks",
+      "wsgs-southbound-operation-lock-v2.json"
+    ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
+
+    expect(() => selectProductionSouthboundLock(lock, ["GDPS_LAND_COVER_AT_REFERENCE"]))
+      .toThrow("PRODUCTION_PREVIEW_OPERATION_LOCK_MISSING_landcover.get-class");
+  });
+
   it("publishes candidate rank without leaking provider topology", () => {
     const result = normalizeReferenceResolution({
       schemaVersion: "1.0",

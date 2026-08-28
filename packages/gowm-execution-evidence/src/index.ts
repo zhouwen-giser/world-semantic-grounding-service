@@ -1,6 +1,19 @@
 export { canonicalJson, canonicalSha256 } from "./canonical.js";
 export { ExecutionEvidenceError } from "./errors.js";
 export {
+  evaluateGdpsCurrentOnlyReplay,
+  normalizeGdpsSourceEvidence
+} from "./gdps.js";
+export type {
+  GdpsCurrentnessCheck,
+  GdpsCurrentProductIdentity,
+  GdpsGapKind,
+  GdpsGroundingStatus,
+  GdpsReplayDecision,
+  GdpsReplayMode,
+  GdpsSourceEvidence
+} from "./gdps.js";
+export {
   GowmExecutionEvidenceNormalizer,
   normalizeDirectExecution,
   normalizeWorldQueryExecution

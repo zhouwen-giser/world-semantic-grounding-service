@@ -80,7 +80,10 @@ function scan(value: unknown, path = "$"): void {
 }
 
 const evidence: Array<Record<string, unknown>> = [];
-for (const testCase of cases) {
+const requestedCase = process.env["REAL_MODEL_CASE_ID"];
+const selectedCases = requestedCase ? cases.filter((testCase) => testCase.id === requestedCase) : cases;
+if (selectedCases.length === 0) throw new Error(`Unknown REAL_MODEL_CASE_ID: ${requestedCase}`);
+for (const testCase of selectedCases) {
   const result = await model.parse({
     sourceText: testCase.sourceText,
     locale: "zh-CN",

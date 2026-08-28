@@ -9,7 +9,7 @@ import type {
 } from "./types.js";
 import { makeOpenAIStrictTransportSchema, removeOptionalNulls } from "./schema.js";
 
-export const SEMANTIC_PROMPT_VERSION = "wsgs-domain-semantic-frame/1.0.2";
+export const SEMANTIC_PROMPT_VERSION = "wsgs-domain-semantic-frame/1.0.3";
 
 const SYSTEM_INSTRUCTIONS = `You are the WSGS bounded domain semantic parser (${SEMANTIC_PROMPT_VERSION}).
 Return only a WorldSemanticFrame conforming exactly to the supplied schema.
@@ -38,12 +38,26 @@ ReferenceKeys, object IDs, candidates, world facts, evidence, reasoning, or chai
 Do not infer content inside excluded spans. Use empty arrays when no bounded semantic structure exists.
 When the strict transport schema marks an otherwise optional field nullable, use null only when that field is absent.`;
 
+const JSON_COMPATIBILITY_CONTRACT = `JSON-only compatibility contract (the frozen validator remains authoritative):
+Return exactly one JSON object with these seven required fields and no others:
+{"schemaVersion":"1.0","mentions":[],"spatialExpressions":[],"relationExpressions":[],"temporalConstraints":[],"aggregationExpressions":[],"rankingExpressions":[]}.
+Populate arrays only when the source requires them. Omit optional object fields; do not emit null.
+mention = {"mentionId":identifier,"surfaceText":string,"span":{"encoding":"UTF16_CODE_UNIT","start":integer,"end":integer}, optional "expectedKinds":string[], optional "semanticRole":string, optional "anchorMentionId":identifier}.
+spatialExpression = {"expressionId":identifier,"operator":one of NEAR|WITHIN|CONTAINS|INTERSECTS|ALONG|BUFFER|NORTH_OF|SOUTH_OF|EAST_OF|WEST_OF,"arguments":identifier[1..4], optional "distanceM":positive number, optional "approximate":boolean}.
+relationExpression = {"expressionId":identifier,"relationType":string,"subjectMentionId":identifier, optional "objectMentionId":identifier}.
+temporalConstraint = {"constraintId":identifier, optional "from":ISO-8601 date-time, optional "to":ISO-8601 date-time, optional "relativeExpression":string}.
+aggregationExpression = {"expressionId":identifier,"operator":one of COUNT|GROUP|SUMMARIZE|COMPARE, optional "targetExpressionId":identifier}.
+rankingExpression = {"expressionId":identifier,"direction":one of ASC|DESC, optional "metric":string, optional "limit":integer 1..100}.
+Identifiers start with an ASCII letter or digit and then use only letters, digits, dot, underscore, colon, or hyphen. Return raw JSON without Markdown fences or commentary.`;
+
 const retryableStatuses = new Set([429, 500, 502, 503, 504]);
 
-function instructionsFor(repair: boolean): string {
-  return repair
-    ? `${SYSTEM_INSTRUCTIONS}\nA prior response was invalid. Produce a fresh, schema-valid frame without commentary.`
-    : SYSTEM_INSTRUCTIONS;
+function instructionsFor(repair: boolean, jsonCompatibility = false): string {
+  const contract = jsonCompatibility ? `\n${JSON_COMPATIBILITY_CONTRACT}` : "";
+  const repairInstruction = repair
+    ? "\nA prior response was invalid. Produce a fresh, schema-valid frame without commentary."
+    : "";
+  return `${SYSTEM_INSTRUCTIONS}${contract}${repairInstruction}`;
 }
 
 function sha256(value: string): string {
@@ -171,6 +185,99 @@ function eligibleTextSegments(
   return segments.filter((segment) => segment.text.length > 0);
 }
 
+function normalizeOpaqueIdentifiers(candidate: unknown): unknown {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return candidate;
+  const frame = structuredClone(candidate) as Record<string, unknown>;
+  const mentionIds = new Map<string, string>();
+  const expressionIds = new Map<string, string>();
+
+  const renameArray = (key: string, idKey: string, prefix: string, target: Map<string, string>): void => {
+    const entries = frame[key];
+    if (!Array.isArray(entries)) return;
+    entries.forEach((entry, index) => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) return;
+      const object = entry as Record<string, unknown>;
+      const original = object[idKey];
+      const canonical = `${prefix}${index + 1}`;
+      if (typeof original === "string" && !target.has(original)) target.set(original, canonical);
+      object[idKey] = canonical;
+    });
+  };
+
+  renameArray("mentions", "mentionId", "m", mentionIds);
+  renameArray("spatialExpressions", "expressionId", "s", expressionIds);
+  renameArray("relationExpressions", "expressionId", "r", expressionIds);
+  renameArray("temporalConstraints", "constraintId", "t", expressionIds);
+  renameArray("aggregationExpressions", "expressionId", "a", expressionIds);
+  renameArray("rankingExpressions", "expressionId", "k", expressionIds);
+
+  const rewrite = (entry: unknown, key: string, map: ReadonlyMap<string, string>): void => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return;
+    const object = entry as Record<string, unknown>;
+    const original = object[key];
+    if (typeof original === "string" && map.has(original)) object[key] = map.get(original);
+  };
+  const rewriteArray = (key: string, callback: (entry: unknown) => void): void => {
+    const entries = frame[key];
+    if (Array.isArray(entries)) entries.forEach(callback);
+  };
+
+  rewriteArray("mentions", (entry) => rewrite(entry, "anchorMentionId", mentionIds));
+  rewriteArray("spatialExpressions", (entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return;
+    const object = entry as Record<string, unknown>;
+    if (Array.isArray(object["arguments"])) {
+      object["arguments"] = object["arguments"].map((value) =>
+        typeof value === "string" && mentionIds.has(value) ? mentionIds.get(value) : value
+      );
+    }
+  });
+  rewriteArray("relationExpressions", (entry) => {
+    rewrite(entry, "subjectMentionId", mentionIds);
+    rewrite(entry, "objectMentionId", mentionIds);
+  });
+  rewriteArray("aggregationExpressions", (entry) => rewrite(entry, "targetExpressionId", expressionIds));
+
+  return frame;
+}
+
+function normalizeKnownExpressionPlacement(candidate: unknown): unknown {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return candidate;
+  const frame = structuredClone(candidate) as Record<string, unknown>;
+  const spatial = frame["spatialExpressions"];
+  const relations = frame["relationExpressions"];
+  if (!Array.isArray(spatial) || !Array.isArray(relations)) return frame;
+
+  const retained: unknown[] = [];
+  for (const entry of spatial) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      retained.push(entry);
+      continue;
+    }
+    const expression = entry as Record<string, unknown>;
+    const argumentsValue = expression["arguments"];
+    if (expression["operator"] !== "CURRENT_STATE" || !Array.isArray(argumentsValue) || typeof argumentsValue[0] !== "string") {
+      retained.push(entry);
+      continue;
+    }
+    const subjectMentionId = argumentsValue[0];
+    const alreadyPresent = relations.some((relation) =>
+      relation && typeof relation === "object" && !Array.isArray(relation) &&
+      (relation as Record<string, unknown>)["relationType"] === "CURRENT_STATE" &&
+      (relation as Record<string, unknown>)["subjectMentionId"] === subjectMentionId
+    );
+    if (!alreadyPresent) {
+      relations.push({
+        expressionId: expression["expressionId"],
+        relationType: "CURRENT_STATE",
+        subjectMentionId
+      });
+    }
+  }
+  frame["spatialExpressions"] = retained;
+  return frame;
+}
+
 function makeBody(
   mode: ModelOutputMode,
   model: string,
@@ -186,7 +293,7 @@ function makeBody(
     eligibleTextSegments: eligibleTextSegments(input.sourceText, excludedSpans),
     utf16SpanGuide: utf16SpanGuide(input.sourceText, excludedSpans)
   });
-  const instructions = instructionsFor(repair);
+  const instructions = instructionsFor(repair, mode === "CHAT_COMPLETIONS_JSON");
   if (mode === "RESPONSES_STRICT") {
     return {
       model,
@@ -320,7 +427,7 @@ export class OpenAICompatibleSemanticModel {
         attempts = attempt + 1;
         if (controller.signal.aborted) throw new SemanticModelError("MODEL_DEADLINE_EXCEEDED", true);
         const repair = attempt > 0 && lastCode.startsWith("INVALID_");
-        promptHash = sha256(instructionsFor(repair));
+        promptHash = sha256(instructionsFor(repair, this.#mode === "CHAT_COMPLETIONS_JSON"));
         const transportSchema = this.#mode.endsWith("STRICT")
           ? makeOpenAIStrictTransportSchema(this.#schema)
           : this.#schema;
@@ -379,7 +486,7 @@ export class OpenAICompatibleSemanticModel {
           await this.#backoff(attempt, controller.signal);
           continue;
         }
-        candidate = removeOptionalNulls(candidate, this.#schema);
+        candidate = normalizeOpaqueIdentifiers(normalizeKnownExpressionPlacement(removeOptionalNulls(candidate, this.#schema)));
         if (!this.#validate(candidate)) {
           lastCode = "INVALID_MODEL_SCHEMA";
           if (attempt >= this.#maxRetries) throw new SemanticModelError(lastCode, false);

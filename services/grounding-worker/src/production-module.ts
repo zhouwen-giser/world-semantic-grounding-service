@@ -86,8 +86,10 @@ import {
   type SemanticModelPolicyResult
 } from "@wsgs/semantic-model";
 import {
+  GDPS_PREVIEW_RECIPE_OPERATION_KEYS,
   buildTrustedCapabilitySnapshot,
   verifyPersistedTrustedCapabilitySnapshot,
+  type GdpsPreviewRecipeId,
   type SchemaValidatedSouthboundLock,
   type TrustedCapabilitySnapshot
 } from "@wsgs/trusted-capability-snapshot";
@@ -275,7 +277,10 @@ function allGatewayLocks(lock: OperationalGowmLock): OperationLock[] {
   return [...lock.defaultOperations, ...lock.previewOperations].map(gatewayLock);
 }
 
-export function selectProductionSouthboundLock(lock: OperationalGowmLock): OperationalGowmLock {
+export function selectProductionSouthboundLock(
+  lock: OperationalGowmLock,
+  previewRecipeIds: readonly GdpsPreviewRecipeId[] = []
+): OperationalGowmLock {
   const available = [...lock.defaultOperations, ...lock.previewOperations];
   const selected = PRODUCTION_STABLE_OPERATION_IDS.map((operationId) => {
     const entry = available.find((candidate) =>
@@ -285,10 +290,25 @@ export function selectProductionSouthboundLock(lock: OperationalGowmLock): Opera
     }
     return entry;
   });
+  const previewOperationKeys = [...new Set(previewRecipeIds.flatMap((recipeId) =>
+    GDPS_PREVIEW_RECIPE_OPERATION_KEYS[recipeId]
+      .filter((operationKey) => !operationKey.startsWith("reference.") && !operationKey.startsWith("world."))
+  ))].sort();
+  const selectedPreview = previewOperationKeys.map((operationKey) => {
+    const separator = operationKey.lastIndexOf("@");
+    const operationId = operationKey.slice(0, separator);
+    const operationVersion = operationKey.slice(separator + 1);
+    const entry = available.find((candidate) =>
+      candidate.operationId === operationId && candidate.operationVersion === operationVersion);
+    if (!entry || entry.maturity !== "PREVIEW") {
+      throw new ProductionStageModuleError(`PRODUCTION_PREVIEW_OPERATION_LOCK_MISSING_${operationId}`);
+    }
+    return entry;
+  });
   return {
     ...lock,
     defaultOperations: selected,
-    previewOperations: []
+    previewOperations: selectedPreview
   };
 }
 
@@ -318,8 +338,10 @@ function createModel(policy: SemanticModelPolicyMode): SemanticModelParser {
 function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const operationalLock = readOperationalLock();
   const lock = operationalLock.lock;
-  const productionLock = selectProductionSouthboundLock(lock);
-  const trustedOperationKeys = productionLock.defaultOperations
+  const previewRecipeIds = environmentList("WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST")
+    .filter((entry): entry is GdpsPreviewRecipeId => Object.hasOwn(GDPS_PREVIEW_RECIPE_OPERATION_KEYS, entry));
+  const productionLock = selectProductionSouthboundLock(lock, previewRecipeIds);
+  const trustedOperationKeys = allGatewayLocks(productionLock)
     .map((entry) => `${entry.operationId}@${entry.operationVersion}`);
   const modelPolicy = (process.env["WSGS_MODEL_POLICY"]?.trim() ?? "MODEL_REQUIRED") as SemanticModelPolicyMode;
   if (modelPolicy !== "MODEL_REQUIRED" && modelPolicy !== "MODEL_OPTIONAL") {
@@ -352,9 +374,9 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     model: createModel(modelPolicy),
     modelPolicy,
     allowPreview: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES",
-    previewRecipeIds: environmentList("WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST")
-      .filter((entry): entry is QuerySemanticPattern => entry.startsWith("GDPS_") &&
-        queryTemplateRules.some((rule) => rule.pattern === entry))
+    previewRecipeIds: previewRecipeIds
+      .filter((entry) => queryTemplateRules.some((rule) => rule.pattern === entry))
+      .map((entry) => entry as QuerySemanticPattern)
   };
 }
 
@@ -396,7 +418,11 @@ async function liveAuthority(
     staticIntakeVerified = true;
   }
   const lock = value.operationalLock.lock;
-  const productionLock = selectProductionSouthboundLock(lock);
+  const productionLock = selectProductionSouthboundLock(
+    lock,
+    value.previewRecipeIds.filter((entry): entry is GdpsPreviewRecipeId =>
+      Object.hasOwn(GDPS_PREVIEW_RECIPE_OPERATION_KEYS, entry))
+  );
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
     actorId: principal.actorId,
@@ -408,7 +434,7 @@ async function liveAuthority(
     identity: principal,
     requestId,
     plan: {
-      nodes: productionLock.defaultOperations.map((entry, index) => ({
+      nodes: allGatewayLocks(productionLock).map((entry, index) => ({
         nodeId: `Readiness_${index + 1}`,
         operation: { operationId: entry.operationId, operationVersion: entry.operationVersion }
       }))
@@ -438,7 +464,7 @@ async function liveAuthority(
     catalog,
     semantics,
     availability,
-    required: productionLock.defaultOperations.map(gatewayLock),
+    required: allGatewayLocks(productionLock),
     optional: [],
     expectedContractCatalogRevision: lock.contractCatalogRevision,
     expectedSemanticCatalogHash: lock.semanticCatalogHash
@@ -1404,7 +1430,7 @@ function publicEvidenceItem(item: NormalizedExecutionEvidenceItem): GroundingEvi
     authority: "gowm",
     sourceOperation: item.sourceOperation,
     ...(item.sourceNodeId ? { sourceNodeId: item.sourceNodeId } : {}),
-    upstreamStatus: item.upstreamStatus,
+    upstreamStatus: item.normalizedStatus,
     payloadSchemaUri: item.payloadSchemaUri,
     payloadSchemaHash: item.payloadSchemaHash,
     ...(item.payload.kind === "INLINE" ? { safePayload: item.payload.value } : {}),

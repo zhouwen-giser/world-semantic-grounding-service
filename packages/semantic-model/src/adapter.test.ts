@@ -245,7 +245,66 @@ describe("OpenAICompatibleSemanticModel", () => {
       const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
       expect(body).not.toHaveProperty("tools");
       expect(body["response_format"]).toMatchObject({ type: mode.endsWith("STRICT") ? "json_schema" : "json_object" });
+      const messages = body["messages"] as Array<{ role: string; content: string }>;
+      const system = messages.find((message) => message.role === "system")?.content ?? "";
+      if (mode === "CHAT_COMPLETIONS_JSON") {
+        expect(system).toContain("JSON-only compatibility contract");
+        expect(system).toContain('"schemaVersion":"1.0"');
+        expect(system).toContain("Omit optional object fields; do not emit null");
+      } else {
+        expect(system).not.toContain("JSON-only compatibility contract");
+      }
     }
+  });
+
+  it("canonicalizes opaque model identifiers and their references before validation", async () => {
+    const modelFrame = {
+      ...emptyFrame,
+      mentions: [{
+        mentionId: "A区",
+        surfaceText: "A区",
+        span: { encoding: "UTF16_CODE_UNIT", start: 0, end: 2 }
+      }],
+      spatialExpressions: [{
+        expressionId: "A区内",
+        operator: "WITHIN",
+        arguments: ["A区"]
+      }],
+      aggregationExpressions: [{
+        expressionId: "计数",
+        operator: "COUNT",
+        targetExpressionId: "A区内"
+      }]
+    };
+    const fetchMock = vi.fn<typeof fetch>(async () => responseFor(modelFrame));
+    const result = await adapter(fetchMock).parse({ sourceText: "A区" });
+    expect(result.frame.mentions[0]?.mentionId).toBe("m1");
+    expect(result.frame.spatialExpressions[0]).toMatchObject({ expressionId: "s1", arguments: ["m1"] });
+    expect(result.frame.aggregationExpressions[0]).toMatchObject({ expressionId: "a1", targetExpressionId: "s1" });
+  });
+
+  it("moves a model CURRENT_STATE expression into the frozen relation collection", async () => {
+    const modelFrame = {
+      ...emptyFrame,
+      mentions: [{
+        mentionId: "vehicle",
+        surfaceText: "2号车",
+        span: { encoding: "UTF16_CODE_UNIT", start: 0, end: 3 }
+      }],
+      spatialExpressions: [{
+        expressionId: "current",
+        operator: "CURRENT_STATE",
+        arguments: ["vehicle"]
+      }]
+    };
+    const fetchMock = vi.fn<typeof fetch>(async () => responseFor(modelFrame));
+    const result = await adapter(fetchMock).parse({ sourceText: "2号车" });
+    expect(result.frame.spatialExpressions).toEqual([]);
+    expect(result.frame.relationExpressions).toEqual([{
+      expressionId: "r1",
+      relationType: "CURRENT_STATE",
+      subjectMentionId: "m1"
+    }]);
   });
 
   it("fails explicitly when the model is unavailable without keyword fallback", async () => {
