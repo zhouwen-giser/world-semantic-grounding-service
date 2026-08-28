@@ -6,6 +6,8 @@ The caller supplies one bounded source message, requested neutral products, a bo
 
 WSGS returns neutral grounding products: mentions, semantic frame, grounding graph, reference products, evidence items, ambiguities, unknowns, capability gaps, query execution summaries, warnings, and typed errors. Decision fields such as `intent`, `route`, `shouldAnswer`, `shouldForwardToSdar`, `shouldCreateTask`, and `operationalBindings` are forbidden.
 
+`VALIDATE_REFERENCES` preserves fail-closed upstream validity. A reference is reusable only when the locked GOWM validation result says it is currently usable; WSGS then returns `sourceOperation=VALIDATE_REFERENCES`, `revalidationRequired=false`, and a bounded `validUntil` lease derived from the authoritative validation snapshot time. The lease defaults to 60 seconds and may be bounded from 1 through 300 seconds with `WSGS_REFERENCE_VALIDATION_TTL_MS`. Stale, expired, missing, or scope-denied references receive no refreshed lease.
+
 All textual spans use UTF-16 code-unit offsets with inclusive `start` and exclusive `end`. Runtime validation must prove that each `surfaceText` equals the exact source slice at those offsets.
 
 The frozen HTTP surface is:

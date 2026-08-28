@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import {
   PRODUCTION_STABLE_OPERATION_IDS,
   PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
+  applyReferenceValidation,
   assertPriorGroundingReplaySupport,
   buildRecipeOperationInput,
   capabilityCatalogHash,
@@ -310,12 +311,45 @@ describe("production stage module authority boundaries", () => {
         snapshot: "CURRENT", usable: "YES", reasons: []
       }, {
         schemaVersion: "1.0", referenceKey: key, existence: "AVAILABLE", freshness: "CURRENT",
+        snapshot: "NOT_APPLICABLE", usable: "YES", reasons: []
+      }, {
+        schemaVersion: "1.0", referenceKey: key, existence: "AVAILABLE", freshness: "CURRENT",
         snapshot: "UNKNOWN", usable: "REVALIDATE", reasons: ["Snapshot currentness is unknown"]
       }]
     })).toEqual([
       { referenceKey: key, status: "VALID", revalidationRequired: false, warnings: [] },
+      { referenceKey: key, status: "VALID", revalidationRequired: false, warnings: [] },
       { referenceKey: key, status: "STALE", revalidationRequired: true, warnings: ["Snapshot currentness is unknown"] }
     ]);
+  });
+
+  it("publishes a bounded northbound lease only for a currently usable reference", () => {
+    const key = { namespace: "gowm" as const, kind: "WORLD_OBJECT", id: `wrf_${"b".repeat(32)}`, version: "7" };
+    const product = {
+      productId: "reference-1", productKind: "RESOLVED_REFERENCE" as const, referenceKey: key,
+      referenceType: "VEHICLE", displayName: "2号车", matchedBy: "EXACT", matchScore: 1,
+      sourceOperation: "reference.resolve" as const, sourceWorldVersion: 7,
+      validUntil: "2026-08-29T00:00:00.000Z", revalidationRequired: true,
+      safeSummary: { source: "resolver" }
+    };
+    const valid = applyReferenceValidation(product, {
+      referenceKey: key, status: "VALID", revalidationRequired: false, warnings: []
+    }, "2026-08-29T01:00:00.000Z", 60_000);
+    expect(valid).toMatchObject({
+      sourceOperation: "VALIDATE_REFERENCES", revalidationRequired: false,
+      validUntil: "2026-08-29T01:01:00.000Z",
+      safeSummary: {
+        validationStatus: "VALID", validationSourceOperation: "reference.validate",
+        validationEvaluatedAt: "2026-08-29T01:00:00.000Z",
+        validitySemantics: "GOWM_REFERENCE_VALIDATE_BOUNDED_LEASE"
+      }
+    });
+
+    const stale = applyReferenceValidation(product, {
+      referenceKey: key, status: "STALE", revalidationRequired: true, warnings: ["stale"]
+    }, "2026-08-29T01:00:00.000Z", 60_000);
+    expect(stale).toMatchObject({ sourceOperation: "VALIDATE_REFERENCES", revalidationRequired: true });
+    expect(stale).not.toHaveProperty("validUntil");
   });
 
   it("keeps catalog identity distinct from the enclosing authority snapshot", () => {

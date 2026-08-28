@@ -871,7 +871,7 @@ export function normalizeValidation(value: unknown): ReferenceValidationProduct[
       return {
         referenceKey: referenceKey(entry["referenceKey"]),
         status,
-        revalidationRequired: usable !== "YES" || snapshot !== "CURRENT",
+        revalidationRequired: status !== "VALID" || usable !== "YES",
         warnings
       };
     }
@@ -884,6 +884,43 @@ export function normalizeValidation(value: unknown): ReferenceValidationProduct[
         : []
     };
   });
+}
+
+function validationCapturedAt(envelope: JsonObject): string {
+  const snapshot = object(envelope["dataSnapshot"], "REFERENCE_VALIDATION_SNAPSHOT_MISSING");
+  const value = text(snapshot["capturedAt"], "REFERENCE_VALIDATION_CAPTURE_TIME_MISSING");
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) {
+    throw new ProductionStageModuleError("REFERENCE_VALIDATION_CAPTURE_TIME_INVALID");
+  }
+  return new Date(timestamp).toISOString();
+}
+
+export function applyReferenceValidation(
+  product: ReferenceProduct,
+  validation: ReferenceValidationProduct,
+  evaluatedAt: string,
+  validityTtlMs: number
+): ReferenceProduct {
+  const timestamp = Date.parse(evaluatedAt);
+  if (!Number.isFinite(timestamp) || !Number.isInteger(validityTtlMs) || validityTtlMs < 1) {
+    throw new ProductionStageModuleError("REFERENCE_VALIDATION_LEASE_INVALID");
+  }
+  const usable = validation.status === "VALID" && !validation.revalidationRequired;
+  const { validUntil: _priorValidity, ...withoutPriorValidity } = product;
+  return {
+    ...withoutPriorValidity,
+    sourceOperation: "VALIDATE_REFERENCES",
+    revalidationRequired: !usable,
+    ...(usable ? { validUntil: new Date(timestamp + validityTtlMs).toISOString() } : {}),
+    safeSummary: {
+      ...product.safeSummary,
+      validationStatus: validation.status,
+      validationSourceOperation: "reference.validate",
+      validationEvaluatedAt: new Date(timestamp).toISOString(),
+      validitySemantics: "GOWM_REFERENCE_VALIDATE_BOUNDED_LEASE"
+    }
+  };
 }
 
 function requestParts(context: PipelineStageContext): {
@@ -1678,6 +1715,8 @@ export async function createPipelineStageExecutor(
       const lock = operationLock(authority, "reference.validate");
       const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", references }, "reference-validate");
       const validations = normalizeValidation(envelopeValue(envelope, lock));
+      const evaluatedAt = validationCapturedAt(envelope);
+      const validityTtlMs = environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000);
       const result = resolved ?? {
         mentions: [],
         referenceProducts: known.map((entry, index): ReferenceProduct => ({
@@ -1698,7 +1737,7 @@ export async function createPipelineStageExecutor(
         referenceProducts: result.referenceProducts.map((product) => {
           const validation = byKey.get(JSON.stringify(product.referenceKey));
           if (!validation) throw new ProductionStageModuleError("REFERENCE_VALIDATION_MISSING");
-          return { ...product, revalidationRequired: validation.status !== "VALID" || validation.revalidationRequired };
+          return applyReferenceValidation(product, validation, evaluatedAt, validityTtlMs);
         })
       };
     },
