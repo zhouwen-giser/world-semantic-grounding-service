@@ -7,6 +7,7 @@ import {
   compileWorldSemanticFrameSchema,
   semanticModelConfigFromEnvironment
 } from "../../packages/semantic-model/src/index.js";
+import { stabilizeSemanticFrame } from "../../packages/semantic-frame/src/index.js";
 
 if (process.env["ALLOW_REAL_MODEL_GATE"] !== "YES") {
   throw new Error("Set ALLOW_REAL_MODEL_GATE=YES to call the configured real model");
@@ -35,11 +36,15 @@ const cases: ReadonlyArray<{
   id: string;
   sourceText: string;
   requiredSurface: string;
+  requiredRelation?: string;
+  requiredSpatial?: string;
+  requiredDistanceM?: number;
   excludedSpans?: ReadonlyArray<{ start: number; end: number }>;
 }> = [
-  { id: "vehicle-location", sourceText: "2号车在哪里？", requiredSurface: "2号车" },
-  { id: "ambiguous-road", sourceText: "滨河路附近有哪些车辆？", requiredSurface: "滨河路" },
-  { id: "vehicles-in-area", sourceText: "A区内有哪些车辆？", requiredSurface: "A区" },
+  { id: "vehicle-location", sourceText: "2号车在哪里？", requiredSurface: "2号车", requiredRelation: "CURRENT_STATE" },
+  { id: "ambiguous-road", sourceText: "滨河路附近有哪些车辆？", requiredSurface: "滨河路", requiredSpatial: "NEAR" },
+  { id: "vehicles-in-area", sourceText: "A区内有哪些车辆？", requiredSurface: "A区", requiredSpatial: "WITHIN" },
+  { id: "nearby-distance", sourceText: "2号车附近1公里有什么？", requiredSurface: "2号车", requiredSpatial: "NEAR", requiredDistanceM: 1_000 },
   {
     id: "prompt-injection",
     sourceText: injectionSourceText,
@@ -81,16 +86,25 @@ for (const testCase of cases) {
     locale: "zh-CN",
     ...(testCase.excludedSpans ? { excludedSpans: testCase.excludedSpans } : {})
   });
-  scan(result.frame);
-  if (!result.frame.mentions.some((mention) => mention.surfaceText === testCase.requiredSurface)) {
+  const frame = stabilizeSemanticFrame(result.frame, testCase.sourceText);
+  scan(frame);
+  if (!frame.mentions.some((mention) => mention.surfaceText === testCase.requiredSurface)) {
     throw new Error(`${testCase.id} omitted the required exact mention ${testCase.requiredSurface}`);
+  }
+  if (testCase.requiredRelation && !frame.relationExpressions.some((entry) => entry.relationType === testCase.requiredRelation)) {
+    throw new Error(`${testCase.id} omitted required relation ${testCase.requiredRelation}`);
+  }
+  if (testCase.requiredSpatial && !frame.spatialExpressions.some((entry) =>
+    entry.operator === testCase.requiredSpatial &&
+    (testCase.requiredDistanceM === undefined || entry.distanceM === testCase.requiredDistanceM))) {
+    throw new Error(`${testCase.id} omitted required spatial semantics ${testCase.requiredSpatial}`);
   }
   evidence.push({
     id: testCase.id,
     sourceHash: createHash("sha256").update(testCase.sourceText).digest("hex"),
-    frameHash: createHash("sha256").update(JSON.stringify(result.frame)).digest("hex"),
-    mentionCount: result.frame.mentions.length,
-    spatialExpressionCount: result.frame.spatialExpressions.length,
+    frameHash: createHash("sha256").update(JSON.stringify(frame)).digest("hex"),
+    mentionCount: frame.mentions.length,
+    spatialExpressionCount: frame.spatialExpressions.length,
     attemptCount: result.receipt.attempts,
     receiptStatus: result.receipt.status,
     modelHash: result.receipt.modelHash,

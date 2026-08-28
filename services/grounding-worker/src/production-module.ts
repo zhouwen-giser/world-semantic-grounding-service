@@ -73,7 +73,7 @@ import {
   type StableRecipeId,
   type WorldQueryRequirement
 } from "@wsgs/requirement-planner";
-import { validateSemanticFrame } from "@wsgs/semantic-frame";
+import { stabilizeSemanticFrame } from "@wsgs/semantic-frame";
 import {
   OpenAICompatibleSemanticModel,
   SemanticModelError,
@@ -430,7 +430,9 @@ async function liveAuthority(
   if (!validation.requiredReady) throw new ProductionStageModuleError("STABLE_GOWM_OPERATIONS_NOT_READY");
   await value.signer.ready();
   if (value.modelPolicy === "MODEL_REQUIRED") {
-    await value.model.parse({ sourceText: "health", locale: "en" });
+    const probeText = "2号车在哪里？";
+    const probe = await value.model.parse({ sourceText: probeText, locale: "zh-CN" });
+    stabilizeSemanticFrame(probe.frame, probeText);
   }
   const persisted: PersistedAuthority = {
     schemaVersion: "1.0",
@@ -1447,7 +1449,7 @@ export async function createPipelineStageExecutor(
     SEMANTIC_FRAME_VALIDATE: async (context) => {
       const parts = requestParts(context);
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_MODEL_PARSE");
-      return { ...model, frame: validateSemanticFrame(model.frame, text(parts.source["originalText"], "SOURCE_TEXT_MISSING")) };
+      return { ...model, frame: stabilizeSemanticFrame(model.frame, text(parts.source["originalText"], "SOURCE_TEXT_MISSING")) };
     },
 
     GROUNDING_GRAPH_BUILD: async (context) => {

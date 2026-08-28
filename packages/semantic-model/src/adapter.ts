@@ -9,7 +9,7 @@ import type {
 } from "./types.js";
 import { makeOpenAIStrictTransportSchema, removeOptionalNulls } from "./schema.js";
 
-export const SEMANTIC_PROMPT_VERSION = "wsgs-domain-semantic-frame/1.0.1";
+export const SEMANTIC_PROMPT_VERSION = "wsgs-domain-semantic-frame/1.0.2";
 
 const SYSTEM_INSTRUCTIONS = `You are the WSGS bounded domain semantic parser (${SEMANTIC_PROMPT_VERSION}).
 Return only a WorldSemanticFrame conforming exactly to the supplied schema.
@@ -22,6 +22,12 @@ the marker; do not discard that eligible suffix merely because an injection prec
 Extract only mentions and neutral semantic, spatial, temporal, aggregation, and ranking expressions.
 Keep entity-name mentions separate from Chinese spatial/query suffixes: words such as "附近", "内",
 "哪里", and "有哪些" belong to expressions or the question, never to the entity surfaceText.
+Mentions are named entities only; never emit punctuation, question/spatial words, units, or generic
+result classes as mentions. Use WORLD_OBJECT for named vehicles/devices and LAYER_FEATURE for named
+roads/areas. "X 在哪里" means one CURRENT_STATE relation whose subject is X. "X 附近" means one NEAR
+expression whose only argument is X. "X 内" means one WITHIN expression whose only argument is X.
+Copy an explicit distance to distanceM, converting 1 公里 to 1000. Every expression argument and
+relation subject/object must name an emitted mention; do not invent identifiers.
 Every mention surfaceText must equal the UTF-16 source slice at its [start,end) span.
 The user payload includes eligibleTextSegments and a utf16SpanGuide. Extract only from
 eligibleTextSegments. Their start/end values are offsets in the original sourceText. For a
