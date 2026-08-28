@@ -1,0 +1,923 @@
+{
+  "schemaVersion": "1.0",
+  "profile": "REQUIRED_DEVELOPMENT",
+  "generatedFrom": [
+    "acceptance/development-required.csv",
+    "reports/wsgs-v0.2/development-acceptance-evidence-groups.json"
+  ],
+  "required": 63,
+  "decision": "DEVELOPMENT_READY",
+  "productionQualified": false,
+  "summary": {
+    "PASS": 63,
+    "FAIL": 0,
+    "NOT_RUN": 0,
+    "BLOCKED": 0
+  },
+  "cases": [
+    {
+      "id": "DEV-B001",
+      "area": "Baseline",
+      "scenario": "PR head reconciliation",
+      "expected": "Actual PR #2 head/version recorded",
+      "testType": "source",
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "id": "DEV-B002",
+      "area": "Baseline",
+      "scenario": "GOWM lock unchanged",
+      "expected": "Pinned GOWM 0.6.3 lock matches",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "id": "DEV-B003",
+      "area": "Baseline",
+      "scenario": "Northbound unchanged",
+      "expected": "sacs-wsgs-grounding/1.0 remains compatible",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "id": "DEV-B004",
+      "area": "Baseline",
+      "scenario": "Existing regression",
+      "expected": "Core unit/contract/PostgreSQL suite has 0 FAIL",
+      "testType": "regression",
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "id": "DEV-B005",
+      "area": "Acceptance",
+      "scenario": "Historical ledger preserved",
+      "expected": "Original 279 inventory remains",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "id": "DEV-B006",
+      "area": "Acceptance",
+      "scenario": "Development ledger",
+      "expected": "Independent development ledger generated",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "id": "DEV-B007",
+      "area": "Acceptance",
+      "scenario": "Production deferred",
+      "expected": "Deferred inventory is non-blocking",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "id": "DEV-B008",
+      "area": "Acceptance",
+      "scenario": "Errata applied",
+      "expected": "Three errata machine-validated",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "acceptance/legacy-279-reclassification.json",
+        "contracts/wsgs-v0.2-development/manifests/acceptance-errata.v1.json",
+        "reports/wsgs-v0.2/development-ready-report.md",
+        "validation/scripts/verify-development-closure.mjs"
+      ],
+      "note": "PR head, immutable GOWM lock, frozen northbound contract, regression suite, independent development profile, deferred inventory, and all three errata are verified without rewriting the historical ledger."
+    },
+    {
+      "id": "DEV-G001",
+      "area": "Gateway",
+      "scenario": "Live contract/semantic/availability",
+      "expected": "Current pinned live values match",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Pinned discovery, signed availability, advertised SYNC 200, World Query 202 polling, cancellation, receipt, and body-authority rejection have trusted live evidence."
+    },
+    {
+      "id": "DEV-G002",
+      "area": "Gateway",
+      "scenario": "Direct SYNC",
+      "expected": "Advertised SYNC returns 200 and normalizes",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Pinned discovery, signed availability, advertised SYNC 200, World Query 202 polling, cancellation, receipt, and body-authority rejection have trusted live evidence."
+    },
+    {
+      "id": "DEV-G003",
+      "area": "Gateway",
+      "scenario": "World Query async",
+      "expected": "202 polls to COMPLETED",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Pinned discovery, signed availability, advertised SYNC 200, World Query 202 polling, cancellation, receipt, and body-authority rejection have trusted live evidence."
+    },
+    {
+      "id": "DEV-G004",
+      "area": "Gateway",
+      "scenario": "Cancel",
+      "expected": "Cancellation reaches CANCELLED",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Pinned discovery, signed availability, advertised SYNC 200, World Query 202 polling, cancellation, receipt, and body-authority rejection have trusted live evidence."
+    },
+    {
+      "id": "DEV-G005",
+      "area": "Gateway",
+      "scenario": "Receipt",
+      "expected": "Bounded receipt fetch works",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Pinned discovery, signed availability, advertised SYNC 200, World Query 202 polling, cancellation, receipt, and body-authority rejection have trusted live evidence."
+    },
+    {
+      "id": "DEV-G006",
+      "area": "Gateway",
+      "scenario": "Body authority",
+      "expected": "Actor/scope/permission body fields rejected",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Pinned discovery, signed availability, advertised SYNC 200, World Query 202 polling, cancellation, receipt, and body-authority rejection have trusted live evidence."
+    },
+    {
+      "id": "DEV-P001",
+      "area": "Pipeline",
+      "scenario": "Production backend",
+      "expected": "API uses production backend",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P002",
+      "area": "Pipeline",
+      "scenario": "API submit",
+      "expected": "POST grounding creates result/job",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P003",
+      "area": "Pipeline",
+      "scenario": "Queue",
+      "expected": "Real PostgreSQL job persists",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P004",
+      "area": "Pipeline",
+      "scenario": "Worker claim",
+      "expected": "Real worker claims job",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P005",
+      "area": "Pipeline",
+      "scenario": "Real model",
+      "expected": "Production worker invokes real model",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P006",
+      "area": "Pipeline",
+      "scenario": "WSGS compiler",
+      "expected": "Plan originates from WSGS production compiler",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P007",
+      "area": "Pipeline",
+      "scenario": "Real GOWM",
+      "expected": "Production worker invokes pinned real GOWM",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P008",
+      "area": "Pipeline",
+      "scenario": "Evidence normalize",
+      "expected": "Production normalizer handles result",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P009",
+      "area": "Pipeline",
+      "scenario": "Persist",
+      "expected": "Terminal GroundingResult persists",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P010",
+      "area": "Pipeline",
+      "scenario": "API GET",
+      "expected": "GET returns persisted result",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P011",
+      "area": "Pipeline",
+      "scenario": "Full-chain evidence",
+      "expected": "Stage hashes prove full chain",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-P012",
+      "area": "Pipeline",
+      "scenario": "No injected substitute",
+      "expected": "No injected stage backend in final proof",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-pipeline-evidence.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "A public HTTP submission traverses the production backend, PostgreSQL queue, GroundingWorker, real model, WSGS planner/compiler, signed real GOWM, normalizer, durable result, and public GET with fourteen stage hashes."
+    },
+    {
+      "id": "DEV-R001",
+      "area": "Recipe",
+      "scenario": "2号车 current state",
+      "expected": "R1 passes production pipeline",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "id": "DEV-R002",
+      "area": "Recipe",
+      "scenario": "滨河路 ambiguity",
+      "expected": "R2 passes and Spatial executions=0",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "id": "DEV-R003",
+      "area": "Recipe",
+      "scenario": "A区 in-area",
+      "expected": "R3 passes production pipeline",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "id": "DEV-R004",
+      "area": "Recipe",
+      "scenario": "1km nearby",
+      "expected": "R4 passes and 1km=1000m",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "id": "DEV-R005",
+      "area": "Recipe",
+      "scenario": "Current revalidation",
+      "expected": "R5 passes or returns typed stale",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "id": "DEV-R006",
+      "area": "Recipe",
+      "scenario": "MODEL_OPTIONAL coordinate",
+      "expected": "R6 returns bounded deterministic result",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "id": "DEV-R007",
+      "area": "Recipe",
+      "scenario": "NO_DATA",
+      "expected": "NO_DATA remains unknown/unresolved",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "id": "DEV-R008",
+      "area": "Recipe",
+      "scenario": "PARTIAL",
+      "expected": "PARTIAL retains evidence and unknowns",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/recipe-evidence",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "R1-R6 run through production components; ambiguity stops spatial work, 1 km is compiled as 1000 m, current validation is live, MODEL_OPTIONAL degrades deterministically, and NO_DATA/PARTIAL retain typed semantics."
+    },
+    {
+      "id": "DEV-V001",
+      "area": "Validation",
+      "scenario": "PINNED unsupported",
+      "expected": "Typed unavailable/stale is accepted",
+      "testType": "snapshot",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "The pinned operations advertise CONSISTENT_AT_START. WSGS emits PINNED_VALIDATION_OPERATION_UNAVAILABLE and never silently falls back to Latest."
+    },
+    {
+      "id": "DEV-V002",
+      "area": "Validation",
+      "scenario": "No latest fallback",
+      "expected": "Unsupported PINNED never silently uses latest",
+      "testType": "snapshot",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "services/grounding-worker/src/production-module.test.ts"
+      ],
+      "note": "The pinned operations advertise CONSISTENT_AT_START. WSGS emits PINNED_VALIDATION_OPERATION_UNAVAILABLE and never silently falls back to Latest."
+    },
+    {
+      "id": "DEV-S001",
+      "area": "Security",
+      "scenario": "Cross-scope",
+      "expected": "Reference/result is not leaked",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/architecture-boundary.mjs",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Cross-scope lookup is non-disclosing, authority injection is rejected, secrets are absent, architecture boundaries remain clean, model authority is bounded, and a valid signed delegation passes."
+    },
+    {
+      "id": "DEV-S002",
+      "area": "Security",
+      "scenario": "Credential redaction",
+      "expected": "No credential/private key in evidence/log/repo",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/architecture-boundary.mjs",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Cross-scope lookup is non-disclosing, authority injection is rejected, secrets are absent, architecture boundaries remain clean, model authority is bounded, and a valid signed delegation passes."
+    },
+    {
+      "id": "DEV-S003",
+      "area": "Security",
+      "scenario": "No SDAR/A2A/SMPP",
+      "expected": "Architecture remains clean",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/architecture-boundary.mjs",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Cross-scope lookup is non-disclosing, authority injection is rejected, secrets are absent, architecture boundaries remain clean, model authority is bounded, and a valid signed delegation passes."
+    },
+    {
+      "id": "DEV-S004",
+      "area": "Security",
+      "scenario": "No GOWM bypass",
+      "expected": "No provider/DB bypass",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/architecture-boundary.mjs",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Cross-scope lookup is non-disclosing, authority injection is rejected, secrets are absent, architecture boundaries remain clean, model authority is bounded, and a valid signed delegation passes."
+    },
+    {
+      "id": "DEV-S005",
+      "area": "Security",
+      "scenario": "Model authority",
+      "expected": "Model cannot choose op/provider or mint ReferenceKey",
+      "testType": "security",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/architecture-boundary.mjs",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Cross-scope lookup is non-disclosing, authority injection is rejected, secrets are absent, architecture boundaries remain clean, model authority is bounded, and a valid signed delegation passes."
+    },
+    {
+      "id": "DEV-S006",
+      "area": "Security",
+      "scenario": "Valid delegation",
+      "expected": "One real positive signed delegation passes",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "reports/wsgs-v0.2/real-gowm-gate.json",
+        "validation/scripts/architecture-boundary.mjs",
+        "validation/scripts/real-model-gate.ts"
+      ],
+      "note": "Cross-scope lookup is non-disclosing, authority injection is rejected, secrets are absent, architecture boundaries remain clean, model authority is bounded, and a valid signed delegation passes."
+    },
+    {
+      "id": "DEV-I001",
+      "area": "Recovery",
+      "scenario": "Idempotent replay",
+      "expected": "Same key/payload returns same grounding",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Idempotent replay/conflict and generation fences have PostgreSQL coverage; a controlled worker restart resumes one production checkpoint with one completed model stage and one completed GOWM stage."
+    },
+    {
+      "id": "DEV-I002",
+      "area": "Recovery",
+      "scenario": "Conflict",
+      "expected": "Same key/different payload conflicts",
+      "testType": "real-db",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Idempotent replay/conflict and generation fences have PostgreSQL coverage; a controlled worker restart resumes one production checkpoint with one completed model stage and one completed GOWM stage."
+    },
+    {
+      "id": "DEV-I003",
+      "area": "Recovery",
+      "scenario": "Worker restart once",
+      "expected": "Job resumes safely",
+      "testType": "recovery",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Idempotent replay/conflict and generation fences have PostgreSQL coverage; a controlled worker restart resumes one production checkpoint with one completed model stage and one completed GOWM stage."
+    },
+    {
+      "id": "DEV-I004",
+      "area": "Recovery",
+      "scenario": "No duplicate execution",
+      "expected": "Restart does not duplicate logical model/GOWM",
+      "testType": "recovery",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Idempotent replay/conflict and generation fences have PostgreSQL coverage; a controlled worker restart resumes one production checkpoint with one completed model stage and one completed GOWM stage."
+    },
+    {
+      "id": "DEV-I005",
+      "area": "Recovery",
+      "scenario": "Generation fence",
+      "expected": "Old generation cannot publish",
+      "testType": "race",
+      "status": "PASS",
+      "evidence": [
+        "packages/grounding-pipeline/src/pipeline.test.ts",
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "services/grounding-api/src/production.integration.test.ts",
+        "services/grounding-worker/src/postgres.integration.test.ts"
+      ],
+      "note": "Idempotent replay/conflict and generation fences have PostgreSQL coverage; a controlled worker restart resumes one production checkpoint with one completed model stage and one completed GOWM stage."
+    },
+    {
+      "id": "DEV-L001",
+      "area": "Payload",
+      "scenario": "payloadRef path",
+      "expected": "Large referenced payload remains bounded",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "services/grounding-worker/src/production-module.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Authoritative payload references remain bounded; oversize inline payloads require a typed payload reference and WSGS adds no object-storage dependency."
+    },
+    {
+      "id": "DEV-L002",
+      "area": "Payload",
+      "scenario": "Oversize no ref",
+      "expected": "Typed fail/partial without storage",
+      "testType": "integration",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "services/grounding-worker/src/production-module.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Authoritative payload references remain bounded; oversize inline payloads require a typed payload reference and WSGS adds no object-storage dependency."
+    },
+    {
+      "id": "DEV-L003",
+      "area": "Payload",
+      "scenario": "No object storage",
+      "expected": "No S3/MinIO/Artifact dependency added",
+      "testType": "architecture",
+      "status": "PASS",
+      "evidence": [
+        "packages/gowm-execution-evidence/src/normalizer.test.ts",
+        "services/grounding-worker/src/production-module.test.ts",
+        "validation/scripts/architecture-boundary.mjs"
+      ],
+      "note": "Authoritative payload references remain bounded; oversize inline payloads require a typed payload reference and WSGS adds no object-storage dependency."
+    },
+    {
+      "id": "DEV-H001",
+      "area": "Readiness",
+      "scenario": "Live",
+      "expected": "/health/live=200",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Live and current-lock readiness return 200 for MODEL_REQUIRED; a separate current-environment probe proves documented MODEL_OPTIONAL readiness with the model unavailable."
+    },
+    {
+      "id": "DEV-H002",
+      "area": "Readiness",
+      "scenario": "Current lock",
+      "expected": "Current operational lock trusted",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Live and current-lock readiness return 200 for MODEL_REQUIRED; a separate current-environment probe proves documented MODEL_OPTIONAL readiness with the model unavailable."
+    },
+    {
+      "id": "DEV-H003",
+      "area": "Readiness",
+      "scenario": "MODEL_REQUIRED",
+      "expected": "All deps available => ready",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Live and current-lock readiness return 200 for MODEL_REQUIRED; a separate current-environment probe proves documented MODEL_OPTIONAL readiness with the model unavailable."
+    },
+    {
+      "id": "DEV-H004",
+      "area": "Readiness",
+      "scenario": "MODEL_OPTIONAL",
+      "expected": "Missing model follows documented degraded readiness",
+      "testType": "real-e2e",
+      "status": "PASS",
+      "evidence": [
+        "reports/wsgs-v0.2/development-closure-gate.json",
+        "validation/scripts/real-development-pipeline-gate.ts"
+      ],
+      "note": "Live and current-lock readiness return 200 for MODEL_REQUIRED; a separate current-environment probe proves documented MODEL_OPTIONAL readiness with the model unavailable."
+    },
+    {
+      "id": "DEV-F001",
+      "area": "Final",
+      "scenario": "Version",
+      "expected": "VERSION/package/image remain 0.2.0",
+      "testType": "version",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    },
+    {
+      "id": "DEV-F002",
+      "area": "Final",
+      "scenario": "Development report",
+      "expected": "Report says DEVELOPMENT_READY",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    },
+    {
+      "id": "DEV-F003",
+      "area": "Final",
+      "scenario": "Production disclaimer",
+      "expected": "productionQualified=false",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    },
+    {
+      "id": "DEV-F004",
+      "area": "Final",
+      "scenario": "Development ledger",
+      "expected": "Every development case PASS",
+      "testType": "report",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    },
+    {
+      "id": "DEV-F005",
+      "area": "Final",
+      "scenario": "SACS handoff",
+      "expected": "Machine handoff validates",
+      "testType": "contract",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    },
+    {
+      "id": "DEV-F006",
+      "area": "Final",
+      "scenario": "Exact SHA",
+      "expected": "Local/tracking/remote SHA match",
+      "testType": "git",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    },
+    {
+      "id": "DEV-F007",
+      "area": "Final",
+      "scenario": "PR body",
+      "expected": "DEVELOPMENT_READY / PRODUCTION_NOT_QUALIFIED",
+      "testType": "github",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    },
+    {
+      "id": "DEV-F008",
+      "area": "Final",
+      "scenario": "PR readiness",
+      "expected": "Ready only after dev gate passes",
+      "testType": "github",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    },
+    {
+      "id": "DEV-F009",
+      "area": "Final",
+      "scenario": "Protected actions",
+      "expected": "No merge/tag/release/deploy",
+      "testType": "github",
+      "status": "PASS",
+      "evidence": [
+        "contracts/consumers/sacs-development-handoff-v1.json",
+        "reports/wsgs-v0.2/development-acceptance-ledger.json",
+        "reports/wsgs-v0.2/development-ready-report.json",
+        "reports/wsgs-v0.2/development-ready-report.md"
+      ],
+      "note": "Version 0.2.0, 63/63 development acceptance, productionQualified=false, machine-valid SACS handoff, exact publication audit, and protected-action non-execution are recorded in final closure evidence."
+    }
+  ]
+}

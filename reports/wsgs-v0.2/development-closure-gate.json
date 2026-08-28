@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "1.0",
+  "gate": "validation/scripts/real-development-pipeline-gate.ts",
+  "sourceCommit": "75c6d2731094087efd0c203814fcb8fa8b6fefe3",
+  "status": "PASS",
+  "executionClassification": "TRUSTED",
+  "readiness": {
+    "liveHttpStatus": 200,
+    "readyHttpStatus": 200,
+    "currentOperationalLock": "PASS",
+    "modelRequired": "PASS",
+    "modelOptionalWithoutModel": "PASS"
+  },
+  "realDependencies": {
+    "api": true,
+    "postgres": true,
+    "worker": true,
+    "model": true,
+    "gowm": true
+  },
+  "recipes": [
+    {
+      "recipeId": "R1",
+      "requestHash": "sha256:22382578f04c65a123e60dfafde643b8231067fd7efb6c205d083f385a978f44",
+      "groundingIdHash": "sha256:5fdfb586af51443db69a5588dae21bb3f7fa561761fdb71df9f32c12dced212f",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:bd2d1a9956ee0a7b2047572a5f51fa0cf304deabf92db23d44fc555591cd4690",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:19868a44ff68e0c10080220f51c9881c2c22364d563ac30da2efdffe18b149e0"
+      ],
+      "upstreamResultHashes": [
+        "sha256:561bac29ee66c992df2097bcb5b59132468d93e2312d26f40a1bba18727c0277"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 0,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 24897,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R2",
+      "requestHash": "sha256:73fc14441e9952b7c78cab467057a3cfdb42d2b97db69285d0c826a8b2dfffeb",
+      "groundingIdHash": "sha256:fc9d93d674129d6b4682be15809cdab91375590253afed65527d0ced6c96c1ea",
+      "terminalStatus": "AMBIGUOUS",
+      "resultHash": "sha256:60f1e93ae60f8710a047d17981fc1b0a67b8b482b2ead93bf0dc93043c0f0b3f",
+      "stageCount": 14,
+      "planHashes": [],
+      "upstreamResultHashes": [],
+      "worldQueryCount": 0,
+      "spatialExecutionCount": 0,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 24687,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R3",
+      "requestHash": "sha256:9a3e8fff4ec565ec05ce187c5aca06ef1e28b7f997c10567b4dafa9c3e6b9257",
+      "groundingIdHash": "sha256:a21503aed4bde4d64d6257ba95c1410759e579663dd553c66b71e2111d05f797",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:df6005457ec266f51152a8adf2990a7f42b1c49e0db1f3d55e7d3fbf5c3e9748",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:6e3f16613af8021490f5e0ed0a3e3646db3f07310aebc67e923dc224e1ba561c"
+      ],
+      "upstreamResultHashes": [
+        "sha256:a6882a0af214b5eaf1c2b07725ca21ebed18a97614803fe1d05c7634cac37258"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 1,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 25079,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R4",
+      "requestHash": "sha256:11543587ced0b5ee20d5d6f9420d4e4bd004bce1e340b4751ed9805373937145",
+      "groundingIdHash": "sha256:23df744a31b35c7a6b19392aeac99103c67d0ec5519578acb0a7389e3b7f7968",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:ee4def272ef6c5f67022a75ab2224d82b296844c77a5f474977e2412d0fb41c4",
+      "stageCount": 14,
+      "planHashes": [
+        "sha256:bcaa4d1155c18866402d2dd6981d06a7c59757c9dbc1c4e482c7d5acd910f873"
+      ],
+      "upstreamResultHashes": [
+        "sha256:eac96f4ec2668b7c9e04095fc3df091cb8ca6654f3a51b2f4ad08e4154129220"
+      ],
+      "worldQueryCount": 1,
+      "spatialExecutionCount": 1,
+      "modelReceiptCount": 1,
+      "totalStageElapsedMs": 33054,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R5",
+      "requestHash": "sha256:a68049325bdfec8c7142a0e0db91bc763621883cfe0ba89d71f38ed7484c7aaa",
+      "groundingIdHash": "sha256:6ec6b3b914d84b69f049b0ce16f231bf14d3f06b8973413416bb0721f7c9ff05",
+      "terminalStatus": "COMPLETED",
+      "resultHash": "sha256:565bb807781b1b172bf0f0319da1f5baa66571aa79de931d32fa36862aaf6e59",
+      "stageCount": 3,
+      "planHashes": [],
+      "upstreamResultHashes": [],
+      "worldQueryCount": 0,
+      "spatialExecutionCount": 0,
+      "modelReceiptCount": 0,
+      "totalStageElapsedMs": 123,
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R6",
+      "requestHash": "sha256:ada9a9930016e9b733ed269b748d042893966c4832642ef53ffcb32b1e4ea314",
+      "groundingIdHash": "sha256:cf1a365aefd07349148734c0b01a4f92f39cc5cb787200c76dc89972931e17c3",
+      "terminalStatus": "UNRESOLVED",
+      "resultHash": "sha256:6b613bd62d5eb6eb5ef89fa605b90f409cd7d21c9a056447890c5716fee7038e",
+      "stageCount": 8,
+      "planHashes": [],
+      "upstreamResultHashes": [],
+      "worldQueryCount": 0,
+      "spatialExecutionCount": 0,
+      "modelReceiptCount": 0,
+      "totalStageElapsedMs": 179,
+      "status": "PASS"
+    }
+  ],
+  "additionalSemantics": {
+    "noData": {
+      "requestHash": "sha256:c599576dc81821441efb6c6c91b15650ee61864ae3496e7d5ab6636b00139ab0",
+      "terminalStatus": "UNRESOLVED",
+      "status": "PASS"
+    },
+    "partial": {
+      "requestHash": "sha256:d71ab4683ec38fac580fb28a13602995a534e2e1bc0bc211ca0727816fb9a4aa",
+      "terminalStatus": "PARTIAL",
+      "status": "PASS"
+    }
+  },
+  "security": {
+    "bodyAuthorityInjection": {
+      "httpStatus": 400,
+      "status": "PASS"
+    },
+    "crossScopeNonDisclosure": {
+      "httpStatus": 404,
+      "status": "PASS"
+    },
+    "credentialPersistence": false,
+    "status": "PASS"
+  },
+  "recovery": {
+    "status": "PASS",
+    "groundingIdHash": "sha256:bb2ad2a89d72c4679e94a23d446a01a31f0277d02e1a4d5596af1395d03f5a09",
+    "requestHash": "sha256:173699eaadbbd6c7519266d19c842e626dbbfbb8749fcdfcd86eeabac38a3b27",
+    "generationCount": 2,
+    "modelCompletedCount": 1,
+    "gowmCompletedCount": 1,
+    "resultHash": "sha256:4a63cf03ddddef71791785588d0132e240e30bd19bed2d72a476aa3b9a3d19d6"
+  },
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawBusinessResponsesIncluded": false,
+    "rawGroundingIdsIncluded": false,
+    "externalJobIdsIncluded": false
+  }
+}
