@@ -1,20 +1,45 @@
 {
-  "schemaVersion": "wsgs-gdps-required-acceptance-ledger/1.0",
+  "schemaVersion": "wsgs-gdps-required-acceptance-ledger/2.0",
+  "candidate": {
+    "repository": "world-semantic-grounding-service",
+    "evidenceGitHead": "d45925ae5f8debe57d3cab362e42aba5385af921",
+    "ledgerGitHead": "d45925ae5f8debe57d3cab362e42aba5385af921",
+    "relationship": "EXACT_HEAD"
+  },
+  "target": {
+    "release": "GDPS v0.2.1",
+    "providerId": "gdps.geospatial-products",
+    "providerVersion": "0.2.1",
+    "capabilityCount": 30,
+    "productTypeCount": 34,
+    "descriptorProfileCount": 35
+  },
+  "candidateStatus": {
+    "status": "BLOCKED",
+    "reasonCode": "GDPS_V021_HANDOFF_INCOMPLETE",
+    "blockers": [
+      {
+        "code": "GDPS_V021_HANDOFF_INCOMPLETE",
+        "detail": "The GDPS v0.2.1 handoff is missing three required authority files; intake and runtime qualification remain blocked.",
+        "evidenceArtifact": "reports/wsgs-v0.2-gdps-v0.2.1/w33-handoff-negative-gate.json"
+      }
+    ]
+  },
   "matrix": {
     "path": "acceptance/gdps-v0.2.1/acceptance-matrix.csv",
     "sha256": "sha256:bdba0585027dc7f5f3f3de75ebaa718e6bc0df6f681f2f1984e72de29d820277"
   },
   "evidenceMap": {
     "path": "reports/wsgs-v0.2-gdps-v0.2.1/acceptance-evidence-map.json",
-    "present": true,
-    "mappedCases": 1
+    "schemaVersion": "wsgs-gdps-acceptance-evidence-map/2.0",
+    "explicitlyMappedCases": 327
   },
   "requiredCases": 327,
   "counts": {
-    "PASS": 0,
+    "PASS": 1,
     "FAIL": 0,
     "NOT_RUN": 326,
-    "BLOCKED": 1
+    "BLOCKED": 0
   },
   "complete": false,
   "cases": [
@@ -275,12 +300,42 @@
         "SOURCE",
         "SCHEMA"
       ],
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": [
-        "validation/scripts/intake-gdps-v021-handoff.mjs",
-        "WSGS_GDPS_V021_HANDOFF_NOT_READY missing=GDPS_PRODUCT_DESCRIPTOR_LOCK.json,GOWM_GATEWAY_BINDING_LOCK.json,CHECKSUMS.json"
+        {
+          "type": "SOURCE",
+          "polarity": "NEGATIVE",
+          "candidateSha": "d45925ae5f8debe57d3cab362e42aba5385af921",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:3e5788a71838c246613325187eb5bad3be1f8cd9cd4d0e4c14e88aede3f804e5",
+          "assertionId": "missing-required-handoff-fails-closed"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "NEGATIVE",
+          "candidateSha": "d45925ae5f8debe57d3cab362e42aba5385af921",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/w33-handoff-negative-gate.json",
+          "sha256": "sha256:f9c4cab51ca6747d7686b2ca46b6fd0081f8f7dff50f5413c07c1ff392512d71",
+          "assertionId": "W33-020.expected-rejection"
+        }
       ],
-      "reason": "GDPS v0.2.1 handoff is missing three required authority files; real completion is forbidden until exact intake succeeds."
+      "reason": "Expected missing-handoff rejection was observed; the candidate itself remains BLOCKED."
     },
     {
       "acceptanceId": "W34-001",
