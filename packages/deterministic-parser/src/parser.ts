@@ -298,7 +298,10 @@ export function parseDeterministicReferences(input: ParseInput): DeterministicPa
       if (start < 0) break;
       candidates.push(mention(originalText, start, start + known.alias.length, [known.referenceType], "KNOWN_REFERENCE", 400, {
         kind: "KNOWN_REFERENCE",
-        value: { alias: known.alias, validUntil: known.validUntil },
+        // Lease timestamps describe current usability, not world identity. The
+        // same immutable key may appear twice while a continuation replaces an
+        // older lease with a freshly validated one; keep that as one candidate.
+        value: { alias: known.alias },
         approximate: false,
         requiresUpstreamValidation: true,
         referenceKey: known.referenceKey

@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
+import type { DeterministicParseResult } from "@wsgs/deterministic-parser";
 import { canonicalSha256, type PipelineStageContext } from "@wsgs/grounding-pipeline";
 import { stableRecipeIds } from "@wsgs/requirement-planner";
 import type { Pool } from "pg";
@@ -24,6 +25,7 @@ import {
   oversizedEvidencePayload,
   persistAcceptedWorldQueryJob,
   productionReferenceMentions,
+  referenceMentionsRequiringResolution,
   selectProductionSouthboundLock
 } from "./production-module.js";
 
@@ -321,6 +323,35 @@ describe("production stage module authority boundaries", () => {
       { referenceKey: key, status: "VALID", revalidationRequired: false, warnings: [] },
       { referenceKey: key, status: "VALID", revalidationRequired: false, warnings: [] },
       { referenceKey: key, status: "STALE", revalidationRequired: true, warnings: ["Snapshot currentness is unknown"] }
+    ]);
+  });
+
+  it("does not re-resolve an exact known reference selected by a continuation", () => {
+    const known = {
+      mentionId: "known", surfaceText: "滨河路",
+      span: { encoding: "UTF16_CODE_UNIT" as const, start: 0, end: 3 },
+      expectedKinds: ["LAYER_FEATURE"], extractionSources: ["KNOWN_REFERENCE" as const]
+    };
+    const model = {
+      mentionId: "model", surfaceText: "设备",
+      span: { encoding: "UTF16_CODE_UNIT" as const, start: 7, end: 9 },
+      expectedKinds: ["WORLD_OBJECT"], extractionSources: ["DOMAIN_MODEL" as const]
+    };
+    const deterministic: DeterministicParseResult = {
+      parserVersion: "deterministic-parser/1.0",
+      mentions: [{
+        mentionId: "known", surfaceText: "滨河路",
+        span: known.span, expectedKinds: ["LAYER_FEATURE"], extractionSource: "KNOWN_REFERENCE", priority: 400,
+        candidate: {
+          kind: "KNOWN_REFERENCE", value: { alias: "滨河路" }, approximate: false,
+          requiresUpstreamValidation: true,
+          referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: `wrf_${"d".repeat(32)}`, version: "1.0.0" }
+        }
+      }],
+      ambiguities: [], priorGroundings: [], warnings: []
+    };
+    expect(referenceMentionsRequiringResolution([known, model], deterministic)).toEqual([
+      expect.objectContaining({ mentionId: "model", expectedKinds: ["WORLD_OBJECT"] })
     ]);
   });
 

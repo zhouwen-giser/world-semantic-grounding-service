@@ -924,6 +924,15 @@ export function normalizeValidation(value: unknown): ReferenceValidationProduct[
   });
 }
 
+export function referenceMentionsRequiringResolution(
+  mentions: readonly MergedMention[],
+  deterministic: DeterministicParseResult
+): MergedMention[] {
+  const knownMentionIds = new Set(deterministic.mentions.flatMap((mention) =>
+    mention.candidate.kind === "KNOWN_REFERENCE" ? [mention.mentionId] : []));
+  return productionReferenceMentions(mentions).filter((mention) => !knownMentionIds.has(mention.mentionId));
+}
+
 export function applyReferenceValidation(
   product: ReferenceProduct,
   validation: ReferenceValidationProduct,
@@ -1722,7 +1731,11 @@ export async function createPipelineStageExecutor(
     REFERENCE_RESOLVE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
-      const referenceMentions = productionReferenceMentions(graph.mergedMentions);
+      const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
+      // A KnownWorldReference is already an immutable caller-supplied key. It
+      // must be validated, but resolving its original ambiguous alias again
+      // would discard the user's PendingChoice selection.
+      const referenceMentions = referenceMentionsRequiringResolution(graph.mergedMentions, deterministic);
       if (referenceMentions.length === 0) return normalizeReferenceResolution(null, []);
       const parts = requestParts(context);
       const lock = operationLock(authority, "reference.resolve");
