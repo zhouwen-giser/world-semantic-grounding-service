@@ -261,6 +261,10 @@ function loadFrozenGdpsCaseSuite(): GdpsCaseSuite {
   assertExactStrings(cases.map((entry) => entry.id), frozenGdpsV021CaseIds, "GDPS_E2E_CORPUS_CASE_SET_DRIFT");
   const selected = requestedCase ? cases.filter((entry) => entry.id === requestedCase) : cases;
   if (selected.length === 0) throw new Error(`UNKNOWN_GDPS_CASE_${requestedCase}`);
+  const unsupportedPreconditions = selected.filter((entry) => entry.precondition).map((entry) => entry.id);
+  if (unsupportedPreconditions.length > 0) {
+    throw new Error(`GDPS_E2E_PRECONDITION_DRIVER_NOT_READY_${unsupportedPreconditions.join("_")}`);
+  }
   return {
     mode: "GDPS_V021_FROZEN_CORPUS",
     cases: selected,
@@ -1065,9 +1069,10 @@ try {
         status: "NOT_RUN",
         reason: "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED"
       },
-      status: gdpsCaseIds.size > 0 && gdpsCaseIds.size === gdpsSuite.selectedCaseCount
+      caseValidationStatus: gdpsCaseIds.size > 0 && gdpsCaseIds.size === gdpsSuite.selectedCaseCount
         ? (gdpsSuite.fullCorpusSelected ? "PASS" : "PARTIAL")
-        : "NOT_RUN"
+        : "NOT_RUN",
+      status: gdpsSuite.fullCorpusSelected ? "BLOCKED" : "PARTIAL"
     },
     security: {
       bodyAuthorityInjection: { httpStatus: authorityInjection.status, status: "PASS" },
@@ -1095,7 +1100,8 @@ try {
       corpus: summary.gdps.corpus,
       cases: summary.gdps.cases,
       fullCorpusExecuted: gdpsSuite.fullCorpusSelected && gdpsCaseIds.size === 16,
-      status: gdpsSuite.fullCorpusSelected && gdpsCaseIds.size === 16 ? "PASS" : "PARTIAL"
+      blockers: ["W44_X01_X12_EXTERNAL_QUALIFICATION_NOT_IMPLEMENTED"],
+      status: gdpsSuite.fullCorpusSelected ? "BLOCKED" : "PARTIAL"
     };
     writeFileSync(resolve(evidenceDirectory, "e2e-report.json"), `${JSON.stringify(gdpsE2eReport, null, 2)}\n`);
   }

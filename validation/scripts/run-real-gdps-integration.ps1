@@ -3,7 +3,7 @@ param(
   [string]$GatewayBaseUrl = "http://127.0.0.1:18063",
   [int]$DatabaseHostPort = 55464,
   [string]$GdpsArtifactRoot,
-  [string]$OperationLock,
+  [string]$DataScope,
   [ValidateSet(
     "E2E-SLOPE-POINT", "E2E-SLOPE-RANGE", "E2E-FLOOD-HIGH", "E2E-DRAINAGE-NEARBY",
     "E2E-HIGH-GROUND", "E2E-WETLAND", "E2E-LAND-COVER", "E2E-TRAVERSABILITY-EXPLAIN",
@@ -27,9 +27,7 @@ $evidenceDirectory = Join-Path $repositoryRoot $(if ($LegacyV02Evidence) {
 if (-not $GdpsArtifactRoot) {
   $GdpsArtifactRoot = Join-Path $repositoryRoot "contracts\generated\gdps-v0.2.1"
 }
-$operationLock = if ($OperationLock) {
-  $OperationLock
-} elseif ($LegacyV02Evidence) {
+$operationLock = if ($LegacyV02Evidence) {
   Join-Path $repositoryRoot "reports\wsgs-v0.2-gdps\w26-combined-southbound-operation-lock.json"
 } else {
   Join-Path $GdpsArtifactRoot "wsgs-southbound-operation-lock-v2.json"
@@ -129,8 +127,22 @@ function Assert-V021OperationLock([string]$path) {
   }
   $consumerOperations = @($consumerLock.defaultOperations) + @($consumerLock.previewOperations)
   $providerOperations = @($providerLock.operations)
+  $stableOperationIds = @(
+    "reference.get", "reference.resolve", "world.get-current-state", "world.get-geometry",
+    "world.get-provenance", "catalog.get", "catalog.search", "spatial.find-nearby",
+    "spatial.find-in-area", "spatial.find-intersections", "reference.validate", "result.validate"
+  )
   if ($providerOperations.Count -ne 30) {
     throw "The authoritative GDPS v0.2.1 capability lock must contain exactly 30 operations"
+  }
+  $consumerKeys = @($consumerOperations | ForEach-Object { "$($_.operationId)@$($_.operationVersion)" })
+  $actualStableIds = @($consumerLock.defaultOperations | ForEach-Object { [string]$_.operationId } | Sort-Object)
+  if ($consumerLock.schemaVersion -ne "2.0" -or
+      @($consumerLock.defaultOperations).Count -ne 12 -or
+      @($consumerLock.previewOperations).Count -ne 30 -or
+      @($consumerKeys | Sort-Object -Unique).Count -ne 42 -or
+      (Compare-Object ($stableOperationIds | Sort-Object) $actualStableIds).Count -ne 0) {
+    throw "The live-projected southbound lock must contain exact 12 stable plus 30 GDPS preview operations"
   }
   foreach ($providerOperation in $providerOperations) {
     $matches = @($consumerOperations | Where-Object {
@@ -224,7 +236,7 @@ if (-not $SampleRoot -or -not (Test-Path -LiteralPath $SampleRoot -PathType Cont
   throw "GOWM_SAMPLE_ROOT must identify the authorized Sample World checkout"
 }
 if (-not (Test-Path -LiteralPath $operationLock -PathType Leaf)) {
-  throw "The verified GDPS v0.2.1 southbound operation lock is missing; pass -OperationLock or run the approved intake that produces it"
+  throw "The live-projected GDPS v0.2.1 southbound operation lock is missing; W44 remains NOT_RUN"
 }
 Assert-ExactGdpsPatternPlan
 Assert-ExactGdpsCaseSelection
@@ -269,6 +281,16 @@ try {
   if (-not $databaseReady) { throw "The isolated WSGS database did not become ready" }
 
   Import-ProcessEnvironment $consumerEnvironment
+  $effectiveDataScope = if ($DataScope) {
+    $DataScope.Trim()
+  } elseif ($LegacyV02Evidence) {
+    $env:GATEWAY_DATA_SCOPE_CLAIM
+  } else {
+    "scope-gdps-v021-baseline"
+  }
+  if (-not $effectiveDataScope -or $effectiveDataScope.Contains("*")) {
+    throw "The GDPS integration data scope must be one exact non-wildcard claim"
+  }
   $randomBytes = New-Object byte[] 32
   [Security.Cryptography.RandomNumberGenerator]::Fill($randomBytes)
   $env:WSGS_REQUEST_ENCRYPTION_KEY_BASE64 = [Convert]::ToBase64String($randomBytes)
@@ -297,7 +319,7 @@ try {
   $env:GOWM_DELEGATION_SERVICE_PRINCIPAL_ID = $env:GATEWAY_RUNTIME_PRINCIPAL_REF
   $env:GOWM_DELEGATION_PRIVATE_KEY_FILE = $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH
   $env:WSGS_READINESS_ACTOR_ID = "wsgs-gdps-readiness"
-  $env:WSGS_READINESS_DATA_SCOPE = $env:GATEWAY_DATA_SCOPE_CLAIM
+  $env:WSGS_READINESS_DATA_SCOPE = $effectiveDataScope
   $env:WSGS_READINESS_DATASET_SCOPES = $env:GATEWAY_DATASET_SCOPE_CLAIM
   $env:WSGS_READINESS_PERMISSIONS = "data:read,dataset:read,grounding.read"
   $env:WSGS_READINESS_TIMEOUT_MS = "120000"
