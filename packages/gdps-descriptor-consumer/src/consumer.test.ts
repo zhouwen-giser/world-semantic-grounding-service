@@ -130,6 +130,14 @@ describe("projectGeospatialProductIntent", () => {
       querySemantics: "FIND_VALUE_RANGE_AREAS",
       numericConstraint: { ranges: [{ minimum: 30, minimumInclusive: false }], unit: "metre" }
     });
-    expect(JSON.stringify([slope, flood, invalidUnit])).not.toMatch(/providerId|operationId|geo-raster/u);
+    const unknownRisk = projectGeospatialProductIntent({ frame: emptyFrame, originalText: "A区内有哪些雪崩风险区域？", conceptMap });
+    expect(unknownRisk).toMatchObject({
+      targetConcept: "UNMAPPED_RISK_PRODUCT",
+      querySemantics: "FIND_CLASS_AREAS"
+    });
+    expect(new GdpsDescriptorConsumer(options).resolve(unknownRisk!)).toMatchObject({
+      status: "DESCRIPTOR_NOT_FOUND"
+    });
+    expect(JSON.stringify([slope, flood, invalidUnit, unknownRisk])).not.toMatch(/providerId|operationId|geo-raster/u);
   });
 });

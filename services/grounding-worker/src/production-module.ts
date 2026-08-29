@@ -1961,6 +1961,7 @@ export async function createPipelineStageExecutor(
         requiredForProduct: (parts.requestedProducts[0] ?? "WORLD_STATE") as PlannerCapabilityGap["requiredForProduct"],
         blocking: true,
         details: {
+          code: descriptorResolution.status === "DESCRIPTOR_NOT_FOUND" ? "DESCRIPTOR_GAP" : descriptorResolution.status,
           registryHash: descriptorResolution.evidence.registryHash,
           descriptorHash: descriptorResolution.evidence.descriptorHash ?? null,
           querySemantics: descriptorResolution.evidence.querySemantics,

@@ -75,7 +75,20 @@ function classes(text: string, concept: string): string[] | undefined {
 
 export function projectGeospatialProductIntent(input: ProductIntentProjectionInput): GeospatialProductSemanticIntent | null {
   const concept = conceptFor(input.originalText, input.conceptMap.concepts);
-  if (!concept) return null;
+  if (!concept) {
+    if (!/(?:风险|risk)/iu.test(input.originalText) || input.frame.mentions.length === 0) return null;
+    const mentionIds = input.frame.mentions.map((mention) => mention.mentionId);
+    const inArea = /(?:内|区域|范围|in\s+(?:the\s+)?area)/iu.test(input.originalText);
+    return {
+      schemaVersion: "wsgs-geospatial-product-intent/1.0",
+      intentId: id(["UNMAPPED_RISK_PRODUCT", mentionIds]),
+      targetConcept: "UNMAPPED_RISK_PRODUCT",
+      querySemantics: inArea ? "FIND_CLASS_AREAS" : "READ_VALUE",
+      subjectMentionIds: mentionIds,
+      spatialConstraint: { relation: inArea ? "WITHIN" : "AT" },
+      sourceNodeIds: mentionIds
+    };
+  }
   const numericConstraint = numeric(input.originalText);
   const semantics = querySemantics(input.originalText, concept, numericConstraint !== undefined);
   const mentionIds = input.frame.mentions.map((mention) => mention.mentionId);
