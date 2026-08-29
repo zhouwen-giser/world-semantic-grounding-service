@@ -2,9 +2,7 @@
   "schemaVersion": "wsgs-gdps-required-acceptance-ledger/2.0",
   "candidate": {
     "repository": "world-semantic-grounding-service",
-    "evidenceGitHead": "d45925ae5f8debe57d3cab362e42aba5385af921",
-    "ledgerGitHead": "d45925ae5f8debe57d3cab362e42aba5385af921",
-    "relationship": "EXACT_HEAD"
+    "evidenceGitHead": "d45925ae5f8debe57d3cab362e42aba5385af921"
   },
   "target": {
     "release": "GDPS v0.2.1",
