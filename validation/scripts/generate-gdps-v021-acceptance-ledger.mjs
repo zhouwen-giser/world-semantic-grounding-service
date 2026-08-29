@@ -38,7 +38,8 @@ function csvRows(text) {
 }
 
 const matrixBytes = readFileSync(matrixPath);
-const matrix = csvRows(matrixBytes.toString("utf8"));
+const normalizedMatrixBytes = Buffer.from(matrixBytes.toString("utf8").replaceAll("\r\n", "\n"), "utf8");
+const matrix = csvRows(normalizedMatrixBytes.toString("utf8"));
 if (matrix.length !== 327 || new Set(matrix.map((entry) => entry.id)).size !== 327) {
   throw new Error(`GDPS acceptance inventory invalid: ${matrix.length}`);
 }
@@ -78,7 +79,7 @@ const counts = Object.fromEntries([...statuses].map((status) =>
 const complete = counts.PASS === 327 && counts.FAIL === 0 && counts.NOT_RUN === 0 && counts.BLOCKED === 0;
 const body = {
   schemaVersion: "wsgs-gdps-required-acceptance-ledger/1.0",
-  matrix: { path: "acceptance/gdps-v0.2.1/acceptance-matrix.csv", sha256: sha256(matrixBytes) },
+  matrix: { path: "acceptance/gdps-v0.2.1/acceptance-matrix.csv", sha256: sha256(normalizedMatrixBytes) },
   evidenceMap: {
     path: "reports/wsgs-v0.2-gdps-v0.2.1/acceptance-evidence-map.json",
     present: existsSync(evidenceMapPath),
