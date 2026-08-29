@@ -243,7 +243,7 @@ for (const entry of evidenceMap.entries) {
     invariant(entry.evidence.length === 0, `GDPS acceptance NOT_RUN cannot carry result evidence: ${entry.acceptanceId}`);
   }
   const validatedEvidence = entry.evidence.map((evidence) =>
-    validateEvidence(evidence, entry, row, policy, actualCandidateSha));
+    validateEvidence(evidence, entry, row, policy, evidenceMap.candidate.gitHead));
   if (entry.status === "PASS") {
     const actualTypes = new Set(validatedEvidence.map((evidence) => evidence.type));
     invariant(row.evidenceTypes.every((type) => actualTypes.has(type)),
