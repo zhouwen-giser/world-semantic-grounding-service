@@ -23,7 +23,8 @@ import {
   oversizedEvidencePayload,
   persistAcceptedWorldQueryJob,
   productionReferenceMentions,
-  selectProductionSouthboundLock
+  selectProductionSouthboundLock,
+  validationEvaluatedAt
 } from "./production-module.js";
 
 const digest = (character: string): `sha256:${string}` => `sha256:${character.repeat(64)}`;
@@ -350,6 +351,24 @@ describe("production stage module authority boundaries", () => {
     }, "2026-08-29T01:00:00.000Z", 60_000);
     expect(stale).toMatchObject({ sourceOperation: "VALIDATE_REFERENCES", revalidationRequired: true });
     expect(stale).not.toHaveProperty("validUntil");
+  });
+
+  it("anchors the validation lease to the matching execution receipt instead of the world snapshot", () => {
+    const lock = {
+      operationId: "reference.validate", operationVersion: "1.0", maturity: "STABLE" as const,
+      inputSchemaHash: digest("1"), outputSchemaHash: digest("2"), semanticProfileHash: digest("3"),
+      snapshotSupport: "PINNED" as const, requiredPermissions: ["data:read"]
+    };
+    expect(validationEvaluatedAt({
+      dataSnapshot: { capturedAt: "2026-08-27T00:00:00.000Z" },
+      receipts: [{
+        operationId: "reference.validate", operationVersion: "1.0",
+        generatedAt: "2026-08-29T03:00:01.000Z"
+      }]
+    }, lock)).toBe("2026-08-29T03:00:01.000Z");
+    expect(() => validationEvaluatedAt({ receipts: [] }, lock)).toThrowError(
+      expect.objectContaining({ code: "REFERENCE_VALIDATION_RECEIPT_MISMATCH" })
+    );
   });
 
   it("keeps catalog identity distinct from the enclosing authority snapshot", () => {
