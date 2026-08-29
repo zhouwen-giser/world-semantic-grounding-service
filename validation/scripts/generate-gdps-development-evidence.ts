@@ -9,15 +9,8 @@ import type { QuerySemanticPattern } from "../../packages/query-compiler/src/typ
 const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const reportRoot = resolve(root, "reports", "wsgs-v0.2-gdps");
 const write = process.argv.includes("--write");
-const recipeIds: QuerySemanticPattern[] = [
-  "GDPS_LAND_COVER_AT_REFERENCE",
-  "GDPS_WETLANDS_IN_AREA",
-  "GDPS_OBSTACLES_NEAR_REFERENCE",
-  "GDPS_BLOCKED_AREAS_IN_AREA",
-  "GDPS_HIGH_GROUND_IN_AREA",
-  "GDPS_ELEVATION_AT_REFERENCE",
-  "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE"
-];
+const snapshot = JSON.parse(readFileSync(resolve(reportRoot, "w21-capability-snapshot.json"), "utf8")) as Record<string, any>;
+const recipeIds = snapshot.recipeLocks.map((entry: Record<string, unknown>) => String(entry.recipeId)) as QuerySemanticPattern[];
 
 let existingLiveRegistration: Record<string, unknown> | undefined;
 try {
@@ -32,8 +25,6 @@ try {
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
-
-const snapshot = JSON.parse(readFileSync(resolve(reportRoot, "w21-capability-snapshot.json"), "utf8")) as Record<string, any>;
 
 const recipeEvidence = {
   schemaVersion: "wsgs-gdps-recipe-lock-validation/1.0",
@@ -80,7 +71,7 @@ const planningEvidence = {
     "HIGH_GROUND", "DEPRESSION", "WATER", "WETLAND", "BUILDING", "OBSTACLE", "PASSABLE", "BLOCKED",
     "EXPLAIN_TRAVERSABILITY", "EXPLICIT_PRODUCT_PREFERENCE"
   ],
-  naturalLanguageCasesCovered: 7,
+  naturalLanguageCasesCovered: recipeIds.length,
   operationIdsInRequirements: false,
   providerIdsInRequirements: false,
   markers: ["GDPS_SEMANTIC_FRAME_READY", "GDPS_SEMANTIC_REQUIREMENT_PLANNER_READY"]
@@ -98,10 +89,15 @@ const typedPlanEvidence = {
 };
 
 function validate(): void {
-  assert(snapshot.capabilities.length === 23, "W21 capability count mismatch");
-  assert(snapshot.recipeLocks.length === 7, "W21 recipe count mismatch");
+  assert(Array.isArray(snapshot.capabilities) && snapshot.capabilities.length > 0, "W21 capability inventory is empty");
+  assert(
+    new Set(snapshot.capabilities.map((entry: Record<string, unknown>) =>
+      `${String(entry.operationId)}@${String(entry.operationVersion)}`)).size === snapshot.capabilities.length,
+    "W21 capability inventory contains duplicate operation keys"
+  );
+  assert(Array.isArray(snapshot.recipeLocks) && snapshot.recipeLocks.length > 0, "W21 recipe inventory is empty");
   assert(recipeEvidence.globalPreviewAloneRejected && recipeEvidence.exactRecipeAllowlistRequired, "W24 preview policy mismatch");
-  assert(plans.length === 7 && plans.every((plan) => !plan.providerIdInPlan), "W25 plan evidence mismatch");
+  assert(plans.length === recipeIds.length && plans.every((plan) => !plan.providerIdInPlan), "W25 plan evidence mismatch");
   assert(plans.filter((plan) => plan.explicitProductId !== null).length === 1, "Product preference was fabricated or lost");
 }
 

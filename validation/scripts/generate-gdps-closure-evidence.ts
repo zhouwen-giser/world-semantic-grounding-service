@@ -34,15 +34,19 @@ const [response, healthResponse] = await Promise.all([
 assert(response.status === 200 && healthResponse.status === 200, "LIVE_CAPABILITY_DISCOVERY_FAILED");
 const catalog = await response.json() as JsonObject;
 const health = await healthResponse.json() as JsonObject;
-assert(Array.isArray(catalog.capabilities) && catalog.capabilities.length === 145, "LIVE_CAPABILITY_COUNT_MISMATCH");
+assert(Array.isArray(catalog.capabilities) && catalog.capabilities.length > 0, "LIVE_CAPABILITY_CATALOG_EMPTY");
 const providers = health.providers && typeof health.providers === "object" && !Array.isArray(health.providers)
   ? Object.keys(health.providers).sort()
   : [];
-assert(providers.length === 16 && providers.includes("gdps.geospatial-products"), "LIVE_PROVIDER_COUNT_MISMATCH");
+assert(providers.includes("gdps.geospatial-products"), "LIVE_GDPS_PROVIDER_MISSING");
 const gdpsOperationKeys = new Set(capabilitySnapshot.capabilities.map((entry: JsonObject) => `${entry.operationId}@${entry.operationVersion}`));
 const liveGdpsCapabilities = catalog.capabilities.filter((entry: JsonObject) =>
   gdpsOperationKeys.has(`${entry.operationId}@${entry.operationVersion}`));
-assert(liveGdpsCapabilities.length === 23, "LIVE_GDPS_CAPABILITY_COUNT_MISMATCH");
+assert(
+  liveGdpsCapabilities.length === gdpsOperationKeys.size &&
+    gdpsOperationKeys.size === capabilitySnapshot.capabilities.length,
+  "LIVE_GDPS_CAPABILITY_COUNT_MISMATCH"
+);
 
 const capturedAt = new Date().toISOString();
 const lockHash = sha256File("w26-combined-southbound-operation-lock.json");

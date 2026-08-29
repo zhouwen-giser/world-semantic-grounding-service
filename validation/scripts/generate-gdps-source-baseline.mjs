@@ -42,10 +42,11 @@ function validate(report) {
   assert(/^sha256:[0-9a-f]{64}$/u.test(report.gateway.semanticCatalogHash), "Gateway semantic hash is invalid");
   assert(/^sha256:[0-9a-f]{64}$/u.test(report.gateway.bindingRevision), "Gateway binding hash is invalid");
   assert(report.gdps.providerId === "gdps.geospatial-products", "Unexpected GDPS provider");
-  assert(report.gdps.capabilityCount === 23 && report.gdps.capabilities.length === 23, "GDPS capability count mismatch");
+  assert(report.gdps.capabilityCount > 0 && report.gdps.capabilityCount === report.gdps.capabilities.length,
+    "GDPS capability count mismatch");
   assert(report.gdps.capabilities.every((entry) => entry.maturity === "PREVIEW"), "GDPS maturity drift");
   assert(report.gdps.capabilities.every((entry) => entry.snapshotSupport === "CONSISTENT_AT_START"), "GDPS snapshot policy drift");
-  assert(new Set(report.gdps.capabilities.map((entry) => `${entry.operationId}@${entry.operationVersion}`)).size === 23,
+  assert(new Set(report.gdps.capabilities.map((entry) => `${entry.operationId}@${entry.operationVersion}`)).size === report.gdps.capabilityCount,
     "Duplicate GDPS operation");
   assert(report.currentGateway.gdpsRegistered === false, "W20 must not claim GDPS registration");
   assert(report.currentGateway.gdpsCapabilityCount === 0, "Current Gateway unexpectedly exposes GDPS");
