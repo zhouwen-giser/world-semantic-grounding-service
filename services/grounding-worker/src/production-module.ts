@@ -638,6 +638,36 @@ export function assertPriorGroundingReplaySupport(
   }
 }
 
+export function mergeKnownReferenceProducts(
+  resolved: ReferenceGroundingResult | undefined,
+  known: readonly JsonObject[]
+): ReferenceGroundingResult {
+  const result = resolved ?? normalizeReferenceResolution(null, []);
+  const seen = new Set(result.referenceProducts.map((entry) => JSON.stringify(entry.referenceKey)));
+  const additions = known.flatMap((entry, index): ReferenceProduct[] => {
+    const key = referenceKey(entry["referenceKey"]);
+    const canonicalKey = JSON.stringify(key);
+    if (seen.has(canonicalKey)) return [];
+    seen.add(canonicalKey);
+    return [{
+      productId: `known-reference-${index}-${createHash("sha256").update(canonicalKey).digest("hex").slice(0, 16)}`,
+      productKind: "RESOLVED_REFERENCE",
+      referenceKey: key,
+      referenceType: text(entry["referenceType"], "INVALID_REFERENCE_TYPE"),
+      displayName: typeof entry["alias"] === "string"
+        ? entry["alias"]
+        : text(object(entry["referenceKey"], "INVALID_REFERENCE_KEY")["id"], "INVALID_REFERENCE_ID"),
+      matchedBy: "EXACT_REFERENCE_KEY",
+      matchScore: 1,
+      sourceOperation: "reference.resolve",
+      sourceWorldVersion: 0,
+      revalidationRequired: true,
+      safeSummary: { source: "contextCapsule" }
+    }];
+  });
+  return { ...result, referenceProducts: [...result.referenceProducts, ...additions] };
+}
+
 async function executeOperation(
   value: Runtime,
   context: PipelineStageContext,
@@ -1704,30 +1734,18 @@ export async function createPipelineStageExecutor(
       const parts = requestParts(context);
       const known = Array.isArray(parts.capsule["knownWorldReferences"])
         ? parts.capsule["knownWorldReferences"].map((entry) => object(entry, "INVALID_KNOWN_REFERENCE")) : [];
-      const references = resolved?.referenceProducts.map((entry) => ({
+      const result = mergeKnownReferenceProducts(resolved, known);
+      const references = result.referenceProducts.map((entry) => ({
         referenceKey: entry.referenceKey, requireCurrentSnapshot: true
-      })) ?? known.map((entry) => ({ referenceKey: referenceKey(entry["referenceKey"]), requireCurrentSnapshot: true }));
-      if (references.length === 0) return resolved ?? normalizeReferenceResolution(null, []);
+      }));
+      if (references.length === 0) return result;
       const lock = operationLock(authority, "reference.validate");
       const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", references }, "reference-validate");
       const validations = normalizeValidation(envelopeValue(envelope, lock));
       const evaluatedAt = new Date().toISOString();
       const validityTtlMs = environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000);
-      const result = resolved ?? {
-        mentions: [],
-        referenceProducts: known.map((entry, index): ReferenceProduct => ({
-          productId: `known-reference-${index}-${createHash("sha256").update(JSON.stringify(entry["referenceKey"])).digest("hex").slice(0, 16)}`,
-          productKind: "RESOLVED_REFERENCE", referenceKey: referenceKey(entry["referenceKey"]),
-          referenceType: text(entry["referenceType"], "INVALID_REFERENCE_TYPE"),
-          displayName: typeof entry["alias"] === "string" ? entry["alias"] : text(object(entry["referenceKey"], "INVALID_REFERENCE_KEY")["id"], "INVALID_REFERENCE_ID"),
-          matchedBy: "EXACT_REFERENCE_KEY", matchScore: 1,
-          sourceOperation: "reference.resolve", sourceWorldVersion: 0,
-          revalidationRequired: true, safeSummary: { source: "contextCapsule" }
-        })),
-        ambiguities: [], unresolvedMentions: [], validationResults: [], worldVersion: 0, resolverVersion: "context-capsule"
-      };
       const byKey = new Map(validations.map((entry) => [JSON.stringify(entry.referenceKey), entry]));
-      return {
+      const validated = {
         ...result,
         validationResults: validations,
         referenceProducts: result.referenceProducts.map((product) => {
@@ -1736,6 +1754,7 @@ export async function createPipelineStageExecutor(
           return applyReferenceValidation(product, validation, evaluatedAt, validityTtlMs);
         })
       };
+      return validated;
     },
 
     REQUIREMENT_PLAN: async (context) => {
