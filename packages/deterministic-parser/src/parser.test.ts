@@ -52,6 +52,25 @@ describe("deterministic reference parser", () => {
     expect(new Set(result.ambiguities[0]?.mentionIds).size).toBe(2);
   });
 
+  it("deduplicates the same immutable reference across renewed leases", () => {
+    const originalText = "滨河路附近有哪些设备？";
+    const result = parseDeterministicReferences({
+      originalText,
+      knownWorldReferences: [
+        {
+          alias: "滨河路", referenceKey, referenceType: "LAYER_FEATURE", sourceMessageId: "message-1",
+          validUntil: "2026-08-29T01:00:00.000Z"
+        },
+        {
+          alias: "滨河路", referenceKey, referenceType: "LAYER_FEATURE", sourceMessageId: "message-1",
+          validUntil: "2026-08-29T01:01:00.000Z"
+        }
+      ]
+    });
+    expect(result.mentions).toHaveLength(1);
+    expect(result.ambiguities).toEqual([]);
+  });
+
   it("gives a client map selection priority and retains equal-priority conflict", () => {
     const originalText = "查询我标注区域内的车辆";
     const result = parseDeterministicReferences({
