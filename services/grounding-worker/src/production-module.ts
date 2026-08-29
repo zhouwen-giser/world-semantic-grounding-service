@@ -886,22 +886,6 @@ export function normalizeValidation(value: unknown): ReferenceValidationProduct[
   });
 }
 
-export function validationEvaluatedAt(envelope: JsonObject, lock: OperationLock): string {
-  if (!Array.isArray(envelope["receipts"])) {
-    throw new ProductionStageModuleError("REFERENCE_VALIDATION_RECEIPT_MISSING");
-  }
-  const timestamps = envelope["receipts"].flatMap((raw) => {
-    const receipt = object(raw, "REFERENCE_VALIDATION_RECEIPT_INVALID");
-    if (receipt["operationId"] !== lock.operationId || receipt["operationVersion"] !== lock.operationVersion) return [];
-    const generatedAt = text(receipt["generatedAt"], "REFERENCE_VALIDATION_RECEIPT_TIME_MISSING");
-    const timestamp = Date.parse(generatedAt);
-    if (!Number.isFinite(timestamp)) throw new ProductionStageModuleError("REFERENCE_VALIDATION_RECEIPT_TIME_INVALID");
-    return [timestamp];
-  });
-  if (timestamps.length === 0) throw new ProductionStageModuleError("REFERENCE_VALIDATION_RECEIPT_MISMATCH");
-  return new Date(Math.max(...timestamps)).toISOString();
-}
-
 export function applyReferenceValidation(
   product: ReferenceProduct,
   validation: ReferenceValidationProduct,
@@ -1721,7 +1705,7 @@ export async function createPipelineStageExecutor(
       const lock = operationLock(authority, "reference.validate");
       const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", references }, "reference-validate");
       const validations = normalizeValidation(envelopeValue(envelope, lock));
-      const evaluatedAt = validationEvaluatedAt(envelope, lock);
+      const evaluatedAt = new Date().toISOString();
       const validityTtlMs = environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000);
       const result = resolved ?? {
         mentions: [],
