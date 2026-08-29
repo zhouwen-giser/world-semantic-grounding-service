@@ -133,6 +133,41 @@ describe("buildGroundingGraph", () => {
     expect(degraded.graph.nodes.some((node) => node.kind === "FINDING")).toBe(false);
   });
 
+  it("builds a valid graph for two same-alias known-reference candidates", () => {
+    const sourceText = "滨河路附近有哪些设备？";
+    const parsed = parseDeterministicReferences({
+      originalText: sourceText,
+      knownWorldReferences: ["a", "b"].map((suffix) => ({
+        alias: "滨河路",
+        referenceKey: {
+          namespace: "gowm" as const,
+          kind: "LAYER_FEATURE",
+          id: `wrf_${suffix.repeat(32)}`,
+          version: "1.0.0"
+        },
+        referenceType: "LAYER_FEATURE",
+        sourceMessageId: "message-origin"
+      }))
+    });
+    const result = buildGroundingGraph(sourceText, parsed, {
+      schemaVersion: "1.0",
+      mentions: [{
+        mentionId: "model-road",
+        surfaceText: "滨河路",
+        span: { encoding: "UTF16_CODE_UNIT", start: 0, end: 3 },
+        expectedKinds: ["LAYER_FEATURE"]
+      }],
+      spatialExpressions: [{ expressionId: "near", operator: "NEAR", arguments: ["model-road"], approximate: false }],
+      relationExpressions: [],
+      temporalConstraints: [],
+      aggregationExpressions: [],
+      rankingExpressions: []
+    });
+    expect(validateGroundingGraph(result.graph)).toBe(result.graph);
+    expect(result.ambiguities).toHaveLength(1);
+    expect(new Set(result.graph.edges.map((edge) => edge.edgeId)).size).toBe(result.graph.edges.length);
+  });
+
   it("retains deterministic distance and absolute-time literals when the optional model is down", () => {
     const sourceText = "2号车附近1公里，时间2026-08-27T09:00:00Z";
     const parsed = parseDeterministicReferences({ originalText: sourceText });

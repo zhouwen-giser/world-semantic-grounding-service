@@ -116,7 +116,9 @@ export function buildGroundingGraph(
   };
   const addEdge = (from: string, to: string, relation: EdgeRelation, identity: unknown): void => {
     if (from === to) return;
-    edges.push({ edgeId: stableId("edge", { from, to, relation, identity }), from, to, relation });
+    const edgeId = stableId("edge", { from, to, relation, identity });
+    if (edges.some((existing) => existing.edgeId === edgeId)) return;
+    edges.push({ edgeId, from, to, relation });
   };
 
   for (const mention of deterministic.mentions) {

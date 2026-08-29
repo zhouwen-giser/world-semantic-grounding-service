@@ -30,6 +30,18 @@ function stableId(prefix: string, value: string): string {
   return `${prefix}-${createHash("sha256").update(value).digest("hex").slice(0, 20)}`;
 }
 
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .filter(([, entry]) => entry !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
 export function assertValidUtf16Span(originalText: string, span: TextSpan, surfaceText?: string): string {
   if (span.encoding !== "UTF16_CODE_UNIT") throw new Error("Text span encoding must be UTF16_CODE_UNIT");
   if (!Number.isInteger(span.start) || !Number.isInteger(span.end) || span.start < 0 || span.end <= span.start || span.end > originalText.length) {
@@ -175,7 +187,11 @@ function mention(
   const span: TextSpan = { encoding: "UTF16_CODE_UNIT", start, end };
   const surfaceText = assertValidUtf16Span(originalText, span);
   return {
-    mentionId: stableId("mention", `${start}:${end}:${candidate.kind}:${surfaceText}`),
+    // The candidate identity is part of the mention identity. Two same-span
+    // references may have the same alias and kind while naming different
+    // immutable world objects; collapsing their IDs makes the ambiguity graph
+    // emit duplicate edges and loses the distinction between candidates.
+    mentionId: stableId("mention", `${start}:${end}:${surfaceText}:${stableJson(candidate)}`),
     surfaceText,
     span,
     expectedKinds,
