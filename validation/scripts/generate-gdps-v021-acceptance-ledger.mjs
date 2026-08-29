@@ -180,8 +180,6 @@ const policy = readJson(policyPath, "GDPS v0.2.1 acceptance policy");
 validatePolicy(policy, [...new Set(matrix.flatMap((row) => row.evidenceTypes))]);
 const actualCandidateSha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
 invariant(shaPattern.test(actualCandidateSha), "WSGS candidate SHA is invalid");
-const worktreeDirty = execFileSync("git", ["status", "--porcelain", "--untracked-files=all"],
-  { cwd: root, encoding: "utf8" }).trim().length > 0;
 
 invariant(existsSync(evidenceMapPath), "GDPS acceptance evidence map is missing");
 let evidenceMap = readJson(evidenceMapPath, "GDPS acceptance evidence map");
@@ -281,8 +279,7 @@ const body = {
     repository: evidenceMap.candidate.repository,
     evidenceGitHead: evidenceMap.candidate.gitHead,
     ledgerGitHead: actualCandidateSha,
-    relationship: candidateRelationship,
-    worktreeDirty
+    relationship: candidateRelationship
   },
   target: policy.target,
   candidateStatus: evidenceMap.overall,
