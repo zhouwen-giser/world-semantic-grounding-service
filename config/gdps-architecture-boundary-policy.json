@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "wsgs-gdps-architecture-boundary/1.0",
+  "scanRoots": [
+    "packages",
+    "services"
+  ],
+  "forbiddenRuntimePatterns": [
+    "GDPS_BASE_URL",
+    "GDPS_DATABASE_URL",
+    "gdps_product",
+    "gdps_feature",
+    "direct GDPS provider fetch"
+  ],
+  "plannerForbiddenOperationPrefixes": [
+    "geo-raster.",
+    "geo-vector.",
+    "landcover.",
+    "terrain.",
+    "hydrology.",
+    "obstacle.",
+    "traversability.",
+    "elevation.",
+    "surface-material."
+  ],
+  "allowedDocumentationRoots": [
+    "contracts",
+    "config",
+    "tests",
+    "reports",
+    "docs"
+  ],
+  "forbiddenDataProductHistoryIdentifiers": [
+    "productVersion",
+    "product_version",
+    "historicalProduct"
+  ]
+}

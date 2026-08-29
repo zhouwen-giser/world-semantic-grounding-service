@@ -3,6 +3,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import Ajv2020 from "ajv/dist/2020.js";
+import addFormats from "ajv-formats";
+
 const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const requiredFiles = [
   "GDPS_CONSUMER_LOCK.json",
@@ -64,6 +67,30 @@ function guardedWrite(path, content) {
   }
   mkdirSync(resolve(path, ".."), { recursive: true });
   writeFileSync(path, content, "utf8");
+}
+
+const taskSchemaRoot = resolve(root, "contracts", "wsgs-v0.2-gdps", "contracts");
+const taskSchemaNames = [
+  "acceptance-evidence-map.schema.json",
+  "descriptor-resolution.schema.json",
+  "gdps-consumer-snapshot-extension.schema.json",
+  "gdps-handoff-intake.schema.json",
+  "gdps-source-evidence.schema.json",
+  "gdps-status-normalization.schema.json",
+  "geospatial-product-intent.schema.json",
+  "grounded-geospatial-product-intent.schema.json",
+  "locked-gdps-recipe.schema.json"
+];
+const taskContracts = new Ajv2020({ allErrors: true, strict: true, strictRequired: false });
+addFormats(taskContracts);
+for (const name of taskSchemaNames) {
+  const schema = JSON.parse(readFileSync(resolve(taskSchemaRoot, name), "utf8"));
+  assert(taskContracts.validateSchema(schema), `WSGS_GDPS_TASK_SCHEMA_INVALID file=${name}`);
+  taskContracts.addSchema(schema);
+}
+function assertTaskContract(schemaId, value, code) {
+  const validate = taskContracts.getSchema(schemaId);
+  assert(validate && validate(value), `${code} errors=${taskContracts.errorsText(validate?.errors)}`);
 }
 
 if (!handoff || !existsSync(handoff)) fail("WSGS_GDPS_V021_HANDOFF_NOT_READY", "reason=HANDOFF_DIRECTORY_MISSING");
@@ -157,12 +184,16 @@ const providerRecipeByOperation = new Map(recipes.recipes.map((entry) =>
 const descriptorEntries = descriptorRegistry.descriptors;
 assert(Array.isArray(descriptorEntries) && descriptorEntries.length === 35,
   "WSGS_GDPS_DESCRIPTOR_PROFILE_INVENTORY_INVALID");
-const areaPatterns = new Set([
-  "GDPS_WETLANDS_IN_AREA", "GDPS_BLOCKED_AREAS_IN_AREA", "GDPS_HIGH_GROUND_IN_AREA",
-  "GDPS_GENERIC_PROFILE_VALUE", "GDPS_GENERIC_FIND_CLASS", "GDPS_GENERIC_FIND_RANGE",
-  "GDPS_GENERIC_VECTOR_IN_AREA", "GDPS_GENERIC_VECTOR_INTERSECTS"
-]);
 const specializedPatterns = new Set(recipePlan.activeRuntimeRecipes.slice(0, 7).map((entry) => entry.semanticPattern));
+const specializedRequirementByPattern = new Map(Object.entries({
+  GDPS_LAND_COVER_AT_REFERENCE: "READ_LAND_COVER",
+  GDPS_WETLANDS_IN_AREA: "FIND_WETLANDS",
+  GDPS_OBSTACLES_NEAR_REFERENCE: "FIND_OBSTACLES",
+  GDPS_BLOCKED_AREAS_IN_AREA: "FIND_BLOCKED_AREAS",
+  GDPS_HIGH_GROUND_IN_AREA: "FIND_HIGH_GROUND",
+  GDPS_ELEVATION_AT_REFERENCE: "READ_ELEVATION",
+  GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE: "EXPLAIN_TRAVERSABILITY"
+}));
 const runtimeRecipes = recipePlan.activeRuntimeRecipes.map((planned) => {
   const key = `${planned.operationId}@1.0`;
   const operation = operationByKey.get(key);
@@ -185,29 +216,37 @@ const runtimeRecipes = recipePlan.activeRuntimeRecipes.map((planned) => {
       `WSGS_GDPS_SPECIALIZED_DESCRIPTOR_INVALID recipe=${planned.recipeId}`);
     descriptorConstraint = { descriptorId, descriptorHash };
   }
+  const requirementType = planned.requirementType ?? specializedRequirementByPattern.get(planned.semanticPattern);
+  assert(typeof requirementType === "string",
+    `WSGS_GDPS_RUNTIME_RECIPE_REQUIREMENT_MISSING recipe=${planned.recipeId}`);
   return {
+    schemaVersion: "wsgs-locked-gdps-recipe/2.0",
     recipeId: planned.recipeId,
     semanticPattern: planned.semanticPattern,
+    requirementType,
     descriptorConstraint,
-    previewAuthorizationRequired: true,
-    maturity: "PREVIEW",
-    operationKeys: [
-      "reference.resolve@1.0",
-      areaPatterns.has(planned.semanticPattern) ? "world.get-geometry@1.0" : "world.get-current-state@1.0",
-      key
-    ],
+    queryProfile: planned.queryProfile,
     allowedOperations: [{
       operationId: operation.operationId,
       operationVersion: operation.operationVersion,
       inputSchemaHash: operation.inputSchemaHash,
       outputSchemaHash: operation.outputSchemaHash,
       semanticProfileHash: operation.semanticProfileHash
-    }]
+    }],
+    maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+    productIdPolicy: planned.productIdPolicy,
+    inputBindings: structuredClone(providerRecipe.inputBindings ?? {}),
+    outputSemantics: structuredClone(providerRecipe.outputSemantics ?? {}),
+    previewAuthorizationRequired: true
   };
 }).sort((left, right) => left.recipeId.localeCompare(right.recipeId));
 assert(new Set(runtimeRecipes.map((entry) => entry.recipeId)).size === 14 &&
   new Set(runtimeRecipes.map((entry) => entry.semanticPattern)).size === 14,
 "WSGS_GDPS_RUNTIME_RECIPE_DUPLICATE");
+for (const recipe of runtimeRecipes) {
+  assertTaskContract("urn:wsgs:locked-gdps-recipe:2.0", recipe,
+    `WSGS_GDPS_RUNTIME_RECIPE_CONTRACT_INVALID recipe=${recipe.recipeId}`);
+}
 const runtimeRecipeLock = {
   schemaVersion: "wsgs-gdps-recipe-lock/2.0",
   providerId,
@@ -220,6 +259,24 @@ const runtimeRecipeLock = {
 };
 const runtimeRecipeLockContent = stableJson(runtimeRecipeLock);
 const runtimeRecipeLockHash = sha256(Buffer.from(runtimeRecipeLockContent, "utf8"));
+const consumerSnapshotBody = {
+  schemaVersion: "wsgs-gdps-consumer-snapshot/2.0",
+  providerId,
+  providerVersion,
+  consumerLockHash: sha256(readFileSync(join(handoff, "GDPS_CONSUMER_LOCK.json"))),
+  capabilityLockHash: sha256(readFileSync(join(handoff, "GDPS_CAPABILITY_LOCK.json"))),
+  descriptorLockHash,
+  recipeLockHash: runtimeRecipeLockHash,
+  productTypeCount: 34,
+  descriptorProfileCount: 35,
+  capabilityKeys: operations.map((entry) => `${entry.operationId}@${entry.operationVersion}`).sort()
+};
+const consumerSnapshot = {
+  ...consumerSnapshotBody,
+  capabilitySnapshotHash: canonicalHash(consumerSnapshotBody)
+};
+assertTaskContract("urn:wsgs:gdps-consumer-snapshot-extension:2.0", consumerSnapshot,
+  "WSGS_GDPS_CONSUMER_SNAPSHOT_CONTRACT_INVALID");
 const intake = {
   schemaVersion: "wsgs-gdps-handoff-intake/1.0",
   sources: { wsgsSha: sources.wsgsSha, gdpsSha: sources.gdpsSha, gowmSha: sources.gowmSha },
@@ -229,6 +286,7 @@ const intake = {
     consumerLockHash: sha256(readFileSync(join(handoff, "GDPS_CONSUMER_LOCK.json"))),
     capabilityLockHash: sha256(readFileSync(join(handoff, "GDPS_CAPABILITY_LOCK.json"))),
     descriptorLockHash,
+    recipeLockHash: runtimeRecipeLockHash,
     providerRecipeLockHash: sha256(readFileSync(join(handoff, "GDPS_RECIPE_LOCK.json"))),
     runtimeRecipeLockHash,
     checksumHash
@@ -240,6 +298,8 @@ const intake = {
   },
   status: "PASS"
 };
+assertTaskContract("urn:wsgs:gdps-handoff-intake:1.0", intake,
+  "WSGS_GDPS_HANDOFF_INTAKE_CONTRACT_INVALID");
 
 const upstream = resolve(root, "contracts", "upstream", "gdps-v0.2.1");
 for (const name of requiredFiles) {
@@ -253,6 +313,8 @@ guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "product-typ
   stableJson(descriptorRegistry));
 guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "product-vocabularies.json"),
   stableJson(vocabularyRegistry));
+guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "gdps-consumer-snapshot.json"),
+  stableJson(consumerSnapshot));
 guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "handoff.ts"),
   `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
   `export const gdpsV021HandoffIntake = ${JSON.stringify(intake, null, 2)} as const;\n`);
@@ -260,5 +322,14 @@ guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v
   `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
   `export const gdpsV021DescriptorRegistry = ${JSON.stringify(descriptorRegistry, null, 2)} as const;\n` +
   `export const gdpsV021VocabularyRegistry = ${JSON.stringify(vocabularyRegistry, null, 2)} as const;\n`);
+guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "recipes.ts"),
+  `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
+  `export const gdpsV021RuntimeRecipeLock = ${JSON.stringify(runtimeRecipeLock, null, 2)} as const;\n`);
+guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "hashes.ts"),
+  `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
+  `export const gdpsV021LockHashes = ${JSON.stringify(intake.locks, null, 2)} as const;\n`);
+guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "snapshot.ts"),
+  `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
+  `export const gdpsV021ConsumerSnapshot = ${JSON.stringify(consumerSnapshot, null, 2)} as const;\n`);
 
 console.log(`WSGS_GDPS_CONSUMER_LOCK_READY mode=${check ? "check" : "generate"} operations=30 productTypes=34 profiles=35`);

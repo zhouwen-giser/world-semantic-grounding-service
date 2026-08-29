@@ -72,6 +72,17 @@ const options = {
   }
 } as const;
 
+const rangeRecipe = {
+  schemaVersion: "wsgs-locked-gdps-recipe/2.0",
+  recipeId: "recipe-gdps-generic-find-range",
+  semanticPattern: "GDPS_GENERIC_FIND_RANGE",
+  requirementType: "FIND_GEO_PRODUCT_VALUE_RANGE_AREAS",
+  descriptorConstraint: null,
+  queryProfile: "FIND_VALUE_RANGE",
+  productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+  previewAuthorizationRequired: true
+} as const;
+
 function intent(values: Partial<GeospatialProductSemanticIntent> = {}): GeospatialProductSemanticIntent {
   return {
     schemaVersion: "wsgs-geospatial-product-intent/1.0", intentId: "intent-1", targetConcept: "SLOPE",
@@ -110,6 +121,32 @@ describe("GdpsDescriptorConsumer", () => {
     const drifted = new GdpsDescriptorConsumer({ ...options, expectedRegistryHash: `sha256:${"0".repeat(64)}` });
     expect(drifted.resolve(intent()).status).toBe("DESCRIPTOR_LOCK_DRIFT");
   });
+
+  it("looks up the exact descriptor/query-profile recipe and returns an explicit absence", () => {
+    const consumer = new GdpsDescriptorConsumer({ ...options, recipes: [rangeRecipe] });
+    const resolved = consumer.resolve(intent());
+    expect(resolved.status).toBe("MATCHED");
+    expect(resolved.intent).toBeDefined();
+    expect(consumer.lookupRecipe(resolved.intent!, "GDPS_GENERIC_FIND_RANGE")).toMatchObject({
+      status: "MATCHED",
+      recipe: { recipeId: rangeRecipe.recipeId },
+      candidateRecipeIds: [rangeRecipe.recipeId]
+    });
+    expect(consumer.lookupRecipe(resolved.intent!, "GDPS_GENERIC_SAMPLE_VALUE")).toMatchObject({
+      status: "RECIPE_NOT_FOUND",
+      candidateRecipeIds: []
+    });
+  });
+
+  it("produces deterministic descriptor and recipe evidence hashes", () => {
+    const consumer = new GdpsDescriptorConsumer({ ...options, recipes: [rangeRecipe] });
+    const first = consumer.resolve(intent());
+    const second = consumer.resolve(structuredClone(intent()));
+    expect(first.evidence.resolutionHash).toBe(second.evidence.resolutionHash);
+    expect(first.intent).toBeDefined();
+    expect(consumer.lookupRecipe(first.intent!, "GDPS_GENERIC_FIND_RANGE").evidence.lookupHash)
+      .toBe(consumer.lookupRecipe(first.intent!, "GDPS_GENERIC_FIND_RANGE").evidence.lookupHash);
+  });
 });
 
 describe("projectGeospatialProductIntent", () => {
@@ -139,5 +176,59 @@ describe("projectGeospatialProductIntent", () => {
       status: "DESCRIPTOR_NOT_FOUND"
     });
     expect(JSON.stringify([slope, flood, invalidUnit, unknownRisk])).not.toMatch(/providerId|operationId|geo-raster/u);
+  });
+
+  it("anchors 500 metre and one kilometre distances to source text", () => {
+    const nearFrame: WorldSemanticFrame = {
+      ...emptyFrame,
+      mentions: [{
+        mentionId: "road", surfaceText: "滨河路",
+        span: { encoding: "UTF16_CODE_UNIT", start: 0, end: 3 }, expectedKinds: ["LAYER_FEATURE"]
+      }],
+      spatialExpressions: [{
+        expressionId: "near", operator: "NEAR", arguments: ["road"], approximate: false, distanceM: 9_999
+      }]
+    };
+    expect(projectGeospatialProductIntent({
+      frame: nearFrame, originalText: "滨河路附近500米有哪些排水沟？", conceptMap
+    })).toMatchObject({ spatialConstraint: { relation: "NEAR", distanceM: 500 } });
+    expect(projectGeospatialProductIntent({
+      frame: nearFrame, originalText: "滨河路附近1公里有哪些排水沟？", conceptMap
+    })).toMatchObject({ spatialConstraint: { relation: "NEAR", distanceM: 1_000 } });
+    expect(projectGeospatialProductIntent({
+      frame: nearFrame, originalText: "滨河路附近有哪些排水沟？", conceptMap
+    })).toMatchObject({ spatialConstraint: { relation: "NEAR" } });
+    expect(projectGeospatialProductIntent({
+      frame: nearFrame, originalText: "滨河路附近有哪些排水沟？", conceptMap
+    })?.spatialConstraint).not.toHaveProperty("distanceM");
+  });
+
+  it("rejects an invalid source span and parses an explicit product only from source", () => {
+    const invalidFrame: WorldSemanticFrame = {
+      ...emptyFrame,
+      mentions: [{
+        ...emptyFrame.mentions[0]!, span: { encoding: "UTF16_CODE_UNIT", start: 1, end: 3 }
+      }]
+    };
+    expect(projectGeospatialProductIntent({ frame: invalidFrame, originalText: "A区坡度是多少？", conceptMap }))
+      .toBeNull();
+    const explicitProductText = "使用 gdps-baseline-slope 数据查询A区坡度。";
+    const explicitProductFrame: WorldSemanticFrame = {
+      ...emptyFrame,
+      mentions: [{
+        ...emptyFrame.mentions[0]!,
+        span: {
+          encoding: "UTF16_CODE_UNIT",
+          start: explicitProductText.indexOf("A区"),
+          end: explicitProductText.indexOf("A区") + 2
+        }
+      }]
+    };
+    expect(projectGeospatialProductIntent({
+      frame: explicitProductFrame, originalText: explicitProductText, conceptMap
+    })).toMatchObject({ explicitProductPreference: "gdps-baseline-slope" });
+    expect(projectGeospatialProductIntent({
+      frame: emptyFrame, originalText: "A区坡度是多少？", conceptMap
+    })).not.toHaveProperty("explicitProductPreference");
   });
 });

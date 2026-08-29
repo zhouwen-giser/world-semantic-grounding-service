@@ -25,6 +25,8 @@ export interface QueryTemplateRequestBinding {
   targetPath: string;
   port?: SchemaPort;
   optional?: boolean;
+  /** Emit a source-validated parameter as an immutable node literal. */
+  literalFromParameter?: boolean;
 }
 
 export interface QueryTemplateLiteralBinding {
@@ -203,26 +205,31 @@ const gdpsProductBinding: QueryTemplateRequestBinding = {
   path: "/explicitProductId",
   targetPath: "/productId",
   port: stringLiteralPort,
-  optional: true
+  optional: true,
+  literalFromParameter: true
 };
 
 const gdpsDescriptorBindings: readonly QueryTemplateRequestBinding[] = [{
-  inputName: "productType", path: "/productType", targetPath: "/productType", port: stringLiteralPort
+  inputName: "productType", path: "/productType", targetPath: "/productType", port: stringLiteralPort,
+  literalFromParameter: true
 }, {
-  inputName: "productProfile", path: "/productProfile", targetPath: "/productProfile", port: stringLiteralPort
+  inputName: "productProfile", path: "/productProfile", targetPath: "/productProfile", port: stringLiteralPort,
+  literalFromParameter: true
 }, gdpsProductBinding];
 
 const classCodesBinding: QueryTemplateRequestBinding = {
-  inputName: "classCodes", path: "/classCodes", targetPath: "/classCodes"
+  inputName: "classCodes", path: "/classCodes", targetPath: "/classCodes", literalFromParameter: true
 };
 const rangesBinding: QueryTemplateRequestBinding = {
-  inputName: "ranges", path: "/ranges", targetPath: "/ranges"
+  inputName: "ranges", path: "/ranges", targetPath: "/ranges", literalFromParameter: true
 };
 const propertyFiltersBinding: QueryTemplateRequestBinding = {
-  inputName: "propertyFilters", path: "/propertyFilters", targetPath: "/propertyFilters", optional: true
+  inputName: "propertyFilters", path: "/propertyFilters", targetPath: "/propertyFilters", optional: true,
+  literalFromParameter: true
 };
 const platformProfileBinding: QueryTemplateRequestBinding = {
-  inputName: "platformProfile", path: "/platformProfile", targetPath: "/platformProfile", port: stringLiteralPort, optional: true
+  inputName: "platformProfile", path: "/platformProfile", targetPath: "/platformProfile", port: stringLiteralPort,
+  optional: true, literalFromParameter: true
 };
 
 function genericGdpsStep(
@@ -644,7 +651,8 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
           schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348",
           valueKind: "ANY",
           unitSemantics: "LINEAR_METERS"
-        }
+        },
+        literalFromParameter: true
       }], ["NEAR"])]
   },
   {
@@ -753,7 +761,10 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
       genericGdpsStep("find-vector-nearby", "geo-vector.find-nearby", {
         sourceStepId: "read-current-position", outputPort: "positionCoordinates",
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
-      }, [{ inputName: "distanceMetres", path: "/distanceM", targetPath: "/distanceMetres" }, propertyFiltersBinding],
+      }, [{
+        inputName: "distanceMetres", path: "/distanceM", targetPath: "/distanceMetres",
+        literalFromParameter: true
+      }, propertyFiltersBinding],
       [geoJsonPointType])]
   },
   {

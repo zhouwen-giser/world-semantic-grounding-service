@@ -84,7 +84,7 @@ describe("GDPS typed query plans", () => {
     if (explicitPlan.status !== "COMPILED") return;
     expect(explicitPlan.submission.parameters["explicitProductId"]).toBe("terrain-main");
     expect(explicitPlan.submission.plan.nodes.at(-1)?.inputs["explicitProductId"]).toMatchObject({
-      kind: "REQUEST_PATH", path: "/explicitProductId", targetPath: "/productId"
+      kind: "LITERAL", value: "terrain-main", targetPath: "/productId"
     });
   });
 
@@ -97,8 +97,8 @@ describe("GDPS typed query plans", () => {
     expect(result.status).toBe("COMPILED");
     if (result.status !== "COMPILED") return;
     expect(result.submission.plan.nodes.at(-1)?.inputs["distanceMetres"]).toMatchObject({
-      kind: "REQUEST_PATH",
-      path: "/distanceMetres",
+      kind: "LITERAL",
+      value: 500,
       targetPath: "/distanceMetres",
       port: { unitSemantics: "LINEAR_METERS" }
     });
@@ -118,9 +118,13 @@ describe("GDPS typed query plans", () => {
     if (result.status !== "COMPILED") return;
     expect(result.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual(operations);
     expect(result.submission.plan.nodes.at(-1)?.inputs).toEqual(expect.objectContaining({
-      productType: expect.objectContaining({ kind: "REQUEST_PATH", targetPath: "/productType" }),
-      productProfile: expect.objectContaining({ kind: "REQUEST_PATH", targetPath: "/productProfile" })
+      productType: expect.objectContaining({ kind: "LITERAL", targetPath: "/productType" }),
+      productProfile: expect.objectContaining({ kind: "LITERAL", targetPath: "/productProfile" })
     }));
+    for (const [name, value] of Object.entries(parameters)) {
+      expect(result.submission.plan.nodes.at(-1)?.inputs[name === "distanceM" ? "distanceMetres" : name])
+        .toMatchObject({ kind: "LITERAL", value });
+    }
     if (pattern === "GDPS_GENERIC_SAMPLE_VALUE" || pattern === "GDPS_GENERIC_VECTOR_NEARBY") {
       expect(result.submission.plan.nodes.at(-1)?.inputs["pointType"]).toMatchObject({
         kind: "LITERAL", value: "Point", targetPath: "/point/type"
@@ -145,5 +149,17 @@ describe("GDPS typed query plans", () => {
       allowedOperations: [{ ...allowed, inputSchemaHash: `sha256:${"0".repeat(64)}` }]
     };
     expect(compiler.compile(recipeDrift)).toMatchObject({ status: "CAPABILITY_GAP", gap: { reason: "RECIPE_LOCK_DRIFT" } });
+
+    const lockDrift = compileInput("GDPS_GENERIC_FIND_RANGE");
+    lockDrift.maturityPolicy.allowPreview = true;
+    authorizeGdps(lockDrift, { descriptorId: "SLOPE/DEGREE", productType: "SLOPE", productProfile: "DEGREE" });
+    lockDrift.gdpsRecipeAuthorization = {
+      ...lockDrift.gdpsRecipeAuthorization!,
+      recipeLockHash: `sha256:${"f".repeat(64)}`
+    };
+    expect(compiler.compile(lockDrift)).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "RECIPE_LOCK_DRIFT", details: { trustedRecipeLockMatched: false } }
+    });
   });
 });

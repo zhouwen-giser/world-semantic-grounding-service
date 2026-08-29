@@ -100,8 +100,11 @@ import {
 } from "@wsgs/semantic-model";
 import {
   buildTrustedCapabilitySnapshot,
+  loadGdpsConsumerSnapshotExtension,
   loadGdpsRecipeLock,
+  verifyGdpsConsumerSnapshotExtension,
   verifyPersistedTrustedCapabilitySnapshot,
+  type GdpsConsumerSnapshotExtension,
   type GdpsLockedRecipe,
   type LoadedGdpsRecipeLock,
   type SchemaValidatedSouthboundLock,
@@ -179,6 +182,7 @@ interface PersistedAuthority {
   semanticCatalog: CapabilitySemanticCatalog;
   availability: OperationAvailabilityList;
   southboundLock: SchemaValidatedSouthboundLock;
+  gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
 }
 
 interface LiveAuthority {
@@ -195,6 +199,7 @@ interface Runtime {
   model: SemanticModelParser;
   modelPolicy: SemanticModelPolicyMode;
   allowPreview: boolean;
+  gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
   gdpsRecipeLock?: LoadedGdpsRecipeLock;
   gdpsRecipes: GdpsLockedRecipe[];
   gdpsDescriptor?: {
@@ -335,15 +340,24 @@ export function selectProductionSouthboundLock(
   };
 }
 
-function configuredGdpsRecipes(): { loaded?: LoadedGdpsRecipeLock; recipes: GdpsLockedRecipe[] } {
+function configuredGdpsRecipes(): {
+  loaded?: LoadedGdpsRecipeLock;
+  recipes: GdpsLockedRecipe[];
+  consumerSnapshot?: GdpsConsumerSnapshotExtension;
+} {
   const allowlist = [...new Set(environmentList("WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST"))];
   const lockPath = process.env["WSGS_GDPS_RECIPE_LOCK_FILE"]?.trim();
   const expectedSha256 = process.env["WSGS_GDPS_RECIPE_LOCK_SHA256"]?.trim();
+  const snapshotPath = process.env["WSGS_GDPS_CONSUMER_SNAPSHOT_FILE"]?.trim();
+  const snapshotSha256 = process.env["WSGS_GDPS_CONSUMER_SNAPSHOT_SHA256"]?.trim();
   if (allowlist.length === 0) {
-    if (lockPath || expectedSha256) throw new ProductionStageModuleError("WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST_REQUIRED");
+    if (lockPath || expectedSha256 || snapshotPath || snapshotSha256) {
+      throw new ProductionStageModuleError("WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST_REQUIRED");
+    }
     return { recipes: [] };
   }
   if (!lockPath || !expectedSha256) throw new ProductionStageModuleError("WSGS_GDPS_RECIPE_LOCK_REQUIRED");
+  if (!snapshotPath || !snapshotSha256) throw new ProductionStageModuleError("WSGS_GDPS_CONSUMER_SNAPSHOT_REQUIRED");
   const loaded = loadGdpsRecipeLock({
     lockPath,
     expectedSha256: expectedSha256 as `sha256:${string}`
@@ -351,26 +365,58 @@ function configuredGdpsRecipes(): { loaded?: LoadedGdpsRecipeLock; recipes: Gdps
   const recipes = loaded.lock.recipes.filter((entry) =>
     allowlist.includes(entry.recipeId) || allowlist.includes(entry.semanticPattern));
   if (recipes.length !== allowlist.length) throw new ProductionStageModuleError("WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST_INVALID");
-  return { loaded, recipes };
+  const consumerSnapshot = loadGdpsConsumerSnapshotExtension({
+    snapshotPath,
+    expectedSha256: snapshotSha256 as `sha256:${string}`
+  });
+  if (consumerSnapshot.providerVersion !== loaded.lock.providerVersion ||
+      consumerSnapshot.capabilityLockHash !== loaded.lock.capabilityLockHash ||
+      consumerSnapshot.descriptorLockHash !== loaded.lock.descriptorRegistryHash ||
+      consumerSnapshot.recipeLockHash !== loaded.lockHash) {
+    throw new ProductionStageModuleError("WSGS_GDPS_CONSUMER_SNAPSHOT_LOCK_DRIFT");
+  }
+  return { loaded, recipes, consumerSnapshot };
 }
 
-function configuredGdpsDescriptor(loaded?: LoadedGdpsRecipeLock): Runtime["gdpsDescriptor"] {
+function configuredGdpsDescriptor(
+  loaded?: LoadedGdpsRecipeLock,
+  authorizedRecipes: readonly GdpsLockedRecipe[] = []
+): Runtime["gdpsDescriptor"] {
   if (!loaded) return undefined;
   const registryPath = process.env["WSGS_GDPS_DESCRIPTOR_REGISTRY_FILE"]?.trim();
+  const registrySha256 = process.env["WSGS_GDPS_DESCRIPTOR_REGISTRY_SHA256"]?.trim();
   const vocabularyPath = process.env["WSGS_GDPS_VOCABULARY_REGISTRY_FILE"]?.trim();
+  const vocabularySha256 = process.env["WSGS_GDPS_VOCABULARY_REGISTRY_SHA256"]?.trim();
   const conceptMapPath = process.env["WSGS_GDPS_SEMANTIC_CONCEPT_MAP_FILE"]?.trim() || fileURLToPath(new URL(
     "../../../config/gdps-semantic-concept-map.json",
     import.meta.url
   ));
-  if (!registryPath || !vocabularyPath) throw new ProductionStageModuleError("WSGS_GDPS_DESCRIPTOR_INPUTS_REQUIRED");
+  const conceptMapSha256 = process.env["WSGS_GDPS_SEMANTIC_CONCEPT_MAP_SHA256"]?.trim();
+  if (!registryPath || !registrySha256 || !vocabularyPath || !vocabularySha256 || !conceptMapSha256) {
+    throw new ProductionStageModuleError("WSGS_GDPS_DESCRIPTOR_INPUT_LOCKS_REQUIRED");
+  }
+  const lockedJson = <T>(path: string, expectedSha256: string, code: string): T => {
+    if (!/^sha256:[0-9a-f]{64}$/u.test(expectedSha256)) {
+      throw new ProductionStageModuleError(`${code}_EXPECTED_HASH_INVALID`);
+    }
+    const bytes = readFileSync(path);
+    const actual = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+    if (actual !== expectedSha256) throw new ProductionStageModuleError(`${code}_INTEGRITY_MISMATCH`);
+    try {
+      return JSON.parse(bytes.toString("utf8")) as T;
+    } catch {
+      throw new ProductionStageModuleError(`${code}_JSON_INVALID`);
+    }
+  };
   let registry: ProductDescriptorRegistry;
   let vocabularies: ProductVocabularyRegistry;
   let conceptMap: SemanticConceptMap;
   try {
-    registry = JSON.parse(readFileSync(registryPath, "utf8")) as ProductDescriptorRegistry;
-    vocabularies = JSON.parse(readFileSync(vocabularyPath, "utf8")) as ProductVocabularyRegistry;
-    conceptMap = JSON.parse(readFileSync(conceptMapPath, "utf8")) as SemanticConceptMap;
-  } catch {
+    registry = lockedJson<ProductDescriptorRegistry>(registryPath, registrySha256, "WSGS_GDPS_DESCRIPTOR_REGISTRY");
+    vocabularies = lockedJson<ProductVocabularyRegistry>(vocabularyPath, vocabularySha256, "WSGS_GDPS_VOCABULARY_REGISTRY");
+    conceptMap = lockedJson<SemanticConceptMap>(conceptMapPath, conceptMapSha256, "WSGS_GDPS_SEMANTIC_CONCEPT_MAP");
+  } catch (error) {
+    if (error instanceof ProductionStageModuleError) throw error;
     throw new ProductionStageModuleError("WSGS_GDPS_DESCRIPTOR_INPUT_INVALID");
   }
   const consumer = new GdpsDescriptorConsumer({
@@ -379,7 +425,8 @@ function configuredGdpsDescriptor(loaded?: LoadedGdpsRecipeLock): Runtime["gdpsD
     conceptMap,
     vocabularies,
     expectedProductTypeCount: 34,
-    expectedDescriptorProfileCount: 35
+    expectedDescriptorProfileCount: 35,
+    recipes: authorizedRecipes
   });
   if (consumer.registryHash !== loaded.lock.descriptorRegistryHash) {
     throw new ProductionStageModuleError("WSGS_GDPS_DESCRIPTOR_LOCK_DRIFT");
@@ -430,7 +477,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const operationalLock = readOperationalLock();
   const lock = operationalLock.lock;
   const gdps = configuredGdpsRecipes();
-  const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded);
+  const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded, gdps.recipes);
   const productionLock = selectProductionSouthboundLock(lock, gdps.recipes);
   const trustedOperationKeys = allGatewayLocks(productionLock)
     .map((entry) => `${entry.operationId}@${entry.operationVersion}`);
@@ -465,6 +512,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     model: createModel(modelPolicy),
     modelPolicy,
     allowPreview: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES",
+    ...(gdps.consumerSnapshot ? { gdpsConsumerSnapshot: gdps.consumerSnapshot } : {}),
     ...(gdps.loaded ? { gdpsRecipeLock: gdps.loaded } : {}),
     gdpsRecipes: gdps.recipes,
     ...(gdpsDescriptor ? { gdpsDescriptor } : {}),
@@ -574,7 +622,8 @@ async function liveAuthority(
     capabilityCatalog: catalog,
     semanticCatalog: semantics,
     availability,
-    southboundLock: validatedLock(productionLock)
+    southboundLock: validatedLock(productionLock),
+    ...(value.gdpsConsumerSnapshot ? { gdpsConsumerSnapshot: value.gdpsConsumerSnapshot } : {})
   };
   const admission: ProductionAdmissionSnapshot = {
     immutableLocks: persisted as unknown as Readonly<Record<string, unknown>>,
@@ -649,6 +698,7 @@ function persistedAuthority(context: PipelineStageContext, gateway: GowmGatewayC
   const authority = object(context.immutableLocks, "IMMUTABLE_AUTHORITY_MISSING") as unknown as PersistedAuthority;
   if (authority.schemaVersion !== "1.0") throw new ProductionStageModuleError("IMMUTABLE_AUTHORITY_VERSION");
   verifyPersistedTrustedCapabilitySnapshot(authority.trustedCapabilitySnapshot);
+  if (authority.gdpsConsumerSnapshot) verifyGdpsConsumerSnapshotExtension(authority.gdpsConsumerSnapshot);
   const validation = gateway.validateTrustedContracts({
     catalog: authority.capabilityCatalog,
     semantics: authority.semanticCatalog,
@@ -1786,21 +1836,34 @@ export async function createPipelineStageExecutor(
         groundingId: context.groundingId,
         snapshotHash: snapshot.snapshotHash
       }).slice("sha256:".length, "sha256:".length + 32)}`;
+      const gdpsSnapshot = authority.gdpsConsumerSnapshot;
       await withFence(context, value.pool, async (client) => {
         await client.query(
           `INSERT INTO wsgs.capability_snapshot(
              snapshot_id, grounding_id, data_scope, catalog_hash, catalog,
              contract_catalog_revision, semantic_catalog_hash, binding_revision,
              availability_snapshot, availability_hash, operation_lock_hash,
-             consumer_package_integrity, snapshot_hash
-           ) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9::jsonb,$10,$11,$12,$13)
+             consumer_package_integrity, snapshot_hash,
+             gdps_consumer_snapshot, gdps_provider_version, gdps_consumer_lock_hash,
+             gdps_capability_lock_hash, gdps_descriptor_lock_hash, gdps_recipe_lock_hash,
+             gdps_capability_keys, gdps_capability_snapshot_hash
+           ) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,
+             $14::jsonb,$15,$16,$17,$18,$19,$20::jsonb,$21)
            ON CONFLICT (snapshot_id) DO NOTHING`,
           [snapshotId, context.groundingId, identity(context).dataScope,
             capabilityCatalogHash(authority.capabilityCatalog), JSON.stringify(authority.capabilityCatalog),
             snapshot.contractCatalogRevision, snapshot.semanticCatalogHash,
             snapshot.bindingRevision, JSON.stringify(authority.availability),
             canonicalSha256(authority.availability), snapshot.southboundLockHash,
-            snapshot.consumerPackageIntegrity, snapshot.snapshotHash]
+            snapshot.consumerPackageIntegrity, snapshot.snapshotHash,
+            gdpsSnapshot ? JSON.stringify(gdpsSnapshot) : null,
+            gdpsSnapshot?.providerVersion ?? null,
+            gdpsSnapshot?.consumerLockHash ?? null,
+            gdpsSnapshot?.capabilityLockHash ?? null,
+            gdpsSnapshot?.descriptorLockHash ?? null,
+            gdpsSnapshot?.recipeLockHash ?? null,
+            gdpsSnapshot ? JSON.stringify(gdpsSnapshot.capabilityKeys) : null,
+            gdpsSnapshot?.capabilitySnapshotHash ?? null]
         );
       });
       return {
@@ -1953,15 +2016,48 @@ export async function createPipelineStageExecutor(
           allowApproximation: parts.policy["allowApproximation"] === true
         }
       });
-      if (!descriptorResolution || descriptorResolution.status === "MATCHED") return planned;
+      if (descriptorResolution?.status === "MATCHED" && descriptorResolution.intent) {
+        const selectedGdpsPatterns = planned.selectedRecipeIds.filter((recipeId) =>
+          queryTemplateRules.some((rule) => rule.pattern === recipeId && rule.previewAuthorizationRequired));
+        const recipeGaps = selectedGdpsPatterns.flatMap((semanticPattern): PlannerCapabilityGap[] => {
+          const lookup = value.gdpsDescriptor!.consumer.lookupRecipe(descriptorResolution.intent!, semanticPattern);
+          if (lookup.status === "MATCHED") return [];
+          return [{
+            gapId: `gdps-recipe-${canonicalSha256(lookup).slice(7, 31)}`,
+            semanticCapability: semanticPattern,
+            reason: lookup.status,
+            requiredForProduct: (parts.requestedProducts[0] ?? "WORLD_STATE") as PlannerCapabilityGap["requiredForProduct"],
+            blocking: true,
+            details: {
+              code: lookup.status,
+              descriptorId: lookup.evidence.descriptorId,
+              descriptorHash: lookup.evidence.descriptorHash,
+              queryProfile: lookup.evidence.queryProfile,
+              lookupHash: lookup.evidence.lookupHash,
+              candidateRecipeIds: lookup.candidateRecipeIds
+            }
+          }];
+        });
+        if (recipeGaps.length === 0) return planned;
+        return {
+          ...planned,
+          status: "CAPABILITY_GAP" as const,
+          capabilityGaps: [...planned.capabilityGaps, ...recipeGaps]
+            .sort((left, right) => left.gapId.localeCompare(right.gapId))
+        };
+      }
+      if (!descriptorResolution) return planned;
+      const descriptorReason = descriptorResolution.status === "MATCHED"
+        ? "DESCRIPTOR_LOCK_DRIFT" as const
+        : descriptorResolution.status;
       const descriptorGap: PlannerCapabilityGap = {
         gapId: `gdps-descriptor-${canonicalSha256(descriptorResolution).slice(7, 31)}`,
         semanticCapability: `GDPS_DESCRIPTOR:${descriptorResolution.evidence.conceptCode}`,
-        reason: descriptorResolution.status,
+        reason: descriptorReason,
         requiredForProduct: (parts.requestedProducts[0] ?? "WORLD_STATE") as PlannerCapabilityGap["requiredForProduct"],
         blocking: true,
         details: {
-          code: descriptorResolution.status === "DESCRIPTOR_NOT_FOUND" ? "DESCRIPTOR_GAP" : descriptorResolution.status,
+          code: descriptorReason === "DESCRIPTOR_NOT_FOUND" ? "DESCRIPTOR_GAP" : descriptorReason,
           registryHash: descriptorResolution.evidence.registryHash,
           descriptorHash: descriptorResolution.evidence.descriptorHash ?? null,
           querySemantics: descriptorResolution.evidence.querySemantics,
@@ -2059,6 +2155,7 @@ export async function createPipelineStageExecutor(
           availability: authority.availability.operations,
           maturityPolicy: { allowPreview: value.allowPreview },
           ...(gdpsRecipe && value.gdpsRecipeLock && descriptorId && descriptorHash ? {
+            trustedGdpsRecipeLockHash: value.gdpsRecipeLock.lockHash,
             gdpsRecipeAuthorization: {
               recipeId: gdpsRecipe.recipeId,
               semanticPattern: gdpsRecipe.semanticPattern as QuerySemanticPattern,

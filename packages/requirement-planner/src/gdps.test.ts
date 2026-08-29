@@ -106,4 +106,37 @@ describe("GDPS semantic requirement planning", () => {
     });
     expect(JSON.stringify(result.graph)).not.toMatch(/operationId|providerId|geo-raster\.|geo-vector\./u);
   });
+
+  it("prefers an exact specialized recipe without also selecting its generic fallback", () => {
+    const grounded: GroundedGeospatialProductIntent = {
+      schemaVersion: "wsgs-grounded-geospatial-product-intent/1.0",
+      intentId: "intent-land-cover",
+      descriptorId: "LAND_COVER/DEFAULT",
+      descriptorHash: `sha256:${"b".repeat(64)}`,
+      productType: "LAND_COVER",
+      productProfile: "DEFAULT",
+      representation: "RASTER_CATEGORICAL",
+      queryProfile: "SAMPLE_CLASS",
+      sourceNodeIds: ["domain"]
+    };
+    const result = new SemanticRequirementPlanner().plan({
+      groundingGraph: {
+        schemaVersion: "1.0",
+        nodes: [
+          { nodeId: "mention-area", kind: "MENTION", payload: { mentionId: "area", expectedKinds: ["LAYER_FEATURE"] } },
+          operation("domain", { relationType: "LAND_COVER_AT_LOCATION" })
+        ],
+        edges: []
+      },
+      groundedProductIntents: [grounded],
+      requestedProducts: ["WORLD_EVIDENCE"],
+      executionPolicy: policy
+    });
+
+    expect(result.status).toBe("PLANNED");
+    expect(result.selectedRecipeIds).toEqual(["GDPS_LAND_COVER_AT_REFERENCE"]);
+    expect(result.selectedRecipeIds).not.toContain("GDPS_GENERIC_SAMPLE_VALUE");
+    expect(result.graph?.requirements.map((entry) => entry.requirementType)).toContain("READ_LAND_COVER");
+    expect(result.graph?.requirements.map((entry) => entry.requirementType)).not.toContain("READ_GEO_PRODUCT_VALUE");
+  });
 });

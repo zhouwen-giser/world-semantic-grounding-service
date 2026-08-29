@@ -268,6 +268,7 @@ export function authorizeGdps(input: CompileInput, values: {
     previewAuthorizationRequired: true,
     allowedOperations
   };
+  input.trustedGdpsRecipeLockHash = input.gdpsRecipeAuthorization.recipeLockHash;
   input.parameterValues = {
     ...input.parameterValues,
     descriptorId,

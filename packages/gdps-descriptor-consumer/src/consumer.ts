@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   DescriptorConsumerOptions,
+  DescriptorRecipeLookup,
   DescriptorResolution,
   DescriptorResolutionEvidence,
   GdpsQueryProfile,
@@ -86,20 +87,60 @@ export class GdpsDescriptorConsumer {
   private result(
     status: DescriptorResolution["status"],
     intent: GeospatialProductSemanticIntent,
-    evidence: Omit<DescriptorResolutionEvidence, "registryHash" | "conceptCode" | "querySemantics">,
+    evidence: Omit<DescriptorResolutionEvidence, "registryHash" | "conceptCode" | "querySemantics" | "resolutionHash">,
     candidateDescriptorIds?: string[],
     grounded?: GroundedGeospatialProductIntent
   ): DescriptorResolution {
+    const evidenceCore = {
+      registryHash: this.registryHash,
+      conceptCode: intent.targetConcept,
+      querySemantics: intent.querySemantics,
+      ...evidence
+    };
     return {
       schemaVersion: "wsgs-gdps-descriptor-resolution/1.0",
       status,
       ...(grounded ? { intent: grounded } : {}),
       ...(candidateDescriptorIds ? { candidateDescriptorIds: [...candidateDescriptorIds].sort() } : {}),
       evidence: {
-        registryHash: this.registryHash,
-        conceptCode: intent.targetConcept,
-        querySemantics: intent.querySemantics,
-        ...evidence
+        ...evidenceCore,
+        resolutionHash: canonicalSha256({ status, intent: grounded ?? null, candidateDescriptorIds: candidateDescriptorIds ?? [], evidence: evidenceCore })
+      }
+    };
+  }
+
+  lookupRecipe(intent: GroundedGeospatialProductIntent, semanticPattern?: string): DescriptorRecipeLookup {
+    const recipes = this.options.recipes ?? [];
+    const profileMatches = (locked: string | null): boolean => locked === intent.queryProfile ||
+      (locked === "SAMPLE_VALUE_OR_CLASS" && ["SAMPLE_VALUE", "SAMPLE_CLASS"].includes(intent.queryProfile));
+    const policyValid = (entry: (typeof recipes)[number]): boolean =>
+      entry.schemaVersion === "wsgs-locked-gdps-recipe/2.0" && entry.previewAuthorizationRequired === true &&
+      entry.productIdPolicy === "UNBOUND_UNLESS_EXPLICIT";
+    const descriptorMatches = (entry: (typeof recipes)[number]): boolean => entry.descriptorConstraint === null ||
+      (entry.descriptorConstraint.descriptorId === intent.descriptorId &&
+        entry.descriptorConstraint.descriptorHash === intent.descriptorHash);
+    let candidates = recipes.filter((entry) => policyValid(entry) && descriptorMatches(entry) &&
+      (semanticPattern ? entry.semanticPattern === semanticPattern : true) &&
+      (entry.queryProfile === null ? Boolean(semanticPattern) : profileMatches(entry.queryProfile)));
+    const specialized = candidates.filter((entry) => entry.descriptorConstraint !== null);
+    if (specialized.length > 0) candidates = specialized;
+    candidates = [...candidates].sort((left, right) => left.recipeId.localeCompare(right.recipeId));
+    const status = candidates.length === 1 ? "MATCHED" : candidates.length === 0 ? "RECIPE_NOT_FOUND" : "AMBIGUOUS_RECIPE";
+    const evidenceCore = {
+      descriptorId: intent.descriptorId,
+      descriptorHash: intent.descriptorHash,
+      queryProfile: intent.queryProfile,
+      semanticPattern: semanticPattern ?? null,
+      checks: ["DESCRIPTOR_EXACT", "QUERY_PROFILE_EXACT", "RECIPE_POLICY_EXACT"]
+    } as const;
+    return {
+      status,
+      ...(status === "MATCHED" ? { recipe: structuredClone(candidates[0]!) } : {}),
+      candidateRecipeIds: candidates.map((entry) => entry.recipeId),
+      evidence: {
+        ...evidenceCore,
+        checks: [...evidenceCore.checks],
+        lookupHash: canonicalSha256({ status, candidateRecipeIds: candidates.map((entry) => entry.recipeId), ...evidenceCore })
       }
     };
   }
@@ -135,7 +176,7 @@ export class GdpsDescriptorConsumer {
       descriptorHash: canonicalSha256(descriptor),
       queryProfile,
       checks: ["REGISTRY_HASH", "DESCRIPTOR_PRESENT", "QUERY_SEMANTICS"]
-    } satisfies Omit<DescriptorResolutionEvidence, "registryHash" | "conceptCode" | "querySemantics">;
+    } satisfies Omit<DescriptorResolutionEvidence, "registryHash" | "conceptCode" | "querySemantics" | "resolutionHash">;
     if (!descriptor.queryProfiles.includes(queryProfile)) {
       return this.result("QUERY_PROFILE_UNSUPPORTED", intent, baseEvidence, [descriptor.descriptorId]);
     }
@@ -180,7 +221,8 @@ export class GdpsDescriptorConsumer {
       ...(intent.propertyFilters ? { propertyFilters: structuredClone(intent.propertyFilters) } : {}),
       ...(intent.platformProfile ? { platformProfile: intent.platformProfile } : {}),
       ...(intent.spatialConstraint ? { spatialConstraint: structuredClone(intent.spatialConstraint) } : {}),
-      sourceNodeIds: [...new Set(intent.sourceNodeIds ?? intent.subjectMentionIds)].sort()
+      sourceNodeIds: [...new Set(intent.sourceNodeIds ?? intent.subjectMentionIds)].sort(),
+      ...(intent.sourceSpans ? { sourceSpans: structuredClone(intent.sourceSpans) } : {})
     };
     return this.result("MATCHED", intent, {
       ...baseEvidence,

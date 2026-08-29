@@ -73,7 +73,33 @@ function classes(text: string, concept: string): string[] | undefined {
   return undefined;
 }
 
+function sourceDistanceMetres(text: string): number | undefined {
+  const match = /(?<value>\d+(?:\.\d+)?)\s*(?<unit>公里|千米|km\b|kilomet(?:er|re)s?\b|米|m\b|met(?:er|re)s?\b)/iu.exec(text);
+  if (!match?.groups) return undefined;
+  const value = Number(match.groups["value"]);
+  if (!Number.isFinite(value) || value <= 0) return undefined;
+  return /^(?:公里|千米|km|kilomet(?:er|re)s?)$/iu.test(match.groups["unit"]!) ? value * 1_000 : value;
+}
+
+function sourceSpans(
+  input: ProductIntentProjectionInput
+): NonNullable<GeospatialProductSemanticIntent["sourceSpans"]> | null {
+  const spans = input.frame.mentions.map((mention) => ({
+    sourceNodeId: mention.mentionId,
+    encoding: "UTF16_CODE_UNIT" as const,
+    start: mention.span.start,
+    end: mention.span.end,
+    surfaceText: mention.surfaceText
+  }));
+  if (spans.some((entry) => !Number.isSafeInteger(entry.start) || !Number.isSafeInteger(entry.end) ||
+      entry.start < 0 || entry.end <= entry.start || entry.end > input.originalText.length ||
+      input.originalText.slice(entry.start, entry.end) !== entry.surfaceText)) return null;
+  return spans.map(({ surfaceText: _surfaceText, ...entry }) => entry);
+}
+
 export function projectGeospatialProductIntent(input: ProductIntentProjectionInput): GeospatialProductSemanticIntent | null {
+  const anchoredSpans = sourceSpans(input);
+  if (anchoredSpans === null) return null;
   const concept = conceptFor(input.originalText, input.conceptMap.concepts);
   if (!concept) {
     if (!/(?:风险|risk)/iu.test(input.originalText) || input.frame.mentions.length === 0) return null;
@@ -86,7 +112,8 @@ export function projectGeospatialProductIntent(input: ProductIntentProjectionInp
       querySemantics: inArea ? "FIND_CLASS_AREAS" : "READ_VALUE",
       subjectMentionIds: mentionIds,
       spatialConstraint: { relation: inArea ? "WITHIN" : "AT" },
-      sourceNodeIds: mentionIds
+      sourceNodeIds: mentionIds,
+      sourceSpans: anchoredSpans
     };
   }
   const numericConstraint = numeric(input.originalText);
@@ -98,6 +125,7 @@ export function projectGeospatialProductIntent(input: ProductIntentProjectionInp
   const intersects = input.frame.spatialExpressions.find((entry) => entry.operator === "INTERSECTS");
   const product = /(?:使用|采用|use)\s*([a-z][a-z0-9-]{2,63})\s*(?:数据|data)?/iu.exec(input.originalText)?.[1]?.toLowerCase();
   const classSemantics = classes(input.originalText, concept.conceptCode);
+  const distanceM = sourceDistanceMetres(input.originalText);
   return {
     schemaVersion: "wsgs-geospatial-product-intent/1.0",
     intentId: id([concept.conceptCode, semantics, mentionIds, numericConstraint ?? null, classSemantics ?? null, product ?? null]),
@@ -107,9 +135,10 @@ export function projectGeospatialProductIntent(input: ProductIntentProjectionInp
     ...(classSemantics ? { classSemantics } : {}),
     ...(numericConstraint ? { numericConstraint } : {}),
     ...(intersects ? { spatialConstraint: { relation: "INTERSECTS" } } :
-      near ? { spatialConstraint: { relation: "NEAR", ...(near.distanceM ? { distanceM: near.distanceM } : {}) } } :
+      near ? { spatialConstraint: { relation: "NEAR", ...(distanceM ? { distanceM } : {}) } } :
       within ? { spatialConstraint: { relation: "WITHIN" } } : { spatialConstraint: { relation: "AT" } }),
     ...(product ? { explicitProductPreference: product } : {}),
-    sourceNodeIds: [...mentionIds]
+    sourceNodeIds: [...mentionIds],
+    sourceSpans: anchoredSpans
   };
 }

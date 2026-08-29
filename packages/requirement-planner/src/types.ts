@@ -146,7 +146,9 @@ export type PlannerCapabilityGapReason =
   | "PROPERTY_FILTER_UNSUPPORTED"
   | "PLATFORM_PROFILE_REQUIRED"
   | "PLATFORM_PROFILE_FORBIDDEN"
-  | "DESCRIPTOR_LOCK_DRIFT";
+  | "DESCRIPTOR_LOCK_DRIFT"
+  | "RECIPE_NOT_FOUND"
+  | "AMBIGUOUS_RECIPE";
 
 export interface PlannerCapabilityGap {
   gapId: string;

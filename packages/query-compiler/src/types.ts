@@ -93,6 +93,8 @@ export interface CompileInput {
   previewRecipeIds?: readonly QuerySemanticPattern[];
   /** Exact descriptor and recipe lock entry authorizing a GDPS PREVIEW compilation. */
   gdpsRecipeAuthorization?: GdpsRecipeAuthorization;
+  /** Independently loaded exact-byte hash of the trusted GDPS recipe-lock artifact. */
+  trustedGdpsRecipeLockHash?: `sha256:${string}`;
   /** Canonical hash loaded through the verified GOWM consumer package. */
   parameterSchemaHash: `sha256:${string}`;
   degradedPolicy?: "ALLOW" | "REJECT";

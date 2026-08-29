@@ -35,12 +35,17 @@ const digest = (character: string): `sha256:${string}` => `sha256:${character.re
 
 function lockedRecipe(entry: Parameters<typeof selectProductionSouthboundLock>[0]["previewOperations"][number]): GdpsLockedRecipe {
   return {
+    schemaVersion: "wsgs-locked-gdps-recipe/2.0",
     recipeId: "recipe-gdps-land-cover-at-reference",
     semanticPattern: "GDPS_LAND_COVER_AT_REFERENCE",
+    requirementType: "READ_LAND_COVER",
     descriptorConstraint: { descriptorId: "LAND_COVER", descriptorHash: digest("d") },
+    queryProfile: null,
     previewAuthorizationRequired: true,
-    maturity: "PREVIEW",
-    operationKeys: ["reference.resolve@1.0", "world.get-current-state@1.0", "landcover.get-class@1.0"],
+    maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+    productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+    inputBindings: {},
+    outputSemantics: { currentOnly: true },
     allowedOperations: [{
       operationId: entry.operationId,
       operationVersion: entry.operationVersion,
@@ -251,12 +256,17 @@ describe("production stage module authority boundaries", () => {
       semanticProfileHash: digest("3")
     } as const;
     const recipe: GdpsLockedRecipe = {
+      schemaVersion: "wsgs-locked-gdps-recipe/2.0",
       recipeId: "recipe-gdps-generic-sample-value",
       semanticPattern: "GDPS_GENERIC_SAMPLE_VALUE",
+      requirementType: "READ_GEO_PRODUCT_VALUE",
       descriptorConstraint: null,
+      queryProfile: "SAMPLE_VALUE_OR_CLASS",
       previewAuthorizationRequired: true,
-      maturity: "PREVIEW",
-      operationKeys: ["reference.resolve@1.0", "world.get-current-state@1.0", "geo-raster.sample@1.0"],
+      maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+      productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+      inputBindings: {},
+      outputSemantics: { currentOnly: true },
       allowedOperations: [operation]
     };
     const base = worldQuerySubmission();

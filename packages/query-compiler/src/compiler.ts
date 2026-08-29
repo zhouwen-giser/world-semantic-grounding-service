@@ -157,12 +157,18 @@ function snapshotPolicy(input: CompileInput, rule: QueryTemplateRule): QuerySnap
 function gdpsAuthorizationGap(input: CompileInput, rule: QueryTemplateRule): CompileResult | undefined {
   if (!rule.previewAuthorizationRequired) return undefined;
   const authorization = input.gdpsRecipeAuthorization;
+  const expectedRecipeId = `recipe-${rule.pattern.toLowerCase().replaceAll("_", "-")}`;
   if (!authorization || authorization.previewAuthorizationRequired !== true ||
       authorization.semanticPattern !== rule.pattern ||
+      authorization.recipeId !== expectedRecipeId ||
+      !input.trustedGdpsRecipeLockHash ||
+      authorization.recipeLockHash !== input.trustedGdpsRecipeLockHash ||
       !digestPattern.test(authorization.recipeLockHash) || !digestPattern.test(authorization.descriptorHash)) {
     return gap(input, "RECIPE_LOCK_DRIFT", {
       pattern: rule.pattern,
-      exactRecipeAuthorized: false
+      exactRecipeAuthorized: false,
+      expectedRecipeId,
+      trustedRecipeLockMatched: authorization?.recipeLockHash === input.trustedGdpsRecipeLockHash
     });
   }
   const parameterValues = input.parameterValues ?? {};
@@ -364,18 +370,35 @@ export class TypedWorldQueryCompiler {
         }
       }
       for (const requestBinding of unit.requestBindings) {
-        if (requestBinding.optional && !Object.hasOwn(input.parameterValues ?? {}, requestBinding.path.replace(/^\//u, ""))) {
+        const parameterName = requestBinding.path.replace(/^\//u, "");
+        const hasParameter = Object.hasOwn(input.parameterValues ?? {}, parameterName);
+        if (requestBinding.optional && !hasParameter) {
           continue;
         }
         if (nodeInputs[requestBinding.inputName] !== undefined) {
           throw new QueryCompilationError("TEMPLATE_INPUT_NAME_COLLISION");
         }
-        nodeInputs[requestBinding.inputName] = {
-          kind: "REQUEST_PATH",
-          port: requestBinding.port ?? schemaPort(requestPort),
-          path: requestBinding.path,
-          targetPath: requestBinding.targetPath
-        };
+        if (requestBinding.literalFromParameter) {
+          if (!hasParameter || !/^\/[A-Za-z][A-Za-z0-9_]*$/u.test(requestBinding.path)) {
+            return gap(input, "SCHEMA_MISMATCH", {
+              operationId: unit.matched.descriptor.operationId,
+              missingLiteralParameter: parameterName
+            });
+          }
+          nodeInputs[requestBinding.inputName] = {
+            kind: "LITERAL",
+            port: requestBinding.port ?? schemaPort(requestPort),
+            value: structuredClone(input.parameterValues![parameterName]),
+            targetPath: requestBinding.targetPath
+          };
+        } else {
+          nodeInputs[requestBinding.inputName] = {
+            kind: "REQUEST_PATH",
+            port: requestBinding.port ?? schemaPort(requestPort),
+            path: requestBinding.path,
+            targetPath: requestBinding.targetPath
+          };
+        }
       }
       for (const literalBinding of unit.literalBindings) {
         if (nodeInputs[literalBinding.inputName] !== undefined) {

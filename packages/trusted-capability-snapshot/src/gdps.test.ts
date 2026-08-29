@@ -4,7 +4,10 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 import {
+  buildGdpsConsumerSnapshotExtension,
   buildGdpsCapabilitySnapshot,
+  GDPS_RUNTIME_SEMANTIC_PATTERNS,
+  loadGdpsConsumerSnapshotExtension,
   loadGdpsRecipeLock,
   type GdpsLockedRecipe,
   type GdpsSnapshotCapability
@@ -42,16 +45,22 @@ function capabilities(): GdpsSnapshotCapability[] {
 function recipes(entries = capabilities()): GdpsLockedRecipe[] {
   return operationIds.slice(0, 7).concat(genericOperations).map((operationId, index) => {
     const capability = entries.find((entry) => entry.operationId === operationId)!;
+    const pattern = GDPS_RUNTIME_SEMANTIC_PATTERNS[index]!;
     return {
-      recipeId: `recipe-gdps-test-${index + 1}`,
-      semanticPattern: `GDPS_PATTERN_${index + 1}`,
+      schemaVersion: "wsgs-locked-gdps-recipe/2.0",
+      recipeId: `recipe-${pattern.toLowerCase().replaceAll("_", "-")}`,
+      semanticPattern: pattern,
+      requirementType: `READ_GDPS_TEST_${index + 1}`,
       descriptorConstraint: index < 7 ? {
         descriptorId: `PRODUCT_${index + 1}/DEFAULT`,
         descriptorHash: digest(500 + index)
       } : null,
+      queryProfile: index < 7 ? null : `QUERY_PROFILE_${index + 1}`,
       previewAuthorizationRequired: true,
-      maturity: "PREVIEW",
-      operationKeys: ["reference.resolve@1.0", `${operationId}@1.0`],
+      maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+      productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+      inputBindings: { operationId },
+      outputSemantics: { currentOnly: true },
       allowedOperations: [{
         operationId,
         operationVersion: "1.0",
@@ -82,6 +91,28 @@ function input() {
 }
 
 describe("GDPS trusted capability snapshot", () => {
+  it("builds and byte-locks the exact 30-key consumer snapshot extension", () => {
+    const extension = buildGdpsConsumerSnapshotExtension({
+      providerVersion: "0.2.1",
+      consumerLockHash: digest(901),
+      capabilityLockHash: digest(902),
+      descriptorLockHash: digest(903),
+      recipeLockHash: digest(904),
+      capabilityKeys: capabilities().map((entry) => `${entry.operationId}@${entry.operationVersion}`).reverse()
+    });
+    expect(extension.capabilityKeys).toHaveLength(30);
+    expect(extension.capabilityKeys).toEqual([...extension.capabilityKeys].sort());
+    expect(extension.capabilitySnapshotHash).toMatch(/^sha256:[0-9a-f]{64}$/u);
+    const bytes = Buffer.from(`${JSON.stringify(extension, null, 2)}\n`, "utf8");
+    const directory = mkdtempSync(join(tmpdir(), "wsgs-gdps-consumer-snapshot-"));
+    const path = join(directory, "snapshot.json");
+    writeFileSync(path, bytes);
+    expect(loadGdpsConsumerSnapshotExtension({ snapshotPath: path, expectedSha256: hashExactBytes(bytes) }))
+      .toEqual(extension);
+    expect(() => loadGdpsConsumerSnapshotExtension({ snapshotPath: path, expectedSha256: digest(999) }))
+      .toThrow("CONSUMER_SNAPSHOT_FILE_INTEGRITY_MISMATCH");
+  });
+
   it("locks 30 contracts and fourteen descriptor-driven recipes without conflating availability", () => {
     const snapshot = buildGdpsCapabilitySnapshot(input());
     expect(snapshot.capabilities).toHaveLength(30);
@@ -122,5 +153,26 @@ describe("GDPS trusted capability snapshot", () => {
     expect(loaded.lockHash).toBe(hashExactBytes(bytes));
     expect(() => loadGdpsRecipeLock({ lockPath: path, expectedSha256: digest(999) }))
       .toThrow("RECIPE_LOCK_INTEGRITY_MISMATCH");
+  });
+
+  it("rejects a fourteen-entry lock with a substituted semantic pattern", () => {
+    const value = input();
+    value.recipes[0] = { ...value.recipes[0]!, semanticPattern: "GDPS_UNAUTHORIZED_PATTERN" };
+    const lock = {
+      schemaVersion: "wsgs-gdps-recipe-lock/2.0",
+      providerId: "gdps.geospatial-products",
+      providerVersion: "0.2.1",
+      descriptorRegistryHash: value.descriptorLockHash,
+      productTypeCount: 34,
+      profileCount: 35,
+      capabilityLockHash: value.capabilityLockHash,
+      recipes: value.recipes
+    };
+    const bytes = Buffer.from(`${JSON.stringify(lock, null, 2)}\n`, "utf8");
+    const directory = mkdtempSync(join(tmpdir(), "wsgs-gdps-pattern-lock-"));
+    const path = join(directory, "recipe-lock.json");
+    writeFileSync(path, bytes);
+    expect(() => loadGdpsRecipeLock({ lockPath: path, expectedSha256: hashExactBytes(bytes) }))
+      .toThrow("RECIPE_BINDING_INVALID");
   });
 });

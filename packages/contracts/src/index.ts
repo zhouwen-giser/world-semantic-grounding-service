@@ -32,3 +32,31 @@ export type { RuntimeReadiness } from "./generated-internal-v02/runtime-readines
 export type { TrustedCapabilitySnapshot } from "./generated-internal-v02/trusted-capability-snapshot.js";
 export type { WorldQueryRequirementGraph } from "./generated-internal-v02/world-query-requirement-graph.js";
 
+export type {
+  UrnWsgsGdpsAcceptanceEvidenceMap10 as GdpsAcceptanceEvidenceMap
+} from "./generated-internal-v02/gdps/acceptance-evidence-map.js";
+export type {
+  UrnWsgsGdpsDescriptorResolution10 as GdpsDescriptorResolution
+} from "./generated-internal-v02/gdps/descriptor-resolution.js";
+export type {
+  UrnWsgsGdpsConsumerSnapshotExtension20 as GdpsConsumerSnapshotExtension
+} from "./generated-internal-v02/gdps/gdps-consumer-snapshot-extension.js";
+export type {
+  UrnWsgsGdpsHandoffIntake10 as GdpsHandoffIntake
+} from "./generated-internal-v02/gdps/gdps-handoff-intake.js";
+export type {
+  UrnWsgsGdpsSourceEvidence10 as GdpsSourceEvidence
+} from "./generated-internal-v02/gdps/gdps-source-evidence.js";
+export type {
+  UrnWsgsGdpsStatusNormalization10 as GdpsStatusNormalization
+} from "./generated-internal-v02/gdps/gdps-status-normalization.js";
+export type {
+  UrnWsgsGeospatialProductIntent10 as GeospatialProductIntentContract
+} from "./generated-internal-v02/gdps/geospatial-product-intent.js";
+export type {
+  UrnWsgsGroundedGeospatialProductIntent10 as GroundedGeospatialProductIntentContract
+} from "./generated-internal-v02/gdps/grounded-geospatial-product-intent.js";
+export type {
+  UrnWsgsLockedGdpsRecipe20 as LockedGdpsRecipeContract
+} from "./generated-internal-v02/gdps/locked-gdps-recipe.js";
+

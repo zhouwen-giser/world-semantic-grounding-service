@@ -29,6 +29,12 @@ export interface GeospatialProductSemanticIntent {
   platformProfile?: string;
   propertyFilters?: Record<string, unknown>;
   sourceNodeIds?: string[];
+  sourceSpans?: Array<{
+    sourceNodeId: string;
+    encoding: "UTF16_CODE_UNIT";
+    start: number;
+    end: number;
+  }>;
 }
 
 export interface ProductTypeDescriptor {
@@ -94,6 +100,7 @@ export interface GroundedGeospatialProductIntent {
   platformProfile?: string;
   spatialConstraint?: GeospatialProductSemanticIntent["spatialConstraint"];
   sourceNodeIds: string[];
+  sourceSpans?: GeospatialProductSemanticIntent["sourceSpans"];
 }
 
 export type DescriptorResolutionStatus =
@@ -109,6 +116,7 @@ export interface DescriptorResolutionEvidence {
   querySemantics: ProductQuerySemantics;
   queryProfile?: GdpsQueryProfile;
   checks: string[];
+  resolutionHash: `sha256:${string}`;
 }
 
 export interface DescriptorResolution {
@@ -126,6 +134,34 @@ export interface DescriptorConsumerOptions {
   vocabularies: ProductVocabularyRegistry;
   expectedProductTypeCount?: number;
   expectedDescriptorProfileCount?: number;
+  recipes?: readonly DescriptorRecipeBinding[];
+}
+
+export interface DescriptorRecipeBinding {
+  schemaVersion: "wsgs-locked-gdps-recipe/2.0";
+  recipeId: string;
+  semanticPattern: string;
+  requirementType: string;
+  descriptorConstraint: { descriptorId: string; descriptorHash: `sha256:${string}` } | null;
+  queryProfile: string | null;
+  productIdPolicy: "UNBOUND_UNLESS_EXPLICIT" | "FORBIDDEN" | "REQUIRED";
+  previewAuthorizationRequired: true;
+}
+
+export type DescriptorRecipeLookupStatus = "MATCHED" | "RECIPE_NOT_FOUND" | "AMBIGUOUS_RECIPE";
+
+export interface DescriptorRecipeLookup {
+  status: DescriptorRecipeLookupStatus;
+  recipe?: DescriptorRecipeBinding;
+  candidateRecipeIds: string[];
+  evidence: {
+    descriptorId: string;
+    descriptorHash: `sha256:${string}`;
+    queryProfile: GdpsQueryProfile;
+    semanticPattern: string | null;
+    checks: string[];
+    lookupHash: `sha256:${string}`;
+  };
 }
 
 export interface ProductIntentProjectionInput {

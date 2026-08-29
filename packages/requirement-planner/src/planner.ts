@@ -570,8 +570,19 @@ export class SemanticRequirementPlanner {
       VECTOR_NEARBY: "GDPS_GENERIC_VECTOR_NEARBY",
       VECTOR_INTERSECTS: "GDPS_GENERIC_VECTOR_INTERSECTS"
     };
+    const specializedRecipeByProductType: Readonly<Record<string, StableRecipeId>> = {
+      LAND_COVER: "GDPS_LAND_COVER_AT_REFERENCE",
+      WETLAND: "GDPS_WETLANDS_IN_AREA",
+      OBSTACLE: "GDPS_OBSTACLES_NEAR_REFERENCE",
+      UGV_TRAVERSABILITY: "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+      ELEVATION_DTM: "GDPS_ELEVATION_AT_REFERENCE",
+      ELEVATION_DSM: "GDPS_ELEVATION_AT_REFERENCE"
+    };
     for (const intent of groundedProductIntents) {
-      if (needsQuery) addRecipe(genericRecipeByProfile[intent.queryProfile], queryProduct, intent.sourceNodeIds);
+      const specialized = specializedRecipeByProductType[intent.productType];
+      if (needsQuery && (!specialized || !selected.has(specialized))) {
+        addRecipe(genericRecipeByProfile[intent.queryProfile], queryProduct, intent.sourceNodeIds);
+      }
     }
     const highGroundSources = tokenSources(signals, highGroundTokens);
     if (highGroundSources.length > 0 && needsQuery) {
