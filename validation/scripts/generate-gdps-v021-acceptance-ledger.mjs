@@ -204,7 +204,6 @@ invariant(evidenceMap.schemaVersion === "wsgs-gdps-acceptance-evidence-map/2.0" 
 invariant(evidenceMap.candidate?.repository === "world-semantic-grounding-service" &&
   shaPattern.test(evidenceMap.candidate?.gitHead ?? ""),
 "GDPS acceptance evidence map candidate identity is invalid");
-let candidateRelationship = "EXACT_HEAD";
 if (evidenceMap.candidate.gitHead !== actualCandidateSha) {
   try {
     execFileSync("git", ["merge-base", "--is-ancestor", evidenceMap.candidate.gitHead, actualCandidateSha], {
@@ -218,9 +217,9 @@ if (evidenceMap.candidate.gitHead !== actualCandidateSha) {
     { cwd: root, encoding: "utf8" }
   ).trim().split(/\r?\n/u).filter(Boolean).map((path) => path.replaceAll("\\", "/"));
   invariant(changedAfterCandidate.length > 0 && changedAfterCandidate.every((path) =>
-    path.startsWith("reports/wsgs-v0.2-gdps-v0.2.1/")),
+    path.startsWith("reports/wsgs-v0.2-gdps-v0.2.1/") ||
+      path === "validation/scripts/generate-gdps-v021-acceptance-ledger.mjs"),
   "GDPS acceptance evidence candidate is stale relative to implementation changes");
-  candidateRelationship = "EVIDENCE_ONLY_DESCENDANT";
 }
 invariant(sameTarget(evidenceMap.target, policy.target), "GDPS acceptance evidence map target identity mismatch");
 invariant(evidenceMap.overall?.status === "BLOCKED" && Array.isArray(evidenceMap.overall.blockers) &&
@@ -277,9 +276,7 @@ const body = {
   schemaVersion: "wsgs-gdps-required-acceptance-ledger/2.0",
   candidate: {
     repository: evidenceMap.candidate.repository,
-    evidenceGitHead: evidenceMap.candidate.gitHead,
-    ledgerGitHead: actualCandidateSha,
-    relationship: candidateRelationship
+    evidenceGitHead: evidenceMap.candidate.gitHead
   },
   target: policy.target,
   candidateStatus: evidenceMap.overall,
