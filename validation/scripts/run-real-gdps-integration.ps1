@@ -3,18 +3,36 @@ param(
   [string]$GatewayBaseUrl = "http://127.0.0.1:18063",
   [int]$DatabaseHostPort = 55464,
   [string]$GdpsArtifactRoot,
-  [ValidateSet("E2E-01", "E2E-02", "E2E-03", "E2E-04", "E2E-05", "E2E-06", "E2E-07")]
+  [string]$OperationLock,
+  [ValidateSet(
+    "E2E-SLOPE-POINT", "E2E-SLOPE-RANGE", "E2E-FLOOD-HIGH", "E2E-DRAINAGE-NEARBY",
+    "E2E-HIGH-GROUND", "E2E-WETLAND", "E2E-LAND-COVER", "E2E-TRAVERSABILITY-EXPLAIN",
+    "E2E-EXPLICIT-PRODUCT", "NEG-DESCRIPTOR-GAP", "NEG-DATA-GAP", "NEG-REFERENCE-AMBIGUITY",
+    "NEG-UNIT-MISMATCH", "NEG-RECIPE-DRIFT", "NEG-TRUNCATED", "NEG-CURRENTNESS",
+    "E2E-01", "E2E-02", "E2E-03", "E2E-04", "E2E-05", "E2E-06", "E2E-07"
+  )]
   [string]$GdpsCaseId,
+  [switch]$LegacyV02Evidence,
   [switch]$KeepDatabase
 )
 
 $ErrorActionPreference = "Stop"
 $databaseContainer = "wsgs-gdps-postgres"
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
-$operationLock = Join-Path $repositoryRoot "reports\wsgs-v0.2-gdps\w26-combined-southbound-operation-lock.json"
-$evidenceDirectory = Join-Path $repositoryRoot "reports\wsgs-v0.2-gdps"
+$evidenceDirectory = Join-Path $repositoryRoot $(if ($LegacyV02Evidence) {
+  "reports\wsgs-v0.2-gdps"
+} else {
+  "reports\wsgs-v0.2-gdps-v0.2.1"
+})
 if (-not $GdpsArtifactRoot) {
   $GdpsArtifactRoot = Join-Path $repositoryRoot "contracts\generated\gdps-v0.2.1"
+}
+$operationLock = if ($OperationLock) {
+  $OperationLock
+} elseif ($LegacyV02Evidence) {
+  Join-Path $repositoryRoot "reports\wsgs-v0.2-gdps\w26-combined-southbound-operation-lock.json"
+} else {
+  Join-Path $GdpsArtifactRoot "wsgs-southbound-operation-lock-v2.json"
 }
 $gdpsRecipeLock = Join-Path $GdpsArtifactRoot "wsgs-gdps-recipe-lock.json"
 $gdpsConsumerSnapshot = Join-Path $GdpsArtifactRoot "gdps-consumer-snapshot.json"
@@ -22,6 +40,10 @@ $gdpsDescriptorRegistry = Join-Path $GdpsArtifactRoot "product-type-descriptors.
 $gdpsVocabularyRegistry = Join-Path $GdpsArtifactRoot "product-vocabularies.json"
 $gdpsConceptMap = Join-Path $repositoryRoot "config\gdps-semantic-concept-map.json"
 $gdpsRecipePlan = Join-Path $repositoryRoot "config\gdps-recipe-plan.json"
+$gdpsE2eCorpus = Join-Path $repositoryRoot "config\gdps-e2e-corpus.json"
+$gdpsCapabilityLock = Join-Path $repositoryRoot "contracts\upstream\gdps-v0.2.1\GDPS_CAPABILITY_LOCK.json"
+$gdpsGatewayBindingLock = Join-Path $repositoryRoot "contracts\upstream\gdps-v0.2.1\GOWM_GATEWAY_BINDING_LOCK.json"
+$legacyGdpsCaseIds = @("E2E-01", "E2E-02", "E2E-03", "E2E-04", "E2E-05", "E2E-06", "E2E-07")
 $expectedGdpsPatterns = @(
   "GDPS_LAND_COVER_AT_REFERENCE",
   "GDPS_WETLANDS_IN_AREA",
@@ -85,6 +107,55 @@ function Get-RequiredArtifactSha256([string]$path, [string]$label) {
   return @($resolved, "sha256:$hash")
 }
 
+function Assert-V021OperationLock([string]$path) {
+  if ($LegacyV02Evidence) { return }
+  if (-not (Test-Path -LiteralPath $gdpsCapabilityLock -PathType Leaf)) {
+    throw "The authoritative GDPS v0.2.1 capability lock is missing; run the approved handoff intake first"
+  }
+  if (-not (Test-Path -LiteralPath $gdpsGatewayBindingLock -PathType Leaf)) {
+    throw "The authoritative GOWM Gateway binding lock is missing; run the approved handoff intake first"
+  }
+  try {
+    $consumerLock = Get-Content -Raw -LiteralPath $path | ConvertFrom-Json
+    $providerLock = Get-Content -Raw -LiteralPath $gdpsCapabilityLock | ConvertFrom-Json
+    $gatewayDocument = Get-Content -Raw -LiteralPath $gdpsGatewayBindingLock | ConvertFrom-Json
+  } catch {
+    throw "The GDPS v0.2.1 operation, capability, or Gateway binding lock is invalid JSON"
+  }
+  $gatewayBinding = if ($gatewayDocument.gateway) { $gatewayDocument.gateway } else { $gatewayDocument }
+  if ($consumerLock.contractCatalogRevision -ne $gatewayBinding.contractCatalogRevision -or
+      $consumerLock.semanticCatalogHash -ne $gatewayBinding.semanticCatalogHash) {
+    throw "The verified southbound lock is not bound to the approved GOWM Gateway catalog"
+  }
+  $consumerOperations = @($consumerLock.defaultOperations) + @($consumerLock.previewOperations)
+  $providerOperations = @($providerLock.operations)
+  if ($providerOperations.Count -ne 30) {
+    throw "The authoritative GDPS v0.2.1 capability lock must contain exactly 30 operations"
+  }
+  foreach ($providerOperation in $providerOperations) {
+    $matches = @($consumerOperations | Where-Object {
+      $_.operationId -eq $providerOperation.operationId -and
+      $_.operationVersion -eq $providerOperation.operationVersion
+    })
+    if ($matches.Count -ne 1) {
+      throw "The verified southbound lock does not cover the exact 30-operation GDPS v0.2.1 inventory"
+    }
+    $consumerOperation = $matches[0]
+    foreach ($field in @("inputSchemaHash", "outputSchemaHash", "semanticProfileHash", "maturity")) {
+      if ($consumerOperation.$field -ne $providerOperation.$field) {
+        throw "The verified southbound lock differs from the GDPS v0.2.1 capability lock"
+      }
+    }
+    $permissions = @($consumerOperation.requiredPermissions)
+    if ($consumerOperation.maturity -ne "PREVIEW" -or
+        $consumerOperation.snapshotSupport -notin @("NONE", "BEST_EFFORT", "CONSISTENT_AT_START", "PINNED") -or
+        $permissions.Count -eq 0 -or @($permissions | Sort-Object -Unique).Count -ne $permissions.Count -or
+        @($permissions | Where-Object { $_ -notmatch '^[a-z][a-z0-9._:-]*$' }).Count -ne 0) {
+      throw "The verified southbound lock violates the GDPS v0.2.1 consumer policy"
+    }
+  }
+}
+
 function Assert-ExactGdpsPatternPlan {
   if (-not (Test-Path -LiteralPath $gdpsRecipePlan -PathType Leaf)) {
     throw "The locked WSGS GDPS recipe plan is missing"
@@ -105,18 +176,65 @@ function Assert-ExactGdpsPatternPlan {
   }
 }
 
+function Assert-ExactGdpsCaseSelection {
+  if ($LegacyV02Evidence) {
+    if ($GdpsCaseId -and $GdpsCaseId -notin $legacyGdpsCaseIds) {
+      throw "Legacy GDPS v0.2 evidence accepts only E2E-01 through E2E-07"
+    }
+    return
+  }
+  if (-not (Test-Path -LiteralPath $gdpsE2eCorpus -PathType Leaf)) {
+    throw "The frozen GDPS v0.2.1 E2E corpus is missing"
+  }
+  try {
+    $corpus = Get-Content -Raw -LiteralPath $gdpsE2eCorpus | ConvertFrom-Json
+  } catch {
+    throw "The frozen GDPS v0.2.1 E2E corpus is invalid JSON"
+  }
+  $caseIds = @($corpus.cases | ForEach-Object { [string]$_.id })
+  if ($corpus.schemaVersion -ne "wsgs-gdps-e2e-corpus/2.0" -or $caseIds.Count -ne 16 -or
+      (@($caseIds | Sort-Object -Unique)).Count -ne 16) {
+    throw "The frozen GDPS v0.2.1 E2E corpus must contain exactly 16 unique cases"
+  }
+  if ($GdpsCaseId -and $GdpsCaseId -notin $caseIds) {
+    throw "The requested GDPS case is not present in the frozen v0.2.1 corpus"
+  }
+  $corpusHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $gdpsE2eCorpus).Hash.ToLowerInvariant()
+  if ($corpusHash -ne "b9717b9af929fbd82bf0509f9648379aae601a8a0f567ce1d520ad970a8f6525") {
+    throw "The frozen GDPS v0.2.1 E2E corpus hash has drifted"
+  }
+  $unsupportedDrivers = @("NEG-RECIPE-DRIFT", "NEG-CURRENTNESS")
+  if (-not $GdpsCaseId -or $GdpsCaseId -in $unsupportedDrivers) {
+    throw "GDPS v0.2.1 full-corpus execution is blocked until the isolated recipe-drift and two-stage currentness drivers are implemented"
+  }
+}
+
+function Get-CleanSourceCommit {
+  $dirty = @(git -C $repositoryRoot status --porcelain=v1 --untracked-files=normal)
+  if ($LASTEXITCODE -ne 0) { throw "Unable to inspect WSGS source provenance" }
+  if ($dirty.Count -ne 0) { throw "WSGS source must be clean before recording real GDPS evidence" }
+  $commit = (git -C $repositoryRoot rev-parse HEAD).Trim()
+  if ($LASTEXITCODE -ne 0 -or $commit -notmatch '^[a-f0-9]{40}$') {
+    throw "Unable to resolve exact WSGS source commit"
+  }
+  return $commit
+}
+
 if (-not $SampleRoot -or -not (Test-Path -LiteralPath $SampleRoot -PathType Container)) {
   throw "GOWM_SAMPLE_ROOT must identify the authorized Sample World checkout"
 }
 if (-not (Test-Path -LiteralPath $operationLock -PathType Leaf)) {
-  throw "The generated combined operation lock is missing"
+  throw "The verified GDPS v0.2.1 southbound operation lock is missing; pass -OperationLock or run the approved intake that produces it"
 }
 Assert-ExactGdpsPatternPlan
+Assert-ExactGdpsCaseSelection
+$sourceCommit = Get-CleanSourceCommit
 $gdpsRecipeLockArtifact = Get-RequiredArtifactSha256 $gdpsRecipeLock "The generated GDPS recipe lock"
 $gdpsConsumerSnapshotArtifact = Get-RequiredArtifactSha256 $gdpsConsumerSnapshot "The generated GDPS consumer snapshot"
 $gdpsDescriptorRegistryArtifact = Get-RequiredArtifactSha256 $gdpsDescriptorRegistry "The generated GDPS descriptor registry"
 $gdpsVocabularyRegistryArtifact = Get-RequiredArtifactSha256 $gdpsVocabularyRegistry "The generated GDPS vocabulary registry"
 $gdpsConceptMapArtifact = Get-RequiredArtifactSha256 $gdpsConceptMap "The locked WSGS GDPS semantic concept map"
+Assert-V021OperationLock $operationLock
 
 $consumerEnvironment = Join-Path $SampleRoot ".runtime\wsgs-sample\wsgs-consumer-host.env"
 $handoffDirectory = Join-Path $SampleRoot "output\wsgs-sample-handoff"
@@ -157,9 +275,14 @@ try {
   $env:DATABASE_URL = "postgresql://wsgs:${databasePassword}@127.0.0.1:${DatabaseHostPort}/wsgs"
   $env:ALLOW_REAL_DEVELOPMENT_PIPELINE_GATE = "YES"
   $env:WSGS_RUN_GDPS_INTEGRATION_CASES = "YES"
+  if ($LegacyV02Evidence) {
+    Remove-Item Env:WSGS_GDPS_E2E_CORPUS_FILE -ErrorAction SilentlyContinue
+  } else {
+    $env:WSGS_GDPS_E2E_CORPUS_FILE = $gdpsE2eCorpus
+  }
   if ($GdpsCaseId) { $env:WSGS_GDPS_CASE_ID = $GdpsCaseId }
   $env:WSGS_GATE_RUN_ID = "gdps-" + [Guid]::NewGuid().ToString("N").Substring(0, 16)
-  $env:WSGS_EVIDENCE_SOURCE_COMMIT = (git -C $repositoryRoot rev-parse HEAD).Trim()
+  $env:WSGS_EVIDENCE_SOURCE_COMMIT = $sourceCommit
   $env:WSGS_DEVELOPMENT_EVIDENCE_DIR = $evidenceDirectory
   $env:GOWM_SAMPLE_HANDOFF_DIR = $handoffDirectory
   $env:GOWM_GATEWAY_BASE_URL = $GatewayBaseUrl
@@ -210,6 +333,7 @@ try {
   Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_REQUEST_ENCRYPTION_KEY_BASE64 -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_CASE_ID -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GDPS_E2E_CORPUS_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_RECIPE_LOCK_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_RECIPE_LOCK_SHA256 -ErrorAction SilentlyContinue

@@ -6,7 +6,7 @@
       "evidence": [
         {
           "type": "REAL_NATURAL_LANGUAGE_E2E",
-          "report": "reports/wsgs-v0.2-gdps/e2e-report.json",
+          "report": "reports/wsgs-v0.2-gdps-v0.2.1/e2e-report.json",
           "caseId": "E2E-SLOPE-POINT"
         }
       ]
