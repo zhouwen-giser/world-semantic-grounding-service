@@ -169,7 +169,7 @@ export class PipelineCancelledError extends Error {
 export class PipelineDeadlineExceededError extends Error {
   readonly code = "PIPELINE_DEADLINE_EXCEEDED";
 
-  constructor() {
+  constructor(readonly stage?: PipelineStage) {
     super("The grounding pipeline deadline elapsed");
   }
 }

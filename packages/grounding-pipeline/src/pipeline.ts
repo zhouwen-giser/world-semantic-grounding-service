@@ -124,8 +124,8 @@ function statusForError(error: unknown, signal: AbortSignal): PipelineEventStatu
   return "FAILED";
 }
 
-function cancellationError(signal: AbortSignal, now: number, deadlineAt: Date): Error {
-  if (now >= deadlineAt.getTime()) return new PipelineDeadlineExceededError();
+function cancellationError(signal: AbortSignal, now: number, deadlineAt: Date, stage?: PipelineStage): Error {
+  if (now >= deadlineAt.getTime()) return new PipelineDeadlineExceededError(stage);
   if (signal.reason instanceof PipelineDeadlineExceededError) return signal.reason;
   if (signal.reason instanceof PipelineStageAttemptTimeoutError) return signal.reason;
   // Preserve the worker runtime's typed shutdown/lease reasons. The worker
@@ -252,8 +252,8 @@ export class GroundingPipeline {
     for (; nextStageIndex < plan.length; nextStageIndex += 1) {
       const stage = plan[nextStageIndex];
       if (!stage) throw new PipelineConfigurationError("Pipeline plan contains a missing stage");
-      if (signal.aborted) throw cancellationError(signal, this.#now(), input.deadlineAt);
-      if (this.#now() >= input.deadlineAt.getTime()) throw new PipelineDeadlineExceededError();
+      if (signal.aborted) throw cancellationError(signal, this.#now(), input.deadlineAt, stage);
+      if (this.#now() >= input.deadlineAt.getTime()) throw new PipelineDeadlineExceededError(stage);
       const policy = this.#policy(stage);
       assertPolicy(policy);
       const stageExecutionId = canonicalSha256({ jobId: input.fence.jobId, runFingerprint, stage });
@@ -345,7 +345,7 @@ export class GroundingPipeline {
           break;
         } catch (caught) {
           if (caught instanceof PipelineFenceRejectedError) throw caught;
-          const failure = signal.aborted ? cancellationError(signal, this.#now(), input.deadlineAt) : caught;
+          const failure = signal.aborted ? cancellationError(signal, this.#now(), input.deadlineAt, stage) : caught;
           const terminal = eventRecord({
             jobId: input.fence.jobId,
             sequence,
@@ -387,7 +387,7 @@ export class GroundingPipeline {
           if (!canRetry) throw failure;
           const remainingMs = input.deadlineAt.getTime() - this.#now();
           const backoffMs = Math.min(policy.baseBackoffMs * 2 ** (attempt - 1), 5_000);
-          if (remainingMs <= backoffMs) throw new PipelineDeadlineExceededError();
+          if (remainingMs <= backoffMs) throw new PipelineDeadlineExceededError(stage);
           await wait(backoffMs, signal);
         }
       }
@@ -415,15 +415,21 @@ export class GroundingPipeline {
     policy: PipelineStagePolicy;
   }): Promise<unknown> {
     const remainingMs = args.input.deadlineAt.getTime() - this.#now();
-    if (remainingMs <= 0) throw new PipelineDeadlineExceededError();
+    if (remainingMs <= 0) throw new PipelineDeadlineExceededError(args.stage);
     const timeoutIsDeadline = remainingMs <= args.policy.attemptTimeoutMs;
     const timeoutMs = Math.min(remainingMs, args.policy.attemptTimeoutMs);
     const controller = new AbortController();
-    const forwardAbort = (): void => controller.abort(cancellationError(args.signal, this.#now(), args.input.deadlineAt));
+    const forwardAbort = (): void => controller.abort(
+      cancellationError(args.signal, this.#now(), args.input.deadlineAt, args.stage)
+    );
     if (args.signal.aborted) forwardAbort();
     else args.signal.addEventListener("abort", forwardAbort, { once: true });
     const timer = setTimeout(() => {
-      controller.abort(timeoutIsDeadline ? new PipelineDeadlineExceededError() : new PipelineStageAttemptTimeoutError(args.stage));
+      controller.abort(
+        timeoutIsDeadline
+          ? new PipelineDeadlineExceededError(args.stage)
+          : new PipelineStageAttemptTimeoutError(args.stage)
+      );
     }, timeoutMs);
 
     const execution = Promise.resolve(this.#executor.execute(args.stage, {

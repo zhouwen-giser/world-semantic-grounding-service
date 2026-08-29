@@ -427,7 +427,8 @@ function readinessIdentity(): GroundingIdentityV2 {
 async function liveAuthority(
   value: Runtime,
   force = false,
-  principal: GroundingIdentityV2 = readinessIdentity()
+  principal: GroundingIdentityV2 = readinessIdentity(),
+  probeModel = true
 ): Promise<LiveAuthority> {
   const now = Date.now();
   if (!force && cachedAuthority && cachedAuthority.expiresAt > now) return cachedAuthority.value;
@@ -489,7 +490,7 @@ async function liveAuthority(
   });
   if (!validation.requiredReady) throw new ProductionStageModuleError("STABLE_GOWM_OPERATIONS_NOT_READY");
   await value.signer.ready();
-  if (value.modelPolicy === "MODEL_REQUIRED") {
+  if (probeModel && value.modelPolicy === "MODEL_REQUIRED") {
     const probeText = "2号车在哪里？";
     const probe = await value.model.parse({ sourceText: probeText, locale: "zh-CN" });
     stabilizeSemanticFrame(probe.frame, probeText);
@@ -563,7 +564,12 @@ export async function checkReadinessForCurrentEnvironment(
 export async function captureAdmissionSnapshot(context: {
   identity: GroundingIdentityV2;
 }): Promise<ProductionAdmissionSnapshot> {
-  return (await liveAuthority(readinessRuntime(), true, context.identity)).admission;
+  const value = readinessRuntime();
+  // Keep the fail-closed model readiness probe on its short-lived readiness
+  // cache, then refresh caller-filtered GOWM authority without parsing the
+  // same model prompt a second time for every admitted business request.
+  await liveAuthority(value);
+  return (await liveAuthority(value, true, context.identity, false)).admission;
 }
 
 function persistedAuthority(context: PipelineStageContext, gateway: GowmGatewayClient): PersistedAuthority {
@@ -871,7 +877,7 @@ export function normalizeValidation(value: unknown): ReferenceValidationProduct[
       return {
         referenceKey: referenceKey(entry["referenceKey"]),
         status,
-        revalidationRequired: usable !== "YES" || snapshot !== "CURRENT",
+        revalidationRequired: status !== "VALID" || usable !== "YES",
         warnings
       };
     }
@@ -884,6 +890,33 @@ export function normalizeValidation(value: unknown): ReferenceValidationProduct[
         : []
     };
   });
+}
+
+export function applyReferenceValidation(
+  product: ReferenceProduct,
+  validation: ReferenceValidationProduct,
+  evaluatedAt: string,
+  validityTtlMs: number
+): ReferenceProduct {
+  const timestamp = Date.parse(evaluatedAt);
+  if (!Number.isFinite(timestamp) || !Number.isInteger(validityTtlMs) || validityTtlMs < 1) {
+    throw new ProductionStageModuleError("REFERENCE_VALIDATION_LEASE_INVALID");
+  }
+  const usable = validation.status === "VALID" && !validation.revalidationRequired;
+  const { validUntil: _priorValidity, ...withoutPriorValidity } = product;
+  return {
+    ...withoutPriorValidity,
+    sourceOperation: "VALIDATE_REFERENCES",
+    revalidationRequired: !usable,
+    ...(usable ? { validUntil: new Date(timestamp + validityTtlMs).toISOString() } : {}),
+    safeSummary: {
+      ...product.safeSummary,
+      validationStatus: validation.status,
+      validationSourceOperation: "reference.validate",
+      validationEvaluatedAt: new Date(timestamp).toISOString(),
+      validitySemantics: "GOWM_REFERENCE_VALIDATE_BOUNDED_LEASE"
+    }
+  };
 }
 
 function requestParts(context: PipelineStageContext): {
@@ -1678,6 +1711,8 @@ export async function createPipelineStageExecutor(
       const lock = operationLock(authority, "reference.validate");
       const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", references }, "reference-validate");
       const validations = normalizeValidation(envelopeValue(envelope, lock));
+      const evaluatedAt = new Date().toISOString();
+      const validityTtlMs = environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000);
       const result = resolved ?? {
         mentions: [],
         referenceProducts: known.map((entry, index): ReferenceProduct => ({
@@ -1698,7 +1733,7 @@ export async function createPipelineStageExecutor(
         referenceProducts: result.referenceProducts.map((product) => {
           const validation = byKey.get(JSON.stringify(product.referenceKey));
           if (!validation) throw new ProductionStageModuleError("REFERENCE_VALIDATION_MISSING");
-          return { ...product, revalidationRequired: validation.status !== "VALID" || validation.revalidationRequired };
+          return applyReferenceValidation(product, validation, evaluatedAt, validityTtlMs);
         })
       };
     },

@@ -19,7 +19,7 @@ export interface ReferenceProduct {
   matchedBy: string;
   matchScore: number;
   stateConfidence?: number;
-  sourceOperation: "reference.resolve";
+  sourceOperation: "reference.resolve" | "VALIDATE_REFERENCES";
   sourceWorldVersion: number;
   validUntil?: string;
   revalidationRequired: boolean;
