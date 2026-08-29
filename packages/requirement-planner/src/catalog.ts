@@ -128,5 +128,61 @@ export const stableRecipeCatalog = [
     requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
     defaultSnapshotPolicy: "BEST_EFFORT",
     allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_GENERIC_SAMPLE_VALUE",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_CURRENT_STATE", "READ_GEO_PRODUCT_VALUE"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_GENERIC_PROFILE_VALUE",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_GEOMETRY", "READ_GEO_PRODUCT_PROFILE"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_GENERIC_FIND_CLASS",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_GEOMETRY", "FIND_GEO_PRODUCT_CLASS_AREAS"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_GENERIC_FIND_RANGE",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_GEOMETRY", "FIND_GEO_PRODUCT_VALUE_RANGE_AREAS"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_GENERIC_VECTOR_IN_AREA",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_GEOMETRY", "FIND_GEO_VECTOR_FEATURES_IN_AREA"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_GENERIC_VECTOR_NEARBY",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_CURRENT_STATE", "FIND_GEO_VECTOR_FEATURES_NEARBY"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
+  },
+  {
+    recipeId: "GDPS_GENERIC_VECTOR_INTERSECTS",
+    maturity: "PREVIEW",
+    requirements: ["RESOLVE_REFERENCE", "READ_GEOMETRY", "FIND_GEO_VECTOR_INTERSECTIONS"],
+    requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
   }
 ] as const satisfies readonly StableRequirementRecipe[];

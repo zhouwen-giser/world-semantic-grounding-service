@@ -16,15 +16,35 @@ export interface GdpsSourceEvidence {
   readonly normalizedStatus: GdpsGroundingStatus;
   readonly reasonCode?: string;
   readonly gapKind?: GdpsGapKind;
+  readonly recipeId?: string;
+  readonly recipeLockHash?: `sha256:${string}`;
+  readonly descriptorId?: string;
+  readonly descriptorHash?: `sha256:${string}`;
+  readonly productType?: string;
+  readonly productProfile?: string;
+  readonly queryProfile?: string;
   readonly productId?: string;
   readonly contentHash?: `sha256:${string}`;
   readonly truncated: boolean;
   readonly emptyCurrentResult: boolean;
   readonly dataSnapshot?: Readonly<Record<string, unknown>>;
+  readonly computeSnapshot?: Readonly<Record<string, unknown>>;
   readonly receiptIds: readonly string[];
+  readonly evidenceIds: readonly string[];
   readonly quality?: unknown;
   readonly coverage?: unknown;
+  readonly evidence?: unknown;
   readonly warnings: readonly string[];
+}
+
+export interface GdpsEvidenceContext {
+  readonly recipeId: string;
+  readonly recipeLockHash: `sha256:${string}`;
+  readonly descriptorId: string;
+  readonly descriptorHash: `sha256:${string}`;
+  readonly productType: string;
+  readonly productProfile: string;
+  readonly queryProfile: string;
 }
 
 export type GdpsReplayMode = "PINNED" | "STRICT" | "BEST_EFFORT";
@@ -125,6 +145,10 @@ function normalizedStatus(
   if (code === "PRODUCT_COVERAGE_INSUFFICIENT") {
     return { normalizedStatus: "UNRESOLVED", gapKind: "COVERAGE_GAP" };
   }
+  if (["OPERATION_UNAVAILABLE", "RECIPE_LOCK_DRIFT", "DESCRIPTOR_LOCK_DRIFT", "QUERY_PROFILE_UNSUPPORTED"]
+      .includes(code ?? "")) {
+    return { normalizedStatus: "UNRESOLVED", gapKind: "CAPABILITY_GAP" };
+  }
   if (code === "PRODUCT_NOT_AVAILABLE" || upstreamStatus === "NO_DATA") {
     return { normalizedStatus: "UNRESOLVED", gapKind: "DATA_GAP" };
   }
@@ -138,8 +162,12 @@ function isEmptyFeatureCollection(value: Record<string, unknown>): boolean {
   return value["type"] === "FeatureCollection" && Array.isArray(value["features"]) && value["features"].length === 0;
 }
 
-export function normalizeGdpsSourceEvidence(envelopeValue: unknown): GdpsSourceEvidence {
+export function normalizeGdpsSourceEvidence(
+  envelopeValue: unknown,
+  context?: GdpsEvidenceContext
+): GdpsSourceEvidence {
   assertNoProductVersion(envelopeValue);
+  assertNoProductVersion(context);
   const envelope = object(envelopeValue, "GDPS_ENVELOPE_INVALID");
   const operation = object(envelope["operation"], "GDPS_OPERATION_INVALID");
   const operationId = text(operation["operationId"], "GDPS_OPERATION_ID_INVALID");
@@ -160,8 +188,20 @@ export function normalizeGdpsSourceEvidence(envelopeValue: unknown): GdpsSourceE
   if (["COMPLETED", "PARTIAL"].includes(status.normalizedStatus) && (!productId || !contentHash)) {
     throw new Error("GDPS_CURRENT_SOURCE_IDENTITY_REQUIRED");
   }
+  if (context && (![context.recipeLockHash, context.descriptorHash].every((value) => digestPattern.test(value)) ||
+      !context.recipeId || !context.descriptorId || !context.productType || !context.productProfile || !context.queryProfile)) {
+    throw new Error("GDPS_EVIDENCE_CONTEXT_INVALID");
+  }
   const receipts = Array.isArray(envelope["receipts"]) ? envelope["receipts"] : [];
   const receiptIds = receipts.map((entry) => text(object(entry, "GDPS_RECEIPT_INVALID")["receiptId"], "GDPS_RECEIPT_ID_INVALID"));
+  const evidenceReferences = Array.isArray(envelope["evidenceReferences"])
+    ? envelope["evidenceReferences"]
+    : Array.isArray(envelope["evidence"]) ? envelope["evidence"] : [];
+  const evidenceIds = evidenceReferences.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+    const evidenceId = (entry as Record<string, unknown>)["evidenceId"];
+    return typeof evidenceId === "string" && evidenceId ? [evidenceId] : [];
+  });
   const warnings = Array.isArray(envelope["warnings"])
     ? envelope["warnings"].map((entry) => text(entry, "GDPS_WARNING_INVALID"))
     : [];
@@ -173,6 +213,15 @@ export function normalizeGdpsSourceEvidence(envelopeValue: unknown): GdpsSourceE
     normalizedStatus: status.normalizedStatus,
     ...(code === undefined ? {} : { reasonCode: code }),
     ...(status.gapKind === undefined ? {} : { gapKind: status.gapKind }),
+    ...(context ? {
+      recipeId: context.recipeId,
+      recipeLockHash: context.recipeLockHash,
+      descriptorId: context.descriptorId,
+      descriptorHash: context.descriptorHash,
+      productType: context.productType,
+      productProfile: context.productProfile,
+      queryProfile: context.queryProfile
+    } : {}),
     ...(productId === undefined ? {} : { productId }),
     ...(contentHash === undefined ? {} : { contentHash: contentHash as `sha256:${string}` }),
     truncated,
@@ -180,9 +229,16 @@ export function normalizeGdpsSourceEvidence(envelopeValue: unknown): GdpsSourceE
     ...(envelope["dataSnapshot"] === undefined
       ? {}
       : { dataSnapshot: structuredClone(object(envelope["dataSnapshot"], "GDPS_DATA_SNAPSHOT_INVALID")) }),
+    ...(envelope["computeSnapshot"] === undefined
+      ? {}
+      : { computeSnapshot: structuredClone(object(envelope["computeSnapshot"], "GDPS_COMPUTE_SNAPSHOT_INVALID")) }),
     receiptIds: Object.freeze([...new Set(receiptIds)].sort()),
+    evidenceIds: Object.freeze([...new Set(evidenceIds)].sort()),
     ...(value["quality"] === undefined ? {} : { quality: structuredClone(value["quality"]) }),
     ...(value["coverage"] === undefined ? {} : { coverage: structuredClone(value["coverage"]) }),
+    ...(value["evidence"] === undefined && envelope["evidence"] === undefined
+      ? {}
+      : { evidence: structuredClone(value["evidence"] ?? envelope["evidence"]) }),
     warnings: Object.freeze([...new Set(warnings)].sort())
   });
 }

@@ -1,4 +1,5 @@
 import type { GroundingGraph } from "@wsgs/contracts";
+import type { GroundedGeospatialProductIntent } from "@wsgs/gdps-descriptor-consumer";
 
 export const requirementTypes = [
   "RESOLVE_REFERENCE",
@@ -22,6 +23,13 @@ export const requirementTypes = [
   "FIND_OBSTACLES",
   "FIND_BLOCKED_AREAS",
   "EXPLAIN_TRAVERSABILITY",
+  "READ_GEO_PRODUCT_VALUE",
+  "READ_GEO_PRODUCT_PROFILE",
+  "FIND_GEO_PRODUCT_CLASS_AREAS",
+  "FIND_GEO_PRODUCT_VALUE_RANGE_AREAS",
+  "FIND_GEO_VECTOR_FEATURES_IN_AREA",
+  "FIND_GEO_VECTOR_FEATURES_NEARBY",
+  "FIND_GEO_VECTOR_INTERSECTIONS",
   "EXACT_VERIFY",
   "VALIDATE_RESULT"
 ] as const;
@@ -103,7 +111,14 @@ export const stableRecipeIds = [
   "GDPS_BLOCKED_AREAS_IN_AREA",
   "GDPS_HIGH_GROUND_IN_AREA",
   "GDPS_ELEVATION_AT_REFERENCE",
-  "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE"
+  "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+  "GDPS_GENERIC_SAMPLE_VALUE",
+  "GDPS_GENERIC_PROFILE_VALUE",
+  "GDPS_GENERIC_FIND_CLASS",
+  "GDPS_GENERIC_FIND_RANGE",
+  "GDPS_GENERIC_VECTOR_IN_AREA",
+  "GDPS_GENERIC_VECTOR_NEARBY",
+  "GDPS_GENERIC_VECTOR_INTERSECTS"
 ] as const;
 
 export type StableRecipeId = (typeof stableRecipeIds)[number];
@@ -121,7 +136,17 @@ export type PlannerCapabilityGapReason =
   | "UNSUPPORTED_EXPRESSION"
   | "TERRAIN_CAPABILITY_REQUIRED"
   | "VISIBILITY_CAPABILITY_REQUIRED"
-  | "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED";
+  | "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED"
+  | "AMBIGUOUS"
+  | "DESCRIPTOR_NOT_FOUND"
+  | "QUERY_PROFILE_UNSUPPORTED"
+  | "CLASS_CODE_UNSUPPORTED"
+  | "VALUE_RANGE_INVALID"
+  | "UNIT_MISMATCH"
+  | "PROPERTY_FILTER_UNSUPPORTED"
+  | "PLATFORM_PROFILE_REQUIRED"
+  | "PLATFORM_PROFILE_FORBIDDEN"
+  | "DESCRIPTOR_LOCK_DRIFT";
 
 export interface PlannerCapabilityGap {
   gapId: string;
@@ -134,6 +159,7 @@ export interface PlannerCapabilityGap {
 
 export interface RequirementPlannerInput {
   groundingGraph: GroundingGraph;
+  groundedProductIntents?: readonly GroundedGeospatialProductIntent[];
   requestedProducts: readonly string[];
   executionPolicy: WorldQueryExecutionPolicy;
 }

@@ -31,7 +31,30 @@ export type QuerySemanticPattern =
   | "GDPS_HIGH_GROUND_IN_AREA"
   | "GDPS_ELEVATION_AT_REFERENCE"
   | "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE"
+  | "GDPS_GENERIC_SAMPLE_VALUE"
+  | "GDPS_GENERIC_PROFILE_VALUE"
+  | "GDPS_GENERIC_FIND_CLASS"
+  | "GDPS_GENERIC_FIND_RANGE"
+  | "GDPS_GENERIC_VECTOR_IN_AREA"
+  | "GDPS_GENERIC_VECTOR_NEARBY"
+  | "GDPS_GENERIC_VECTOR_INTERSECTS"
   | "TERRAIN_VISIBILITY";
+
+export interface GdpsRecipeAuthorization {
+  recipeId: string;
+  semanticPattern: QuerySemanticPattern;
+  recipeLockHash: `sha256:${string}`;
+  descriptorId: string;
+  descriptorHash: `sha256:${string}`;
+  previewAuthorizationRequired: true;
+  allowedOperations: ReadonlyArray<{
+    operationId: string;
+    operationVersion: string;
+    inputSchemaHash: `sha256:${string}`;
+    outputSchemaHash: `sha256:${string}`;
+    semanticProfileHash: `sha256:${string}`;
+  }>;
+}
 
 export interface ExecutionBudgets {
   maximumNodes: number;
@@ -66,8 +89,12 @@ export interface CompileInput {
   operationLocks: OperationLock[];
   availability: OperationAvailability[];
   maturityPolicy: MaturityPolicy;
-  /** Exact PREVIEW recipes authorized for this compilation; a global flag alone is insufficient for GDPS. */
+  /** @deprecated Use gdpsRecipeAuthorization; names alone do not authorize PREVIEW operations. */
   previewRecipeIds?: readonly QuerySemanticPattern[];
+  /** Exact descriptor and recipe lock entry authorizing a GDPS PREVIEW compilation. */
+  gdpsRecipeAuthorization?: GdpsRecipeAuthorization;
+  /** Canonical hash loaded through the verified GOWM consumer package. */
+  parameterSchemaHash: `sha256:${string}`;
   degradedPolicy?: "ALLOW" | "REJECT";
   snapshotPolicy?: QuerySnapshotPolicy;
   observedAt?: string;
@@ -149,6 +176,8 @@ export type CapabilityGapReason =
   | "EXACT_VERIFIER_REQUIRED"
   | "EXACT_VERIFIER_UNAVAILABLE"
   | "UNSUPPORTED_EXPRESSION"
+  | "RECIPE_LOCK_DRIFT"
+  | "DESCRIPTOR_LOCK_DRIFT"
   | "BUDGET_EXCEEDED";
 
 export interface CapabilityGap {

@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "wsgs-gdps-recipe-plan/2.0",
+  "consumerCapabilityInventory": [
+    "geo-product.get",
+    "geo-product.search",
+    "geo-product.check-current",
+    "elevation.sample",
+    "elevation.profile",
+    "elevation.sample-surface",
+    "terrain.get-class",
+    "terrain.find-by-class",
+    "terrain.find-high-ground",
+    "terrain.find-depressions",
+    "landcover.get-class",
+    "landcover.find-by-class",
+    "hydrology.find-water",
+    "hydrology.find-wetlands",
+    "surface-material.get",
+    "surface-material.find-by-class",
+    "obstacle.find-buildings",
+    "obstacle.find-nearby",
+    "obstacle.find-intersections",
+    "traversability.get",
+    "traversability.find-passable",
+    "traversability.find-blocked",
+    "traversability.explain",
+    "geo-raster.sample",
+    "geo-raster.profile",
+    "geo-raster.find-by-class",
+    "geo-raster.find-by-range",
+    "geo-vector.find-in-area",
+    "geo-vector.find-nearby",
+    "geo-vector.find-intersections"
+  ],
+  "activeRuntimeRecipes": [
+    {
+      "recipeId": "recipe-gdps-land-cover-at-reference",
+      "semanticPattern": "GDPS_LAND_COVER_AT_REFERENCE",
+      "operationId": "landcover.get-class",
+      "requirementType": null,
+      "queryProfile": null,
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-wetlands-in-area",
+      "semanticPattern": "GDPS_WETLANDS_IN_AREA",
+      "operationId": "hydrology.find-wetlands",
+      "requirementType": null,
+      "queryProfile": null,
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-obstacles-near-reference",
+      "semanticPattern": "GDPS_OBSTACLES_NEAR_REFERENCE",
+      "operationId": "obstacle.find-nearby",
+      "requirementType": null,
+      "queryProfile": null,
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-blocked-areas-in-area",
+      "semanticPattern": "GDPS_BLOCKED_AREAS_IN_AREA",
+      "operationId": "traversability.find-blocked",
+      "requirementType": null,
+      "queryProfile": null,
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-high-ground-in-area",
+      "semanticPattern": "GDPS_HIGH_GROUND_IN_AREA",
+      "operationId": "terrain.find-high-ground",
+      "requirementType": null,
+      "queryProfile": null,
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-elevation-at-reference",
+      "semanticPattern": "GDPS_ELEVATION_AT_REFERENCE",
+      "operationId": "elevation.sample",
+      "requirementType": null,
+      "queryProfile": null,
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-traversability-explain-at-reference",
+      "semanticPattern": "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+      "operationId": "traversability.explain",
+      "requirementType": null,
+      "queryProfile": null,
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-generic-sample-value",
+      "semanticPattern": "GDPS_GENERIC_SAMPLE_VALUE",
+      "operationId": "geo-raster.sample",
+      "requirementType": "READ_GEO_PRODUCT_VALUE",
+      "queryProfile": "SAMPLE_VALUE_OR_CLASS",
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-generic-profile-value",
+      "semanticPattern": "GDPS_GENERIC_PROFILE_VALUE",
+      "operationId": "geo-raster.profile",
+      "requirementType": "READ_GEO_PRODUCT_PROFILE",
+      "queryProfile": "PROFILE_VALUE",
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-generic-find-class",
+      "semanticPattern": "GDPS_GENERIC_FIND_CLASS",
+      "operationId": "geo-raster.find-by-class",
+      "requirementType": "FIND_GEO_PRODUCT_CLASS_AREAS",
+      "queryProfile": "FIND_CLASS",
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-generic-find-range",
+      "semanticPattern": "GDPS_GENERIC_FIND_RANGE",
+      "operationId": "geo-raster.find-by-range",
+      "requirementType": "FIND_GEO_PRODUCT_VALUE_RANGE_AREAS",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-generic-vector-in-area",
+      "semanticPattern": "GDPS_GENERIC_VECTOR_IN_AREA",
+      "operationId": "geo-vector.find-in-area",
+      "requirementType": "FIND_GEO_VECTOR_FEATURES_IN_AREA",
+      "queryProfile": "VECTOR_IN_AREA",
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-generic-vector-nearby",
+      "semanticPattern": "GDPS_GENERIC_VECTOR_NEARBY",
+      "operationId": "geo-vector.find-nearby",
+      "requirementType": "FIND_GEO_VECTOR_FEATURES_NEARBY",
+      "queryProfile": "VECTOR_NEARBY",
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    },
+    {
+      "recipeId": "recipe-gdps-generic-vector-intersects",
+      "semanticPattern": "GDPS_GENERIC_VECTOR_INTERSECTS",
+      "operationId": "geo-vector.find-intersections",
+      "requirementType": "FIND_GEO_VECTOR_INTERSECTIONS",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "previewAuthorizationRequired": true,
+      "productIdPolicy": "UNBOUND_UNLESS_EXPLICIT",
+      "requiresExactHashes": true
+    }
+  ]
+}

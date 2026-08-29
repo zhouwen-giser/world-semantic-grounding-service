@@ -7,6 +7,7 @@ import addFormatsModule from "ajv-formats";
 import type { DeterministicParseResult } from "@wsgs/deterministic-parser";
 import { canonicalSha256, type PipelineStageContext } from "@wsgs/grounding-pipeline";
 import { stableRecipeIds } from "@wsgs/requirement-planner";
+import type { GdpsLockedRecipe } from "@wsgs/trusted-capability-snapshot";
 import type { Pool } from "pg";
 import { describe, expect, it } from "vitest";
 
@@ -20,6 +21,7 @@ import {
   canonicalLfSha256,
   computeWorldQueryNodeRequestHashes,
   mergeKnownReferenceProducts,
+  normalizeGdpsWorldQuerySources,
   normalizeReferenceResolution,
   normalizeValidation,
   oversizedEvidencePayload,
@@ -30,6 +32,24 @@ import {
 } from "./production-module.js";
 
 const digest = (character: string): `sha256:${string}` => `sha256:${character.repeat(64)}`;
+
+function lockedRecipe(entry: Parameters<typeof selectProductionSouthboundLock>[0]["previewOperations"][number]): GdpsLockedRecipe {
+  return {
+    recipeId: "recipe-gdps-land-cover-at-reference",
+    semanticPattern: "GDPS_LAND_COVER_AT_REFERENCE",
+    descriptorConstraint: { descriptorId: "LAND_COVER", descriptorHash: digest("d") },
+    previewAuthorizationRequired: true,
+    maturity: "PREVIEW",
+    operationKeys: ["reference.resolve@1.0", "world.get-current-state@1.0", "landcover.get-class@1.0"],
+    allowedOperations: [{
+      operationId: entry.operationId,
+      operationVersion: entry.operationVersion,
+      inputSchemaHash: entry.inputSchemaHash,
+      outputSchemaHash: entry.outputSchemaHash,
+      semanticProfileHash: entry.semanticProfileHash
+    }]
+  };
+}
 
 function nearbyPlanning(distanceMm: number | null = 1_000_000): Parameters<typeof buildRecipeOperationInput>[0] {
   const resolveRequirement = {
@@ -203,7 +223,7 @@ describe("production stage module authority boundaries", () => {
       maturity: "PREVIEW"
     });
 
-    const selected = selectProductionSouthboundLock(lock, ["GDPS_LAND_COVER_AT_REFERENCE"]);
+    const selected = selectProductionSouthboundLock(lock, [lockedRecipe(lock.previewOperations.at(-1)!)]);
 
     expect(selected.previewOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`))
       .toEqual(["landcover.get-class@1.0"]);
@@ -217,8 +237,84 @@ describe("production stage module authority boundaries", () => {
       "wsgs-southbound-operation-lock-v2.json"
     ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
 
-    expect(() => selectProductionSouthboundLock(lock, ["GDPS_LAND_COVER_AT_REFERENCE"]))
+    const missing = lockedRecipe({ ...lock.previewOperations[0]!, operationId: "landcover.get-class", operationVersion: "1.0" });
+    expect(() => selectProductionSouthboundLock(lock, [missing]))
       .toThrow("PRODUCTION_PREVIEW_OPERATION_LOCK_MISSING_landcover.get-class");
+  });
+
+  it("normalizes a GDPS world-query node with the exact recipe and descriptor authority", () => {
+    const operation = {
+      operationId: "geo-raster.sample",
+      operationVersion: "1.0",
+      inputSchemaHash: digest("1"),
+      outputSchemaHash: digest("2"),
+      semanticProfileHash: digest("3")
+    } as const;
+    const recipe: GdpsLockedRecipe = {
+      recipeId: "recipe-gdps-generic-sample-value",
+      semanticPattern: "GDPS_GENERIC_SAMPLE_VALUE",
+      descriptorConstraint: null,
+      previewAuthorizationRequired: true,
+      maturity: "PREVIEW",
+      operationKeys: ["reference.resolve@1.0", "world.get-current-state@1.0", "geo-raster.sample@1.0"],
+      allowedOperations: [operation]
+    };
+    const base = worldQuerySubmission();
+    const submission = {
+      ...base,
+      plan: {
+        ...base.plan,
+        nodes: [{ ...base.plan.nodes[0]!, nodeId: "Node_3", operation }]
+      },
+      parameters: {
+        ...base.parameters,
+        descriptorId: "SLOPE/DEGREE",
+        descriptorHash: digest("4"),
+        productType: "SLOPE",
+        productProfile: "DEGREE",
+        queryProfile: "SAMPLE_VALUE"
+      }
+    };
+    const source = normalizeGdpsWorldQuerySources(submission, {
+      nodes: [{
+        nodeId: "Node_3",
+        result: {
+          operation: { operationId: operation.operationId, operationVersion: operation.operationVersion },
+          status: "COMPLETED",
+          output: { value: { productId: "slope-main", contentHash: digest("5"), truncated: false } },
+          dataSnapshot: { digest: digest("6") },
+          computeSnapshot: { digest: digest("7") },
+          receipts: [{ receiptId: "gdps-receipt-1" }],
+          evidenceReferences: [{ evidenceId: "gdps-evidence-1" }]
+        }
+      }]
+    }, {
+      lock: {
+        schemaVersion: "wsgs-gdps-recipe-lock/2.0",
+        providerId: "gdps.geospatial-products",
+        providerVersion: "0.2.1",
+        descriptorRegistryHash: digest("8"),
+        productTypeCount: 34,
+        profileCount: 35,
+        capabilityLockHash: digest("9"),
+        recipes: [recipe]
+      },
+      lockHash: digest("a")
+    });
+    expect(source).toMatchObject([{
+      nodeId: "Node_3",
+      evidence: {
+        recipeId: recipe.recipeId,
+        recipeLockHash: digest("a"),
+        descriptorId: "SLOPE/DEGREE",
+        descriptorHash: digest("4"),
+        productId: "slope-main",
+        contentHash: digest("5"),
+        normalizedStatus: "COMPLETED",
+        receiptIds: ["gdps-receipt-1"],
+        evidenceIds: ["gdps-evidence-1"]
+      }
+    }]);
   });
 
   it("publishes candidate rank without leaking provider topology", () => {

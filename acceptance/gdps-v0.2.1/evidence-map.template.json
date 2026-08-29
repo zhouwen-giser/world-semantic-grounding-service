@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "wsgs-gdps-acceptance-evidence-map/1.0",
+  "entries": [
+    {
+      "acceptanceId": "W44-E2E-01",
+      "evidence": [
+        {
+          "type": "REAL_NATURAL_LANGUAGE_E2E",
+          "report": "reports/wsgs-v0.2-gdps/e2e-report.json",
+          "caseId": "E2E-SLOPE-POINT"
+        }
+      ]
+    }
+  ],
+  "allowedEvidenceTypes": [
+    "SOURCE",
+    "SCHEMA",
+    "STATIC_GUARD",
+    "UNIT",
+    "REAL_POSTGRES",
+    "GOWM_CONFORMANCE",
+    "RUNNING_GOWM_GATEWAY",
+    "REAL_NATURAL_LANGUAGE_E2E",
+    "CURRENTNESS",
+    "REPORT_ASSERTION",
+    "GIT"
+  ]
+}

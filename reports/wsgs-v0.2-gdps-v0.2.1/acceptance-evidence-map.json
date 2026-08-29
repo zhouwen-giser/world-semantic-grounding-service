@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "wsgs-gdps-acceptance-evidence-map/1.0",
+  "entries": [
+    {
+      "acceptanceId": "W33-020",
+      "status": "BLOCKED",
+      "reason": "GDPS v0.2.1 handoff is missing three required authority files; real completion is forbidden until exact intake succeeds.",
+      "evidence": [
+        "validation/scripts/intake-gdps-v021-handoff.mjs",
+        "WSGS_GDPS_V021_HANDOFF_NOT_READY missing=GDPS_PRODUCT_DESCRIPTOR_LOCK.json,GOWM_GATEWAY_BINDING_LOCK.json,CHECKSUMS.json"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import Ajv2020Module from "ajv/dist/2020.js";
@@ -54,6 +55,39 @@ export class OperationalGowmLockError extends Error {
     super(message);
     this.name = "OperationalGowmLockError";
   }
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+/** Verifies the frozen consumer manifest before returning the canonical parameter-schema hash. */
+export function loadWorldQueryParameterSchemaHash(): `sha256:${string}` {
+  const bundleRoot = fileURLToPath(new URL(
+    "../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/",
+    import.meta.url
+  ));
+  const manifest = JSON.parse(readFileSync(join(bundleRoot, "MANIFEST.json"), "utf8")) as {
+    files?: Array<{ path?: string; sha256?: string }>;
+  };
+  const relativePath = "schemas/platform/world-query-parameters.schema.json";
+  const entry = manifest.files?.find((candidate) => candidate.path === relativePath);
+  if (!entry?.sha256 || !/^[0-9a-f]{64}$/u.test(entry.sha256)) {
+    throw new OperationalGowmLockError("WORLD_QUERY_PARAMETER_SCHEMA_LOCK_MISSING");
+  }
+  const bytes = readFileSync(join(bundleRoot, ...relativePath.split("/")));
+  if (createHash("sha256").update(bytes).digest("hex") !== entry.sha256) {
+    throw new OperationalGowmLockError("WORLD_QUERY_PARAMETER_SCHEMA_LOCK_DRIFT");
+  }
+  const schema = JSON.parse(bytes.toString("utf8")) as unknown;
+  return `sha256:${createHash("sha256").update(canonicalJson(schema), "utf8").digest("hex")}`;
 }
 
 function canonicalLfBytes(bytes: Buffer): Buffer {

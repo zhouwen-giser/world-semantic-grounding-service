@@ -1,0 +1,4347 @@
+{
+  "schemaVersion": "wsgs-gdps-required-acceptance-ledger/1.0",
+  "matrix": {
+    "path": "acceptance/gdps-v0.2.1/acceptance-matrix.csv",
+    "sha256": "sha256:bdba0585027dc7f5f3f3de75ebaa718e6bc0df6f681f2f1984e72de29d820277"
+  },
+  "evidenceMap": {
+    "path": "reports/wsgs-v0.2-gdps-v0.2.1/acceptance-evidence-map.json",
+    "present": true,
+    "mappedCases": 1
+  },
+  "requiredCases": 327,
+  "counts": {
+    "PASS": 0,
+    "FAIL": 0,
+    "NOT_RUN": 326,
+    "BLOCKED": 1
+  },
+  "complete": false,
+  "cases": [
+    {
+      "acceptanceId": "W33-001",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "WSGS remote fetched",
+      "expected": "Actual branch/PR head recorded",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-002",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "PR #5 state",
+      "expected": "Stack/base strategy selected",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-003",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "GDPS remote fetched",
+      "expected": "Actual v0.2/v0.2.1 source recorded",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-004",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "GOWM remote fetched",
+      "expected": "Actual main SHA recorded",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-005",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "GOWM version-string caveat",
+      "expected": "Exact hashes used instead of version alone",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-006",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "Running GOWM binding",
+      "expected": "Actual contract/semantic/binding revisions recorded",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-007",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "GDPS handoff located",
+      "expected": "Actual bundle source identified",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-008",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "Handoff checksum",
+      "expected": "Bundle checksums verified",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-009",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "Provider identity",
+      "expected": "gdps.geospatial-products locked",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-010",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "Provider version",
+      "expected": "Actual provider version recorded",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-011",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "34 ProductTypes",
+      "expected": "Exact expected set",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-012",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "35 profiles",
+      "expected": "Exact count and unique IDs",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-013",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "30 operations",
+      "expected": "Exact 23+7 set",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-014",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "All PREVIEW",
+      "expected": "Maturity exact",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-015",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "No product history",
+      "expected": "No forbidden semantics in handoff",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-016",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "WSGS baseline",
+      "expected": "Actual WSGS SHA and VERSION recorded",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-017",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "Correct task branch base",
+      "expected": "No PR #5 history rewrite",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-018",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "No direct-endpoint data in handoff",
+      "expected": "Secrets/internal URLs rejected",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-019",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "Source-lock report",
+      "expected": "Machine-valid report emitted",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-020",
+      "phase": "W33",
+      "area": "Baseline",
+      "scenario": "Blocked policy",
+      "expected": "Missing handoff cannot produce COMPLETE",
+      "evidenceTypes": [
+        "SOURCE",
+        "SCHEMA"
+      ],
+      "status": "BLOCKED",
+      "evidence": [
+        "validation/scripts/intake-gdps-v021-handoff.mjs",
+        "WSGS_GDPS_V021_HANDOFF_NOT_READY missing=GDPS_PRODUCT_DESCRIPTOR_LOCK.json,GOWM_GATEWAY_BINDING_LOCK.json,CHECKSUMS.json"
+      ],
+      "reason": "GDPS v0.2.1 handoff is missing three required authority files; real completion is forbidden until exact intake succeeds."
+    },
+    {
+      "acceptanceId": "W34-001",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Upstream directory",
+      "expected": "gdps-v0.2.1 bundle stored",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-002",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Consumer lock schema",
+      "expected": "Valid",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-003",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Capability lock schema",
+      "expected": "Valid",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-004",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Descriptor lock schema",
+      "expected": "Valid",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-005",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Recipe lock schema",
+      "expected": "Valid",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-006",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Dataset lock schema",
+      "expected": "Valid",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-007",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Gateway binding schema",
+      "expected": "Valid",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-008",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Consumer package checksums",
+      "expected": "All files exact",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-009",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Generated descriptor types",
+      "expected": "Compile",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-010",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Generated descriptor registry",
+      "expected": "Exact 35 profiles",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-011",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Generated capability lock",
+      "expected": "Exact 30",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-012",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Generated recipe lock",
+      "expected": "Exact authorized recipes",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-013",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Generated hashes",
+      "expected": "Canonical and deterministic",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-014",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Intake report",
+      "expected": "Pass/fail with issues",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-015",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Generate --check",
+      "expected": "No drift",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-016",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Duplicate descriptor rejected",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-017",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Unknown ProductType rejected",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-018",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Unknown operation rejected",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-019",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Schema hash drift rejected",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-020",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Semantic hash drift rejected",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-021",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Provider mismatch rejected",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-022",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Gateway revision mismatch rejected",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-023",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Secret path rejected",
+      "expected": "No secret-bearing fields",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-024",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Current-only guard",
+      "expected": "No productVersion semantics",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W34-025",
+      "phase": "W34",
+      "area": "ContractIntake",
+      "scenario": "Contract package exports",
+      "expected": "Consumers import generated types",
+      "evidenceTypes": [
+        "SCHEMA",
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-001",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Package exists",
+      "expected": "gdps-descriptor-consumer compiles",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-002",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Descriptor lookup matched",
+      "expected": "Type/profile exact",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-003",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Descriptor lookup missing",
+      "expected": "DESCRIPTOR_NOT_FOUND",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-004",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Descriptor lookup ambiguous",
+      "expected": "AMBIGUOUS",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-005",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Concept SLOPE",
+      "expected": "SLOPE/DEGREE",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-006",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Concept FLOOD_RISK",
+      "expected": "FLOOD_RISK/FLOOD_RISK_CLASS",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-007",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Concept DRAINAGE",
+      "expected": "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-008",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Representation continuous",
+      "expected": "Correct",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-009",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Representation categorical",
+      "expected": "Correct",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-010",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Representation vector",
+      "expected": "Correct",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-011",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "QueryProfile supported",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-012",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "QueryProfile unsupported",
+      "expected": "Explicit gap",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-013",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Vocabulary class valid",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-014",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Vocabulary class invalid",
+      "expected": "CLASS_CODE_UNSUPPORTED",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-015",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Range valid",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-016",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Range invalid order",
+      "expected": "VALUE_RANGE_INVALID",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-017",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Range outside descriptor",
+      "expected": "VALUE_RANGE_INVALID",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-018",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Unit exact",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-019",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Unit compatible conversion",
+      "expected": "Deterministic conversion or explicit unsupported",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-020",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Unit mismatch",
+      "expected": "UNIT_MISMATCH",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-021",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Filter allowlisted",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-022",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Filter not allowlisted",
+      "expected": "PROPERTY_FILTER_UNSUPPORTED",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-023",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Required platform profile",
+      "expected": "Required enforced",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-024",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Forbidden platform profile",
+      "expected": "Forbidden enforced",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-025",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Optional platform profile",
+      "expected": "Optional accepted",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-026",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Recipe lookup",
+      "expected": "Exact descriptor/query profile",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-027",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Recipe absent",
+      "expected": "Explicit gap",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-028",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Descriptor hash evidence",
+      "expected": "Returned",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-029",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "No HTTP/DB",
+      "expected": "Architecture guard",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W35-030",
+      "phase": "W35",
+      "area": "DescriptorConsumer",
+      "scenario": "Deterministic resolution",
+      "expected": "Same input same evidence hash",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-001",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Intent schema",
+      "expected": "Valid",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-002",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Grounded intent schema",
+      "expected": "Valid",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-003",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Slope concept",
+      "expected": "Detected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-004",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Aspect concept",
+      "expected": "Detected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-005",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Flood concept",
+      "expected": "Detected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-006",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Drainage concept",
+      "expected": "Detected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-007",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Bridge concept",
+      "expected": "Detected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-008",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Communication concept",
+      "expected": "Detected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-009",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Vegetation concept",
+      "expected": "Detected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-010",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "15-30 degree range",
+      "expected": "Parsed deterministically",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-011",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Greater-than range",
+      "expected": "Parsed deterministically",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-012",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "High/very-high classes",
+      "expected": "Parsed",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-013",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "500m distance",
+      "expected": "Parsed",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-014",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "1km distance",
+      "expected": "Parsed as 1000m",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-015",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Explicit product",
+      "expected": "Parsed only from source",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-016",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "No product hallucination",
+      "expected": "Model cannot inject unanchored product",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-017",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Vehicle mention unchanged",
+      "expected": "Reference semantics preserved",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-018",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Area mention unchanged",
+      "expected": "Reference semantics preserved",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-019",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Intent has no operationId",
+      "expected": "Static guard",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-020",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Intent has no providerId",
+      "expected": "Static guard",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-021",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Concept map has no operationId",
+      "expected": "Static guard",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-022",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Model unsupported concept",
+      "expected": "Descriptor gap",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-023",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Invalid source span",
+      "expected": "Rejected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-024",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Unit mismatch",
+      "expected": "Detected before compile",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-025",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "No distance in source",
+      "expected": "Model cannot fabricate",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-026",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Frame 1.0 compatibility",
+      "expected": "Existing contracts pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-027",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Existing GDPS semantics",
+      "expected": "Seven specialized signals retained",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W36-028",
+      "phase": "W36",
+      "area": "SemanticIntent",
+      "scenario": "Intent evidence",
+      "expected": "Source node/span evidence retained",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-001",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Seven generic requirements declared",
+      "expected": "Exact set",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-002",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Planner no operation IDs",
+      "expected": "Static guard",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-003",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Slope point requirement",
+      "expected": "READ_GEO_PRODUCT_VALUE",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-004",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Slope profile requirement",
+      "expected": "READ_GEO_PRODUCT_PROFILE",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-005",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Slope range requirement",
+      "expected": "FIND_GEO_PRODUCT_VALUE_RANGE_AREAS",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-006",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Flood class requirement",
+      "expected": "FIND_GEO_PRODUCT_CLASS_AREAS",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-007",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Drainage in area",
+      "expected": "FIND_GEO_VECTOR_FEATURES_IN_AREA",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-008",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Drainage nearby",
+      "expected": "FIND_GEO_VECTOR_FEATURES_NEARBY",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-009",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Drainage intersects",
+      "expected": "FIND_GEO_VECTOR_INTERSECTIONS",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-010",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "High ground specialized",
+      "expected": "FIND_HIGH_GROUND",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-011",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Wetlands specialized",
+      "expected": "FIND_WETLANDS",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-012",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Land cover specialized",
+      "expected": "READ_LAND_COVER",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-013",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Elevation specialized",
+      "expected": "READ_ELEVATION",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-014",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Traversability specialized",
+      "expected": "EXPLAIN_TRAVERSABILITY",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-015",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Flood no longer fixed unsupported",
+      "expected": "Generic planned",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-016",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Slope no longer terrain gap",
+      "expected": "Generic planned",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-017",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Descriptor gap",
+      "expected": "Explicit",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-018",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Query profile gap",
+      "expected": "Explicit",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-019",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Class invalid",
+      "expected": "No query planned",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-020",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Unit invalid",
+      "expected": "No query planned",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-021",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Explicit product propagated",
+      "expected": "Only when source anchored",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-022",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Requirement graph valid",
+      "expected": "Schema/hash/dependencies",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-023",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Reference dependency point",
+      "expected": "Resolve→state→requirement",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-024",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Reference dependency area",
+      "expected": "Resolve→geometry→requirement",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W37-025",
+      "phase": "W37",
+      "area": "Planner",
+      "scenario": "Existing planner regression",
+      "expected": "All prior recipes pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-001",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "No provider 0.1 hardcode",
+      "expected": "Lock driven",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-002",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "No count 23 hardcode",
+      "expected": "Lock driven",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-003",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "No source recipe map",
+      "expected": "Generated lock driven",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-004",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Consumer lock hash",
+      "expected": "Snapshot stores",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-005",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Capability lock hash",
+      "expected": "Snapshot stores",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-006",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Descriptor lock hash",
+      "expected": "Snapshot stores",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-007",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Recipe lock hash",
+      "expected": "Snapshot stores",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-008",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "34 type count",
+      "expected": "Snapshot validates",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-009",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "35 profile count",
+      "expected": "Snapshot validates",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-010",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "30 capability keys",
+      "expected": "Snapshot validates",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-011",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Capability intersection",
+      "expected": "Only locked/runtime capabilities",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-012",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Recipe intersection",
+      "expected": "Only authorized operations",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-013",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Availability intersection",
+      "expected": "Unavailable excluded",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-014",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Degraded policy",
+      "expected": "Explicit",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-015",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Missing capability",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-016",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Schema mismatch",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-017",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Semantic mismatch",
+      "expected": "Fail closed",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-018",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Expired availability",
+      "expected": "Refresh/fail closed",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-019",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Provider version from lock",
+      "expected": "No literal",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-020",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Snapshot deterministic",
+      "expected": "Canonical hash",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-021",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Job snapshot immutability",
+      "expected": "Insert-if-absent",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-022",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Product availability separation",
+      "expected": "No product not capability gap",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-023",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Existing general snapshot regression",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-024",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "Persistence",
+      "expected": "Lock hashes retained",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W38-025",
+      "phase": "W38",
+      "area": "TrustedSnapshot",
+      "scenario": "No product history",
+      "expected": "Static guard",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-001",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "14 active patterns",
+      "expected": "Exact set",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-002",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "30 capability locks",
+      "expected": "All accepted",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-003",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "No prefix authorization",
+      "expected": "Static guard",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-004",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Recipe entry required",
+      "expected": "Missing rejected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-005",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Recipe hash required",
+      "expected": "Drift rejected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-006",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Descriptor hash required",
+      "expected": "Drift rejected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-007",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Input schema hash exact",
+      "expected": "Drift rejected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-008",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Output schema hash exact",
+      "expected": "Drift rejected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-009",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Semantic hash exact",
+      "expected": "Drift rejected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-010",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Operation version exact",
+      "expected": "Drift rejected",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-011",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "PREVIEW selective allow",
+      "expected": "No global allow",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-012",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Specialized priority",
+      "expected": "Selected when exact",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-013",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Generic fallback",
+      "expected": "Selected when no specialized",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-014",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "No approximate substitution",
+      "expected": "Gap",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-015",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Ambiguous match",
+      "expected": "Gap",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-016",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Capability unavailable",
+      "expected": "Gap",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-017",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Capability degraded reject",
+      "expected": "Policy",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-018",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Capability degraded allow",
+      "expected": "Evidence",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-019",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Snapshot mode supported",
+      "expected": "Checked",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-020",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "ProductId unbound default",
+      "expected": "Enforced",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-021",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Explicit product allowed",
+      "expected": "Source anchored",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-022",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Provider ID not match key",
+      "expected": "Static/unit",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-023",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Matcher evidence descriptor",
+      "expected": "Included",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-024",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Matcher evidence recipe",
+      "expected": "Included",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W39-025",
+      "phase": "W39",
+      "area": "RecipeMatcher",
+      "scenario": "Existing matcher regression",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-001",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Generic sample template",
+      "expected": "Resolve→state→sample",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-002",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Generic profile template",
+      "expected": "Resolve→line geometry→profile",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-003",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Generic class template",
+      "expected": "Resolve→area geometry→find class",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-004",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Generic range template",
+      "expected": "Resolve→area geometry→find range",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-005",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Generic vector in-area",
+      "expected": "Resolve→geometry→find-in-area",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-006",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Generic vector nearby",
+      "expected": "Resolve→state→find-nearby",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-007",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Generic vector intersects",
+      "expected": "Resolve→geometry→intersections",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-008",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "ProductType literal",
+      "expected": "Descriptor-bound",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-009",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "ProductProfile literal",
+      "expected": "Descriptor-bound",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-010",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "ClassCodes literal",
+      "expected": "Constraint-bound",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-011",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Ranges literal",
+      "expected": "Constraint-bound",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-012",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "PropertyFilters literal",
+      "expected": "Validated",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-013",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "PlatformProfile literal",
+      "expected": "Validated",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-014",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Distance binding",
+      "expected": "Source constraint",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-015",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Point node output",
+      "expected": "Correct target path",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-016",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Selector node output",
+      "expected": "Correct target path",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-017",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Line node output",
+      "expected": "Correct target path",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-018",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Explicit product optional",
+      "expected": "Bound only if present",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-019",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "No default product ID",
+      "expected": "Static/unit",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-020",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "World query parameter hash from lock",
+      "expected": "No source constant",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-021",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Schema ports exact",
+      "expected": "Matched",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-022",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Operation input validates",
+      "expected": "Each generic op",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-023",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Output binding valid",
+      "expected": "Each generic op",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-024",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Plan hash deterministic",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-025",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Budget node count",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-026",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Budget depth",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-027",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Budget output bytes",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-028",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Budget runtime",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-029",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Input geometry kind line",
+      "expected": "Required for profile",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-030",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Wrong geometry kind",
+      "expected": "Gap",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-031",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Specialized templates unchanged",
+      "expected": "Regression",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-032",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Literal/request/node bindings",
+      "expected": "All supported",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-033",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Reserved parameter guard",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-034",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "No operation IDs in planner",
+      "expected": "Boundary",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W40-035",
+      "phase": "W40",
+      "area": "TypedCompiler",
+      "scenario": "Compiler contract regression",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "STATIC_GUARD"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-001",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Gateway-only runtime",
+      "expected": "No direct GDPS",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-002",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Consumer locks loaded",
+      "expected": "Runtime",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-003",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Descriptor locks loaded",
+      "expected": "Runtime",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-004",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Recipe locks loaded",
+      "expected": "Runtime",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-005",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Node input assembly",
+      "expected": "Actual hash matches",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-006",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Node output resolution",
+      "expected": "Paths resolve",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-007",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Known reference selected",
+      "expected": "Not re-resolved",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-008",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Reference ambiguity",
+      "expected": "GDPS not executed",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-009",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Gateway auth",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-010",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Delegation scope",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-011",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Deadline",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-012",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Idempotency",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-013",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Single safe retry",
+      "expected": "Only eligible technical/source-change case",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-014",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "No infinite retry",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-015",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Provider failure",
+      "expected": "FAILED normalized",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-016",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Capability gap pre-execution",
+      "expected": "No Gateway call",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-017",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Execution records",
+      "expected": "Persisted",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W41-018",
+      "phase": "W41",
+      "area": "GatewayExecution",
+      "scenario": "Existing Gateway runtime regression",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES",
+        "GOWM_GATEWAY"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-001",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Recipe ID evidence",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-002",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Recipe lock hash",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-003",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Descriptor ID",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-004",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Descriptor hash",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-005",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Product ID",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-006",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Product type",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-007",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Product profile",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-008",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Content hash",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-009",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Query profile",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-010",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Data snapshot",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-011",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Compute snapshot",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-012",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Receipt IDs",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-013",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Evidence IDs",
+      "expected": "Present",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-014",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Quality",
+      "expected": "Preserved if provided",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-015",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Truncated false",
+      "expected": "COMPLETED",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-016",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Truncated true",
+      "expected": "PARTIAL",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-017",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Empty collection",
+      "expected": "COMPLETED/NO_MATCH_FOUND",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-018",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Product missing",
+      "expected": "DATA_GAP",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-019",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Coverage insufficient",
+      "expected": "COVERAGE_GAP",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-020",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Product ambiguity",
+      "expected": "AMBIGUOUS",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-021",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Capability missing",
+      "expected": "CAPABILITY_GAP",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-022",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Source changed",
+      "expected": "INDETERMINATE",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-023",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Protocol failure",
+      "expected": "FAILED",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-024",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "No productVersion",
+      "expected": "Static guard",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W42-025",
+      "phase": "W42",
+      "area": "EvidenceStatus",
+      "scenario": "Evidence payload bounds",
+      "expected": "Existing object reference behavior preserved",
+      "evidenceTypes": [
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-001",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "check-current CURRENT",
+      "expected": "Usable",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-002",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "check-current CHANGED",
+      "expected": "Stale",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-003",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "check-current NOT_AVAILABLE",
+      "expected": "Data gap",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-004",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Strict reuse current",
+      "expected": "Allowed within policy",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-005",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Strict reuse changed",
+      "expected": "Blocked",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-006",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "No silent current execution",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-007",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "BEST_EFFORT explicit",
+      "expected": "New query",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-008",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "SOURCE_ADVANCED warning",
+      "expected": "Present",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-009",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Previous hash",
+      "expected": "Recorded",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-010",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Actual hash",
+      "expected": "Recorded",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-011",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "No historical read",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-012",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "No product version",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-013",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Source change during query",
+      "expected": "At most one retry",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-014",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Second source change",
+      "expected": "INDETERMINATE",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-015",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Currentness evidence persisted",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-016",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Existing priorGrounding boundary",
+      "expected": "Not weakened",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-017",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Replay terminology",
+      "expected": "Revalidation vs re-execution distinguished",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W43-018",
+      "phase": "W43",
+      "area": "Currentness",
+      "scenario": "Currentness regression",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CURRENTNESS",
+        "UNIT",
+        "REAL_POSTGRES"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-01",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-SLOPE-POINT",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-02",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-SLOPE-RANGE",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-03",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-FLOOD-HIGH",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-04",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-DRAINAGE-NEARBY",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-05",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-HIGH-GROUND",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-06",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-WETLAND",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-07",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-LAND-COVER",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-08",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-TRAVERSABILITY-EXPLAIN",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-09",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "E2E-EXPLICIT-PRODUCT",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-10",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "NEG-DESCRIPTOR-GAP",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-11",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "NEG-DATA-GAP",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-12",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "NEG-REFERENCE-AMBIGUITY",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-13",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "NEG-UNIT-MISMATCH",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-14",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "NEG-RECIPE-DRIFT",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-15",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "NEG-TRUNCATED",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-E2E-16",
+      "phase": "W44",
+      "area": "RealE2E",
+      "scenario": "NEG-CURRENTNESS",
+      "expected": "Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path",
+      "evidenceTypes": [
+        "REAL_NATURAL_LANGUAGE_E2E"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X01",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Running GDPS baseline",
+      "expected": "Ready",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X02",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Running GOWM Gateway",
+      "expected": "Ready",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X03",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "WSGS API/worker",
+      "expected": "Ready",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X04",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "No mock result",
+      "expected": "Evidence proves real endpoints",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X05",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Continuous raster",
+      "expected": "Real case pass",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X06",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Categorical raster",
+      "expected": "Real case pass",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X07",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Vector feature",
+      "expected": "Real case pass",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X08",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Specialized operation",
+      "expected": "Real case pass",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X09",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Explicit product",
+      "expected": "Real case pass",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X10",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Foreign scope",
+      "expected": "No leak",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X11",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "Product evidence",
+      "expected": "Hash and descriptor present",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W44-X12",
+      "phase": "W44",
+      "area": "Integration",
+      "scenario": "End-to-end report",
+      "expected": "Machine-valid",
+      "evidenceTypes": [
+        "RUNNING_GOWM_GATEWAY",
+        "REPORT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-001",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "npm ci",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-002",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "npm run build",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-003",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "npm test",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-004",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "npm run check",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-005",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Contract intake gate",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-006",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Architecture boundary",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-007",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Real GOWM gate",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-008",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Development closure",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-009",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Reference regression",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-010",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Known reference regression",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-011",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Grounding Core regression",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-012",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Seven specialized GDPS recipes",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-013",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Seven generic GDPS recipes",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-014",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Postgres persistence",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-015",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Northbound contract",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-016",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Evidence map complete",
+      "expected": "Every acceptance mapped",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-017",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "No aggregate pass",
+      "expected": "Each row evaluated",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-018",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "No required NOT_RUN",
+      "expected": "For COMPLETE",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-019",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Source SHAs",
+      "expected": "Reported",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-020",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Runtime revisions",
+      "expected": "Reported",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-021",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Task branch pushed",
+      "expected": "Exact SHA",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-022",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Draft PR",
+      "expected": "Correct base",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-023",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "No merge/tag/release",
+      "expected": "Pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-024",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Final marker policy",
+      "expected": "Only all-pass",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W45-025",
+      "phase": "W45",
+      "area": "RegressionDelivery",
+      "scenario": "Final report",
+      "expected": "Complete and honest",
+      "evidenceTypes": [
+        "CI",
+        "REPORT",
+        "GIT"
+      ],
+      "status": "NOT_RUN",
+      "evidence": []
+    }
+  ]
+}
