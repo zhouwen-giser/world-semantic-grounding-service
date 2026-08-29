@@ -52,6 +52,7 @@ import {
   PipelineFenceRejectedError,
   ProductionPipelineStageExecutor,
   canonicalSha256,
+  type PipelineStage,
   type PipelineStageContext,
   type ProductionAdmissionSnapshot
 } from "@wsgs/grounding-pipeline";
@@ -151,7 +152,8 @@ export class ProductionStageModuleError extends Error {
   constructor(
     readonly code: string,
     readonly retryable = false,
-    message = code
+    message = code,
+    readonly stage?: PipelineStage
   ) {
     super(message);
     this.name = "ProductionStageModuleError";
@@ -1702,11 +1704,19 @@ export async function createPipelineStageExecutor(
       const parts = requestParts(context);
       const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_FRAME_VALIDATE");
-      return buildGroundingGraphWithDegradation(
-        text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
-        deterministic,
-        model.status === "AVAILABLE" ? { status: "AVAILABLE", frame: model.frame } : { status: "UNAVAILABLE", failureCode: model.failureCode }
-      );
+      try {
+        return buildGroundingGraphWithDegradation(
+          text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
+          deterministic,
+          model.status === "AVAILABLE" ? { status: "AVAILABLE", frame: model.frame } : { status: "UNAVAILABLE", failureCode: model.failureCode }
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        const code = /^GROUNDING_GRAPH_[A-Z0-9_]+(?::.*)?$/u.test(message)
+          ? message.split(":", 1)[0]!
+          : "GROUNDING_GRAPH_BUILD_FAILED";
+        throw new ProductionStageModuleError(code, false, code, "GROUNDING_GRAPH_BUILD");
+      }
     },
 
     REFERENCE_RESOLVE: async (context) => {
