@@ -124,6 +124,12 @@ describe("projectGeospatialProductIntent", () => {
     expect(slope).toMatchObject({ targetConcept: "SLOPE", querySemantics: "FIND_VALUE_RANGE_AREAS", numericConstraint: { unit: "degree" } });
     const flood = projectGeospatialProductIntent({ frame: emptyFrame, originalText: "A区内有哪些洪水高风险区域？", conceptMap });
     expect(flood).toMatchObject({ targetConcept: "FLOOD_RISK", querySemantics: "FIND_CLASS_AREAS", classSemantics: ["HIGH", "VERY_HIGH"] });
-    expect(JSON.stringify([slope, flood])).not.toMatch(/providerId|operationId|geo-raster/u);
+    const invalidUnit = projectGeospatialProductIntent({ frame: emptyFrame, originalText: "A区内坡度大于30米的区域有哪些？", conceptMap });
+    expect(invalidUnit).toMatchObject({
+      targetConcept: "SLOPE",
+      querySemantics: "FIND_VALUE_RANGE_AREAS",
+      numericConstraint: { ranges: [{ minimum: 30, minimumInclusive: false }], unit: "metre" }
+    });
+    expect(JSON.stringify([slope, flood, invalidUnit])).not.toMatch(/providerId|operationId|geo-raster/u);
   });
 });

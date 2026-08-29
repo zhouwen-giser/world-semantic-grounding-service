@@ -83,6 +83,10 @@ for (const name of expectedCheckedFiles) {
 const scanned = expectedCheckedFiles.map((name) => readFileSync(join(handoff, name), "utf8")).join("\n");
 assert(!/(?:postgres(?:ql)?:\/\/[^\s"']+:[^\s"']+@|jdbc:|s3:\/\/|file:\/\/|-----BEGIN (?:RSA |EC )?PRIVATE KEY-----)/iu.test(scanned),
   "WSGS_GDPS_HANDOFF_SECRET_OR_INTERNAL_URI_REJECTED");
+assert(!/["'](?:[A-Za-z]:\\|\/(?:home|Users|var|opt|srv)\/)/u.test(scanned),
+  "WSGS_GDPS_HANDOFF_INTERNAL_PATH_REJECTED");
+assert(!/["'](?:productVersion|product_version|productVersionId|product_version_id)["']\s*:/iu.test(scanned),
+  "WSGS_GDPS_PRODUCT_VERSION_SEMANTICS_FORBIDDEN");
 
 const consumer = json("GDPS_CONSUMER_LOCK.json");
 const capabilities = json("GDPS_CAPABILITY_LOCK.json");
@@ -90,6 +94,13 @@ const descriptors = json("GDPS_PRODUCT_DESCRIPTOR_LOCK.json");
 const recipes = json("GDPS_RECIPE_LOCK.json");
 const gateway = json("GOWM_GATEWAY_BINDING_LOCK.json");
 const recipePlan = JSON.parse(readFileSync(resolve(root, "config", "gdps-recipe-plan.json"), "utf8"));
+const descriptorRegistry = descriptors.descriptorRegistry ?? descriptors.registry?.descriptorRegistry ??
+  (descriptors.schemaVersion === "gdps-product-type-descriptors/1.0" ? descriptors : undefined);
+const vocabularyRegistry = descriptors.vocabularyRegistry ?? descriptors.registry?.vocabularyRegistry ??
+  (descriptors.vocabularies && typeof descriptors.vocabularies === "object" ? {
+    schemaVersion: "gdps-product-vocabularies/1.0",
+    vocabularies: descriptors.vocabularies
+  } : undefined);
 const operations = Array.isArray(capabilities.operations) ? capabilities.operations : [];
 const productTypeCount = consumer.descriptorRegistry?.productTypeCount ?? descriptors.productTypeCount ?? descriptors.inventory?.productTypeCount;
 const descriptorProfileCount = consumer.descriptorRegistry?.profileCount ?? descriptors.profileCount ?? descriptors.inventory?.descriptorProfileCount;
@@ -98,10 +109,21 @@ const providerId = consumer.provider?.providerId ?? capabilities.providerId ?? g
 const providerVersion = consumer.provider?.providerVersion ?? capabilities.providerVersion ?? gateway.provider?.providerVersion;
 const manifestHash = consumer.provider?.providerManifestHash ?? capabilities.providerManifestHash ?? gateway.provider?.providerManifestHash;
 assert(providerId === "gdps.geospatial-products", "WSGS_GDPS_PROVIDER_IDENTITY_INVALID");
-assert(typeof providerVersion === "string" && providerVersion.length > 0, "WSGS_GDPS_PROVIDER_VERSION_MISSING");
+assert(typeof providerVersion === "string" && /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u.test(providerVersion),
+  "WSGS_GDPS_PROVIDER_VERSION_INVALID");
 assert(digestPattern.test(manifestHash), "WSGS_GDPS_PROVIDER_MANIFEST_HASH_INVALID");
 assert(productTypeCount === 34 && descriptorProfileCount === 35, "WSGS_GDPS_DESCRIPTOR_INVENTORY_INVALID");
 assert(digestPattern.test(descriptorLockHash), "WSGS_GDPS_DESCRIPTOR_LOCK_HASH_INVALID");
+assert(descriptorRegistry?.schemaVersion === "gdps-product-type-descriptors/1.0" &&
+  Array.isArray(descriptorRegistry.descriptors) && descriptorRegistry.descriptors.length === 35,
+"WSGS_GDPS_DESCRIPTOR_REGISTRY_MISSING");
+assert(vocabularyRegistry && typeof vocabularyRegistry.schemaVersion === "string" &&
+  vocabularyRegistry.vocabularies && typeof vocabularyRegistry.vocabularies === "object" &&
+  !Array.isArray(vocabularyRegistry.vocabularies), "WSGS_GDPS_VOCABULARY_REGISTRY_MISSING");
+assert(canonicalHash(descriptorRegistry) === descriptorLockHash, "WSGS_GDPS_DESCRIPTOR_REGISTRY_HASH_DRIFT");
+assert(descriptorRegistry.descriptors.every((entry) => entry.vocabularyRef === null ||
+  (typeof entry.vocabularyRef === "string" && Array.isArray(vocabularyRegistry.vocabularies[entry.vocabularyRef]))),
+"WSGS_GDPS_VOCABULARY_REFERENCE_INVALID");
 assert(operations.length === 30, "WSGS_GDPS_CAPABILITY_COUNT_INVALID");
 assert(new Set(operations.map((entry) => `${entry.operationId}@${entry.operationVersion}`)).size === 30,
   "WSGS_GDPS_CAPABILITY_DUPLICATE");
@@ -109,6 +131,14 @@ assert(operations.every((entry) => entry.maturity === "PREVIEW" &&
   [entry.inputSchemaHash, entry.outputSchemaHash, entry.semanticProfileHash].every((hash) => digestPattern.test(hash))),
   "WSGS_GDPS_CAPABILITY_CONTRACT_INVALID");
 assert(Array.isArray(recipes.recipes) && recipes.recipes.length === 30, "WSGS_GDPS_RECIPE_INVENTORY_INVALID");
+assert(recipes.recipes.every((recipe) => {
+  const operation = operations.find((entry) => entry.operationId === recipe.operationId &&
+    entry.operationVersion === recipe.operationVersion);
+  return operation && recipe.allowedMaturity === "PREVIEW" &&
+    recipe.inputSchemaHash === operation.inputSchemaHash &&
+    recipe.outputSchemaHash === operation.outputSchemaHash &&
+    recipe.semanticProfileHash === operation.semanticProfileHash;
+}), "WSGS_GDPS_PROVIDER_RECIPE_LOCK_DRIFT");
 assert(recipePlan.schemaVersion === "wsgs-gdps-recipe-plan/2.0" &&
   Array.isArray(recipePlan.activeRuntimeRecipes) && recipePlan.activeRuntimeRecipes.length === 14,
 "WSGS_GDPS_RUNTIME_RECIPE_PLAN_INVALID");
@@ -124,8 +154,7 @@ const checksumHash = sha256(readFileSync(join(handoff, "CHECKSUMS.json")));
 const operationByKey = new Map(operations.map((entry) => [`${entry.operationId}@${entry.operationVersion}`, entry]));
 const providerRecipeByOperation = new Map(recipes.recipes.map((entry) =>
   [`${entry.operationId}@${entry.operationVersion}`, entry]));
-const descriptorEntries = descriptors.descriptors ?? descriptors.registry?.descriptors ??
-  descriptors.productTypeDescriptors ?? descriptors.profiles;
+const descriptorEntries = descriptorRegistry.descriptors;
 assert(Array.isArray(descriptorEntries) && descriptorEntries.length === 35,
   "WSGS_GDPS_DESCRIPTOR_PROFILE_INVENTORY_INVALID");
 const areaPatterns = new Set([
@@ -220,8 +249,16 @@ for (const name of requiredFiles) {
 guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "gdps-handoff-intake.json"), stableJson(intake));
 guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "wsgs-gdps-recipe-lock.json"),
   runtimeRecipeLockContent);
+guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "product-type-descriptors.json"),
+  stableJson(descriptorRegistry));
+guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "product-vocabularies.json"),
+  stableJson(vocabularyRegistry));
 guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "handoff.ts"),
   `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
   `export const gdpsV021HandoffIntake = ${JSON.stringify(intake, null, 2)} as const;\n`);
+guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "descriptors.ts"),
+  `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
+  `export const gdpsV021DescriptorRegistry = ${JSON.stringify(descriptorRegistry, null, 2)} as const;\n` +
+  `export const gdpsV021VocabularyRegistry = ${JSON.stringify(vocabularyRegistry, null, 2)} as const;\n`);
 
 console.log(`WSGS_GDPS_CONSUMER_LOCK_READY mode=${check ? "check" : "generate"} operations=30 productTypes=34 profiles=35`);

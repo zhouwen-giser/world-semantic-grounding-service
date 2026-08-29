@@ -16,16 +16,33 @@ function conceptFor(text: string, concepts: readonly SemanticConceptEntry[]): Se
     (/(?:洪水|淹没).*风险/iu.test(text) ? concepts.find((concept) => concept.conceptCode === "FLOOD_RISK") : undefined);
 }
 
+function normalizedUnit(rawUnit: string | undefined): string | undefined {
+  return rawUnit === undefined ? undefined
+    : /^(?:度|degrees?)$/iu.test(rawUnit) ? "degree"
+    : /^(?:米|metres?|meters?|m)$/iu.test(rawUnit) ? "metre"
+    : /^dBm$/iu.test(rawUnit) ? "dBm" : "score";
+}
+
 function numeric(text: string): GeospatialProductSemanticIntent["numericConstraint"] | undefined {
   const range = /(?<minimum>-?\d+(?:\.\d+)?)\s*(?:到|至|[-~～])\s*(?<maximum>-?\d+(?:\.\d+)?)\s*(?<unit>度|degrees?|米|metres?|meters?|m\b|dBm|分(?:数)?|score)?/iu.exec(text);
   if (range?.groups) {
-    const rawUnit = range.groups["unit"];
-    const unit = rawUnit === undefined ? undefined
-      : /^(?:度|degrees?)$/iu.test(rawUnit) ? "degree"
-      : /^(?:米|metres?|meters?|m)$/iu.test(rawUnit) ? "metre"
-      : /^dBm$/iu.test(rawUnit) ? "dBm" : "score";
+    const unit = normalizedUnit(range.groups["unit"]);
     return {
       ranges: [{ minimum: Number(range.groups["minimum"]), maximum: Number(range.groups["maximum"]), minimumInclusive: true, maximumInclusive: true }],
+      ...(unit ? { unit } : {})
+    };
+  }
+  const comparison = /(?<operator>大于|高于|超过|不少于|至少|小于|低于|少于|不高于|至多|>=|<=|>|<|greater\s+than|less\s+than|at\s+least|at\s+most)\s*(?<value>-?\d+(?:\.\d+)?)\s*(?<unit>度|degrees?|米|metres?|meters?|m\b|dBm|分(?:数)?|score)?/iu.exec(text);
+  if (comparison?.groups) {
+    const operator = comparison.groups["operator"]!.toLocaleLowerCase();
+    const value = Number(comparison.groups["value"]);
+    const unit = normalizedUnit(comparison.groups["unit"]);
+    const lower = /^(?:大于|高于|超过|不少于|至少|>|>=|greater\s+than|at\s+least)$/iu.test(operator);
+    const inclusive = /^(?:不少于|至少|>=|不高于|至多|<=|at\s+least|at\s+most)$/iu.test(operator);
+    return {
+      ranges: [lower
+        ? { minimum: value, minimumInclusive: inclusive }
+        : { maximum: value, maximumInclusive: inclusive }],
       ...(unit ? { unit } : {})
     };
   }
