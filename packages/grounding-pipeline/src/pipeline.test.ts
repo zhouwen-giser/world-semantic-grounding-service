@@ -215,6 +215,22 @@ describe("GroundingPipeline", () => {
     expect(journal.events.filter((entry) => entry.stage === "SEMANTIC_MODEL_PARSE")).toHaveLength(2);
   });
 
+  it("attributes an overall deadline to the stage that consumed it", async () => {
+    const pipeline = new GroundingPipeline({
+      executor: new ProductionPipelineStageExecutor(handlerMap([], {
+        LOAD_CONTEXT: async () => new Promise((resolve) => setTimeout(() => resolve({ late: true }), 50))
+      })),
+      journal: new MemoryJournal(),
+      policy: () => ({ maxAttempts: 1, attemptTimeoutMs: 1_000, baseBackoffMs: 0, retryable: () => false })
+    });
+    await expect(pipeline.run(runInput({
+      deadlineAt: new Date(Date.now() + 5)
+    }))).rejects.toMatchObject({
+      code: "PIPELINE_DEADLINE_EXCEEDED",
+      stage: "LOAD_CONTEXT"
+    });
+  });
+
   it("fails the terminal stage before checkpointing an oversized result", async () => {
     const journal = new MemoryJournal();
     const pipeline = new GroundingPipeline({

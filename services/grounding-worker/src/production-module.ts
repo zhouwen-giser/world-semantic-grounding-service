@@ -427,7 +427,8 @@ function readinessIdentity(): GroundingIdentityV2 {
 async function liveAuthority(
   value: Runtime,
   force = false,
-  principal: GroundingIdentityV2 = readinessIdentity()
+  principal: GroundingIdentityV2 = readinessIdentity(),
+  probeModel = true
 ): Promise<LiveAuthority> {
   const now = Date.now();
   if (!force && cachedAuthority && cachedAuthority.expiresAt > now) return cachedAuthority.value;
@@ -489,7 +490,7 @@ async function liveAuthority(
   });
   if (!validation.requiredReady) throw new ProductionStageModuleError("STABLE_GOWM_OPERATIONS_NOT_READY");
   await value.signer.ready();
-  if (value.modelPolicy === "MODEL_REQUIRED") {
+  if (probeModel && value.modelPolicy === "MODEL_REQUIRED") {
     const probeText = "2号车在哪里？";
     const probe = await value.model.parse({ sourceText: probeText, locale: "zh-CN" });
     stabilizeSemanticFrame(probe.frame, probeText);
@@ -563,7 +564,12 @@ export async function checkReadinessForCurrentEnvironment(
 export async function captureAdmissionSnapshot(context: {
   identity: GroundingIdentityV2;
 }): Promise<ProductionAdmissionSnapshot> {
-  return (await liveAuthority(readinessRuntime(), true, context.identity)).admission;
+  const value = readinessRuntime();
+  // Keep the fail-closed model readiness probe on its short-lived readiness
+  // cache, then refresh caller-filtered GOWM authority without parsing the
+  // same model prompt a second time for every admitted business request.
+  await liveAuthority(value);
+  return (await liveAuthority(value, true, context.identity, false)).admission;
 }
 
 function persistedAuthority(context: PipelineStageContext, gateway: GowmGatewayClient): PersistedAuthority {

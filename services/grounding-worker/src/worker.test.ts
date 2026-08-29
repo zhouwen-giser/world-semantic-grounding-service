@@ -198,6 +198,24 @@ describe("GroundingWorker", () => {
     });
   });
 
+  it("preserves the failed pipeline stage for public error attribution", async () => {
+    const store = new MemoryWorkerStore();
+    store.claims.push(claim());
+    const deadline = Object.assign(new Error("deadline"), {
+      code: "PIPELINE_DEADLINE_EXCEEDED",
+      stage: "SEMANTIC_MODEL_PARSE"
+    });
+    await expect(worker(store, async () => { throw deadline; }).runOnce()).resolves.toEqual({
+      kind: "FAILED",
+      jobId: "job-1"
+    });
+    expect(store.settlements[0]?.value).toMatchObject({
+      kind: "FAILED",
+      errorCode: "PIPELINE_DEADLINE_EXCEEDED",
+      pipelineStage: "SEMANTIC_MODEL_PARSE"
+    });
+  });
+
   it("graceful shutdown drains first and aborts in-flight work only after grace", async () => {
     const store = new MemoryWorkerStore();
     store.claims.push(claim());

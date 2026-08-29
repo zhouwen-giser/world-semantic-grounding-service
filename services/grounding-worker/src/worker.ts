@@ -1,3 +1,5 @@
+import { PIPELINE_STAGES, type PipelineStage } from "@wsgs/grounding-pipeline";
+
 import {
   WorkerConfigurationError,
   WorkerDeadlineExceededError,
@@ -38,6 +40,14 @@ function isRetryable(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const record = error as Record<string, unknown>;
   return record["retryable"] === true;
+}
+
+function pipelineStage(error: unknown): PipelineStage | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const stage = (error as Record<string, unknown>)["stage"];
+  return typeof stage === "string" && (PIPELINE_STAGES as readonly string[]).includes(stage)
+    ? stage as PipelineStage
+    : undefined;
 }
 
 function abortableDelay(ms: number, signal: AbortSignal): Promise<void> {
@@ -249,16 +259,20 @@ export class GroundingWorker {
       const retry = error instanceof WorkerShutdownError || (isRetryable(error) && claim.attempt < this.#config.maxJobAttempts);
       if (retry) {
         const backoffMs = Math.min(this.#config.retryBackoffMs * 2 ** Math.max(0, claim.attempt - 1), 30_000);
+        const failedStage = pipelineStage(error);
         return this.#settle(fence, {
           kind: "RETRY",
           errorCode: errorCode(error),
+          ...(failedStage ? { pipelineStage: failedStage } : {}),
           retryable: true,
           availableAt: new Date(this.#now() + backoffMs)
         }, "RETRY_SCHEDULED");
       }
+      const failedStage = pipelineStage(error);
       return this.#settle(fence, {
         kind: "FAILED",
         errorCode: errorCode(error),
+        ...(failedStage ? { pipelineStage: failedStage } : {}),
         retryable: false
       }, "FAILED");
     } finally {

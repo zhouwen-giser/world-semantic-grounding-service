@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 
-import { Aes256GcmPayloadCodec, GROUNDING_OPERATIONS, canonicalSha256 } from "@wsgs/grounding-pipeline";
+import {
+  Aes256GcmPayloadCodec,
+  GROUNDING_OPERATIONS,
+  canonicalSha256,
+  type PipelineStage
+} from "@wsgs/grounding-pipeline";
 import type { Notification, Pool, PoolClient } from "pg";
 
 import type { GroundingWorker } from "./worker.js";
@@ -83,12 +88,24 @@ function errorStage(code: string): string {
   return "PERSISTENCE";
 }
 
-function jobError(code: string, retryable: boolean): Record<string, unknown> {
+function publicErrorStage(stage: PipelineStage): string {
+  if (stage === "LOAD_CONTEXT") return "CONTEXT_LOADING";
+  if (["DETERMINISTIC_PARSE", "SEMANTIC_MODEL_PARSE", "SEMANTIC_FRAME_VALIDATE", "GROUNDING_GRAPH_BUILD"].includes(stage)) {
+    return "SEMANTIC_MODEL";
+  }
+  if (["REFERENCE_RESOLVE", "REFERENCE_VALIDATE"].includes(stage)) return "REFERENCE_GROUNDING";
+  if (["REQUIREMENT_PLAN", "CAPABILITY_MATCH", "WORLD_QUERY_COMPILE"].includes(stage)) return "QUERY_COMPILATION";
+  if (stage === "GOWM_EXECUTE") return "GOWM_EXECUTION";
+  if (["EVIDENCE_NORMALIZE", "PRODUCT_ASSEMBLE"].includes(stage)) return "RESULT_NORMALIZATION";
+  return "PERSISTENCE";
+}
+
+function jobError(code: string, retryable: boolean, pipelineStage?: PipelineStage): Record<string, unknown> {
   return {
     code,
     message: "Grounding execution could not be completed",
     retryable,
-    stage: errorStage(code)
+    stage: pipelineStage ? publicErrorStage(pipelineStage) : errorStage(code)
   };
 }
 
@@ -356,7 +373,11 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
                   lease_token = NULL, lease_owner = NULL, lease_expires_at = NULL,
                   error = $3::jsonb
             WHERE job_id = $1`,
-          [fence.jobId, settlement.availableAt, JSON.stringify(jobError(settlement.errorCode, true))]
+          [fence.jobId, settlement.availableAt, JSON.stringify(jobError(
+            settlement.errorCode,
+            true,
+            settlement.pipelineStage
+          ))]
         );
         return "APPLIED";
       }
@@ -369,7 +390,11 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
                 lease_token = NULL, lease_owner = NULL, lease_expires_at = NULL,
                 error = $3::jsonb
           WHERE job_id = $1`,
-        [fence.jobId, status, JSON.stringify(jobError(settlement.errorCode, false))]
+        [fence.jobId, status, JSON.stringify(jobError(
+          settlement.errorCode,
+          false,
+          settlement.kind === "FAILED" ? settlement.pipelineStage : undefined
+        ))]
       );
       return "APPLIED";
     });

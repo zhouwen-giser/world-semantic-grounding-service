@@ -1,3 +1,5 @@
+import type { PipelineStage } from "@wsgs/grounding-pipeline";
+
 export type WorkerGroundingOperation =
   | "GROUND_REFERENCES"
   | "VALIDATE_REFERENCES"
@@ -40,8 +42,8 @@ export type WorkerSettlement =
       resultHash: string;
       resultBytes: Uint8Array;
     }
-  | { kind: "FAILED"; errorCode: string; retryable: false }
-  | { kind: "RETRY"; errorCode: string; retryable: true; availableAt: Date }
+  | { kind: "FAILED"; errorCode: string; pipelineStage?: PipelineStage; retryable: false }
+  | { kind: "RETRY"; errorCode: string; pipelineStage?: PipelineStage; retryable: true; availableAt: Date }
   | { kind: "CANCELLED"; errorCode: "WORKER_JOB_CANCELLED"; retryable: false };
 
 export type WorkerSettlementOutcome = "APPLIED" | "FENCE_REJECTED";
