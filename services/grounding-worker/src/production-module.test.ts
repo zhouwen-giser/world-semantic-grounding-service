@@ -18,6 +18,7 @@ import {
   capabilityCatalogHash,
   canonicalLfSha256,
   computeWorldQueryNodeRequestHashes,
+  mergeKnownReferenceProducts,
   normalizeReferenceResolution,
   normalizeValidation,
   oversizedEvidencePayload,
@@ -388,6 +389,25 @@ describe("production stage module authority boundaries", () => {
       { ...base, operationId: "result.validate" }
     ], 1)).toThrowError(expect.objectContaining({ code: "PINNED_VALIDATION_OPERATION_UNAVAILABLE" }));
     expect(() => assertPriorGroundingReplaySupport([], 0)).not.toThrow();
+  });
+
+  it("keeps KnownWorldReferences on the EXECUTE path when resolver output is empty", () => {
+    const key = { namespace: "gowm" as const, kind: "WORLD_OBJECT", id: `wrf_${"c".repeat(32)}`, version: "7" };
+    const merged = mergeKnownReferenceProducts(normalizeReferenceResolution(null, []), [{
+      alias: "2号车",
+      referenceKey: key,
+      referenceType: "VEHICLE",
+      sourceMessageId: "message-1",
+      sourceGroundingId: "grounding-1"
+    }]);
+    expect(merged.referenceProducts).toHaveLength(1);
+    expect(merged.referenceProducts[0]).toMatchObject({
+      referenceKey: key,
+      displayName: "2号车",
+      matchedBy: "EXACT_REFERENCE_KEY",
+      revalidationRequired: true,
+      safeSummary: { source: "contextCapsule" }
+    });
   });
 
   it("builds the real reference.resolve shape and converts 1 km from millimetres to metres", () => {
