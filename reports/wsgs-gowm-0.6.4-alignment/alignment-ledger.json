@@ -1,0 +1,457 @@
+{
+  "schemaVersion": "wsgs-gowm-alignment-ledger/1.0",
+  "status": "PASS",
+  "decision": "DEVELOPMENT_READY",
+  "productionQualified": false,
+  "runtime": {
+    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "runtimeVersion": "0.6.4",
+    "gatewayContractVersion": "0.6.3",
+    "consumerPackage": "@gowm/world-gateway-contracts@0.6.3",
+    "consumerLogicalIntegrity": "sha512-f4bcksAK/JMk67pbkXlTycHREfM/19Xys4PcYhtjPTNW1Q43Xx+GYLlFkir0ePprUmNHo9Mnvksj2d2DOuCFrg=="
+  },
+  "acceptanceMatrix": {
+    "path": "acceptance/alignment-required.csv",
+    "sha256": "sha256:1d81b3b5ffb8c069498e04a160499db33e795fcef092db0f9bb9c382440528e4",
+    "required": 24
+  },
+  "summary": {
+    "required": 24,
+    "pass": 24,
+    "fail": 0,
+    "notRun": 0,
+    "blocked": 0
+  },
+  "criteria": [
+    {
+      "id": "ALIGN-001",
+      "phase": "W00",
+      "requirement": "Record actual WSGS base and exact GOWM source commit",
+      "gate": "baseline-reconciliation",
+      "declaredEvidence": "reports/.../w00-baseline.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/w00-baseline.json",
+          "sha256": "sha256:01a4e74f91391a76a3a6e2e8492ab410eebfa84db8a24e2fc0e8fd8d2b4e0c96",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:eb2a0f7a583da79e39266e0b963d68e674328b28fc9fdabbfa139b18802ae015"
+    },
+    {
+      "id": "ALIGN-002",
+      "phase": "W01",
+      "requirement": "GOWM runtime source commit equals fceed923...",
+      "gate": "alignment:gowm:check",
+      "declaredEvidence": "alignment invariant report",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/alignment-invariant-report.json",
+          "sha256": "sha256:234be84cdee9708e5b4e0b68912547b4a640b9d93bdbd264d9606d1911014999",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:32403b0bf448dcd77d587709ecdf9a765ffb1ee7a264341d56f6c4d56ae01f44"
+    },
+    {
+      "id": "ALIGN-003",
+      "phase": "W01",
+      "requirement": "GOWM runtime package.json version equals 0.6.4",
+      "gate": "alignment:gowm:check",
+      "declaredEvidence": "alignment invariant report",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/alignment-invariant-report.json",
+          "sha256": "sha256:234be84cdee9708e5b4e0b68912547b4a640b9d93bdbd264d9606d1911014999",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:296317cdf61897a1c1f709f9cafe3dc54581043a1ae453a491b7ae434368a2eb"
+    },
+    {
+      "id": "ALIGN-004",
+      "phase": "W01",
+      "requirement": "Gateway consumer package version equals 0.6.3",
+      "gate": "alignment:gowm:check",
+      "declaredEvidence": "alignment invariant report",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/alignment-invariant-report.json",
+          "sha256": "sha256:234be84cdee9708e5b4e0b68912547b4a640b9d93bdbd264d9606d1911014999",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:282aea9f7d1057bf08f36119fea730fa1db708731a570d090db4384fc63b8624"
+    },
+    {
+      "id": "ALIGN-005",
+      "phase": "W01",
+      "requirement": "Gateway contract version equals 0.6.3",
+      "gate": "alignment:gowm:check",
+      "declaredEvidence": "alignment invariant report",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/alignment-invariant-report.json",
+          "sha256": "sha256:234be84cdee9708e5b4e0b68912547b4a640b9d93bdbd264d9606d1911014999",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:a868a71c5be0b0b5cba8597ff8226f9403bd4ca8bb0245c5e8905456bf96dccb"
+    },
+    {
+      "id": "ALIGN-006",
+      "phase": "W01",
+      "requirement": "Runtime and contract versions remain independent",
+      "gate": "negative mutation tests",
+      "declaredEvidence": "negative-cases report",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/negative-cases-report.json",
+          "sha256": "sha256:6308f79d7e8381fec9b1d6fbe4557f5a1b831d2db1b0a305b8ad725fa88d2359",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:19ca6b32bebd72861401511ff9e7e7096492e544cb771548554f34ffd2ee58c8"
+    },
+    {
+      "id": "ALIGN-007",
+      "phase": "W01",
+      "requirement": "Northbound sacs-wsgs-grounding/1.0 unchanged",
+      "gate": "contract hash check",
+      "declaredEvidence": "northbound compatibility report",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/northbound-compatibility-report.json",
+          "sha256": "sha256:f146b722b6f20f4c02abf76e11c396fd6544f561b17734c06c2087433d7700e9",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:8689e6d166c9dc0ee6eedc54dae31ff7bd7dad6a10294dac9dee59df31a2dbce"
+    },
+    {
+      "id": "ALIGN-008",
+      "phase": "W02",
+      "requirement": "Consumer package logical integrity matches lock",
+      "gate": "contract intake",
+      "declaredEvidence": "contract-intake-report.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/contract-intake-report.json",
+          "sha256": "sha256:780840d224b7cefb0b77cbbf07bec06d77ab8fbf802705c93a896344a2618316",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:8858906ac3c1498487ead65673fa1188aa44a6cb26d1cee37a712d6948dd653d"
+    },
+    {
+      "id": "ALIGN-009",
+      "phase": "W02",
+      "requirement": "Catalog and semantic revisions match approved realization",
+      "gate": "contract intake",
+      "declaredEvidence": "contract-intake-report.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/contract-intake-report.json",
+          "sha256": "sha256:780840d224b7cefb0b77cbbf07bec06d77ab8fbf802705c93a896344a2618316",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:a2942edc6f20f8a75a4cb028a2a79bd05f370ebb82cb0295b04a438e68b91292"
+    },
+    {
+      "id": "ALIGN-010",
+      "phase": "W02",
+      "requirement": "Southbound raw lock SHA-256 matches",
+      "gate": "contract intake",
+      "declaredEvidence": "contract-intake-report.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/contract-intake-report.json",
+          "sha256": "sha256:780840d224b7cefb0b77cbbf07bec06d77ab8fbf802705c93a896344a2618316",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:58f4f477a6eed8a2b34bd6c31fa127cc7c825463375a098316f7bee6e14699ec"
+    },
+    {
+      "id": "ALIGN-011",
+      "phase": "W02",
+      "requirement": "Full operation set and wire schema diff is stable",
+      "gate": "lock diff gate",
+      "declaredEvidence": "contract-diff-report.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/contract-diff-report.json",
+          "sha256": "sha256:cdf1f9534fbaf7f49f6b07c2b770781be9d20490d600959c2f3f18e73a048b1f",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:097b60180a65d6149f6383c048e3331474ffa07cf1e621d5380bc63437515169"
+    },
+    {
+      "id": "ALIGN-012",
+      "phase": "W02",
+      "requirement": "Only exactly declared semantic migrations are observed",
+      "gate": "lock diff gate",
+      "declaredEvidence": "semantic-migration-report.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/semantic-migration-report.json",
+          "sha256": "sha256:a852eddacbca6434129a75fbdc6b4c91cbd60b2dd828f85d16bad9ac15adfae4",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:003d1dd62c376dd458c3f00c2849287f1c01dc7a0a3b578cdae5d66a77490f1a"
+    },
+    {
+      "id": "ALIGN-013",
+      "phase": "W03",
+      "requirement": "Single upstream authority enforced",
+      "gate": "authority scan",
+      "declaredEvidence": "existing-authorities report",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/w00-existing-authorities.json",
+          "sha256": "sha256:101d36b1097d5682d5fad99415b673aaf362bf779ee078080baf2fac6c5b54cd",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:acc7b164bbe712fc8d05ee1d7157af648423b6937d436a081ebb4b1826a9733a"
+    },
+    {
+      "id": "ALIGN-014",
+      "phase": "W04",
+      "requirement": "Reference identity unchanged through resolve/validate/geometry",
+      "gate": "reference identity gate",
+      "declaredEvidence": "reference-identity-report.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+          "sha256": "sha256:6a5fb4a95f54fed204050c8e367e69710e32661b163db21d483b7d6d0c77a2e7",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:6ff9fb936991598076d7f8b3aba01e93b20e0a3a0d2ee5a0361df649d671c472"
+    },
+    {
+      "id": "ALIGN-015",
+      "phase": "W04",
+      "requirement": "Ambiguous reference performs zero spatial executions",
+      "gate": "R2 gate",
+      "declaredEvidence": "reference-negative-cases.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+          "sha256": "sha256:bba262e868f8d40d0f5e6d3e95b1c1dce08b52dad2cd2a60fc96388488237c27",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:be9daa83a66ba63913651fe8ccf5aa01f370471a44d1449e9d723b19fbb79219"
+    },
+    {
+      "id": "ALIGN-016",
+      "phase": "W05",
+      "requirement": "Direct GOWM R1-R5 pass on exact runtime",
+      "gate": "direct real gate",
+      "declaredEvidence": "direct-r1-r5-smoke.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+          "sha256": "sha256:d059531893908e945807e2cae9de28deb5ecaca46d2efb0ef7bff09a95f09500",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:4eaa3458ff6f595a8c16618d802593dd3f9b6b357c21c0d51ee13debb3c866fb"
+    },
+    {
+      "id": "ALIGN-017",
+      "phase": "W06",
+      "requirement": "Formal WSGS pipeline R1-R5 pass",
+      "gate": "formal pipeline gate",
+      "declaredEvidence": "formal-pipeline-r1-r5.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+          "sha256": "sha256:9beb36e03c82039b5b4cfa6ee5d44e6ba646df1e2aac0eb1c6ed62db17017199",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:5cd3df7b9426b725a2b179f9eb28f331ee892722dbda6df48771f40650ad59ed"
+    },
+    {
+      "id": "ALIGN-018",
+      "phase": "W06",
+      "requirement": "R3 uses same A区 ReferenceKey and completes spatial query",
+      "gate": "formal pipeline gate",
+      "declaredEvidence": "formal-pipeline-r1-r5.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+          "sha256": "sha256:9beb36e03c82039b5b4cfa6ee5d44e6ba646df1e2aac0eb1c6ed62db17017199",
+          "status": "PASS"
+        },
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+          "sha256": "sha256:995e1e1d096c094abcaaf1c8e0e4c0bb6f11c8bb223a0dc8442efd70ee76a9e0",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:edf3ab18d42b3c467b4c55a6ae33ca1e8e39c857c7a39a0583c2a4e9284e1ca9"
+    },
+    {
+      "id": "ALIGN-019",
+      "phase": "W06",
+      "requirement": "Results are persisted and retrievable through WSGS API",
+      "gate": "formal pipeline gate",
+      "declaredEvidence": "pipeline-traceability.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json",
+          "sha256": "sha256:533738772dfcde7c31114f05fc08d47adde2fae11074314a9c15f272382d6b95",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:8bbe42a1fcfa64ee2a4c94155bb9e47a637af285b214e1408d2d20f6c3d942c1"
+    },
+    {
+      "id": "ALIGN-020",
+      "phase": "W07",
+      "requirement": "SACS development handoff records runtime 0.6.4 / contract 0.6.3",
+      "gate": "handoff verifier",
+      "declaredEvidence": "sacs-development-handoff-v1.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "contracts/consumers/sacs-development-handoff-v1.json",
+          "sha256": "sha256:e9783fdee5647ad0348b1f57f6ae432216e95e5691218ec849816b256c3b9553",
+          "status": "DEVELOPMENT_READY"
+        },
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/handoff-verification-report.json",
+          "sha256": "sha256:5411379bfc45193eb66d67d3073083feb2a9ebd073b86dad88e4379e3242aa9c",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:ff1fc96469ebaed09edcc8ec5ae170e9295ee044983d501719fd277c762b9997"
+    },
+    {
+      "id": "ALIGN-021",
+      "phase": "W07",
+      "requirement": "productionQualified remains false",
+      "gate": "handoff verifier",
+      "declaredEvidence": "sacs-development-handoff-v1.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "contracts/consumers/sacs-development-handoff-v1.json",
+          "sha256": "sha256:e9783fdee5647ad0348b1f57f6ae432216e95e5691218ec849816b256c3b9553",
+          "status": "DEVELOPMENT_READY"
+        },
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/handoff-verification-report.json",
+          "sha256": "sha256:5411379bfc45193eb66d67d3073083feb2a9ebd073b86dad88e4379e3242aa9c",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:8d359f63e12d87f15d5714da8e91fad8c47056b3e5b44f654a35674ec00e87f3"
+    },
+    {
+      "id": "ALIGN-022",
+      "phase": "W08",
+      "requirement": "npm run check passes",
+      "gate": "repository check",
+      "declaredEvidence": "closure-report.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/repository-check.json",
+          "sha256": "sha256:c3dc70d2c4d7f46c85708143cb55ff6a875642a97f6e928ef27f3b25bc79b7c7",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:028adc9d1240f3310c385016b9fd0e272867af28c00cea3e59d85ec2685aaf30"
+    },
+    {
+      "id": "ALIGN-023",
+      "phase": "W08",
+      "requirement": "No secrets or generated drift in commit",
+      "gate": "delivery scan",
+      "declaredEvidence": "closure-report.json",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/delivery-scan.json",
+          "sha256": "sha256:41a56642c6d2bb9f9820e880431584e4c5a0fab876a75974cdc3184ae642d7b2",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:cd621f7cc536fa7a94e440b0f9c5eebc7372409f054213e07f34817331f36133"
+    },
+    {
+      "id": "ALIGN-024",
+      "phase": "W08",
+      "requirement": "Draft PR includes non-claims and evidence paths",
+      "gate": "PR review",
+      "declaredEvidence": "PR body",
+      "blocking": true,
+      "status": "PASS",
+      "evidence": [
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/PR_BODY.md",
+          "sha256": "sha256:b3d4bb98a84e283e969801e7f0c38a2dd20b9d48a553e0821113153c334ea66b",
+          "status": "REVIEWED"
+        },
+        {
+          "path": "reports/wsgs-gowm-0.6.4-alignment/pr-review.json",
+          "sha256": "sha256:775ee4b62098e0d4a20a8fc1f1757cbc799328fae9337f1f52933411bfa9d440",
+          "status": "PASS"
+        }
+      ],
+      "evidenceHash": "sha256:fb08e8af586881c45c3d5b598506a5a6c079f0fd0bd392f7ee2b4c209caaba34"
+    }
+  ],
+  "marker": "WSGS_GOWM_ALIGNMENT_LEDGER_COMPLETE",
+  "evidenceHash": "sha256:02545601bcd619af1e0947c24e8c92ca1a957331cf8ff893be776b851cb8e128"
+}

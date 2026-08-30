@@ -839,7 +839,10 @@ function validateRuntimeEvidence(root: string, evidence: Map<string, EvidenceDoc
   );
   invariant(
     directR5["consumesR1ResolverOutput"] === true &&
-      directR5["usable"] === true &&
+      directR5["existence"] === "AVAILABLE" &&
+      directR5["freshness"] === "CURRENT" &&
+      directR5["snapshot"] === "CURRENT" &&
+      directR5["usable"] === "YES" &&
       digest(directR5["referenceIdentityHash"], "direct-r1-r5-smoke.R5.referenceIdentityHash") === directR1Identity,
     "ALIGNMENT_DIRECT_R5_INCOMPLETE"
   );

@@ -1,14 +1,14 @@
 {
   "schemaVersion": "wsgs-gowm-handoff-verification/1.0",
-  "status": "BLOCKED",
+  "status": "PASS",
   "handoffPath": "contracts/consumers/sacs-development-handoff-v1.json",
-  "handoffFileHash": "sha256:d2f55464dd1c4f80a99f46261f7d0e4b0558793adbea93294b44577af5c6188e",
-  "handoffCanonicalPayloadHash": "sha256:074d4beda4cb7027eec4deaf66692ef4538ce7efe809e1379b88ce62930337f6",
+  "handoffFileHash": "sha256:e9783fdee5647ad0348b1f57f6ae432216e95e5691218ec849816b256c3b9553",
+  "handoffCanonicalPayloadHash": "sha256:0feaf38b79f858dd0e3a3f663457dbbb37796a2f5b8951e39f2ffd5eb565b880",
   "schemaValidationStatus": "PASS",
   "handoffStatus": "DEVELOPMENT_READY",
   "wsgsSourceBinding": {
     "status": "PASS",
-    "sourceCommit": "8f77bb296707d933aba85aced3a9fa2311b6cb8f",
+    "sourceCommit": "71d505f453032ff9ec939129fa1efafe6ec6bc46",
     "verification": "DECLARED_HANDOFF_SOURCE_COMMIT_FOR_CLOSURE_CROSS_VALIDATION"
   },
   "exactTuple": {
@@ -22,15 +22,21 @@
     "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
     "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61"
   },
-  "alignmentValidatedRecipes": [],
+  "alignmentValidatedRecipes": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5"
+  ],
   "productionQualified": false,
   "checks": {
     "schema": "PASS",
     "exactTuple": "PASS",
-    "alignmentRecipes": "BLOCKED",
+    "alignmentRecipes": "PASS",
     "productionBoundary": "PASS",
     "wsgsSourceBinding": "PASS"
   },
-  "marker": "WSGS_GOWM_HANDOFF_ALIGNMENT_NOT_VERIFIED",
-  "evidenceHash": "sha256:b32a920335d8159130aa71a24dcd27be44bde045e1633eb9d3d778407bfed5a4"
+  "marker": "WSGS_GOWM_HANDOFF_ALIGNMENT_VERIFIED",
+  "evidenceHash": "sha256:d19e2f75fb98c1c150ff9b6001919b66c3e08ffb2771bf421e2a0a722fa8237a"
 }

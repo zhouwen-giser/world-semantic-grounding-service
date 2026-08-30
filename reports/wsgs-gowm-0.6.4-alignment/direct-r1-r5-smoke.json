@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "wsgs-gowm-direct-r1-r5-smoke/1.0",
+  "generatedAt": "2026-08-30T07:46:12.615Z",
+  "marker": "DIRECT_GOWM_R1_R5_READY",
+  "status": "PASS",
+  "executionLayer": "DIRECT_WSGS_CONSUMER_TO_GOWM_GATEWAY",
+  "wsgsSourceCommit": "71d505f453032ff9ec939129fa1efafe6ec6bc46",
+  "formalWsgsPipelineEvidence": false,
+  "runtime": {
+    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "runtimeVersion": "0.6.4",
+    "gatewayContractVersion": "0.6.3",
+    "consumerPackage": "@gowm/world-gateway-contracts@0.6.3",
+    "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
+    "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
+    "operationalLockHash": "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a",
+    "runtimeBinding": {
+      "bindingStatus": "PASS",
+      "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+      "runtimeVersion": "0.6.4",
+      "gatewayContractVersion": "0.6.3",
+      "imageDigest": "sha256:5ada61bbebc1bc808e9db14a9ca2aabe9d23211799393f8012e2e63d49eabe18",
+      "observedAt": "2026-08-30T07:46:09.953Z",
+      "instanceEvidencePath": "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+      "instanceEvidenceHash": "sha256:808d7e8c4ba48415273d99103386ee4952c3a941d13db63de9bc943364a2453d",
+      "instanceEvidencePayloadHash": "sha256:fc560d0b4d55bd4d7bc904054fbccd4d04054969c555b7582bf7da156c13b5c4",
+      "imageBuildEvidencePath": "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+      "imageBuildEvidenceHash": "sha256:79920f5e8652e3b1f2a1864a2457fb82ef84158a8d6633d834e4008fc8975f94",
+      "imageBuildEvidencePayloadHash": "sha256:384c19f07ed8be88ee0692d2515c698bdacd227f0544bd2daead9f58df6cf046",
+      "sourceTree": "0b48090f0491226817c672e998b633200aaa43ce",
+      "bindingHash": "sha256:9cfcc35374562d48053079b8959afd929c29f609cd973208761cbda6b4c6f0d0"
+    }
+  },
+  "summary": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0,
+    "notRun": 0,
+    "blocked": 0,
+    "blockingCheckCount": 0
+  },
+  "cases": [
+    {
+      "caseId": "R1",
+      "status": "PASS",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "reference.validate@1.0",
+        "world.get-current-state@1.0"
+      ],
+      "referenceIdentityHash": "sha256:bb86eaf20767911c4e959732b3905300d1314892717ef3e681eeb02f7f991f9a",
+      "resolverOutputConsumedWithoutRewrite": true,
+      "validationCurrentAndUsable": true,
+      "receiptIdHashes": [
+        "sha256:9f4060fe6eeeb6243ab6d9a493619b159a6b52dfc8139ff7e4c1a672add4da1f"
+      ]
+    },
+    {
+      "caseId": "R2",
+      "status": "PASS",
+      "operationKeys": [
+        "reference.resolve@1.0"
+      ],
+      "terminalStatus": "AMBIGUOUS",
+      "candidateCount": 2,
+      "spatialExecutionCount": 0
+    },
+    {
+      "caseId": "R3",
+      "status": "PASS",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "reference.validate@1.0",
+        "world.get-geometry@1.0",
+        "spatial.find-in-area@1.0"
+      ],
+      "referenceIdentityHash": "sha256:bfda76d71a92640f567769aa5bed8cc2b25b62178884b8420175f4e6dba40afd",
+      "resolverOutputConsumedWithoutRewrite": true,
+      "geometryOutputConsumedBySpatial": true,
+      "resultCount": 2
+    },
+    {
+      "caseId": "R4",
+      "status": "PASS",
+      "operationKeys": [
+        "reference.resolve@1.0",
+        "reference.validate@1.0",
+        "world.get-current-state@1.0",
+        "spatial.find-nearby@1.0"
+      ],
+      "referenceIdentityHash": "sha256:bb86eaf20767911c4e959732b3905300d1314892717ef3e681eeb02f7f991f9a",
+      "resolverOutputConsumedWithoutRewrite": true,
+      "radiusM": 1000,
+      "resultCount": 5
+    },
+    {
+      "caseId": "R5",
+      "status": "PASS",
+      "operationKeys": [
+        "reference.validate@1.0"
+      ],
+      "referenceIdentityHash": "sha256:bb86eaf20767911c4e959732b3905300d1314892717ef3e681eeb02f7f991f9a",
+      "consumesR1ResolverOutput": true,
+      "existence": "AVAILABLE",
+      "freshness": "CURRENT",
+      "snapshot": "CURRENT",
+      "usable": "YES"
+    }
+  ],
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawReferenceIdsIncluded": false,
+    "internalTopologyIncluded": false
+  },
+  "evidenceHash": "sha256:c9dfd5dcd173b55d23bde51706081f409659fd7693001036f45de6ebfee25230"
+}

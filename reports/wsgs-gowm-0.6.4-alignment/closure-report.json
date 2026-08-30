@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "wsgs-gowm-alignment-closure/1.0",
+  "status": "DEVELOPMENT_READY",
+  "productionQualified": false,
+  "runtime": {
+    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "runtimeVersion": "0.6.4",
+    "gatewayContractVersion": "0.6.3",
+    "consumerPackage": "@gowm/world-gateway-contracts@0.6.3",
+    "consumerLogicalIntegrity": "sha512-f4bcksAK/JMk67pbkXlTycHREfM/19Xys4PcYhtjPTNW1Q43Xx+GYLlFkir0ePprUmNHo9Mnvksj2d2DOuCFrg==",
+    "tarballBytes": 52867,
+    "tarballSha256": "sha256:3ae5372060752877fae34f16eb1b3239eb60878ec69473a502010df8a88ae322",
+    "archiveSri": "sha512-/QHyUETXwXXb09+cWgWjh9Hh+U24PuYhEh56O0P01lJkL2k+mB09yOPgO+efc9qY8X1FnxQOC4T/xc9pVyGldA==",
+    "materializationTreeSha256": "sha256:dee0bda2b950243d25b582fa1f691172997f8b01d837954510ec9f762d822a5a",
+    "rawCrLfFileCount": 58,
+    "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
+    "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
+    "southboundRawSha256": "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a"
+  },
+  "acceptance": {
+    "required": 24,
+    "pass": 24,
+    "ledgerPath": "reports/wsgs-gowm-0.6.4-alignment/alignment-ledger.json",
+    "ledgerHash": "sha256:88f563fb781cee4f29b48c417f15962a687c40959282d90afd14f00a4202b3c3"
+  },
+  "runtimeEvidence": {
+    "direct": {
+      "status": "PASS",
+      "recipes": "5/5",
+      "path": "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+      "wsgsSourceCommit": "71d505f453032ff9ec939129fa1efafe6ec6bc46",
+      "imageDigest": "sha256:5ada61bbebc1bc808e9db14a9ca2aabe9d23211799393f8012e2e63d49eabe18",
+      "runtimeBindingHash": "sha256:9cfcc35374562d48053079b8959afd929c29f609cd973208761cbda6b4c6f0d0",
+      "instanceEvidencePath": "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+      "instanceEvidenceHash": "sha256:808d7e8c4ba48415273d99103386ee4952c3a941d13db63de9bc943364a2453d"
+    },
+    "formal": {
+      "status": "PASS",
+      "recipes": "5/5",
+      "path": "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+      "wsgsSourceCommit": "71d505f453032ff9ec939129fa1efafe6ec6bc46",
+      "runtimeBindingHash": "sha256:9cfcc35374562d48053079b8959afd929c29f609cd973208761cbda6b4c6f0d0",
+      "executionMode": "EXTERNAL_PROCESS",
+      "wsgsProcessBindingHash": "sha256:d26a44ec465a77101e585467b8143b966795a3774ad962f0d86393de3ee4dd99",
+      "wsgsProcessBindingPath": "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+      "wsgsRuntimeImageBuildPath": "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json"
+    }
+  },
+  "handoff": {
+    "verificationPath": "reports/wsgs-gowm-0.6.4-alignment/handoff-verification-report.json",
+    "verificationSha256": "sha256:5411379bfc45193eb66d67d3073083feb2a9ebd073b86dad88e4379e3242aa9c",
+    "contractPath": "contracts/consumers/sacs-development-handoff-v1.json",
+    "contractSha256": "sha256:e9783fdee5647ad0348b1f57f6ae432216e95e5691218ec849816b256c3b9553",
+    "contractPayloadHash": "sha256:0feaf38b79f858dd0e3a3f663457dbbb37796a2f5b8951e39f2ffd5eb565b880",
+    "alignmentValidatedRecipes": [
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5"
+    ],
+    "productionQualified": false
+  },
+  "nonClaims": [
+    "This closure is development readiness only.",
+    "It is not production qualification, release, deployment, or shared-runtime mutation evidence."
+  ],
+  "marker": "WSGS_GOWM_0_6_4_ALIGNMENT_DEVELOPMENT_READY",
+  "evidenceHash": "sha256:89efd76149a262f15bb6e5b9fa68f2f533b8861c74150849076072e334493ccd"
+}

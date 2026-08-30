@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "wsgs-gowm-pr-review/1.0",
+  "status": "PASS",
+  "draft": true,
+  "productionQualified": false,
+  "bodyPath": "reports/wsgs-gowm-0.6.4-alignment/PR_BODY.md",
+  "bodyHash": "sha256:b3d4bb98a84e283e969801e7f0c38a2dd20b9d48a553e0821113153c334ea66b",
+  "bodyCanonicalHash": "sha256:b3d4bb98a84e283e969801e7f0c38a2dd20b9d48a553e0821113153c334ea66b",
+  "evidencePaths": [
+    "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json",
+    "reports/wsgs-gowm-0.6.4-alignment/closure-report.json"
+  ],
+  "nonClaims": [
+    "Development readiness only",
+    "production qualification",
+    "release",
+    "deployment",
+    "shared-runtime mutation"
+  ],
+  "evidenceHash": "sha256:f6c594020b808f28a174c54fe6e00ea0bfe50c191b74982a300b75219c84d16f"
+}

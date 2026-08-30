@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "status": "DEVELOPMENT_READY",
   "wsgs": {
-    "commit": "8f77bb296707d933aba85aced3a9fa2311b6cb8f",
+    "commit": "71d505f453032ff9ec939129fa1efafe6ec6bc46",
     "version": "0.2.1"
   },
   "northboundContract": {
@@ -29,11 +29,16 @@
     "R5",
     "R6"
   ],
-  "alignmentValidatedRecipes": [],
+  "alignmentValidatedRecipes": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5"
+  ],
   "knownDeferredCapabilities": [
     "EXACT_HISTORICAL_PINNED_REPLAY",
     "FULL_REAL_DELEGATION_NEGATIVE_MATRIX",
-    "GOWM_SAMPLE_FIX_NOT_RELEASED",
     "OBJECT_STORAGE_INFRASTRUCTURE",
     "PRODUCTION_RESTART_MATRIX",
     "HA_DR_SLO_AND_LOAD_QUALIFICATION"
