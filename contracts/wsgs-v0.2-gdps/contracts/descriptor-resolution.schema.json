@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-descriptor-resolution:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "evidence"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-gdps-descriptor-resolution/1.0"
+    },
+    "status": {
+      "enum": [
+        "MATCHED",
+        "AMBIGUOUS",
+        "DESCRIPTOR_NOT_FOUND",
+        "QUERY_PROFILE_UNSUPPORTED",
+        "CLASS_CODE_UNSUPPORTED",
+        "VALUE_RANGE_INVALID",
+        "UNIT_MISMATCH",
+        "PROPERTY_FILTER_UNSUPPORTED",
+        "PLATFORM_PROFILE_REQUIRED",
+        "PLATFORM_PROFILE_FORBIDDEN",
+        "DESCRIPTOR_LOCK_DRIFT"
+      ]
+    },
+    "intent": {
+      "$ref": "urn:wsgs:grounded-geospatial-product-intent:1.0"
+    },
+    "candidateDescriptorIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "object"
+    }
+  }
+}

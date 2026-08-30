@@ -37,9 +37,7 @@ interface CompiledUnit {
 
 export { queryTemplateRules };
 
-/** Canonical GOWM 0.6.3 registry hash for platform/world-query-parameters.schema.json. */
-export const GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH =
-  "sha256:12435544345b96060988d2260be7d2cd3356df710442023888a8c02911c26c97" as const;
+const digestPattern = /^sha256:[0-9a-f]{64}$/u;
 
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
@@ -156,6 +154,54 @@ function snapshotPolicy(input: CompileInput, rule: QueryTemplateRule): QuerySnap
   return { mode: "LATEST_AT_START", allowDowngrade: false };
 }
 
+function gdpsAuthorizationGap(input: CompileInput, rule: QueryTemplateRule): CompileResult | undefined {
+  if (!rule.previewAuthorizationRequired) return undefined;
+  const authorization = input.gdpsRecipeAuthorization;
+  const expectedRecipeId = `recipe-${rule.pattern.toLowerCase().replaceAll("_", "-")}`;
+  if (!authorization || authorization.previewAuthorizationRequired !== true ||
+      authorization.semanticPattern !== rule.pattern ||
+      authorization.recipeId !== expectedRecipeId ||
+      !input.trustedGdpsRecipeLockHash ||
+      authorization.recipeLockHash !== input.trustedGdpsRecipeLockHash ||
+      !digestPattern.test(authorization.recipeLockHash) || !digestPattern.test(authorization.descriptorHash)) {
+    return gap(input, "RECIPE_LOCK_DRIFT", {
+      pattern: rule.pattern,
+      exactRecipeAuthorized: false,
+      expectedRecipeId,
+      trustedRecipeLockMatched: authorization?.recipeLockHash === input.trustedGdpsRecipeLockHash
+    });
+  }
+  const parameterValues = input.parameterValues ?? {};
+  if (parameterValues["descriptorId"] !== authorization.descriptorId ||
+      parameterValues["descriptorHash"] !== authorization.descriptorHash) {
+    return gap(input, "DESCRIPTOR_LOCK_DRIFT", {
+      pattern: rule.pattern,
+      exactDescriptorAuthorized: false
+    });
+  }
+  for (const step of rule.steps) {
+    const operationKey = step.requirement.allowedOperationKeys?.[0];
+    if (!operationKey || operationKey.startsWith("reference.") || operationKey.startsWith("world.")) continue;
+    const separator = operationKey.lastIndexOf("@");
+    const operationId = operationKey.slice(0, separator);
+    const operationVersion = operationKey.slice(separator + 1);
+    const locked = input.operationLocks.find((entry) =>
+      entry.operationId === operationId && entry.operationVersion === operationVersion);
+    const allowed = authorization.allowedOperations.find((entry) =>
+      entry.operationId === operationId && entry.operationVersion === operationVersion);
+    if (!locked || !allowed || locked.inputSchemaHash !== allowed.inputSchemaHash ||
+        locked.outputSchemaHash !== allowed.outputSchemaHash ||
+        locked.semanticProfileHash !== allowed.semanticProfileHash) {
+      return gap(input, "RECIPE_LOCK_DRIFT", {
+        pattern: rule.pattern,
+        operationKey,
+        exactOperationHashes: false
+      });
+    }
+  }
+  return undefined;
+}
+
 function sourceOutput(
   source: { matched: MatchedCapability },
   outputPort: string
@@ -184,14 +230,10 @@ export class TypedWorldQueryCompiler {
         previewEnabled: false
       });
     }
-    if (rule.maturity === "PREVIEW" && rule.pattern.startsWith("GDPS_") &&
-      !(input.previewRecipeIds ?? []).includes(rule.pattern)) {
-      return gap(input, "MATURITY_NOT_ALLOWED", {
-        pattern: input.pattern,
-        recipeMaturity: rule.maturity,
-        globalPreviewEnabled: input.maturityPolicy.allowPreview,
-        explicitRecipeAuthorized: false
-      });
+    const authorizationGap = gdpsAuthorizationGap(input, rule);
+    if (authorizationGap) return authorizationGap;
+    if (!digestPattern.test(input.parameterSchemaHash)) {
+      return gap(input, "SCHEMA_MISMATCH", { reason: "WORLD_QUERY_PARAMETER_SCHEMA_HASH_INVALID" });
     }
     const policy = snapshotPolicy(input, rule);
     if (!policy) {
@@ -328,18 +370,35 @@ export class TypedWorldQueryCompiler {
         }
       }
       for (const requestBinding of unit.requestBindings) {
-        if (requestBinding.optional && !Object.hasOwn(input.parameterValues ?? {}, requestBinding.path.replace(/^\//u, ""))) {
+        const parameterName = requestBinding.path.replace(/^\//u, "");
+        const hasParameter = Object.hasOwn(input.parameterValues ?? {}, parameterName);
+        if (requestBinding.optional && !hasParameter) {
           continue;
         }
         if (nodeInputs[requestBinding.inputName] !== undefined) {
           throw new QueryCompilationError("TEMPLATE_INPUT_NAME_COLLISION");
         }
-        nodeInputs[requestBinding.inputName] = {
-          kind: "REQUEST_PATH",
-          port: requestBinding.port ?? schemaPort(requestPort),
-          path: requestBinding.path,
-          targetPath: requestBinding.targetPath
-        };
+        if (requestBinding.literalFromParameter) {
+          if (!hasParameter || !/^\/[A-Za-z][A-Za-z0-9_]*$/u.test(requestBinding.path)) {
+            return gap(input, "SCHEMA_MISMATCH", {
+              operationId: unit.matched.descriptor.operationId,
+              missingLiteralParameter: parameterName
+            });
+          }
+          nodeInputs[requestBinding.inputName] = {
+            kind: "LITERAL",
+            port: requestBinding.port ?? schemaPort(requestPort),
+            value: structuredClone(input.parameterValues![parameterName]),
+            targetPath: requestBinding.targetPath
+          };
+        } else {
+          nodeInputs[requestBinding.inputName] = {
+            kind: "REQUEST_PATH",
+            port: requestBinding.port ?? schemaPort(requestPort),
+            path: requestBinding.path,
+            targetPath: requestBinding.targetPath
+          };
+        }
       }
       for (const literalBinding of unit.literalBindings) {
         if (nodeInputs[literalBinding.inputName] !== undefined) {
@@ -423,7 +482,7 @@ export class TypedWorldQueryCompiler {
       idempotencyKey: input.idempotencyKey,
       plan,
       parameters,
-      parameterSchemaHash: GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH,
+      parameterSchemaHash: input.parameterSchemaHash,
       snapshotPolicy: policy
     };
     return {

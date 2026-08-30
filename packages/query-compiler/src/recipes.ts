@@ -25,6 +25,8 @@ export interface QueryTemplateRequestBinding {
   targetPath: string;
   port?: SchemaPort;
   optional?: boolean;
+  /** Emit a source-validated parameter as an immutable node literal. */
+  literalFromParameter?: boolean;
 }
 
 export interface QueryTemplateLiteralBinding {
@@ -49,6 +51,7 @@ export interface QueryTemplateRule {
   pattern: Exclude<QuerySemanticPattern, "TERRAIN_VISIBILITY">;
   maturity: "STABLE" | "PREVIEW";
   allowDegraded: boolean;
+  previewAuthorizationRequired?: boolean;
   defaultSnapshotMode?: SnapshotMode;
   steps: readonly QueryTemplateStep[];
 }
@@ -202,8 +205,60 @@ const gdpsProductBinding: QueryTemplateRequestBinding = {
   path: "/explicitProductId",
   targetPath: "/productId",
   port: stringLiteralPort,
-  optional: true
+  optional: true,
+  literalFromParameter: true
 };
+
+const gdpsDescriptorBindings: readonly QueryTemplateRequestBinding[] = [{
+  inputName: "productType", path: "/productType", targetPath: "/productType", port: stringLiteralPort,
+  literalFromParameter: true
+}, {
+  inputName: "productProfile", path: "/productProfile", targetPath: "/productProfile", port: stringLiteralPort,
+  literalFromParameter: true
+}, gdpsProductBinding];
+
+const classCodesBinding: QueryTemplateRequestBinding = {
+  inputName: "classCodes", path: "/classCodes", targetPath: "/classCodes", literalFromParameter: true
+};
+const rangesBinding: QueryTemplateRequestBinding = {
+  inputName: "ranges", path: "/ranges", targetPath: "/ranges", literalFromParameter: true
+};
+const propertyFiltersBinding: QueryTemplateRequestBinding = {
+  inputName: "propertyFilters", path: "/propertyFilters", targetPath: "/propertyFilters", optional: true,
+  literalFromParameter: true
+};
+const platformProfileBinding: QueryTemplateRequestBinding = {
+  inputName: "platformProfile", path: "/platformProfile", targetPath: "/platformProfile", port: stringLiteralPort,
+  optional: true, literalFromParameter: true
+};
+
+function genericGdpsStep(
+  stepId: string,
+  operationId: string,
+  link: QueryTemplateLink,
+  requestBindings: readonly QueryTemplateRequestBinding[] = [],
+  literalBindings: readonly QueryTemplateLiteralBinding[] = []
+): QueryTemplateStep {
+  return {
+    stepId,
+    costWeight: 4,
+    failurePolicy: "FAIL_FAST",
+    links: [link],
+    requestBindings: [...gdpsDescriptorBindings, ...requestBindings, platformProfileBinding],
+    literalBindings,
+    requirement: contract(`${operationId}@1.0`, {
+      domain: "SPATIAL",
+      relationSemantics: ["DESCRIBES"],
+      acceptedReferenceKinds: [],
+      producedReferenceKinds: [],
+      spatialSemantics: "EXACT",
+      timeSemantics: "CURRENT",
+      resultNature: "DERIVED",
+      inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
+      outputPorts: [resultPort()]
+    })
+  };
+}
 
 const geoJsonPointType: QueryTemplateLiteralBinding = {
   inputName: "pointType",
@@ -563,6 +618,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     templateId: "gdps-land-cover-at-reference",
     pattern: "GDPS_LAND_COVER_AT_REFERENCE",
     maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readCurrentPosition,
@@ -572,6 +628,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     templateId: "gdps-wetlands-in-area",
     pattern: "GDPS_WETLANDS_IN_AREA",
     maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readGeometry,
@@ -581,6 +638,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     templateId: "gdps-obstacles-near-reference",
     pattern: "GDPS_OBSTACLES_NEAR_REFERENCE",
     maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readCurrentPosition,
@@ -593,13 +651,15 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
           schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348",
           valueKind: "ANY",
           unitSemantics: "LINEAR_METERS"
-        }
+        },
+        literalFromParameter: true
       }], ["NEAR"])]
   },
   {
     templateId: "gdps-blocked-areas-in-area",
     pattern: "GDPS_BLOCKED_AREAS_IN_AREA",
     maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readGeometry,
@@ -609,6 +669,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     templateId: "gdps-high-ground-in-area",
     pattern: "GDPS_HIGH_GROUND_IN_AREA",
     maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readGeometry,
@@ -618,6 +679,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     templateId: "gdps-elevation-at-reference",
     pattern: "GDPS_ELEVATION_AT_REFERENCE",
     maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readCurrentPosition,
@@ -627,10 +689,93 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     templateId: "gdps-traversability-explain-at-reference",
     pattern: "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
     maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readCurrentPosition,
       gdpsPointStep("explain-traversability", "traversability.explain", "ANALYSIS", "DERIVED")]
+  },
+  {
+    templateId: "gdps-generic-sample-value",
+    pattern: "GDPS_GENERIC_SAMPLE_VALUE",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readCurrentPosition,
+      genericGdpsStep("sample-product", "geo-raster.sample", {
+        sourceStepId: "read-current-position", outputPort: "positionCoordinates",
+        inputName: "pointCoordinates", targetPath: "/point/coordinates"
+      }, [], [geoJsonPointType])]
+  },
+  {
+    templateId: "gdps-generic-profile-value",
+    pattern: "GDPS_GENERIC_PROFILE_VALUE",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readGeometry,
+      genericGdpsStep("profile-product", "geo-raster.profile", {
+        sourceStepId: "read-geometry", outputPort: "geometry", inputName: "line", targetPath: "/line"
+      })]
+  },
+  {
+    templateId: "gdps-generic-find-class",
+    pattern: "GDPS_GENERIC_FIND_CLASS",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readGeometry,
+      genericGdpsStep("find-product-class", "geo-raster.find-by-class", { ...geometryLink, targetPath: "/selector" }, [classCodesBinding])]
+  },
+  {
+    templateId: "gdps-generic-find-range",
+    pattern: "GDPS_GENERIC_FIND_RANGE",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readGeometry,
+      genericGdpsStep("find-product-range", "geo-raster.find-by-range", { ...geometryLink, targetPath: "/selector" }, [rangesBinding])]
+  },
+  {
+    templateId: "gdps-generic-vector-in-area",
+    pattern: "GDPS_GENERIC_VECTOR_IN_AREA",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readGeometry,
+      genericGdpsStep("find-vector-in-area", "geo-vector.find-in-area", { ...geometryLink, targetPath: "/selector" }, [propertyFiltersBinding])]
+  },
+  {
+    templateId: "gdps-generic-vector-nearby",
+    pattern: "GDPS_GENERIC_VECTOR_NEARBY",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readCurrentPosition,
+      genericGdpsStep("find-vector-nearby", "geo-vector.find-nearby", {
+        sourceStepId: "read-current-position", outputPort: "positionCoordinates",
+        inputName: "pointCoordinates", targetPath: "/point/coordinates"
+      }, [{
+        inputName: "distanceMetres", path: "/distanceM", targetPath: "/distanceMetres",
+        literalFromParameter: true
+      }, propertyFiltersBinding],
+      [geoJsonPointType])]
+  },
+  {
+    templateId: "gdps-generic-vector-intersects",
+    pattern: "GDPS_GENERIC_VECTOR_INTERSECTS",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    steps: [resolveReference, readGeometry,
+      genericGdpsStep("find-vector-intersections", "geo-vector.find-intersections", { ...geometryLink, targetPath: "/selector" }, [propertyFiltersBinding])]
   }
 ] as const;
 

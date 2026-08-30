@@ -47,7 +47,7 @@ function descriptorMaturity(operationId: string): "STABLE" | "PREVIEW" {
     operationId === "spatial.find-containing-area" ||
     operationId === "correlation.resolve" ||
     operationId === "predicate.evaluate" ||
-    ["landcover.", "hydrology.", "obstacle.", "traversability.", "terrain.", "elevation."]
+    ["landcover.", "hydrology.", "obstacle.", "traversability.", "terrain.", "elevation.", "geo-raster.", "geo-vector."]
       .some((prefix) => operationId.startsWith(prefix))
   ) ? "PREVIEW" : "STABLE";
 }
@@ -218,6 +218,7 @@ export function compileInput(pattern: QuerySemanticPattern): CompileInput {
       limitPerMention: 5
     },
     parameterValues: { distanceM: 1_000, distanceMetres: 1_000 },
+    parameterSchemaHash: digest("world-query-parameters"),
     ...catalog,
     maturityPolicy: { allowPreview: false },
     degradedPolicy: "REJECT",
@@ -232,6 +233,50 @@ export function compileInput(pattern: QuerySemanticPattern): CompileInput {
       maximumExecutionMs: 30_000
     }
   };
+}
+
+export function authorizeGdps(input: CompileInput, values: {
+  descriptorId?: string;
+  descriptorHash?: `sha256:${string}`;
+  productType?: string;
+  productProfile?: string;
+} = {}): CompileInput {
+  const rule = queryTemplateRules.find((entry) => entry.pattern === input.pattern);
+  if (!rule?.previewAuthorizationRequired) throw new Error(`NOT_GDPS_RECIPE:${input.pattern}`);
+  const operationKeys = rule.steps.flatMap((step) => step.requirement.allowedOperationKeys ?? [])
+    .filter((key) => !key.startsWith("reference.") && !key.startsWith("world."));
+  const allowedOperations = operationKeys.map((key) => {
+    const separator = key.lastIndexOf("@");
+    const operationId = key.slice(0, separator);
+    const operationVersion = key.slice(separator + 1);
+    const lock = input.operationLocks.find((entry) => entry.operationId === operationId && entry.operationVersion === operationVersion)!;
+    return {
+      operationId, operationVersion,
+      inputSchemaHash: lock.inputSchemaHash,
+      outputSchemaHash: lock.outputSchemaHash,
+      semanticProfileHash: lock.semanticProfileHash
+    };
+  });
+  const descriptorId = values.descriptorId ?? "LEGACY/LOCKED";
+  const descriptorHash = values.descriptorHash ?? digest(descriptorId);
+  input.gdpsRecipeAuthorization = {
+    recipeId: `recipe-${input.pattern.toLowerCase().replaceAll("_", "-")}`,
+    semanticPattern: input.pattern,
+    recipeLockHash: digest(`recipe:${input.pattern}`),
+    descriptorId,
+    descriptorHash,
+    previewAuthorizationRequired: true,
+    allowedOperations
+  };
+  input.trustedGdpsRecipeLockHash = input.gdpsRecipeAuthorization.recipeLockHash;
+  input.parameterValues = {
+    ...input.parameterValues,
+    descriptorId,
+    descriptorHash,
+    ...(values.productType ? { productType: values.productType } : {}),
+    ...(values.productProfile ? { productProfile: values.productProfile } : {})
+  };
+  return input;
 }
 
 export function operationFrom(catalog: CompilerCatalog, key: string): {

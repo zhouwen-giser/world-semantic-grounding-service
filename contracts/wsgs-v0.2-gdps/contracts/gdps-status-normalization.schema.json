@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-status-normalization:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "upstreamCondition",
+    "wsgsStatus",
+    "semanticCode"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-gdps-status-normalization/1.0"
+    },
+    "upstreamCondition": {
+      "type": "string"
+    },
+    "wsgsStatus": {
+      "enum": [
+        "COMPLETED",
+        "PARTIAL",
+        "UNRESOLVED",
+        "AMBIGUOUS",
+        "INDETERMINATE",
+        "FAILED"
+      ]
+    },
+    "semanticCode": {
+      "type": "string"
+    },
+    "retryPolicy": {
+      "enum": [
+        "NONE",
+        "ONCE",
+        "CALLER_EXPLICIT"
+      ]
+    }
+  }
+}

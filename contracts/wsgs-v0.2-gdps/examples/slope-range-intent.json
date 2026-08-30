@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "wsgs-geospatial-product-intent/1.0",
+  "intentId": "intent-slope-range-a",
+  "targetConcept": "SLOPE",
+  "querySemantics": "FIND_VALUE_RANGE_AREAS",
+  "subjectMentionIds": [
+    "mention-area-a"
+  ],
+  "numericConstraint": {
+    "ranges": [
+      {
+        "minimum": 15,
+        "maximum": 30,
+        "minimumInclusive": true,
+        "maximumInclusive": true
+      }
+    ],
+    "unit": "degree"
+  },
+  "spatialConstraint": {
+    "relation": "WITHIN"
+  },
+  "sourceNodeIds": [
+    "semantic-operation-slope"
+  ]
+}

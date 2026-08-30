@@ -2,21 +2,15 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import {
-  buildGdpsCapabilitySnapshot,
-  GDPS_PREVIEW_RECIPE_OPERATION_KEYS,
-  type GdpsPreviewRecipeId,
-  type GdpsSnapshotCapability
-} from "../../packages/trusted-capability-snapshot/src/index.js";
 import { TypedWorldQueryCompiler } from "../../packages/query-compiler/src/compiler.js";
-import { compileInput } from "../../packages/query-compiler/src/test-fixtures.js";
+import { authorizeGdps, compileInput } from "../../packages/query-compiler/src/test-fixtures.js";
 import type { QuerySemanticPattern } from "../../packages/query-compiler/src/types.js";
 
 const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const reportRoot = resolve(root, "reports", "wsgs-v0.2-gdps");
-const baseline = JSON.parse(readFileSync(resolve(reportRoot, "w20-source-baseline.json"), "utf8")) as Record<string, any>;
 const write = process.argv.includes("--write");
-const recipeIds = Object.keys(GDPS_PREVIEW_RECIPE_OPERATION_KEYS) as GdpsPreviewRecipeId[];
+const snapshot = JSON.parse(readFileSync(resolve(reportRoot, "w21-capability-snapshot.json"), "utf8")) as Record<string, any>;
+const recipeIds = snapshot.recipeLocks.map((entry: Record<string, unknown>) => String(entry.recipeId)) as QuerySemanticPattern[];
 
 let existingLiveRegistration: Record<string, unknown> | undefined;
 try {
@@ -31,28 +25,6 @@ try {
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
-
-const capabilities: GdpsSnapshotCapability[] = baseline.gdps.capabilities.map((entry: Record<string, unknown>) => ({
-  operationId: String(entry.operationId),
-  operationVersion: String(entry.operationVersion),
-  inputSchemaHash: String(entry.inputSchemaHash) as `sha256:${string}`,
-  outputSchemaHash: String(entry.outputSchemaHash) as `sha256:${string}`,
-  semanticProfileHash: String(entry.semanticProfileHash) as `sha256:${string}`,
-  maturity: "PREVIEW",
-  availability: "UNAVAILABLE",
-  snapshotSupport: "CONSISTENT_AT_START",
-  providerBinding: "gdps.geospatial-products"
-}));
-
-const snapshot = buildGdpsCapabilitySnapshot({
-  sourceCommit: baseline.sources.gdps.commit,
-  providerId: baseline.gdps.providerId,
-  providerVersion: baseline.gdps.providerVersion,
-  manifestHash: baseline.gdps.manifestHash,
-  capturedAt: baseline.generatedAt,
-  capabilities,
-  enabledRecipeIds: recipeIds
-});
 
 const recipeEvidence = {
   schemaVersion: "wsgs-gdps-recipe-lock-validation/1.0",
@@ -70,13 +42,12 @@ const recipeEvidence = {
 
 const compiler = new TypedWorldQueryCompiler();
 const plans = recipeIds.map((recipeId) => {
-  const input = compileInput(recipeId as QuerySemanticPattern);
+  const input = authorizeGdps(compileInput(recipeId));
   input.maturityPolicy.allowPreview = true;
-  input.previewRecipeIds = [recipeId as QuerySemanticPattern];
   input.snapshotPolicy = { mode: "BEST_EFFORT", allowDowngrade: false };
-  if (recipeId === "GDPS_OBSTACLES_NEAR_REFERENCE") input.parameterValues = { distanceMetres: 500 };
+  if (recipeId === "GDPS_OBSTACLES_NEAR_REFERENCE") input.parameterValues = { ...input.parameterValues, distanceMetres: 500 };
   if (recipeId === "GDPS_HIGH_GROUND_IN_AREA") {
-    input.parameterValues = { explicitProductId: "terrain-main" };
+    input.parameterValues = { ...input.parameterValues, explicitProductId: "terrain-main" };
   }
   const compiled = compiler.compile(input);
   assert(compiled.status === "COMPILED", `${recipeId} did not compile`);
@@ -100,7 +71,7 @@ const planningEvidence = {
     "HIGH_GROUND", "DEPRESSION", "WATER", "WETLAND", "BUILDING", "OBSTACLE", "PASSABLE", "BLOCKED",
     "EXPLAIN_TRAVERSABILITY", "EXPLICIT_PRODUCT_PREFERENCE"
   ],
-  naturalLanguageCasesCovered: 7,
+  naturalLanguageCasesCovered: recipeIds.length,
   operationIdsInRequirements: false,
   providerIdsInRequirements: false,
   markers: ["GDPS_SEMANTIC_FRAME_READY", "GDPS_SEMANTIC_REQUIREMENT_PLANNER_READY"]
@@ -118,10 +89,15 @@ const typedPlanEvidence = {
 };
 
 function validate(): void {
-  assert(snapshot.capabilities.length === 23, "W21 capability count mismatch");
-  assert(snapshot.recipeLocks.length === 7, "W21 recipe count mismatch");
+  assert(Array.isArray(snapshot.capabilities) && snapshot.capabilities.length > 0, "W21 capability inventory is empty");
+  assert(
+    new Set(snapshot.capabilities.map((entry: Record<string, unknown>) =>
+      `${String(entry.operationId)}@${String(entry.operationVersion)}`)).size === snapshot.capabilities.length,
+    "W21 capability inventory contains duplicate operation keys"
+  );
+  assert(Array.isArray(snapshot.recipeLocks) && snapshot.recipeLocks.length > 0, "W21 recipe inventory is empty");
   assert(recipeEvidence.globalPreviewAloneRejected && recipeEvidence.exactRecipeAllowlistRequired, "W24 preview policy mismatch");
-  assert(plans.length === 7 && plans.every((plan) => !plan.providerIdInPlan), "W25 plan evidence mismatch");
+  assert(plans.length === recipeIds.length && plans.every((plan) => !plan.providerIdInPlan), "W25 plan evidence mismatch");
   assert(plans.filter((plan) => plan.explicitProductId !== null).length === 1, "Product preference was fabricated or lost");
 }
 

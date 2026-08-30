@@ -471,7 +471,7 @@ function loadVerifiedWsgsRuntimeImageBuildEvidence(
     status: "PASS",
     sourceCommit: sourceBinding.headCommit,
     sourceTree: sourceBinding.sourceTree,
-    runtimeVersion: expectedWsgsRuntimeVersion,
+    runtimeVersion: expectedWsgsRuntimeVersion as "0.2.1",
     imageDigest,
     generatedAt,
     reportFileHash: sha256(bytes),
@@ -598,7 +598,7 @@ async function observeExternalWsgsProcessBinding(
     executionMode: "EXTERNAL_PROCESS" as const,
     sourceCommit: sourceBinding.headCommit,
     sourceTree: sourceBinding.sourceTree,
-    runtimeVersion: expectedWsgsRuntimeVersion,
+    runtimeVersion: expectedWsgsRuntimeVersion as "0.2.1",
     composeProjectHash: safeId(composeProject),
     serviceSetHash: canonicalSha256(expectedServices),
     apiEndpointHash: safeId(apiUrl.origin),
@@ -652,6 +652,9 @@ interface CaseEvidence {
   gatewayEvidenceIdHashes: `sha256:${string}`[];
   productIds: string[];
   contentHashes: string[];
+  selectedRecipeIds: string[];
+  descriptorIds: string[];
+  semanticCodes: string[];
   truncated: boolean;
   totalStageElapsedMs: number;
   compositionProof: {
@@ -717,6 +720,310 @@ interface PrivateCaseRuntime {
 
 const privateCaseRuntime = new WeakMap<CaseEvidence, PrivateCaseRuntime>();
 
+interface GdpsCaseDefinition {
+  id: string;
+  message: string;
+  expectedStatus: string;
+  expectedPattern?: string;
+  expectedDescriptor?: string;
+  expectedOperations?: string[];
+  expectedExplicitProductId?: string;
+  expectedSemanticCode?: string;
+  precondition?: string;
+  mustNotExecuteGdps?: boolean;
+  mustNotInferFalse?: boolean;
+  mustNotExecuteOriginalQuery?: boolean;
+  legacyTargetOperation?: string;
+  legacyAcceptedOperationStatuses?: readonly string[];
+}
+
+interface GdpsCaseSuite {
+  mode: "DISABLED" | "LEGACY_V02" | "GDPS_V021_FROZEN_CORPUS";
+  cases: GdpsCaseDefinition[];
+  totalCaseCount: number;
+  selectedCaseCount: number;
+  fullCorpusSelected: boolean;
+  corpusHash?: `sha256:${string}`;
+}
+
+const terminalGroundingStatuses = new Set([
+  "COMPLETED", "PARTIAL", "AMBIGUOUS", "UNRESOLVED", "FAILED", "CANCELLED"
+]);
+const frozenGdpsV021CorpusHash = "sha256:b9717b9af929fbd82bf0509f9648379aae601a8a0f567ce1d520ad970a8f6525";
+const frozenGdpsV021CaseIds = [
+  "E2E-SLOPE-POINT", "E2E-SLOPE-RANGE", "E2E-FLOOD-HIGH", "E2E-DRAINAGE-NEARBY",
+  "E2E-HIGH-GROUND", "E2E-WETLAND", "E2E-LAND-COVER", "E2E-TRAVERSABILITY-EXPLAIN",
+  "E2E-EXPLICIT-PRODUCT", "NEG-DESCRIPTOR-GAP", "NEG-DATA-GAP", "NEG-REFERENCE-AMBIGUITY",
+  "NEG-UNIT-MISMATCH", "NEG-RECIPE-DRIFT", "NEG-TRUNCATED", "NEG-CURRENTNESS"
+] as const;
+const legacyGdpsCases: GdpsCaseDefinition[] = [
+  { id: "E2E-01", message: "2号车位置的地表覆盖是什么？", expectedStatus: "COMPLETED",
+    legacyTargetOperation: "landcover.get-class@1.0", legacyAcceptedOperationStatuses: ["COMPLETED", "PARTIAL"] },
+  { id: "E2E-02", message: "A区内有哪些湿地？", expectedStatus: "COMPLETED",
+    legacyTargetOperation: "hydrology.find-wetlands@1.0", legacyAcceptedOperationStatuses: ["COMPLETED", "PARTIAL"] },
+  { id: "E2E-03", message: "2号车附近500米有哪些障碍物？", expectedStatus: "COMPLETED",
+    legacyTargetOperation: "obstacle.find-nearby@1.0", legacyAcceptedOperationStatuses: ["COMPLETED", "PARTIAL", "NO_DATA"] },
+  { id: "E2E-04", message: "A区内有哪些不可通行区域？", expectedStatus: "COMPLETED",
+    legacyTargetOperation: "traversability.find-blocked@1.0", legacyAcceptedOperationStatuses: ["COMPLETED", "PARTIAL"] },
+  { id: "E2E-05", message: "A区内有哪些高地？", expectedStatus: "COMPLETED",
+    legacyTargetOperation: "terrain.find-high-ground@1.0", legacyAcceptedOperationStatuses: ["COMPLETED", "PARTIAL"] },
+  { id: "E2E-06", message: "2号车位置的高程是多少？", expectedStatus: "COMPLETED",
+    legacyTargetOperation: "elevation.sample@1.0", legacyAcceptedOperationStatuses: ["COMPLETED", "PARTIAL"] },
+  { id: "E2E-07", message: "为什么2号车当前位置的通行性受限？", expectedStatus: "COMPLETED",
+    legacyTargetOperation: "traversability.explain@1.0", legacyAcceptedOperationStatuses: ["COMPLETED", "PARTIAL"] }
+];
+
+function optionalString(value: unknown, code: string): string | undefined {
+  if (value === undefined) return undefined;
+  return string(value, code);
+}
+
+function optionalBoolean(value: unknown, code: string): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") throw new Error(code);
+  return value;
+}
+
+function optionalStrings(value: unknown, code: string): string[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length === 0 || !value.every((entry) => typeof entry === "string" && entry)) {
+    throw new Error(code);
+  }
+  return [...value];
+}
+
+function loadFrozenGdpsCaseSuite(): GdpsCaseSuite {
+  if (process.env["WSGS_RUN_GDPS_INTEGRATION_CASES"] !== "YES") {
+    return { mode: "DISABLED", cases: [], totalCaseCount: 0, selectedCaseCount: 0, fullCorpusSelected: false };
+  }
+  const requestedCase = process.env["WSGS_GDPS_CASE_ID"]?.trim();
+  const configuredCorpus = process.env["WSGS_GDPS_E2E_CORPUS_FILE"]?.trim();
+  if (!configuredCorpus) {
+    const selected = requestedCase ? legacyGdpsCases.filter((entry) => entry.id === requestedCase) : legacyGdpsCases;
+    if (selected.length === 0) throw new Error(`UNKNOWN_GDPS_CASE_${requestedCase}`);
+    return {
+      mode: "LEGACY_V02",
+      cases: selected,
+      totalCaseCount: legacyGdpsCases.length,
+      selectedCaseCount: selected.length,
+      fullCorpusSelected: !requestedCase
+    };
+  }
+  const frozenPath = resolve(process.cwd(), "config", "gdps-e2e-corpus.json");
+  if (resolve(configuredCorpus) !== frozenPath) throw new Error("GDPS_E2E_CORPUS_PATH_NOT_FROZEN");
+  const bytes = readFileSync(frozenPath);
+  let value: JsonObject;
+  try {
+    value = object(JSON.parse(bytes.toString("utf8")) as unknown, "GDPS_E2E_CORPUS_INVALID");
+  } catch {
+    throw new Error("GDPS_E2E_CORPUS_INVALID");
+  }
+  if (value["schemaVersion"] !== "wsgs-gdps-e2e-corpus/2.0" ||
+      value["requiredExecutionPath"] !== "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY" ||
+      !Array.isArray(value["cases"]) || value["cases"].length !== 16) {
+    throw new Error("GDPS_E2E_CORPUS_CONTRACT_INVALID");
+  }
+  if (sha256(bytes) !== frozenGdpsV021CorpusHash) throw new Error("GDPS_E2E_CORPUS_HASH_DRIFT");
+  const cases = value["cases"].map((entry, index): GdpsCaseDefinition => {
+    const item = object(entry, `GDPS_E2E_CASE_${index + 1}_INVALID`);
+    const definition: GdpsCaseDefinition = {
+      id: string(item["id"], `GDPS_E2E_CASE_${index + 1}_ID_INVALID`),
+      message: string(item["message"], `GDPS_E2E_CASE_${index + 1}_MESSAGE_INVALID`),
+      expectedStatus: string(item["expectedStatus"], `GDPS_E2E_CASE_${index + 1}_STATUS_INVALID`)
+    };
+    const expectedPattern = optionalString(item["expectedPattern"], `GDPS_E2E_CASE_${index + 1}_PATTERN_INVALID`);
+    const expectedDescriptor = optionalString(item["expectedDescriptor"], `GDPS_E2E_CASE_${index + 1}_DESCRIPTOR_INVALID`);
+    const expectedOperations = optionalStrings(item["expectedOperations"], `GDPS_E2E_CASE_${index + 1}_OPERATIONS_INVALID`);
+    const expectedExplicitProductId = optionalString(item["expectedExplicitProductId"], `GDPS_E2E_CASE_${index + 1}_PRODUCT_INVALID`);
+    const expectedSemanticCode = optionalString(item["expectedSemanticCode"], `GDPS_E2E_CASE_${index + 1}_SEMANTIC_CODE_INVALID`);
+    const precondition = optionalString(item["precondition"], `GDPS_E2E_CASE_${index + 1}_PRECONDITION_INVALID`);
+    const mustNotExecuteGdps = optionalBoolean(item["mustNotExecuteGdps"], `GDPS_E2E_CASE_${index + 1}_EXECUTION_POLICY_INVALID`);
+    const mustNotInferFalse = optionalBoolean(item["mustNotInferFalse"], `GDPS_E2E_CASE_${index + 1}_INFERENCE_POLICY_INVALID`);
+    const mustNotExecuteOriginalQuery = optionalBoolean(item["mustNotExecuteOriginalQuery"], `GDPS_E2E_CASE_${index + 1}_REPLAY_POLICY_INVALID`);
+    return {
+      ...definition,
+      ...(expectedPattern ? { expectedPattern } : {}),
+      ...(expectedDescriptor ? { expectedDescriptor } : {}),
+      ...(expectedOperations ? { expectedOperations } : {}),
+      ...(expectedExplicitProductId ? { expectedExplicitProductId } : {}),
+      ...(expectedSemanticCode ? { expectedSemanticCode } : {}),
+      ...(precondition ? { precondition } : {}),
+      ...(mustNotExecuteGdps !== undefined ? { mustNotExecuteGdps } : {}),
+      ...(mustNotInferFalse !== undefined ? { mustNotInferFalse } : {}),
+      ...(mustNotExecuteOriginalQuery !== undefined ? { mustNotExecuteOriginalQuery } : {})
+    };
+  });
+  assertExactStrings(cases.map((entry) => entry.id), frozenGdpsV021CaseIds, "GDPS_E2E_CORPUS_CASE_SET_DRIFT");
+  const selected = requestedCase ? cases.filter((entry) => entry.id === requestedCase) : cases;
+  if (selected.length === 0) throw new Error(`UNKNOWN_GDPS_CASE_${requestedCase}`);
+  const unsupportedPreconditions = selected.filter((entry) => entry.precondition).map((entry) => entry.id);
+  if (unsupportedPreconditions.length > 0) {
+    throw new Error(`GDPS_E2E_PRECONDITION_DRIVER_NOT_READY_${unsupportedPreconditions.join("_")}`);
+  }
+  return {
+    mode: "GDPS_V021_FROZEN_CORPUS",
+    cases: selected,
+    totalCaseCount: cases.length,
+    selectedCaseCount: selected.length,
+    fullCorpusSelected: !requestedCase,
+    corpusHash: sha256(bytes)
+  };
+}
+
+interface GdpsRuntimeExpectations {
+  operationByPattern: Map<string, string>;
+  gdpsOperationKeys: Set<string>;
+}
+
+function loadGdpsRuntimeExpectations(suite: GdpsCaseSuite): GdpsRuntimeExpectations {
+  if (suite.mode !== "GDPS_V021_FROZEN_CORPUS") {
+    return { operationByPattern: new Map(), gdpsOperationKeys: new Set() };
+  }
+  const path = required("WSGS_GDPS_RECIPE_LOCK_FILE");
+  let value: JsonObject;
+  try {
+    value = object(JSON.parse(readFileSync(path, "utf8")) as unknown, "GDPS_RUNTIME_RECIPE_LOCK_INVALID");
+  } catch {
+    throw new Error("GDPS_RUNTIME_RECIPE_LOCK_INVALID");
+  }
+  if (value["schemaVersion"] !== "wsgs-gdps-recipe-lock/2.0" ||
+      !Array.isArray(value["recipes"]) || value["recipes"].length !== 14) {
+    throw new Error("GDPS_RUNTIME_RECIPE_LOCK_CONTRACT_INVALID");
+  }
+  const operationByPattern = new Map<string, string>();
+  for (const entry of value["recipes"]) {
+    const recipe = object(entry, "GDPS_RUNTIME_RECIPE_INVALID");
+    const pattern = string(recipe["semanticPattern"], "GDPS_RUNTIME_RECIPE_PATTERN_INVALID");
+    const operations = recipe["allowedOperations"];
+    if (!Array.isArray(operations) || operations.length !== 1) {
+      throw new Error(`GDPS_RUNTIME_RECIPE_OPERATION_INVALID_${pattern}`);
+    }
+    const operation = object(operations[0], `GDPS_RUNTIME_RECIPE_OPERATION_INVALID_${pattern}`);
+    const key = `${string(operation["operationId"], "GDPS_RUNTIME_OPERATION_ID_INVALID")}@${
+      string(operation["operationVersion"], "GDPS_RUNTIME_OPERATION_VERSION_INVALID")}`;
+    if (operationByPattern.has(pattern)) throw new Error(`GDPS_RUNTIME_RECIPE_DUPLICATE_${pattern}`);
+    operationByPattern.set(pattern, key);
+  }
+  for (const definition of suite.cases) {
+    if (definition.expectedPattern && !operationByPattern.has(definition.expectedPattern)) {
+      throw new Error(`GDPS_EXPECTED_RECIPE_NOT_LOCKED_${definition.id}`);
+    }
+  }
+  let snapshot: JsonObject;
+  try {
+    snapshot = object(JSON.parse(readFileSync(required("WSGS_GDPS_CONSUMER_SNAPSHOT_FILE"), "utf8")) as unknown,
+      "GDPS_RUNTIME_CONSUMER_SNAPSHOT_INVALID");
+  } catch {
+    throw new Error("GDPS_RUNTIME_CONSUMER_SNAPSHOT_INVALID");
+  }
+  const capabilityKeys = snapshot["capabilityKeys"];
+  if (snapshot["schemaVersion"] !== "wsgs-gdps-consumer-snapshot/2.0" ||
+      !Array.isArray(capabilityKeys) || capabilityKeys.length !== 30 ||
+      !capabilityKeys.every((entry) => typeof entry === "string" && /^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+@1\.0$/u.test(entry)) ||
+      new Set(capabilityKeys).size !== 30) {
+    throw new Error("GDPS_RUNTIME_CONSUMER_SNAPSHOT_CONTRACT_INVALID");
+  }
+  return { operationByPattern, gdpsOperationKeys: new Set(capabilityKeys) };
+}
+
+function acceptedTerminalStatuses(definition: GdpsCaseDefinition, suite: GdpsCaseSuite): readonly string[] {
+  if (suite.mode === "LEGACY_V02") return ["COMPLETED", "PARTIAL", "UNRESOLVED"];
+  return terminalGroundingStatuses.has(definition.expectedStatus)
+    ? [definition.expectedStatus]
+    : ["COMPLETED", "PARTIAL", "AMBIGUOUS", "UNRESOLVED"];
+}
+
+function assertExactStrings(actual: readonly string[], expected: readonly string[], code: string): void {
+  if (actual.length !== expected.length || actual.some((entry, index) => entry !== expected[index])) {
+    throw new Error(code);
+  }
+}
+
+function expectedOperationChain(definition: GdpsCaseDefinition): string[] | undefined {
+  if (definition.expectedOperations) return definition.expectedOperations;
+  if (definition.id === "E2E-EXPLICIT-PRODUCT") {
+    return ["reference.resolve", "world.get-geometry", "geo-raster.find-by-range"];
+  }
+  return undefined;
+}
+
+function validateGdpsCaseEvidence(
+  definition: GdpsCaseDefinition,
+  evidence: CaseEvidence,
+  suite: GdpsCaseSuite,
+  runtime: GdpsRuntimeExpectations
+): void {
+  if (suite.mode === "LEGACY_V02") {
+    const target = evidence.operationStatuses.find((entry) => entry.operationKey === definition.legacyTargetOperation);
+    if (!target) throw new Error(`GDPS_OPERATION_NOT_EXECUTED_${definition.id}`);
+    if (!definition.legacyAcceptedOperationStatuses?.includes(target.status)) {
+      throw new Error(`GDPS_OPERATION_STATUS_${definition.id}_${target.status}`);
+    }
+    return;
+  }
+  if (terminalGroundingStatuses.has(definition.expectedStatus)) {
+    if (evidence.terminalStatus !== definition.expectedStatus) {
+      throw new Error(`GDPS_TERMINAL_STATUS_${definition.id}_${evidence.terminalStatus}`);
+    }
+  } else if (!evidence.normalizedStatuses.includes(definition.expectedStatus)) {
+    throw new Error(`GDPS_NORMALIZED_STATUS_${definition.id}_${definition.expectedStatus}`);
+  }
+  if (definition.expectedPattern) {
+    const selectedGdpsPatterns = evidence.selectedRecipeIds
+      .filter((entry) => runtime.operationByPattern.has(entry));
+    assertExactStrings(selectedGdpsPatterns, [definition.expectedPattern],
+      `GDPS_RECIPE_SELECTION_${definition.id}_${definition.expectedPattern}`);
+  }
+  let targetOperation = definition.expectedPattern
+    ? runtime.operationByPattern.get(definition.expectedPattern)
+    : undefined;
+  const operationChain = expectedOperationChain(definition);
+  if (operationChain) {
+    assertExactStrings(
+      evidence.operationKeys,
+      operationChain.map((operationId) => `${operationId}@1.0`),
+      `GDPS_OPERATION_CHAIN_${definition.id}`
+    );
+    targetOperation ??= `${operationChain.at(-1)}@1.0`;
+  } else if (definition.expectedPattern && !definition.mustNotExecuteGdps) {
+    if (!targetOperation || !evidence.operationKeys.includes(targetOperation)) {
+      throw new Error(`GDPS_TARGET_OPERATION_NOT_EXECUTED_${definition.id}`);
+    }
+  }
+  if (targetOperation && ["COMPLETED", "PARTIAL"].includes(definition.expectedStatus)) {
+    const targetStatus = evidence.operationStatuses.find((entry) => entry.operationKey === targetOperation)?.status;
+    if (targetStatus !== definition.expectedStatus) {
+      throw new Error(`GDPS_TARGET_OPERATION_STATUS_${definition.id}_${targetStatus ?? "MISSING"}`);
+    }
+  }
+  if (definition.expectedDescriptor && !evidence.descriptorIds.includes(definition.expectedDescriptor)) {
+    throw new Error(`GDPS_DESCRIPTOR_NOT_OBSERVED_${definition.id}`);
+  }
+  if (definition.expectedExplicitProductId && !evidence.productIds.includes(definition.expectedExplicitProductId)) {
+    throw new Error(`GDPS_EXPLICIT_PRODUCT_NOT_OBSERVED_${definition.id}`);
+  }
+  if (definition.expectedSemanticCode && !evidence.semanticCodes.includes(definition.expectedSemanticCode)) {
+    throw new Error(`GDPS_SEMANTIC_CODE_NOT_OBSERVED_${definition.id}_${definition.expectedSemanticCode}`);
+  }
+  const executedGdpsOperations = evidence.operationKeys.filter((key) => runtime.gdpsOperationKeys.has(key));
+  if (definition.mustNotExecuteGdps && executedGdpsOperations.length > 0) {
+    throw new Error(`GDPS_FORBIDDEN_OPERATION_EXECUTED_${definition.id}`);
+  }
+  if (definition.mustNotExecuteOriginalQuery && evidence.operationKeys.includes("geo-raster.find-by-range@1.0")) {
+    throw new Error(`GDPS_ORIGINAL_QUERY_REEXECUTED_${definition.id}`);
+  }
+  if (definition.mustNotInferFalse && evidence.terminalStatus === "COMPLETED") {
+    throw new Error(`GDPS_FALSE_FACT_INFERENCE_NOT_BLOCKED_${definition.id}`);
+  }
+  if (definition.id === "NEG-TRUNCATED" && !evidence.truncated) {
+    throw new Error("GDPS_TRUNCATION_NOT_OBSERVED_NEG-TRUNCATED");
+  }
+  if (definition.id === "NEG-TRUNCATED" && !evidence.operationStatuses.some((entry) =>
+    runtime.gdpsOperationKeys.has(entry.operationKey) && entry.status === "PARTIAL")) {
+    throw new Error("GDPS_TRUNCATED_OPERATION_STATUS_NOT_PARTIAL");
+  }
+}
+
 const pool = new Pool({ connectionString: databaseUrl, max: 12, application_name: "wsgs-development-closure-gate" });
 let resources: ReturnType<typeof createProductionBackendFromEnvironment> | undefined;
 let app: Awaited<ReturnType<typeof createGroundingApi>> | undefined;
@@ -773,13 +1080,12 @@ function requestBody(
 }
 
 function worker(executor: PipelineStageExecutor, workerId: string): GroundingWorker {
-  const codec = Aes256GcmPayloadCodec.fromBase64(encryptionKey);
   return new GroundingWorker({
     workerId,
-    store: new PostgresGroundingWorkerStore(pool, codec),
+    store: new PostgresGroundingWorkerStore(pool, payloadCodec),
     pipeline: new GroundingPipeline({
       executor,
-      journal: new PostgresPipelineJournal(pool, codec),
+      journal: new PostgresPipelineJournal(pool, payloadCodec),
       policy: productionPipelinePolicyFromEnvironment()
     }),
     leaseMs: 5_000,
@@ -1321,6 +1627,26 @@ async function collect(
     throw new Error("PERSISTED_GATEWAY_RESULT_HASH_MISMATCH");
   }
   const named = collectNamedStrings(terminalResult, new Set(["productId", "contentHash"]));
+  const planning = checkpoint.state["REQUIREMENT_PLAN"];
+  const selectedRecipeValues = planning && typeof planning === "object" && !Array.isArray(planning)
+    ? (planning as JsonObject)["selectedRecipeIds"]
+    : undefined;
+  const selectedRecipeIds = Array.isArray(selectedRecipeValues)
+    ? selectedRecipeValues.filter((entry): entry is string => typeof entry === "string")
+    : [];
+  const checkpointNamed = collectNamedStrings(checkpoint.state, new Set(["descriptorId"]));
+  const capabilityGaps = Array.isArray(terminalResult["capabilityGaps"])
+    ? terminalResult["capabilityGaps"]
+    : [];
+  const semanticCodes = capabilityGaps.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+    const gap = entry as JsonObject;
+    const details = gap["details"] && typeof gap["details"] === "object" && !Array.isArray(gap["details"])
+      ? gap["details"] as JsonObject
+      : undefined;
+    return [gap["reason"], details?.["code"]]
+      .filter((value): value is string => typeof value === "string" && value.length > 0);
+  });
   const serializedResult = JSON.stringify(terminalResult);
   const evidence: CaseEvidence = {
     recipeId: "",
@@ -1354,6 +1680,9 @@ async function collect(
       ? row.evidence_ids.map((entry) => safeId(string(entry, "GOWM_EVIDENCE_ID_INVALID"))) : []))],
     productIds: [...(named.get("productId") ?? [])].sort(),
     contentHashes: [...(named.get("contentHash") ?? [])].filter((entry) => /^sha256:[0-9a-f]{64}$/u.test(entry)).sort(),
+    selectedRecipeIds: [...new Set(selectedRecipeIds)].sort(),
+    descriptorIds: [...(checkpointNamed.get("descriptorId") ?? [])].sort(),
+    semanticCodes: [...new Set(semanticCodes)].sort(),
     truncated: serializedResult.includes('"truncated":true'),
     totalStageElapsedMs: terminalEvents.reduce((sum, event) => sum + event.elapsed_ms, 0),
     compositionProof: compositionProof(checkpoint.state, terminalResult),
@@ -1990,33 +2319,18 @@ try {
 
   const cases: CaseEvidence[] = [];
   const gdpsCaseIds = new Set<string>();
-  if (!formalR1R5Only && process.env["WSGS_RUN_GDPS_INTEGRATION_CASES"] === "YES") {
-    const gdpsCases = [
-      ["E2E-01", "2号车位置的地表覆盖是什么？", "landcover.get-class@1.0", ["COMPLETED", "PARTIAL"]],
-      ["E2E-02", "A区内有哪些湿地？", "hydrology.find-wetlands@1.0", ["COMPLETED", "PARTIAL"]],
-      ["E2E-03", "2号车附近500米有哪些障碍物？", "obstacle.find-nearby@1.0", ["COMPLETED", "PARTIAL", "NO_DATA"]],
-      ["E2E-04", "A区内有哪些不可通行区域？", "traversability.find-blocked@1.0", ["COMPLETED", "PARTIAL"]],
-      ["E2E-05", "A区内有哪些高地？", "terrain.find-high-ground@1.0", ["COMPLETED", "PARTIAL"]],
-      ["E2E-06", "2号车位置的高程是多少？", "elevation.sample@1.0", ["COMPLETED", "PARTIAL"]],
-      ["E2E-07", "为什么2号车当前位置的通行性受限？", "traversability.explain@1.0", ["COMPLETED", "PARTIAL"]]
-    ] as const;
-    const requestedGdpsCase = process.env["WSGS_GDPS_CASE_ID"];
-    const selectedGdpsCases = requestedGdpsCase
-      ? gdpsCases.filter(([caseId]) => caseId === requestedGdpsCase)
-      : gdpsCases;
-    if (selectedGdpsCases.length === 0) throw new Error(`UNKNOWN_GDPS_CASE_${requestedGdpsCase}`);
-    for (const [caseId, text, targetOperation, acceptedOperationStatuses] of selectedGdpsCases) {
-      gdpsCaseIds.add(caseId);
-      cases.push(await submitAndRun(baseUrl, productionExecutor, caseId, requestBody(
-        caseId, text, "EXECUTE_WORLD_QUERY", ["WORLD_EVIDENCE"]
-      ), ["COMPLETED", "PARTIAL", "UNRESOLVED"]));
-      const last = cases.at(-1)!;
-      const target = last.operationStatuses.find((entry) => entry.operationKey === targetOperation);
-      if (!target) throw new Error(`GDPS_OPERATION_NOT_EXECUTED_${caseId}`);
-      if (!(acceptedOperationStatuses as readonly string[]).includes(target.status)) {
-        throw new Error(`GDPS_OPERATION_STATUS_${caseId}_${target.status}`);
-      }
-    }
+  const gdpsSuite: GdpsCaseSuite = formalR1R5Only
+    ? { mode: "DISABLED", cases: [], totalCaseCount: 0, selectedCaseCount: 0, fullCorpusSelected: false }
+    : loadFrozenGdpsCaseSuite();
+  const gdpsRuntime = loadGdpsRuntimeExpectations(gdpsSuite);
+  const gdpsDefinitions = new Map(gdpsSuite.cases.map((entry) => [entry.id, entry]));
+  for (const definition of gdpsSuite.cases) {
+    gdpsCaseIds.add(definition.id);
+    cases.push(await submitAndRun(baseUrl, productionExecutor, definition.id, requestBody(
+      definition.id, definition.message, "EXECUTE_WORLD_QUERY", ["WORLD_EVIDENCE"]
+    ), acceptedTerminalStatuses(definition, gdpsSuite)));
+    const last = cases.at(-1)!;
+    validateGdpsCaseEvidence(definition, last, gdpsSuite, gdpsRuntime);
   }
 
   const r1Case = await submitAndRun(baseUrl, productionExecutor, "R1", requestBody(
@@ -2055,6 +2369,7 @@ try {
     }, null, 2)}\n`);
     exitCode = 0;
   } else {
+  if (!resources || !productionExecutor) throw new Error("IN_PROCESS_RUNTIME_NOT_INITIALIZED");
 
   const savedModel = {
     policy: process.env["WSGS_MODEL_POLICY"],
@@ -2136,6 +2451,7 @@ try {
   if (cases.find((entry) => entry.recipeId === "R4")?.planHashes.length === 0) {
     throw new Error("R4_PLAN_HASH_MISSING");
   }
+  const stableRecipeCases = cases.filter((entry) => !gdpsCaseIds.has(entry.recipeId));
 
   mkdirSync(recipeEvidenceDirectory, { recursive: true });
   const realPipelineEvidence = {
@@ -2149,7 +2465,7 @@ try {
     status: "PASS"
   };
   writeFileSync(resolve(evidenceDirectory, "real-pipeline-evidence.json"), `${JSON.stringify(realPipelineEvidence, null, 2)}\n`);
-  for (const evidence of cases) {
+  for (const evidence of stableRecipeCases) {
     const recipeEvidence = {
       schemaVersion: "1.0",
       recipeId: evidence.recipeId,
@@ -2175,7 +2491,7 @@ try {
       modelOptionalWithoutModel: "PASS"
     },
     realDependencies: { api: true, postgres: true, worker: true, model: true, gowm: true },
-    recipes: cases.map((entry) => ({
+    recipes: stableRecipeCases.map((entry) => ({
       recipeId: entry.recipeId,
       requestHash: entry.requestHash,
       groundingIdHash: entry.groundingIdHash,
@@ -2206,22 +2522,48 @@ try {
       enabled: gdpsCaseIds.size > 0,
       gatewayOnly: true,
       directProviderCalls: false,
-      cases: cases.filter((entry) => gdpsCaseIds.has(entry.recipeId)).map((entry) => ({
-        caseId: entry.recipeId,
-        terminalStatus: entry.terminalStatus,
-        operationKeys: entry.operationKeys,
-        operationStatuses: entry.operationStatuses,
-        productIds: entry.productIds,
-        contentHashes: entry.contentHashes,
-        truncated: entry.truncated,
-        status: "PASS"
-      })),
+      suiteMode: gdpsSuite.mode,
+      corpus: gdpsSuite.mode === "GDPS_V021_FROZEN_CORPUS" ? {
+        schemaVersion: "wsgs-gdps-e2e-corpus/2.0",
+        hash: gdpsSuite.corpusHash,
+        frozenCaseCount: gdpsSuite.totalCaseCount,
+        selectedCaseCount: gdpsSuite.selectedCaseCount,
+        selection: gdpsSuite.fullCorpusSelected ? "FULL_16_CASE_CORPUS" : "SINGLE_CASE"
+      } : null,
+      cases: cases.filter((entry) => gdpsCaseIds.has(entry.recipeId)).map((entry) => {
+        const definition = gdpsDefinitions.get(entry.recipeId);
+        if (!definition) throw new Error(`GDPS_CASE_DEFINITION_MISSING_${entry.recipeId}`);
+        return {
+          caseId: entry.recipeId,
+          expectedPattern: definition.expectedPattern ?? null,
+          selectedRecipeIds: entry.selectedRecipeIds,
+          expectedOperations: expectedOperationChain(definition) ?? [],
+          operationKeys: entry.operationKeys,
+          expectedStatus: definition.expectedStatus,
+          terminalStatus: entry.terminalStatus,
+          normalizedStatuses: entry.normalizedStatuses,
+          expectedSemanticCode: definition.expectedSemanticCode ?? null,
+          semanticCodes: entry.semanticCodes,
+          expectedDescriptor: definition.expectedDescriptor ?? null,
+          descriptorIds: entry.descriptorIds,
+          expectedExplicitProductId: definition.expectedExplicitProductId ?? null,
+          operationStatuses: entry.operationStatuses,
+          productIds: entry.productIds,
+          contentHashes: entry.contentHashes,
+          truncated: entry.truncated,
+          precondition: definition.precondition ?? null,
+          status: "PASS"
+        };
+      }),
       geometryBuffer: {
         caseId: "E2E-08",
         status: "NOT_RUN",
         reason: "GOWM_GEOMETRY_BUFFER_CAPABILITY_REQUIRED"
       },
-      status: gdpsCaseIds.size === 7 ? "PASS" : "NOT_RUN"
+      caseValidationStatus: gdpsCaseIds.size > 0 && gdpsCaseIds.size === gdpsSuite.selectedCaseCount
+        ? (gdpsSuite.fullCorpusSelected ? "PASS" : "PARTIAL")
+        : "NOT_RUN",
+      status: gdpsSuite.fullCorpusSelected ? "BLOCKED" : "PARTIAL"
     },
     security: {
       bodyAuthorityInjection: { httpStatus: authorityInjection.status, status: "PASS" },
@@ -2238,10 +2580,27 @@ try {
     }
   };
   writeFileSync(resolve(evidenceDirectory, "development-closure-gate.json"), `${JSON.stringify(summary, null, 2)}\n`);
+  if (gdpsSuite.mode === "GDPS_V021_FROZEN_CORPUS") {
+    const gdpsE2eReport = {
+      schemaVersion: "wsgs-gdps-real-e2e/2.0",
+      sourceCommit,
+      executionClassification: "REAL_EXTERNAL_DEPENDENCIES",
+      requiredExecutionPath: "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY",
+      gatewayOnly: true,
+      directProviderCalls: false,
+      corpus: summary.gdps.corpus,
+      cases: summary.gdps.cases,
+      fullCorpusExecuted: gdpsSuite.fullCorpusSelected && gdpsCaseIds.size === 16,
+      blockers: ["W44_X01_X12_EXTERNAL_QUALIFICATION_NOT_IMPLEMENTED"],
+      status: gdpsSuite.fullCorpusSelected ? "BLOCKED" : "PARTIAL"
+    };
+    writeFileSync(resolve(evidenceDirectory, "e2e-report.json"), `${JSON.stringify(gdpsE2eReport, null, 2)}\n`);
+  }
   process.stdout.write(`${JSON.stringify({
     marker: "WSGS_REAL_DEVELOPMENT_PIPELINE_PASS",
     sourceCommit,
-    recipesPassed: cases.length,
+    recipesPassed: stableRecipeCases.length,
+    gdpsCasesPassed: gdpsCaseIds.size,
     pipelineStages: r1.completedStages.length,
     currentLockReadiness: "PASS",
     minimumSecurity: "PASS",

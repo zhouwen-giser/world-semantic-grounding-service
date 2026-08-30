@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "wsgs-gdps-v021-negative-gate/1.0",
+  "generatedAt": "2026-08-29T12:06:20.7396851Z",
+  "candidateSha": "d45925ae5f8debe57d3cab362e42aba5385af921",
+  "environment": "LOCAL_SOURCE_GATE",
+  "target": {
+    "release": "GDPS v0.2.1",
+    "providerId": "gdps.geospatial-products",
+    "providerVersion": "0.2.1",
+    "capabilityCount": 30,
+    "productTypeCount": 34,
+    "descriptorProfileCount": 35
+  },
+  "command": "node validation/scripts/intake-gdps-v021-handoff.mjs --check --handoff <external-gdps-v0.2.1-handoff>",
+  "expected": {
+    "nativeExitCode": 2,
+    "errorCode": "WSGS_GDPS_V021_HANDOFF_NOT_READY",
+    "completionMarkerObserved": false
+  },
+  "observed": {
+    "nativeExitCode": 2,
+    "errorCode": "WSGS_GDPS_V021_HANDOFF_NOT_READY",
+    "missingRequiredFiles": [
+      "GDPS_PRODUCT_DESCRIPTOR_LOCK.json",
+      "GOWM_GATEWAY_BINDING_LOCK.json",
+      "CHECKSUMS.json"
+    ],
+    "completionMarkerObserved": false
+  },
+  "acceptance": {
+    "acceptanceId": "W33-020",
+    "status": "PASS",
+    "reason": "The expected fail-closed rejection occurred; this negative acceptance result does not qualify the candidate."
+  },
+  "candidateStatus": {
+    "status": "BLOCKED",
+    "reasonCode": "GDPS_V021_HANDOFF_INCOMPLETE"
+  }
+}

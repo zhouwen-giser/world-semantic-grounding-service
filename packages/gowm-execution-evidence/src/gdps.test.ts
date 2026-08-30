@@ -20,7 +20,9 @@ function envelope(
       value
     },
     dataSnapshot: { resources: [{ referenceKey: { kind: "DATASET", id: "terrain-main" }, digest: priorHash }] },
+    computeSnapshot: { providerBuildHash: currentHash },
     receipts: [{ receiptId: "gdps-receipt-1" }],
+    evidenceReferences: [{ evidenceId: "gdps-evidence-1" }],
     warnings: []
   };
 }
@@ -56,9 +58,43 @@ describe("GDPS current-only execution evidence", () => {
     }))).toMatchObject({ normalizedStatus: "PARTIAL", truncated: true });
   });
 
+  it("attaches exact recipe and descriptor authority without inventing product versions", () => {
+    const result = normalizeGdpsSourceEvidence(envelope({
+      productId: "terrain-main",
+      contentHash: priorHash,
+      truncated: false,
+      evidence: { evidenceId: "ev-1" },
+      quality: { completeness: 0.9 }
+    }), {
+      recipeId: "recipe-gdps-generic-sample-value",
+      recipeLockHash: currentHash,
+      descriptorId: "SLOPE/DEGREE",
+      descriptorHash: priorHash,
+      productType: "SLOPE",
+      productProfile: "DEGREE",
+      queryProfile: "SAMPLE_VALUE"
+    });
+    expect(result).toMatchObject({
+      recipeId: "recipe-gdps-generic-sample-value",
+      recipeLockHash: currentHash,
+      descriptorId: "SLOPE/DEGREE",
+      descriptorHash: priorHash,
+      productType: "SLOPE",
+      productProfile: "DEGREE",
+      queryProfile: "SAMPLE_VALUE",
+      computeSnapshot: { providerBuildHash: currentHash },
+      receiptIds: ["gdps-receipt-1"],
+      evidenceIds: ["gdps-evidence-1"],
+      evidence: { evidenceId: "ev-1" },
+      quality: { completeness: 0.9 }
+    });
+    expect(JSON.stringify(result)).not.toMatch(/productVersion|product_version/u);
+  });
+
   it.each([
     ["PRODUCT_NOT_AVAILABLE", "UNRESOLVED", "DATA_GAP"],
     ["PRODUCT_COVERAGE_INSUFFICIENT", "UNRESOLVED", "COVERAGE_GAP"],
+    ["OPERATION_UNAVAILABLE", "UNRESOLVED", "CAPABILITY_GAP"],
     ["AMBIGUOUS_PRODUCT_SELECTION", "AMBIGUOUS", undefined],
     ["PRODUCT_COVERAGE_AMBIGUOUS", "AMBIGUOUS", undefined],
     ["SOURCE_CHANGED_DURING_QUERY", "INDETERMINATE", undefined]

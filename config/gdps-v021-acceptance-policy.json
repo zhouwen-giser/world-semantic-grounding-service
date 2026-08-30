@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "wsgs-gdps-v021-acceptance-policy/1.0",
+  "target": {
+    "release": "GDPS v0.2.1",
+    "providerId": "gdps.geospatial-products",
+    "providerVersion": "0.2.1",
+    "capabilityCount": 30,
+    "productTypeCount": 34,
+    "descriptorProfileCount": 35
+  },
+  "allowedEvidenceTypes": [
+    "CI", "CURRENTNESS", "GIT", "GOWM_GATEWAY", "REAL_NATURAL_LANGUAGE_E2E", "REAL_POSTGRES",
+    "REPORT", "RUNNING_GOWM_GATEWAY", "SCHEMA", "SOURCE", "STATIC_GUARD", "UNIT"
+  ],
+  "negativeAcceptanceIds": ["W33-020"],
+  "legacyEvidence": {
+    "forbiddenReportPrefixes": ["reports/wsgs-v0.2-gdps"],
+    "forbiddenProviderVersions": ["0.1.0"],
+    "forbiddenCapabilityCounts": [23],
+    "forbiddenSourceShas": [
+      "9bbbafeef97e4bd9f0b65a11ad340d223e7ec4ca",
+      "54b1cd5c03ae6ba1de242a399de8db830b8e9694",
+      "db0ba03290f701d36b78ee0cbc67c1b0572bdc76",
+      "17dd221330d9af540ec815a39eca96550690299a"
+    ]
+  }
+}

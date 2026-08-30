@@ -28,3 +28,4 @@ export type {
   WorldQueryRequirement,
   WorldQueryRequirementGraph
 } from "./types.js";
+export type { GroundedGeospatialProductIntent } from "@wsgs/gdps-descriptor-consumer";
