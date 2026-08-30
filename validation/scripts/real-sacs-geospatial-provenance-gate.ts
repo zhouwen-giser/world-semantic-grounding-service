@@ -368,6 +368,9 @@ const requestId = `wsgs-n03-${createHash("sha256")
   .digest("hex")
   .slice(0, 24)}`;
 const deadlineAt = new Date(Date.now() + timeoutMs);
+const executionDeadlineAt = new Date(
+  Date.now() + Math.min(descriptor.execution.maximumTimeoutMs, 25_000)
+);
 const delegation = await signer.sign({
   kind: "DIRECT_OPERATION",
   identity,
@@ -414,7 +417,7 @@ const response = await client.executeOperation(lock, {
   outputSchemaHash: operation.outputSchemaHash,
   input: { productId: baseline.productId },
   executionPolicy: {
-    deadlineAt: deadlineAt.toISOString(),
+    deadlineAt: executionDeadlineAt.toISOString(),
     maximumResultBytes: descriptor.limits.maximumOutputBytes ?? 5_242_880,
     maximumCostClass: descriptor.execution.costClass,
     preferredExecution: "SYNC"
