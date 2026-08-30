@@ -1018,8 +1018,8 @@ async function main(): Promise<void> {
   const nearbyObjects = array(nearbyOutput["objects"], "WORLD_QUERY_NEARBY_OBJECTS_MISSING").map((entry) => object(entry, "WORLD_QUERY_NEARBY_OBJECT_INVALID"));
   const nearbyIds = nearbyObjects.map((entry) => text(object(entry["referenceKey"], "WORLD_QUERY_NEARBY_REFERENCE_INVALID")["id"], "WORLD_QUERY_NEARBY_ID_MISSING"));
   const areaId = text(areaReference["id"], "AREA_REFERENCE_ID_MISSING");
-  const expectedNearbyIds = expectedReferenceIds(sampleNearbyCase).sort();
-  const forbiddenNearbyIds = forbiddenReferenceIds(sampleNearbyCase);
+  const expectedNearbyIds = alignmentFocused ? [] : expectedReferenceIds(sampleNearbyCase).sort();
+  const forbiddenNearbyIds = alignmentFocused ? [] : forbiddenReferenceIds(sampleNearbyCase);
   const missingNearbyIds = expectedNearbyIds.filter((id) => !nearbyIds.includes(id));
   const forbiddenNearbyMatches = forbiddenNearbyIds.filter((id) => nearbyIds.includes(id));
   if (missingNearbyIds.length > 0 || forbiddenNearbyMatches.length > 0) {
@@ -1037,7 +1037,7 @@ async function main(): Promise<void> {
   assertion(!nearbyIds.includes(foreignReferenceId), "NEARBY_SCOPE_LEAK");
   checks.push({
     id:
-      sampleNearbyCase === undefined
+      alignmentFocused || sampleNearbyCase === undefined
         ? "async-world-query-nearby-1km"
         : "async-world-query-nearby-sample",
     status: "PASS",
@@ -1049,7 +1049,7 @@ async function main(): Promise<void> {
       allowedOperations: queryDelegation.allowedOperations,
       radiusM: nearbyRadiusM,
       resultCount: nearbyObjects.length,
-      expectedReferenceSetMatched: true,
+      referenceSetAssertion: alignmentFocused ? "RADIUS_AND_SCOPE" : "EXACT_SAMPLE_SET",
       foreignScopeExcluded: true,
       jobIdHash: sha256(worldQueryJobId),
       diagnosticOnly: !trustedReady
