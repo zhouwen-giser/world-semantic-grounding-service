@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "status": "DEVELOPMENT_READY",
   "wsgs": {
-    "commit": "71d505f453032ff9ec939129fa1efafe6ec6bc46",
+    "commit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
     "version": "0.2.1"
   },
   "northboundContract": {

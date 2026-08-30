@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "wsgs-external-process-binding/1.0",
+  "bindingStatus": "PASS",
+  "observedAt": "2026-08-30T08:35:30.084Z",
+  "executionMode": "EXTERNAL_PROCESS",
+  "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+  "sourceTree": "e84b8a482e62ceec66bb9b76315b70d7ca7d660d",
+  "runtimeVersion": "0.2.1",
+  "composeProjectHash": "sha256:b300fa7ea6eebd0e606e0896109c980716bd055412401236841c580033b77498",
+  "serviceSetHash": "sha256:6bff29eb90de2d078e027333366cada2aaedf53ff6fd8c59619b1aecf51a395f",
+  "apiEndpointHash": "sha256:06fe9cce033ad9a8a82c23a01b90bd2eb2bb2299c6ee964b762b30fe54920d74",
+  "distinctContainerCount": 3,
+  "apiWorkerImageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
+  "apiPortBindingVerified": true,
+  "containerCommandSetVerified": true,
+  "runtimeEnvironmentAgreementVerified": true,
+  "gowmGatewayEndpointHash": "sha256:fa684aa8d8032c2bca5f8ac7dadd29099e3220e196151cc6edf4833b7148b281",
+  "postgresConnectionVerified": true,
+  "isolatedDatabaseAttested": true,
+  "initialGroundingRowCount": 0,
+  "databaseIdentityHash": "sha256:330a34397a618d9503b91c2f9f27db6b38a7369b7c15743e6d8b7db200a94219",
+  "databaseServerAddressHash": "sha256:b66e3ad01be4cc1de518f8baecdd6f39620ba154871dbc330aa47be9613e9b9a",
+  "databaseServerVersionHash": "sha256:51b3faa0925e83071739ee1b5d0ee29161214be3e6519608ea831cf6551be1ff",
+  "services": [
+    {
+      "service": "grounding-api",
+      "containerIdentityHash": "sha256:bcbbe8251b7e930988ca8a675378b201963b14dc34156d33a86b639e195463d3",
+      "imageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
+      "running": true,
+      "health": "healthy"
+    },
+    {
+      "service": "grounding-worker",
+      "containerIdentityHash": "sha256:73753e53e5c42261ef5bb50ee2d6cf0412112b7d8d8172d7f575698a82ce3c31",
+      "imageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
+      "running": true,
+      "health": "healthy"
+    },
+    {
+      "service": "postgres",
+      "containerIdentityHash": "sha256:1f6f93c1963f8d7f17b42c6ee057d94a0c0d4d7ebcc57f8055182096761026b9",
+      "imageDigest": "sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4",
+      "running": true,
+      "health": "healthy"
+    }
+  ],
+  "runtimeImageBuildEvidence": {
+    "status": "PASS",
+    "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+    "sourceTree": "e84b8a482e62ceec66bb9b76315b70d7ca7d660d",
+    "runtimeVersion": "0.2.1",
+    "imageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
+    "generatedAt": "2026-08-30T08:30:24.887Z",
+    "reportFileHash": "sha256:c4ddba48bdd0e966c46307c129a6c60d63af5c9386f0ff659d68dd81d89aeb43",
+    "reportPayloadHash": "sha256:7d23667c2f9e4512f66fb55ee738d8c000f8f4bfe36df95fe89861eb4cdc0d08",
+    "reportPathHash": "sha256:beed7d88899220d81aa25f5a2c7b272ad69302760a1578615f318b5ee7012e14"
+  },
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawContainerIdsIncluded": false,
+    "rawDatabaseIdentityIncluded": false,
+    "internalTopologyIncluded": false,
+    "localPathsIncluded": false
+  },
+  "bindingHash": "sha256:ac588530608569cef634dd3b8d4952dc4b0e8b5a096278ea2244619065bedadb",
+  "evidenceHash": "sha256:f8a86736f8b335877c291baf2d9bacc207fcde3eff2e0b6e9792eaf3a0a37226"
+}

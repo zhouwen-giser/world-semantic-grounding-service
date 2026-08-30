@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "wsgs-reference-negative-cases/1.0",
+  "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+  "observedAt": "2026-08-30T08:41:43.167Z",
+  "runtimeBindingHash": "sha256:2c7f477e441bdc440a5e04b55656f74e3c770d5b2b57e66d2f174395cfc7928d",
+  "cases": [
+    {
+      "recipeId": "R2",
+      "terminalStatus": "AMBIGUOUS",
+      "ambiguityCount": 1,
+      "candidateCount": 2,
+      "downstreamCounts": {
+        "compiledPlans": 0,
+        "persistedWorldQueries": 0,
+        "gatewayExecutions": 0,
+        "gatewayNodes": 0,
+        "spatialExecutions": 0
+      },
+      "status": "PASS"
+    }
+  ],
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawReferenceIdsIncluded": false,
+    "rawGroundingIdsIncluded": false,
+    "rawRequestIdsIncluded": false,
+    "rawGatewayIdsIncluded": false,
+    "rawBusinessResponsesIncluded": false
+  },
+  "status": "PASS",
+  "evidenceHash": "sha256:1694424d6a9a723dd57519c97a5112dd7831b3274669388fa48208da32aa2529"
+}

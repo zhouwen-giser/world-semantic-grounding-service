@@ -2,13 +2,13 @@
   "schemaVersion": "wsgs-gowm-handoff-verification/1.0",
   "status": "PASS",
   "handoffPath": "contracts/consumers/sacs-development-handoff-v1.json",
-  "handoffFileHash": "sha256:e9783fdee5647ad0348b1f57f6ae432216e95e5691218ec849816b256c3b9553",
-  "handoffCanonicalPayloadHash": "sha256:0feaf38b79f858dd0e3a3f663457dbbb37796a2f5b8951e39f2ffd5eb565b880",
+  "handoffFileHash": "sha256:9783cb3ebd80dfbb6c0436593d81aee37f44ae863ea6b4430baba9e58f5b947e",
+  "handoffCanonicalPayloadHash": "sha256:c08deb53a1cd0365d6588584826f04c830c738aaa38cb3fbf71cda8d0cba2d6d",
   "schemaValidationStatus": "PASS",
   "handoffStatus": "DEVELOPMENT_READY",
   "wsgsSourceBinding": {
     "status": "PASS",
-    "sourceCommit": "71d505f453032ff9ec939129fa1efafe6ec6bc46",
+    "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
     "verification": "DECLARED_HANDOFF_SOURCE_COMMIT_FOR_CLOSURE_CROSS_VALIDATION"
   },
   "exactTuple": {
@@ -38,5 +38,5 @@
     "wsgsSourceBinding": "PASS"
   },
   "marker": "WSGS_GOWM_HANDOFF_ALIGNMENT_VERIFIED",
-  "evidenceHash": "sha256:d19e2f75fb98c1c150ff9b6001919b66c3e08ffb2771bf421e2a0a722fa8237a"
+  "evidenceHash": "sha256:e113a0d6fef25561687a8f919b048759eabb86c1fd93a8f9e19e447e603b0c51"
 }
