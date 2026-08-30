@@ -314,17 +314,13 @@ const client = new GowmGatewayClient({
 });
 const catalog = await client.listCapabilities();
 const semantics = await client.listCapabilitySemantics();
-const availability = await client.listOperationAvailability();
 const descriptor = catalog.capabilities.find((candidate) =>
   candidate.operationId === operationId && candidate.operationVersion === operationVersion
 );
 const semantic = semantics.profiles.find((candidate) =>
   candidate.operationId === operationId && candidate.operationVersion === operationVersion
 );
-const available = availability.operations.find((candidate) =>
-  candidate.operationId === operationId && candidate.operationVersion === operationVersion
-);
-if (descriptor === undefined || semantic === undefined || available === undefined) {
+if (descriptor === undefined || semantic === undefined) {
   fail("N03_TRUSTED_OPERATION_DISCOVERY_INCOMPLETE");
 }
 if (descriptor.maturity !== "PREVIEW"
@@ -332,26 +328,8 @@ if (descriptor.maturity !== "PREVIEW"
   || descriptor.inputSchemaHash !== operation.inputSchemaHash
   || descriptor.outputSchemaUri !== operation.outputSchemaUri
   || descriptor.outputSchemaHash !== operation.outputSchemaHash
-  || semantic.semanticProfileHash !== operation.semanticProfileHash
-  || available.maturity !== "PREVIEW"
-  || available.availability !== "AVAILABLE") {
+  || semantic.semanticProfileHash !== operation.semanticProfileHash) {
   fail("N03_TRUSTED_OPERATION_LOCK_MISMATCH");
-}
-const lock = operationLock(descriptor, semantic.semanticProfileHash);
-const trustedCatalog = client.validateTrustedContracts({
-  catalog,
-  semantics,
-  availability,
-  required: [lock],
-  expectedContractCatalogRevision: operation.gateway.contractCatalogRevision,
-  expectedSemanticCatalogHash: operation.gateway.semanticCatalogHash
-});
-if (!trustedCatalog.requiredReady
-  || trustedCatalog.requiredMismatches.length !== 0
-  || catalog.bindingRevision !== operation.gateway.bindingRevision
-  || semantics.bindingRevision !== operation.gateway.bindingRevision
-  || available.bindingRevision !== operation.gateway.bindingRevision) {
-  fail("N03_TRUSTED_GATEWAY_AUTHORITY_MISMATCH");
 }
 
 const dataScope = required("WSGS_READINESS_DATA_SCOPE");
@@ -398,6 +376,35 @@ const delegation = await signer.sign({
   datasetScopes: identity.datasetScopes,
   operation: { operationId, operationVersion }
 });
+const availability = await client.listOperationAvailability({
+  requestId,
+  delegationToken: delegation.token,
+  deadlineAt
+});
+const available = availability.operations.find((candidate) =>
+  candidate.operationId === operationId && candidate.operationVersion === operationVersion
+);
+if (available === undefined
+  || available.maturity !== "PREVIEW"
+  || available.availability !== "AVAILABLE") {
+  fail("N03_TRUSTED_OPERATION_AVAILABILITY_MISMATCH");
+}
+const lock = operationLock(descriptor, semantic.semanticProfileHash);
+const trustedCatalog = client.validateTrustedContracts({
+  catalog,
+  semantics,
+  availability,
+  required: [lock],
+  expectedContractCatalogRevision: operation.gateway.contractCatalogRevision,
+  expectedSemanticCatalogHash: operation.gateway.semanticCatalogHash
+});
+if (!trustedCatalog.requiredReady
+  || trustedCatalog.requiredMismatches.length !== 0
+  || catalog.bindingRevision !== operation.gateway.bindingRevision
+  || semantics.bindingRevision !== operation.gateway.bindingRevision
+  || available.bindingRevision !== operation.gateway.bindingRevision) {
+  fail("N03_TRUSTED_GATEWAY_AUTHORITY_MISMATCH");
+}
 const response = await client.executeOperation(lock, {
   requestVersion: "1.0",
   requestId,
