@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "gowm-gateway-binding-lock/1.0",
+  "gateway": {
+    "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+    "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+    "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
+    "instanceFingerprint": "sha256:d86aa82d760076f3dc5a5fbcb617555f7c7fb4a011b7f49a4d4b1d849cc61350",
+    "runningConfigFingerprint": "sha256:dcd6401fc171f0183cc93588cf0f5f937099d372eaf7306e453ead88eeee3af2",
+    "runningConfigEvidence": {
+      "overlayHash": "sha256:2660eebac2839bf78d4025ae609b9d65713d6684dc728177a0bb009460260018",
+      "gatewayImageFingerprint": "sha256:d0a884d703036d30131115cd1a67ec9f95d605f6f5216334839d030aacaaac65",
+      "composeConfigFingerprint": "sha256:75eaaecf063aad9a3ab4f535dddc89d9243ac271d1c3780af20d2bdc5c901945"
+    }
+  },
+  "provider": {
+    "providerId": "gdps.geospatial-products",
+    "providerVersion": "0.2.1",
+    "providerManifestHash": "sha256:e33fe3e114f74ba285caffdfcfe0cfeca1a7103497d20f834eb0d821fa435a18"
+  }
+}

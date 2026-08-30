@@ -1,0 +1,313 @@
+{
+  "schemaVersion": "wsgs-gdps-v021-query-corpus/1.0",
+  "cases": [
+    {
+      "id": "SLOPE-POINT",
+      "message": "2号车当前位置的坡度是多少？",
+      "expectedRequirements": [
+        "RESOLVE_REFERENCE",
+        "READ_CURRENT_STATE",
+        "GET_CURRENT_CONTINUOUS_PRODUCT_VALUE"
+      ],
+      "expectedOperation": "geo-raster.sample",
+      "productType": "SLOPE",
+      "productProfile": "DEGREE"
+    },
+    {
+      "id": "SLOPE-RANGE",
+      "message": "A区内坡度15到30度的区域有哪些？",
+      "expectedRequirements": [
+        "RESOLVE_REFERENCE",
+        "READ_GEOMETRY",
+        "FIND_CURRENT_PRODUCT_VALUE_RANGE_AREAS"
+      ],
+      "expectedOperation": "geo-raster.find-by-range",
+      "productType": "SLOPE",
+      "productProfile": "DEGREE"
+    },
+    {
+      "id": "FLOOD-HIGH",
+      "message": "A区内有哪些洪水高风险区域？",
+      "expectedOperation": "geo-raster.find-by-class",
+      "productType": "FLOOD_RISK",
+      "productProfile": "FLOOD_RISK_CLASS"
+    },
+    {
+      "id": "DRAINAGE-NEARBY",
+      "message": "2号车附近有哪些排水沟？",
+      "expectedOperation": "geo-vector.find-nearby",
+      "productType": "DRAINAGE_NETWORK",
+      "productProfile": "DRAINAGE_FEATURES"
+    },
+    {
+      "id": "HIGH-GROUND",
+      "message": "A区内有哪些高地？",
+      "expectedOperation": "terrain.find-high-ground"
+    },
+    {
+      "id": "WETLAND",
+      "message": "A区内有哪些湿地？",
+      "expectedOperation": "hydrology.find-wetlands"
+    },
+    {
+      "id": "LAND-COVER",
+      "message": "2号车当前位置是什么地表覆盖？",
+      "expectedOperation": "landcover.get-class"
+    },
+    {
+      "id": "TRAVERSABILITY",
+      "message": "2号车当前位置是否适合无人车通行？",
+      "expectedOperation": "traversability.get"
+    },
+    {
+      "id": "DATA-GAP",
+      "message": "A区内有哪些无人机限制区？",
+      "expectedPattern": "GDPS_GENERIC_VECTOR_IN_AREA",
+      "expectedDescriptor": "UAV_RESTRICTION/RESTRICTION_ZONES",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-geometry",
+        "geo-vector.find-in-area"
+      ],
+      "expectedStatus": "UNRESOLVED",
+      "expectedSemanticCode": "DATA_GAP",
+      "mustNotInferFalse": true
+    },
+    {
+      "id": "AMBIGUOUS-REFERENCE",
+      "message": "滨河路附近有哪些排水沟？",
+      "expectedStatus": "AMBIGUOUS",
+      "mustNotExecuteGdps": true
+    },
+    {
+      "id": "CURRENTNESS",
+      "message": "严格重放之前的坡度查询",
+      "expectedStatusWhenHashChanged": "STALE_OR_SNAPSHOT_MISMATCHED"
+    }
+  ],
+  "negativePreconditionDrivers": [
+    {
+      "driverId": "NEG-CURRENT-PRODUCT-ABSENT",
+      "precondition": "CURRENT_PRODUCT_ABSENT",
+      "driverClass": "RUNNING_GATEWAY_READ_ONLY",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "input": {
+        "productType": "UAV_RESTRICTION",
+        "productProfile": "RESTRICTION_ZONES",
+        "selector": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                113.931,
+                22.541
+              ],
+              [
+                113.959,
+                22.541
+              ],
+              [
+                113.959,
+                22.559
+              ],
+              [
+                113.931,
+                22.559
+              ],
+              [
+                113.931,
+                22.541
+              ]
+            ]
+          ]
+        },
+        "limit": 20
+      },
+      "expectedUpstreamStatus": "NO_DATA",
+      "expectedReasonCode": "PRODUCT_NOT_AVAILABLE",
+      "expectedConsumerStatus": "UNRESOLVED",
+      "expectedSemanticCode": "DATA_GAP",
+      "mustNotInferFalse": true,
+      "directProviderCalls": 0
+    },
+    {
+      "driverId": "NEG-RECIPE-SEMANTIC-HASH-ALTERED",
+      "precondition": "RECIPE_SEMANTIC_HASH_ALTERED",
+      "driverClass": "ISOLATED_CONSUMER_LOCK_COPY",
+      "sourceLock": "GDPS_RECIPE_LOCK.json",
+      "mutation": {
+        "field": "semanticProfileHash",
+        "mode": "DETERMINISTIC_SINGLE_NIBBLE_FLIP"
+      },
+      "expectedConsumerStatus": "UNRESOLVED",
+      "expectedSemanticCode": "RECIPE_LOCK_DRIFT",
+      "mustNotExecuteGdps": true,
+      "sharedInstanceMutation": false
+    },
+    {
+      "driverId": "NEG-UPSTREAM-TRUNCATED-TRUE",
+      "precondition": "UPSTREAM_TRUNCATED_TRUE",
+      "driverClass": "RUNNING_GATEWAY_READ_ONLY",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "input": {
+        "productType": "DRAINAGE_NETWORK",
+        "productProfile": "DRAINAGE_FEATURES",
+        "selector": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                113.932,
+                22.543
+              ],
+              [
+                113.958,
+                22.543
+              ],
+              [
+                113.958,
+                22.558
+              ],
+              [
+                113.932,
+                22.558
+              ],
+              [
+                113.932,
+                22.543
+              ]
+            ]
+          ]
+        },
+        "limit": 1
+      },
+      "expectedUpstreamStatus": "COMPLETED",
+      "expectedTruncated": true,
+      "expectedConsumerStatus": "PARTIAL",
+      "expectedSemanticCode": "RESULT_TRUNCATED",
+      "directProviderCalls": 0
+    },
+    {
+      "driverId": "NEG-STORED-HASH-DIFFERS-FROM-CURRENT",
+      "precondition": "STORED_HASH_DIFFERS_FROM_CURRENT",
+      "driverClass": "TWO_PHASE_RUNNING_GATEWAY_REPLAY",
+      "initialDatasetState": "INITIAL_A",
+      "priorGroundingBarrierRequired": true,
+      "priorGroundingExecutionPath": "RUNNING_GOWM_WORLD_QUERY_GATEWAY",
+      "transition": "GDPS_CURRENTNESS_A_TO_B",
+      "originalOperationId": "geo-raster.find-by-range",
+      "validationOperationId": "geo-product.check-current",
+      "expectedCurrentness": "CHANGED",
+      "expectedReplayDecisionStatusAnyOf": [
+        "STALE",
+        "SNAPSHOT_MISMATCHED"
+      ],
+      "strictReplay": true,
+      "mustNotExecuteOriginalQuery": true,
+      "directProviderCalls": 0
+    }
+  ],
+  "w43CurrentnessContract": {
+    "schemaVersion": "gdps-v021-w43-currentness-drivers/1.0",
+    "fixtureId": "GDPS_SLOPE_A_B_CURRENTNESS",
+    "scope": "scope-gdps-v021-baseline",
+    "productId": "gdps-baseline-slope",
+    "originalOperationId": "geo-raster.find-by-range",
+    "validationOperationId": "geo-product.check-current",
+    "priorGroundingExecutionPath": "REAL_NL_WSGS_GOWM_GATEWAY",
+    "barrierAuthority": "GDPS_CONTROLLED_DATABASE_DRIVER",
+    "sameRunBindingFields": [
+      "candidateSha",
+      "gateRunId",
+      "runtimeIdentity"
+    ],
+    "requiredDatabaseEvidenceRows": [
+      "source",
+      "replay",
+      "result",
+      "stage",
+      "execution",
+      "currentnessDecision"
+    ],
+    "directProviderCalls": 0,
+    "mockTransportAllowed": false,
+    "wsgsByteCapAllowed": false,
+    "finalFixtureState": "FINAL_B",
+    "scenarios": [
+      {
+        "scenarioId": "W43-STRICT-CURRENT",
+        "policy": "STRICT",
+        "fixtureBeforePriorGrounding": "INITIAL_A",
+        "barriers": [],
+        "expectedCurrentness": "CURRENT",
+        "expectedReplayDecisionStatus": "REPLAY_ALLOWED",
+        "expectedOriginalOperationExecutionsAfterReplay": 0
+      },
+      {
+        "scenarioId": "W43-STRICT-CHANGED",
+        "policy": "STRICT",
+        "fixtureBeforePriorGrounding": "INITIAL_A",
+        "barriers": [
+          "AFTER_PRIOR_GROUNDING:A_TO_B"
+        ],
+        "expectedCurrentness": "CHANGED",
+        "expectedReplayDecisionStatus": "SNAPSHOT_MISMATCHED",
+        "expectedStrictExecutionBlocked": true,
+        "expectedOriginalOperationExecutionsAfterReplay": 0
+      },
+      {
+        "scenarioId": "W43-STRICT-NOT-AVAILABLE",
+        "policy": "STRICT",
+        "fixtureBeforePriorGrounding": "INITIAL_A",
+        "barriers": [
+          "AFTER_PRIOR_GROUNDING:DISABLE_CURRENT_PRODUCT",
+          "AFTER_SCENARIO:RESTORE_A"
+        ],
+        "expectedCurrentness": "NOT_AVAILABLE",
+        "expectedReplayDecisionStatus": "STALE",
+        "expectedWarning": "SOURCE_NOT_AVAILABLE",
+        "expectedSemanticOutcome": "DATA_GAP",
+        "expectedStrictExecutionBlocked": true,
+        "expectedOriginalOperationExecutionsAfterReplay": 0
+      },
+      {
+        "scenarioId": "W43-BEST-EFFORT-CHANGED",
+        "policy": "BEST_EFFORT",
+        "fixtureBeforePriorGrounding": "INITIAL_A",
+        "barriers": [
+          "AFTER_PRIOR_GROUNDING:A_TO_B"
+        ],
+        "expectedCurrentness": "CHANGED",
+        "expectedReplayDecisionStatus": "REPLAY_ALLOWED",
+        "expectedWarning": "SOURCE_ADVANCED",
+        "expectedNewQuery": true,
+        "expectedOriginalOperationExecutionsAfterReplay": 1
+      },
+      {
+        "scenarioId": "W43-SOURCE-CHANGED-ONCE-THEN-SUCCESS",
+        "policy": "BEST_EFFORT",
+        "fixtureBeforePriorGrounding": "INITIAL_A",
+        "barriers": [
+          "BEFORE_REPLAY_QUERY:A_TO_B"
+        ],
+        "expectedSourceChangedDuringQueryCount": 1,
+        "expectedRetryCount": 1,
+        "expectedTerminalStatus": "COMPLETED"
+      },
+      {
+        "scenarioId": "W43-SOURCE-CHANGED-TWICE-INDETERMINATE",
+        "policy": "BEST_EFFORT",
+        "fixtureBeforePriorGrounding": "INITIAL_A",
+        "barriers": [
+          "BEFORE_REPLAY_QUERY:A_TO_B",
+          "AFTER_FIRST_SOURCE_CHANGED:B_TO_A"
+        ],
+        "expectedSourceChangedDuringQueryCount": 2,
+        "expectedRetryCount": 1,
+        "expectedTerminalStatus": "INDETERMINATE"
+      }
+    ]
+  }
+}

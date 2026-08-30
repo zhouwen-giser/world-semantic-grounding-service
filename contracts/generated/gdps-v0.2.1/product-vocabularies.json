@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "gdps-vocabularies/1.0",
+  "vocabularies": {
+    "LAND_COVER": [
+      "UNKNOWN",
+      "TREE",
+      "SHRUB",
+      "GRASS",
+      "CROPLAND",
+      "BARE_SOIL",
+      "BARE_ROCK",
+      "SAND",
+      "WETLAND",
+      "WATER_PERMANENT",
+      "WATER_SEASONAL",
+      "IMPERVIOUS",
+      "BUILDING"
+    ],
+    "TERRAIN_FORM": [
+      "UNKNOWN",
+      "HIGH_GROUND",
+      "RIDGE",
+      "SLOPE",
+      "PLAIN",
+      "VALLEY",
+      "DEPRESSION",
+      "CLOSED_DEPRESSION",
+      "TRENCH",
+      "PLATEAU",
+      "SADDLE"
+    ],
+    "SURFACE_WATER": [
+      "UNKNOWN",
+      "NOT_WATER",
+      "PERMANENT_WATER",
+      "SEASONAL_WATER"
+    ],
+    "WETLAND": [
+      "UNKNOWN",
+      "NOT_WETLAND",
+      "WETLAND",
+      "SEASONAL_WETLAND"
+    ],
+    "SURFACE_MATERIAL": [
+      "UNKNOWN",
+      "ASPHALT",
+      "CONCRETE",
+      "COMPACTED_SOIL",
+      "LOOSE_SOIL",
+      "GRAVEL",
+      "SAND",
+      "BARE_ROCK",
+      "MUD",
+      "WET_SOIL",
+      "VEGETATED"
+    ],
+    "TRAVERSABILITY": [
+      "UNKNOWN",
+      "PASSABLE",
+      "CONDITIONALLY_PASSABLE",
+      "IMPASSABLE"
+    ],
+    "VEGETATION_DENSITY_CLASS": [
+      "UNKNOWN",
+      "SPARSE",
+      "MODERATE",
+      "DENSE",
+      "VERY_DENSE"
+    ],
+    "FLOOD_RISK_CLASS": [
+      "UNKNOWN",
+      "VERY_LOW",
+      "LOW",
+      "MEDIUM",
+      "HIGH",
+      "VERY_HIGH"
+    ],
+    "RESTRICTION_CLASS": [
+      "UNKNOWN",
+      "PROHIBITED",
+      "RESTRICTED",
+      "CONDITIONAL"
+    ],
+    "SUITABILITY_CLASS": [
+      "UNKNOWN",
+      "UNSUITABLE",
+      "CONDITIONALLY_SUITABLE",
+      "SUITABLE",
+      "HIGHLY_SUITABLE"
+    ],
+    "VISIBLE_BOOLEAN": [
+      "UNKNOWN",
+      "NOT_VISIBLE",
+      "VISIBLE"
+    ],
+    "SOIL_TYPE": [
+      "UNKNOWN",
+      "SAND",
+      "SILT",
+      "CLAY",
+      "LOAM",
+      "GRAVEL",
+      "PEAT",
+      "ROCK"
+    ],
+    "SOIL_MOISTURE_CLASS": [
+      "UNKNOWN",
+      "DRY",
+      "MOIST",
+      "WET",
+      "SATURATED"
+    ],
+    "GROUND_STABILITY": [
+      "UNKNOWN",
+      "STABLE",
+      "CONDITIONALLY_STABLE",
+      "UNSTABLE"
+    ]
+  }
+}
