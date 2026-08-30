@@ -8,7 +8,8 @@ import {
   type ProductionGroundingIdentity,
   type ProductionGroundingStore
 } from "./backend.js";
-import { utf8Sha256 } from "./canonical.js";
+import { canonicalSha256, utf8Sha256 } from "./canonical.js";
+import { SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION } from "./contract-selection.js";
 
 const identity: ProductionGroundingIdentity = {
   servicePrincipalId: "sacs-service",
@@ -114,6 +115,35 @@ describe("ProductionGroundingBackend", () => {
       kind: "RESULT",
       value: { status: "COMPLETED" }
     });
+  });
+
+  it("binds the exact contract selection into metadata and the idempotency payload hash", async () => {
+    const legacy = backend();
+    const unchangedLegacyRequest = request();
+    await legacy.value.create(identity, "idem-contract", unchangedLegacyRequest, true);
+    const geospatial = backend();
+    await geospatial.value.create(
+      identity,
+      "idem-contract",
+      request(),
+      true,
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+    );
+    expect(geospatial.store.submissions[0]).toMatchObject({
+      contractSelection: SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
+      requestMetadata: { contractSelection: SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION }
+    });
+    expect(legacy.store.submissions[0]?.payloadHash).toBe(canonicalSha256(unchangedLegacyRequest));
+    expect(geospatial.store.submissions[0]?.payloadHash).not.toBe(legacy.store.submissions[0]?.payloadHash);
+  });
+
+  it("preserves the legacy fifth AbortSignal argument", async () => {
+    const fixture = backend();
+    const signal = new AbortController().signal;
+    await expect(fixture.value.create(identity, "idem-signal", request(), false, signal)).resolves.toMatchObject({
+      kind: "RESULT"
+    });
+    expect(fixture.store.submissions[0]?.contractSelection.contractVersion).toBe("sacs-wsgs-grounding/1.0");
   });
 
   it("replays the exact stored result instead of enqueuing model or GOWM work", async () => {

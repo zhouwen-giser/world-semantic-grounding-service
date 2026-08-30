@@ -22,6 +22,7 @@ import {
   assembleGeospatialFindingsProfile,
   assembleGeospatialFindingsResult,
   assertGeospatialFindingsProfileIntegrity,
+  createReferenceProductSubjectBinding,
   ResultNormalizationError
 } from "./result-normalizer.js";
 import {
@@ -223,6 +224,57 @@ describe("assembleGeospatialFindingsProfile", () => {
     defaultSacsGeospatialSchemaRegistry().validate("geospatial-findings.schema.json", profile);
   });
 
+  it("binds authoritative subject ReferenceProduct IDs through the real decoder", () => {
+    const tokens = runtime();
+    const subjectReferenceProductIds = [
+      "reference-product.vehicle-2",
+      "reference-product.area-a"
+    ];
+    const referenceProductBinding = createReferenceProductSubjectBinding({
+      validatedResults: [tokens.validatedResult],
+      subjectReferenceProductIdsByResult: [subjectReferenceProductIds],
+      referenceProductIds: [
+        "reference-product.area-a",
+        "reference-product.vehicle-2",
+        "reference-product.unused"
+      ]
+    });
+    const assembly = assembleGeospatialFindingsResult({
+      sourceBinding: tokens.sourceBinding,
+      validatedResults: [tokens.validatedResult],
+      referenceProductBinding
+    });
+    const profile = assembly.geospatialFindings;
+    expect(profile.findings[0]?.subjectReferenceProductIds).toEqual([
+      "reference-product.area-a",
+      "reference-product.vehicle-2"
+    ]);
+    expectCode(() => assertGeospatialFindingsProfileIntegrity(
+      profile,
+      assembly.evidenceItems.map(({ evidenceProductId }) => evidenceProductId)
+    ), "REFERENCE_PRODUCT_AUTHORITY_REQUIRED");
+  });
+
+  it("fails closed when a finding subject has no authoritative ReferenceProduct", () => {
+    const tokens = runtime();
+    expectCode(() => createReferenceProductSubjectBinding({
+      validatedResults: [tokens.validatedResult],
+      subjectReferenceProductIdsByResult: [["reference-product.vehicle-2"]],
+      referenceProductIds: ["reference-product.area-a"]
+    }), "SUBJECT_REFERENCE_PRODUCT_FK_MISSING");
+  });
+
+  it("rejects a forged ReferenceProduct subject token", () => {
+    const tokens = runtime();
+    expectCode(() => assembleGeospatialFindingsResult({
+      sourceBinding: tokens.sourceBinding,
+      validatedResults: [tokens.validatedResult],
+      referenceProductBinding: {
+        bindingHash: digest("9")
+      }
+    }), "REFERENCE_PRODUCT_SUBJECT_BINDING_FORGED");
+  });
+
   it("materializes the opaque local provenance as actual v0.1 evidence wire", () => {
     const tokens = runtime();
     const assembly = assembleGeospatialFindingsResult({
@@ -285,6 +337,26 @@ describe("assembleGeospatialFindingsProfile", () => {
     expect(rightAssembly.evidenceItems[0]?.receiptIds)
       .toEqual(["receipt.n03.semantic-random-b"]);
     expect(leftAssembly.evidenceItemSetHash).not.toBe(rightAssembly.evidenceItemSetHash);
+  });
+
+  it("fails closed when distinct runtime envelopes decode to the same semantic finding", () => {
+    const left = runtime({
+      requestId: "request.n04.semantic-duplicate-a",
+      receiptId: "receipt.n04.semantic-duplicate"
+    });
+    const right = runtime({
+      requestId: "request.n04.semantic-duplicate-b",
+      receiptId: "receipt.n04.semantic-duplicate"
+    });
+    const validatedResults = [left.validatedResult, right.validatedResult];
+    const sourceBinding = normalizeSourceProducts({
+      trustedContext: left.trustedContext,
+      validatedResults
+    });
+    expectCode(() => assembleGeospatialFindingsResult({
+      sourceBinding,
+      validatedResults
+    }), "DUPLICATE_SEMANTIC_FINDING");
   });
 
   it("is deterministic and never projects envelope, receipt, upstream evidence, or scope values", () => {

@@ -16,15 +16,22 @@ const schemaDirectory = new URL("../../../contracts/wsgs-v0.1/contracts/", impor
 const schemas = Object.fromEntries(readdirSync(schemaDirectory)
   .filter((name) => name.endsWith(".json"))
   .map((name) => [name, JSON.parse(readFileSync(new URL(name, schemaDirectory), "utf8")) as unknown]));
+const productionIdentity = createGroundingIdentity({
+  servicePrincipalId: "service-production-api",
+  actorId: "operator-production-api",
+  dataScopes: ["region-production-api"],
+  datasetScopes: ["roads"],
+  permissions: ["grounding.read"]
+});
 
-function body(text: string): Record<string, unknown> {
+function body(text: string, suffix = ""): Record<string, unknown> {
   return {
     schemaVersion: "1.0",
-    requestId: "request-production-api",
+    requestId: `request-production-api${suffix}`,
     operation: "GROUND_REFERENCES",
     source: {
       conversationRef: "conversation-1",
-      messageId: "message-production-api",
+      messageId: `message-production-api${suffix}`,
       originalText: text,
       originalTextSha256: `sha256:${createHash("sha256").update(text).digest("hex")}`,
       locale: "en-US",
@@ -81,16 +88,7 @@ integration("production grounding API PostgreSQL wiring", () => {
       }
     });
     app = await createGroundingApi({
-      auth: {
-        mode: "STATIC_TRUSTED",
-        identity: createGroundingIdentity({
-          servicePrincipalId: "service-production-api",
-          actorId: "operator-production-api",
-          dataScopes: ["region-production-api"],
-          datasetScopes: ["roads"],
-          permissions: ["grounding.read"]
-        })
-      },
+      auth: { mode: "STATIC_TRUSTED", identity: productionIdentity },
       backend: resources.backend,
       schemas
     });
@@ -140,5 +138,79 @@ integration("production grounding API PostgreSQL wiring", () => {
     const cancelled = await app!.inject({ method: "POST", url: `/v1/groundings/${groundingId}:cancel` });
     expect(cancelled.statusCode).toBe(200);
     expect(cancelled.json()).toMatchObject({ status: "CANCELLED" });
+  });
+
+  it("preserves legacy jobs after allowlisting and rejects cross-contract reads of 1.1 jobs", async () => {
+    const legacyBody = body("legacy-survives-allowlist");
+    const legacyCreated = await app!.inject({
+      method: "POST",
+      url: "/v1/groundings",
+      headers: { "idempotency-key": "production-api-legacy-key", prefer: "respond-async" },
+      payload: legacyBody
+    });
+    expect(legacyCreated.statusCode).toBe(202);
+    const legacyGroundingId = (legacyCreated.json() as Record<string, unknown>)["groundingId"] as string;
+    await app!.close();
+    app = await createGroundingApi({
+      auth: { mode: "STATIC_TRUSTED", identity: productionIdentity },
+      backend: resources!.backend,
+      schemas,
+      contractNegotiation: {
+        sacsGeospatialServicePrincipals: [productionIdentity.servicePrincipalId]
+      }
+    });
+    expect((await app!.inject({
+      method: "GET",
+      url: `/v1/groundings/${legacyGroundingId}`
+    })).statusCode).toBe(200);
+    expect((await app!.inject({
+      method: "POST",
+      url: "/v1/groundings",
+      headers: { "idempotency-key": "production-api-legacy-key", prefer: "respond-async" },
+      payload: legacyBody
+    })).statusCode).toBe(202);
+    const negotiation = {
+      "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
+      "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0"
+    };
+    const capabilities = await app!.inject({
+      method: "GET",
+      url: "/v1/capabilities",
+      headers: negotiation
+    });
+    expect(capabilities.statusCode).toBe(200);
+    expect(capabilities.headers["wsgs-contract-version"]).toBe("sacs-wsgs-grounding/1.1");
+    expect(capabilities.json()).toMatchObject({
+      contractVersion: "sacs-wsgs-grounding/1.1",
+      requiredCapabilitiesReady: false
+    });
+
+    const created = await app!.inject({
+      method: "POST",
+      url: "/v1/groundings",
+      headers: {
+        ...negotiation,
+        "idempotency-key": "production-api-v11-key",
+        prefer: "respond-async"
+      },
+      payload: body("production-api-v11-secret", "-v11")
+    });
+    expect(created.statusCode).toBe(202);
+    const groundingId = (created.json() as Record<string, unknown>)["groundingId"] as string;
+    expect((await app!.inject({
+      method: "GET",
+      url: `/v1/groundings/${groundingId}`,
+      headers: negotiation
+    })).statusCode).toBe(200);
+
+    const legacyRead = await app!.inject({
+      method: "GET",
+      url: `/v1/groundings/${groundingId}`,
+      headers: { "wsgs-contract-version": "sacs-wsgs-grounding/1.0" }
+    });
+    expect(legacyRead.statusCode).toBe(406);
+    expect(legacyRead.json()).toMatchObject({
+      error: { code: "WSGS_CONSUMER_CONTRACT_MISMATCH" }
+    });
   });
 });

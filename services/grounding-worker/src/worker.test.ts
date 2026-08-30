@@ -33,6 +33,7 @@ class MemoryWorkerStore implements GroundingWorkerStore {
   heartbeats: WorkerHeartbeat[] = [];
   settlements: Array<{ fence: WorkerExecutionFence; value: WorkerSettlement }> = [];
   settlementOutcome: WorkerSettlementOutcome = "APPLIED";
+  resultSettlementError: Error | undefined;
 
   async claimNext(): Promise<WorkerClaim | null> {
     return this.claims.shift() ?? null;
@@ -44,6 +45,7 @@ class MemoryWorkerStore implements GroundingWorkerStore {
 
   async settle(fence: WorkerExecutionFence, value: WorkerSettlement): Promise<WorkerSettlementOutcome> {
     this.settlements.push({ fence, value });
+    if (value.kind === "RESULT" && this.resultSettlementError) throw this.resultSettlementError;
     return this.settlementOutcome;
   }
 }
@@ -90,6 +92,22 @@ describe("GroundingWorker", () => {
         resultBytes: new Uint8Array([1, 2, 3])
       }
     }]);
+  });
+
+  it("fail-closes a rejected result settlement into a durable failed settlement", async () => {
+    const store = new MemoryWorkerStore();
+    store.claims.push(claim());
+    store.resultSettlementError = Object.assign(new Error("invalid negotiated result"), {
+      code: "GROUNDING_RESULT_SCHEMA_INVALID"
+    });
+    const outcome = await worker(store, async () => success()).runOnce();
+    expect(outcome).toEqual({ kind: "FAILED", jobId: "job-1" });
+    expect(store.settlements.map(({ value }) => value.kind)).toEqual(["RESULT", "FAILED"]);
+    expect(store.settlements[1]?.value).toMatchObject({
+      kind: "FAILED",
+      errorCode: "GROUNDING_RESULT_SCHEMA_INVALID",
+      retryable: false
+    });
   });
 
   it("heartbeats a long-running lease", async () => {

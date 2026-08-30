@@ -4,6 +4,12 @@ import { readFileSync, readdirSync } from "node:fs";
 import type { ErrorObject, ValidateFunction } from "ajv";
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
+import { defaultSacsGeospatialSchemaRegistry } from "@wsgs/contracts";
+import {
+  isSacsGeospatialContract,
+  parseGroundingContractSelection,
+  type GroundingContractSelection
+} from "@wsgs/grounding-pipeline";
 
 const schemaDirectory = new URL("../../../contracts/wsgs-v0.1/contracts/", import.meta.url);
 const contractLockUrl = new URL("../../../contracts/wsgs-v0.1/contract-lock.json", import.meta.url);
@@ -113,9 +119,28 @@ function safeValidationDetails(errors: ErrorObject[] | null | undefined): string
 // Compile and integrity-check at module load so a broken or drifted frozen
 // contract prevents the worker from starting and therefore from claiming jobs.
 const validateGroundingResult = compileFrozenGroundingResultSchema();
+const sacsGeospatialRegistry = defaultSacsGeospatialSchemaRegistry();
 
 export function assertFrozenGroundingResult(value: unknown): asserts value is Readonly<Record<string, unknown>> {
   if (!validateGroundingResult(value)) {
     throw new GroundingResultSchemaValidationError(safeValidationDetails(validateGroundingResult.errors));
+  }
+}
+
+export function assertNegotiatedGroundingResult(
+  value: unknown,
+  selectionValue: GroundingContractSelection
+): asserts value is Readonly<Record<string, unknown>> {
+  const selection = parseGroundingContractSelection(selectionValue);
+  if (!isSacsGeospatialContract(selection)) {
+    assertFrozenGroundingResult(value);
+    return;
+  }
+  try {
+    sacsGeospatialRegistry.validate("grounding-result-extension.schema.json", value);
+  } catch {
+    throw new GroundingResultSchemaValidationError(
+      "result does not satisfy sacs-wsgs-grounding/1.1 with sacs-wsgs-geospatial-findings/1.0"
+    );
   }
 }

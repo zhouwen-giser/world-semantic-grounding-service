@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -9,6 +10,8 @@ import {
   ProductionGroundingBackend,
   ProductionPipelineStageExecutor,
   PostgresIdempotencyConflictError,
+  PostgresGroundingContractMismatchError,
+  SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
   utf8Sha256,
   type PipelineStage,
   type PipelineStageContext,
@@ -39,6 +42,10 @@ const admissionSnapshot = {
   gowmConsumerPackageIntegrity: `sha512-${Buffer.alloc(64, 3).toString("base64")}`,
   gowmOperationLockHash: `sha256:${"4".repeat(64)}`
 };
+const geospatialResult = JSON.parse(readFileSync(new URL(
+  "../../../contracts/wsgs-v0.2.1-sacs-geospatial/examples/grounding-result-with-geospatial-findings.json",
+  import.meta.url
+), "utf8")) as Record<string, unknown>;
 
 const identity = {
   servicePrincipalId: "sacs-service",
@@ -284,6 +291,67 @@ integration("W04 PostgreSQL production adapters", () => {
       idempotency_result_count: "0",
       job_status: "RUNNING"
     });
+  });
+
+  it("persists and replays the full 1.1 extension only under its immutable selection", async () => {
+    const created = await backend.create(
+      identity,
+      "idem-geospatial-extension",
+      request("geospatial-extension"),
+      true,
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+    );
+    const workerStore = new PostgresGroundingWorkerStore(pool, codec);
+    const claim = await workerStore.claimNext("worker-geospatial-extension", 5_000);
+    expect(claim?.initialState["contractSelection"]).toEqual(SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION);
+    const material = structuredClone(geospatialResult);
+    delete material["resultHash"];
+    const pipeline = new GroundingPipeline({
+      executor: executor([], { RESULT_PERSIST: async () => material }),
+      journal: new PostgresPipelineJournal(pool, codec)
+    });
+    const result = await pipeline.run({ ...claim!, fence: claim! });
+    expect(await workerStore.settle(claim!, {
+      kind: "RESULT",
+      status: result.status,
+      resultHash: result.resultHash,
+      resultBytes: result.resultBytes
+    })).toBe("APPLIED");
+    const groundingId = (created.value as Record<string, unknown>)["groundingId"] as string;
+    const replay = await backend.get(identity, groundingId, SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION);
+    expect(replay).toMatchObject({
+      status: "COMPLETED",
+      result: { resultHash: result.resultHash, geospatialFindings: { profile: "sacs-wsgs-geospatial-findings/1.0" } }
+    });
+    await expect(backend.get(identity, groundingId)).rejects.toBeInstanceOf(PostgresGroundingContractMismatchError);
+    await expect(backend.cancel(identity, groundingId)).rejects.toBeInstanceOf(PostgresGroundingContractMismatchError);
+    expect(await backend.get(
+      { ...identity, servicePrincipalId: "foreign-service" },
+      groundingId,
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+    )).toBeNull();
+    const diminishedIdentity = {
+      ...identity,
+      datasetScopes: ["roads"],
+      authorizationContextHash: `sha256:${"b".repeat(64)}`
+    };
+    expect(await backend.get(
+      diminishedIdentity,
+      groundingId,
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+    )).toBeNull();
+    expect(await backend.cancel(
+      diminishedIdentity,
+      groundingId,
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+    )).toBeNull();
+    await expect(backend.create(
+      diminishedIdentity,
+      "idem-geospatial-extension",
+      request("geospatial-extension"),
+      true,
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+    )).rejects.toBeInstanceOf(PostgresIdempotencyConflictError);
   });
 
   it("rejects idempotency payload drift in the database serialization transaction", async () => {

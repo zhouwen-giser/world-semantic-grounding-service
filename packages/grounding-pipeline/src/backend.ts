@@ -1,6 +1,12 @@
 import { randomUUID } from "node:crypto";
 
 import { canonicalBytes, canonicalSha256, utf8Sha256 } from "./canonical.js";
+import {
+  LEGACY_GROUNDING_CONTRACT_SELECTION,
+  isSacsGeospatialContract,
+  parseGroundingContractSelection,
+  type GroundingContractSelection
+} from "./contract-selection.js";
 import { GROUNDING_OPERATIONS, type GroundingOperation } from "./types.js";
 
 export interface ProductionGroundingIdentity {
@@ -34,6 +40,7 @@ export interface DurableGroundingSubmission {
   gowmSemanticCatalogHash: string;
   gowmConsumerPackageIntegrity: string;
   gowmOperationLockHash: string;
+  contractSelection: GroundingContractSelection;
   requestMetadata: Readonly<Record<string, unknown>>;
 }
 
@@ -60,12 +67,18 @@ export interface ProductionGroundingStore {
     identity: ScopedGroundingIdentity,
     groundingId: string,
     deadlineAt: Date,
+    contractSelection: GroundingContractSelection,
     signal?: AbortSignal
   ): Promise<GroundingPresentation>;
-  get(identity: ScopedGroundingIdentity, groundingId: string): Promise<unknown | null>;
+  get(
+    identity: ScopedGroundingIdentity,
+    groundingId: string,
+    contractSelection: GroundingContractSelection
+  ): Promise<unknown | null>;
   cancel(
     identity: ScopedGroundingIdentity,
-    groundingId: string
+    groundingId: string,
+    contractSelection: GroundingContractSelection
   ): Promise<{ jobId: string; value: unknown } | null>;
 }
 
@@ -87,7 +100,10 @@ export interface ProductionGroundingBackendConfig {
   store: ProductionGroundingStore;
   sealer: RequestSealer;
   readiness: () => Promise<{ ready: boolean; reasons: string[] }>;
-  capabilities: (identity: ProductionGroundingIdentity) => Promise<unknown>;
+  capabilities: (
+    identity: ProductionGroundingIdentity,
+    contractSelection: GroundingContractSelection
+  ) => Promise<unknown>;
   captureAdmissionSnapshot: (context: {
     identity: ScopedGroundingIdentity;
     request: Readonly<Record<string, unknown>>;
@@ -190,9 +206,12 @@ export class ProductionGroundingBackend {
     return this.#config.readiness();
   }
 
-  capabilities(identity: ProductionGroundingIdentity): Promise<unknown> {
+  capabilities(
+    identity: ProductionGroundingIdentity,
+    contractSelection: GroundingContractSelection = LEGACY_GROUNDING_CONTRACT_SELECTION
+  ): Promise<unknown> {
     assertIdentity(identity);
-    return this.#config.capabilities(identity);
+    return this.#config.capabilities(identity, parseGroundingContractSelection(contractSelection));
   }
 
   async create(
@@ -200,9 +219,20 @@ export class ProductionGroundingBackend {
     idempotencyKey: string,
     request: Record<string, unknown>,
     preferAsync: boolean,
-    signal?: AbortSignal
+    contractSelectionOrSignal: GroundingContractSelection | AbortSignal = LEGACY_GROUNDING_CONTRACT_SELECTION,
+    explicitSignal?: AbortSignal
   ): Promise<GroundingPresentation> {
     assertIdentity(identity);
+    const legacySignal = typeof contractSelectionOrSignal === "object"
+      && contractSelectionOrSignal !== null
+      && typeof (contractSelectionOrSignal as AbortSignal).addEventListener === "function"
+      ? contractSelectionOrSignal as AbortSignal
+      : undefined;
+    const contractSelection = legacySignal === undefined
+      ? contractSelectionOrSignal as GroundingContractSelection
+      : LEGACY_GROUNDING_CONTRACT_SELECTION;
+    const signal = explicitSignal ?? legacySignal;
+    const negotiatedContract = parseGroundingContractSelection(contractSelection);
     const readiness = await this.#config.readiness();
     if (!readiness.ready) {
       throw new ProductionBackendError("NOT_READY", "Required grounding capabilities are not ready");
@@ -245,7 +275,12 @@ export class ProductionGroundingBackend {
       jobId
     });
     assertAdmissionSnapshot(admissionSnapshot);
-    const payloadHash = canonicalSha256(request);
+    // Preserve the byte-locked 1.0 idempotency identity so retries of jobs
+    // admitted before v0.2.1 still replay. The additive 1.1 path binds its
+    // explicit profile selection to prevent cross-contract replay.
+    const payloadHash = isSacsGeospatialContract(negotiatedContract)
+      ? canonicalSha256({ request, contractSelection: negotiatedContract })
+      : canonicalSha256(request);
     const sealedRequest = await this.#config.sealer.seal(canonicalBytes(request), { groundingId, requestId });
     if (!(sealedRequest instanceof Uint8Array) || sealedRequest.byteLength === 0) {
       throw new ProductionBackendError("REQUEST_SEAL_FAILED", "Request sealer returned no ciphertext");
@@ -264,12 +299,14 @@ export class ProductionGroundingBackend {
       deadlineAt: new Date(now + deadlineMs),
       maxResultBytes,
       ...admissionSnapshot,
+      contractSelection: negotiatedContract,
       requestMetadata: Object.freeze({
         schemaVersion: request["schemaVersion"],
         locale: source["locale"],
         messageId: source["messageId"],
         operation: requestedOperation,
-        permissions: [...identity.permissions]
+        permissions: [...identity.permissions],
+        contractSelection: negotiatedContract
       })
     });
 
@@ -279,20 +316,34 @@ export class ProductionGroundingBackend {
       scopedIdentity,
       outcome.groundingId,
       new Date(now + deadlineMs),
+      negotiatedContract,
       signal
     );
   }
 
-  async get(identity: ProductionGroundingIdentity, groundingId: string): Promise<unknown | null> {
+  async get(
+    identity: ProductionGroundingIdentity,
+    groundingId: string,
+    contractSelection: GroundingContractSelection = LEGACY_GROUNDING_CONTRACT_SELECTION
+  ): Promise<unknown | null> {
     assertIdentity(identity);
-    return this.#config.store.get(this.#scope(identity, {}), nonEmptyString(groundingId, "INVALID_GROUNDING_ID"));
+    return this.#config.store.get(
+      this.#scope(identity, {}),
+      nonEmptyString(groundingId, "INVALID_GROUNDING_ID"),
+      parseGroundingContractSelection(contractSelection)
+    );
   }
 
-  async cancel(identity: ProductionGroundingIdentity, groundingId: string): Promise<unknown | null> {
+  async cancel(
+    identity: ProductionGroundingIdentity,
+    groundingId: string,
+    contractSelection: GroundingContractSelection = LEGACY_GROUNDING_CONTRACT_SELECTION
+  ): Promise<unknown | null> {
     assertIdentity(identity);
     const cancelled = await this.#config.store.cancel(
       this.#scope(identity, {}),
-      nonEmptyString(groundingId, "INVALID_GROUNDING_ID")
+      nonEmptyString(groundingId, "INVALID_GROUNDING_ID"),
+      parseGroundingContractSelection(contractSelection)
     );
     if (!cancelled) return null;
     await this.#config.cancellationNotifier?.notify(cancelled.jobId);

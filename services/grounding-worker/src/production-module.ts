@@ -59,13 +59,20 @@ import {
 } from "@wsgs/grounding-graph";
 import {
   PIPELINE_STAGES,
+  LEGACY_GROUNDING_CONTRACT_SELECTION,
   PipelineFenceRejectedError,
   ProductionPipelineStageExecutor,
   canonicalSha256,
+  isSacsGeospatialContract,
+  parseGroundingContractSelection,
   type PipelineStage,
   type PipelineStageContext,
   type ProductionAdmissionSnapshot
 } from "@wsgs/grounding-pipeline";
+import {
+  assembleRuntimeGeospatialFindings,
+  type RuntimeFindingEnvelopeInput
+} from "@wsgs/northbound-geospatial-findings/internal/runtime-assembly";
 import {
   QUERY_COMPILER_VERSION,
   CapabilityMatcher,
@@ -727,6 +734,16 @@ function idempotencyKey(context: PipelineStageContext): string {
   return text(context.state["idempotencyKey"], "PIPELINE_IDEMPOTENCY_KEY_MISSING");
 }
 
+function geospatialResultNegotiated(context: PipelineStageContext): boolean {
+  try {
+    return isSacsGeospatialContract(parseGroundingContractSelection(
+      context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION
+    ));
+  } catch {
+    throw new ProductionStageModuleError("PIPELINE_CONTRACT_SELECTION_INVALID");
+  }
+}
+
 function modelReceiptId(receipt: ModelReceipt): string {
   return `model-receipt-${canonicalSha256(receipt).slice("sha256:".length, "sha256:".length + 32)}`;
 }
@@ -1366,7 +1383,12 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
   const planning = context.state["REQUIREMENT_PLAN"] as RequirementPlanningResult | undefined;
   const compiled = context.state["WORLD_QUERY_COMPILE"] as { compiled: CompileResult[]; capabilityGaps: JsonObject[] } | undefined;
   const executed = context.state["GOWM_EXECUTE"] as { outcomes: Array<{ submission: WorldQuerySubmission; status: string; resultHash: string }> } | undefined;
-  const normalized = context.state["EVIDENCE_NORMALIZE"] as { status: "COMPLETED" | "PARTIAL"; evidenceItems: GroundingEvidenceItem[]; capabilityGaps: JsonObject[] } | undefined;
+  const normalized = context.state["EVIDENCE_NORMALIZE"] as {
+    status: "COMPLETED" | "PARTIAL";
+    evidenceItems: GroundingEvidenceItem[];
+    capabilityGaps: JsonObject[];
+    geospatialFindings?: JsonObject;
+  } | undefined;
   const gaps = [
     ...(planning?.capabilityGaps ?? []).map((entry) => mappedGap(entry as unknown as JsonObject)),
     ...(compiled?.capabilityGaps ?? []).map(mappedGap),
@@ -1406,6 +1428,9 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     ...(graph ? { groundingGraph: graph.graph } : {}),
     referenceProducts: references?.referenceProducts ?? [],
     evidenceItems: normalized?.evidenceItems ?? evidenceItems,
+    ...(normalized?.geospatialFindings === undefined
+      ? {}
+      : { geospatialFindings: normalized.geospatialFindings }),
     ...(queryRecords.length > 0 ? { gowmQueries: queryRecords } : {}),
     ambiguities,
     unresolvedMentions: unresolved,
@@ -1470,6 +1495,167 @@ function finalWorldResult(outcome: PersistedWorldQueryOutcome): JsonObject {
   if (material.responseStatus === 200) return object(material.response, "WORLD_QUERY_RESULT_INVALID");
   const terminal = object(material.terminal, "WORLD_QUERY_JOB_INVALID");
   return object(terminal["result"], "WORLD_QUERY_JOB_RESULT_MISSING");
+}
+
+function runtimeFindingInputs(
+  submission: WorldQuerySubmission,
+  world: JsonObject,
+  capabilities: readonly CapabilityDescriptor[],
+  recipeLock?: LoadedGdpsRecipeLock,
+  references?: ReferenceGroundingResult
+): RuntimeFindingEnvelopeInput[] {
+  if (!recipeLock || !Array.isArray(world["nodes"])) return [];
+  const allowed = new Set(recipeLock.lock.recipes.flatMap(({ allowedOperations }) =>
+    allowedOperations.map(({ operationId, operationVersion }) => `${operationId}@${operationVersion}`)));
+  const planned = new Map(submission.plan.nodes.map((node) => [node.nodeId, node.operation]));
+  const descriptorId = typeof submission.parameters["descriptorId"] === "string"
+    ? submission.parameters["descriptorId"] as string
+    : undefined;
+  const semanticConcept = typeof submission.parameters["productType"] === "string"
+    ? submission.parameters["productType"] as string
+    : descriptorId?.split("/")[0] ?? "GDPS_CATALOG";
+  return world["nodes"].flatMap((raw): RuntimeFindingEnvelopeInput[] => {
+    const node = object(raw, "WORLD_QUERY_NODE_INVALID");
+    const nodeId = text(node["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
+    const operation = planned.get(nodeId);
+    if (!operation || !allowed.has(`${operation.operationId}@${operation.operationVersion}`)) return [];
+    if (node["result"] === undefined) throw new ProductionStageModuleError("GDPS_NODE_RESULT_MISSING");
+    const subjects = selectFindingSubjectReferenceProductIdsForNode(
+      references,
+      submission,
+      world,
+      capabilities,
+      nodeId
+    );
+    return [{
+      operationId: operation.operationId,
+      operationVersion: operation.operationVersion,
+      semanticConcept,
+      ...(descriptorId === undefined ? {} : { descriptorId }),
+      ...(subjects.length === 0 ? {} : { subjectReferenceProductIds: subjects }),
+      envelope: node["result"]
+    }];
+  });
+}
+
+function containsCanonicalValue(value: unknown, target: unknown): boolean {
+  if (value !== null && typeof value === "object" && canonicalSha256(value) === canonicalSha256(target)) return true;
+  if (Array.isArray(value)) return value.some((entry) => containsCanonicalValue(entry, target));
+  if (value && typeof value === "object") {
+    return Object.values(value as Record<string, unknown>).some((entry) => containsCanonicalValue(entry, target));
+  }
+  return false;
+}
+
+export function selectFindingSubjectReferenceProductIds(
+  references: ReferenceGroundingResult | undefined,
+  resultValues: readonly unknown[]
+): string[] {
+  if (!references) return [];
+  const ambiguous = new Set(references.ambiguities.flatMap((entry) => entry.candidateProductIds));
+  const unambiguous = new Set(references.mentions.flatMap((mention) =>
+    mention.candidateProductIds.length === 1 ? mention.candidateProductIds : []));
+  return references.referenceProducts.filter((product) =>
+    !ambiguous.has(product.productId)
+      && (unambiguous.has(product.productId) || product.safeSummary["source"] === "contextCapsule")
+      && product.revalidationRequired === false
+      && typeof product.validUntil === "string"
+      && resultValues.some((value) => containsCanonicalValue(value, product.referenceKey)))
+    .map(({ productId }) => productId)
+    .sort((left, right) => left < right ? -1 : left > right ? 1 : 0);
+}
+
+function publicNodeOutputValue(node: JsonObject): unknown {
+  const rawResult = node["result"];
+  if (!rawResult || typeof rawResult !== "object" || Array.isArray(rawResult)) return undefined;
+  const rawOutput = (rawResult as JsonObject)["output"];
+  if (!rawOutput || typeof rawOutput !== "object" || Array.isArray(rawOutput)) return undefined;
+  return (rawOutput as JsonObject)["value"];
+}
+
+/**
+ * Binds finding subjects only through the target node's effective inputs and
+ * their transitive NODE_OUTPUT ancestors. A Provider-controlled target output,
+ * sibling node, receipt, or snapshot metadata cannot establish subjecthood.
+ */
+export function selectFindingSubjectReferenceProductIdsForNode(
+  references: ReferenceGroundingResult | undefined,
+  submission: WorldQuerySubmission,
+  worldValue: unknown,
+  capabilities: readonly CapabilityDescriptor[],
+  targetNodeId: string
+): string[] {
+  if (!references) return [];
+  const world = object(worldValue, "WORLD_QUERY_RESULT_INVALID");
+  const rawNodes = Array.isArray(world["nodes"]) ? world["nodes"] : [];
+  const resultByNode = new Map<string, JsonObject>();
+  for (const rawNode of rawNodes) {
+    const node = object(rawNode, "WORLD_QUERY_NODE_INVALID");
+    const nodeId = text(node["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
+    if (resultByNode.has(nodeId)) throw new ProductionStageModuleError("WORLD_QUERY_NODE_DUPLICATE");
+    resultByNode.set(nodeId, node);
+  }
+  const planByNode = new Map(submission.plan.nodes.map((node) => [node.nodeId, node]));
+  if (!planByNode.has(targetNodeId) || !resultByNode.has(targetNodeId)) {
+    throw new ProductionStageModuleError("WORLD_QUERY_FINDING_NODE_MISSING");
+  }
+  const projections: unknown[] = [];
+  const visited = new Set<string>();
+  const active = new Set<string>();
+  const visit = (nodeId: string): void => {
+    if (visited.has(nodeId)) return;
+    if (active.has(nodeId)) throw new ProductionStageModuleError("WORLD_QUERY_NODE_DEPENDENCY_CYCLE");
+    const planned = planByNode.get(nodeId);
+    if (!planned) throw new ProductionStageModuleError("WORLD_QUERY_SOURCE_NODE_MISSING");
+    if (!resultByNode.has(nodeId)) throw new ProductionStageModuleError("WORLD_QUERY_SOURCE_NODE_OUTPUT_MISSING");
+    active.add(nodeId);
+    for (const binding of Object.values(planned.inputs)) {
+      if (binding.kind === "LITERAL") {
+        projections.push(structuredClone(binding.value));
+        continue;
+      }
+      if (binding.kind === "REQUEST_PATH") {
+        projections.push(pointer(submission.parameters, binding.path, "WORLD_QUERY_REQUEST_PATH_UNRESOLVED"));
+        continue;
+      }
+      const sourcePlan = planByNode.get(binding.nodeId);
+      const sourceResult = resultByNode.get(binding.nodeId);
+      if (!sourcePlan) throw new ProductionStageModuleError("WORLD_QUERY_SOURCE_NODE_MISSING");
+      if (!sourceResult) throw new ProductionStageModuleError("WORLD_QUERY_SOURCE_NODE_OUTPUT_MISSING");
+      const descriptor = capabilities.find((candidate) =>
+        candidate.operationId === sourcePlan.operation.operationId
+          && candidate.operationVersion === sourcePlan.operation.operationVersion);
+      if (!descriptor) throw new ProductionStageModuleError("WORLD_QUERY_CAPABILITY_MISSING");
+      const outputPort = descriptor.ports.outputs.find((candidate) => candidate.name === binding.outputPort);
+      if (!outputPort) throw new ProductionStageModuleError("WORLD_QUERY_OUTPUT_PORT_UNREGISTERED");
+      const outputValue = publicNodeOutputValue(sourceResult);
+      projections.push(outputPort.path === undefined
+        ? structuredClone(outputValue)
+        : pointer(outputValue, outputPort.path, "WORLD_QUERY_SOURCE_OUTPUT_PATH_UNRESOLVED"));
+      visit(binding.nodeId);
+    }
+    active.delete(nodeId);
+    visited.add(nodeId);
+  };
+  visit(targetNodeId);
+  return selectFindingSubjectReferenceProductIds(references, projections);
+}
+
+function mergeEvidenceItems(
+  first: readonly GroundingEvidenceItem[],
+  second: readonly { readonly evidenceProductId: string }[]
+): GroundingEvidenceItem[] {
+  const byId = new Map<string, GroundingEvidenceItem | { readonly evidenceProductId: string }>();
+  for (const item of [...first, ...second]) {
+    const prior = byId.get(item.evidenceProductId);
+    if (prior && canonicalSha256(prior) !== canonicalSha256(item)) {
+      throw new ProductionStageModuleError("EVIDENCE_ITEM_ID_COLLISION");
+    }
+    byId.set(item.evidenceProductId, prior ?? item);
+  }
+  return [...byId.values()].sort((left, right) =>
+    left.evidenceProductId < right.evidenceProductId ? -1
+      : left.evidenceProductId > right.evidenceProductId ? 1 : 0) as GroundingEvidenceItem[];
 }
 
 export interface NormalizedGdpsWorldQuerySource {
@@ -2304,6 +2490,9 @@ export async function createPipelineStageExecutor(
       const evidenceProductsForPersistence: ExecutionEvidenceProduct[] = [];
       const gdpsExecutionRecordsForPersistence: GowmExecutionRecord[] = [];
       const normalizationGaps: JsonObject[] = [];
+      const findingEnvelopes: RuntimeFindingEnvelopeInput[] = [];
+      const geospatialNegotiated = geospatialResultNegotiated(context);
+      const references = context.state["REFERENCE_VALIDATE"] as ReferenceGroundingResult | undefined;
       const requested = requestParts(context).requestedProducts.filter(
         (entry): entry is EvidenceRequestedProduct => evidenceProducts.has(entry as OperationalRequestedProduct)
       );
@@ -2338,6 +2527,17 @@ export async function createPipelineStageExecutor(
           });
           warnings.push("PAYLOAD_REFERENCE_REQUIRED");
           continue;
+        }
+        // Oversized payloads are quarantined above and must never be decoded
+        // into a Finding/SourceProduct without an authoritative payloadRef.
+        if (geospatialNegotiated) {
+          findingEnvelopes.push(...runtimeFindingInputs(
+            outcome.submission,
+            world,
+            authority.capabilityCatalog.capabilities,
+            value.gdpsRecipeLock,
+            references
+          ));
         }
         const nodes = Array.isArray(world["nodes"]) ? world["nodes"] : [];
         const planByNode = new Map(outcome.submission.plan.nodes.map((node) => [node.nodeId, node]));
@@ -2445,8 +2645,32 @@ export async function createPipelineStageExecutor(
             capabilityGaps: [] as JsonObject[]
           }
         : productAssembler.assemble({ requestedProducts: operationalRequested, evidenceItems });
+      const caller = identity(context);
+      const geospatialAssembly = geospatialNegotiated
+        ? assembleRuntimeGeospatialFindings({
+            identity: {
+              servicePrincipalId: caller.servicePrincipalId,
+              actorId: caller.actorId,
+              dataScopes: caller.dataScopes,
+              datasetScopes: caller.datasetScopes,
+              permissions: caller.permissions,
+              authorizationContextHash: caller.authorizationContextHash as Sha256Digest
+            },
+            selectedDataScope: caller.dataScope,
+            envelopes: findingEnvelopes,
+            ...(references === undefined
+              ? {}
+              : { referenceProductIds: references.referenceProducts.map(({ productId }) => productId).sort() })
+          })
+        : null;
       return {
         ...assembled,
+        evidenceItems: geospatialAssembly === null
+          ? assembled.evidenceItems
+          : mergeEvidenceItems(assembled.evidenceItems, geospatialAssembly.evidenceItems),
+        ...(geospatialAssembly === null
+          ? {}
+          : { geospatialFindings: geospatialAssembly.geospatialFindings }),
         status: normalizationGaps.length > 0 ? "PARTIAL" as const : assembled.status,
         capabilityGaps: [...assembled.capabilityGaps, ...normalizationGaps],
         warnings

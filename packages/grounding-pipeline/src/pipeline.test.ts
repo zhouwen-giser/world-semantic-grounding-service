@@ -196,6 +196,27 @@ describe("GroundingPipeline", () => {
     expect(recovered.value).toMatchObject({ resultHash: recovered.resultHash, execution: { elapsedMs: 987 } });
   });
 
+  it("binds the negotiated geospatial extension into the canonical result hash", async () => {
+    const run = async (measurement: number) => new GroundingPipeline({
+      executor: new ProductionPipelineStageExecutor(handlerMap([], {
+        RESULT_PERSIST: async () => ({
+          schemaVersion: "1.0",
+          status: "COMPLETED",
+          execution: { elapsedMs: 5 },
+          geospatialFindings: {
+            profile: "sacs-wsgs-geospatial-findings/1.0",
+            findings: [{ findingId: "finding-1", measurement }]
+          }
+        })
+      })),
+      journal: new MemoryJournal()
+    }).run(runInput());
+    const first = await run(12.5);
+    const changed = await run(13.5);
+    expect(first.resultHash).not.toBe(changed.resultHash);
+    expect(first.value).toMatchObject({ geospatialFindings: { findings: [{ measurement: 12.5 }] } });
+  });
+
   it("aborts and rejects a stage that ignores its per-attempt timeout", async () => {
     const calls: PipelineStage[] = [];
     const journal = new MemoryJournal();

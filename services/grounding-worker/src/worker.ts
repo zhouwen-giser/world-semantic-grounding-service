@@ -240,7 +240,7 @@ export class GroundingWorker {
       if (controller.signal.aborted) throw controller.signal.reason;
       const status = result.status;
       if (status === "CANCELLED") throw new WorkerJobCancelledError();
-      return this.#settle(fence, {
+      return await this.#settle(fence, {
         kind: "RESULT",
         status,
         resultHash: result.resultHash,

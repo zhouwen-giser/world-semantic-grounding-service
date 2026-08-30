@@ -10,6 +10,15 @@ const schemaDirectory = new URL("../../../contracts/wsgs-v0.1/contracts/", impor
 const schemas = Object.fromEntries(readdirSync(schemaDirectory)
   .filter((name) => name.endsWith(".json"))
   .map((name) => [name, JSON.parse(readFileSync(new URL(name, schemaDirectory), "utf8")) as unknown]));
+const sacsGeospatialDirectory = new URL("../../../contracts/wsgs-v0.2.1-sacs-geospatial/", import.meta.url);
+const geospatialResult = JSON.parse(readFileSync(
+  new URL("examples/grounding-result-with-geospatial-findings.json", sacsGeospatialDirectory),
+  "utf8"
+)) as Record<string, unknown>;
+const capabilities11 = JSON.parse(readFileSync(
+  new URL("examples/capabilities-response-v1.1.json", sacsGeospatialDirectory),
+  "utf8"
+)) as Record<string, unknown>;
 const now = "2026-08-25T00:00:00Z";
 const resultHash = `sha256:${"a".repeat(64)}`;
 const sourceText = "road";
@@ -97,10 +106,16 @@ function requestBody(text = sourceText): Record<string, unknown> {
 function backend(captured: GroundingIdentity[] = []): GroundingApiBackend {
   return {
     readiness: vi.fn(async () => ({ ready: true, reasons: [] })),
-    capabilities: vi.fn(async (identity) => { captured.push(identity); return capabilities; }),
-    create: vi.fn(async (identity, _key, _request, preferAsync) => {
+    capabilities: vi.fn(async (identity, selection) => {
       captured.push(identity);
-      return preferAsync ? { kind: "JOB" as const, value: groundingJob } : { kind: "RESULT" as const, value: groundingResult };
+      return selection?.contractVersion === "sacs-wsgs-grounding/1.1" ? capabilities11 : capabilities;
+    }),
+    create: vi.fn(async (identity, _key, _request, preferAsync, selection) => {
+      captured.push(identity);
+      return preferAsync ? { kind: "JOB" as const, value: groundingJob } : {
+        kind: "RESULT" as const,
+        value: selection?.contractVersion === "sacs-wsgs-grounding/1.1" ? geospatialResult : groundingResult
+      };
     }),
     get: vi.fn(async (identity, groundingId) => {
       captured.push(identity);
@@ -122,11 +137,16 @@ const staticIdentity: GroundingIdentity = createGroundingIdentity({
 });
 const apps: FastifyInstance[] = [];
 
-async function staticApp(captured: GroundingIdentity[] = [], service = backend(captured)): Promise<FastifyInstance> {
+async function staticApp(
+  captured: GroundingIdentity[] = [],
+  service = backend(captured),
+  sacsGeospatialServicePrincipals: readonly string[] = []
+): Promise<FastifyInstance> {
   const app = await createGroundingApi({
     auth: { mode: "STATIC_TRUSTED", identity: staticIdentity },
     backend: service,
     schemas,
+    contractNegotiation: { sacsGeospatialServicePrincipals },
     bodyLimitBytes: 65_536
   });
   apps.push(app);
@@ -162,6 +182,84 @@ describe("grounding API", () => {
     });
     expect(asyncResponse.statusCode).toBe(202);
     expect(asyncResponse.json()).toEqual(groundingJob);
+  });
+
+  it("negotiates the exact 1.1 Result-extension profile for sync, async, GET, and capabilities", async () => {
+    const service = backend();
+    const app = await staticApp([], service, ["service-a"]);
+    const headers = {
+      "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
+      "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0"
+    };
+    const caps = await app.inject({ method: "GET", url: "/v1/capabilities", headers });
+    expect(caps.statusCode, caps.body).toBe(200);
+    expect(caps.json()).toEqual(capabilities11);
+    expect(caps.headers["wsgs-contract-version"]).toBe("sacs-wsgs-grounding/1.1");
+
+    const sync = await app.inject({
+      method: "POST", url: "/v1/groundings",
+      headers: { ...headers, "idempotency-key": "geo-sync" }, payload: requestBody()
+    });
+    expect(sync.statusCode, sync.body).toBe(200);
+    expect(sync.json()).toHaveProperty("geospatialFindings");
+    const queued = await app.inject({
+      method: "POST", url: "/v1/groundings",
+      headers: { ...headers, "idempotency-key": "geo-async", prefer: "respond-async" }, payload: requestBody()
+    });
+    expect(queued.statusCode, queued.body).toBe(202);
+    const polled = await app.inject({ method: "GET", url: "/v1/groundings/grounding-1", headers });
+    expect(polled.statusCode, polled.body).toBe(200);
+    expect(service.get).toHaveBeenLastCalledWith(
+      staticIdentity,
+      "grounding-1",
+      expect.objectContaining({ contractVersion: "sacs-wsgs-grounding/1.1" })
+    );
+  });
+
+  it("selects 1.1 only from a strict server-owned principal allowlist and rejects bad negotiation", async () => {
+    const app = await createGroundingApi({
+      auth: { mode: "STATIC_TRUSTED", identity: staticIdentity },
+      backend: backend(),
+      schemas,
+      contractNegotiation: { sacsGeospatialServicePrincipals: ["service-a"] }
+    });
+    apps.push(app);
+    expect((await app.inject({ method: "GET", url: "/v1/capabilities" })).json()).toEqual(capabilities);
+    for (const headers of [
+      { "wsgs-contract-version": "sacs-wsgs-grounding/1.1" },
+      { "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0" },
+      { "wsgs-contract-version": "sacs-wsgs-grounding/9.9", "wsgs-result-profile": "foreign/1.0" }
+    ]) {
+      const rejected = await app.inject({ method: "GET", url: "/v1/capabilities", headers });
+      expect(rejected.statusCode).toBe(406);
+    }
+    const unauthorized = await staticApp();
+    const denied = await unauthorized.inject({
+      method: "GET",
+      url: "/v1/capabilities",
+      headers: {
+        "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
+        "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0"
+      }
+    });
+    expect(denied.statusCode).toBe(406);
+    await expect(createGroundingApi({
+      auth: { mode: "STATIC_TRUSTED", identity: staticIdentity },
+      backend: backend(), schemas,
+      contractNegotiation: { sacsGeospatialServicePrincipals: ["service-*"] }
+    })).rejects.toMatchObject({ code: "WSGS_CONSUMER_CONTRACT_CONFIGURATION_INVALID" });
+  });
+
+  it("never exposes a negotiated extension on the legacy contract", async () => {
+    const service = backend();
+    service.create = vi.fn(async () => ({ kind: "RESULT" as const, value: geospatialResult }));
+    const app = await staticApp([], service);
+    const response = await app.inject({
+      method: "POST", url: "/v1/groundings",
+      headers: { "idempotency-key": "legacy-extension" }, payload: requestBody()
+    });
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toMatchObject({ error: { code: "BACKEND_CONTRACT_VIOLATION" } });
   });
 
   it("derives identity/scope from trusted transport and rejects body injection", async () => {

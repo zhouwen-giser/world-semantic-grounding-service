@@ -10,6 +10,7 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
+    "@wsgs/contracts": "0.2.1",
     "@wsgs/delegated-identity": "0.2.1",
     "@wsgs/grounding-pipeline": "0.2.1",
     "@wsgs/runtime": "0.2.1",

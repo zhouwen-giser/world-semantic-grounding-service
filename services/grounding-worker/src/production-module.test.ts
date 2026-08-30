@@ -28,6 +28,7 @@ import {
   persistAcceptedWorldQueryJob,
   productionReferenceMentions,
   referenceMentionsRequiringResolution,
+  selectFindingSubjectReferenceProductIdsForNode,
   selectProductionSouthboundLock
 } from "./production-module.js";
 
@@ -682,6 +683,111 @@ describe("production stage module authority boundaries", () => {
       ports: { inputs: [{ name: "request" }], outputs: [] }
     }] as never);
     expect(hashes["Node_2"]).toBe(canonicalSha256({ location: positionCoordinates, radiusM: 1_000 }));
+  });
+
+  it("binds finding subjects through NODE_OUTPUT lineage and ignores siblings or metadata echoes", () => {
+    const referenceA = { namespace: "gowm", kind: "WORLD_OBJECT", id: "vehicle-a", version: "v1" } as const;
+    const referenceB = { namespace: "gowm", kind: "WORLD_OBJECT", id: "vehicle-b", version: "v1" } as const;
+    const knownReference = { namespace: "gowm", kind: "LAYER_FEATURE", id: "area-known", version: "v1" } as const;
+    const references = {
+      mentions: [
+        { candidateProductIds: ["reference.a"] },
+        { candidateProductIds: ["reference.b"] }
+      ],
+      referenceProducts: [
+        {
+          productId: "reference.a",
+          referenceKey: referenceA,
+          revalidationRequired: false,
+          validUntil: "2026-09-01T00:00:00Z"
+        },
+        {
+          productId: "reference.b",
+          referenceKey: referenceB,
+          revalidationRequired: false,
+          validUntil: "2026-09-01T00:00:00Z"
+        },
+        {
+          productId: "reference.known",
+          referenceKey: knownReference,
+          revalidationRequired: false,
+          validUntil: "2026-09-01T00:00:00Z",
+          safeSummary: { source: "contextCapsule" }
+        }
+      ],
+      ambiguities: []
+    } as never;
+    const submission = worldQuerySubmission();
+    submission.parameters = { ...submission.parameters, knownReferenceKey: knownReference };
+    submission.plan.nodes = [
+      { ...submission.plan.nodes[0]!, nodeId: "Resolve_A", inputs: {} },
+      { ...submission.plan.nodes[0]!, nodeId: "Resolve_B", inputs: {} },
+      {
+        ...submission.plan.nodes[0]!,
+        nodeId: "Finding_A",
+        inputs: {
+          subject: {
+            kind: "NODE_OUTPUT",
+            port: {
+              schemaUri: "urn:test:reference",
+              schemaHash: digest("7"),
+              valueKind: "ANY",
+              unitSemantics: "UNSPECIFIED"
+            },
+            nodeId: "Resolve_A",
+            outputPort: "candidateReferenceKey",
+            path: "/candidates/0/referenceKey"
+          },
+          knownSubject: {
+            kind: "REQUEST_PATH",
+            port: {
+              schemaUri: "urn:test:reference",
+              schemaHash: digest("7"),
+              valueKind: "ANY",
+              unitSemantics: "UNSPECIFIED"
+            },
+            path: "/knownReferenceKey"
+          }
+        }
+      }
+    ];
+    const world = {
+      nodes: [
+        {
+          nodeId: "Resolve_A",
+          result: { output: { value: { candidates: [
+            { referenceKey: referenceA },
+            { referenceKey: referenceB }
+          ] } } }
+        },
+        {
+          nodeId: "Resolve_B",
+          result: { output: { value: { candidates: [{ referenceKey: referenceB }] } } }
+        },
+        {
+          nodeId: "Finding_A",
+          result: {
+            output: { value: { measurement: 42, providerControlledReferenceEcho: referenceB } },
+            receipts: [{ metadataEcho: referenceB }],
+            dataSnapshot: { metadataEcho: referenceB }
+          }
+        }
+      ]
+    };
+    expect(selectFindingSubjectReferenceProductIdsForNode(
+      references,
+      submission,
+      world,
+      [{
+        operationId: "reference.resolve",
+        operationVersion: "1.0",
+        ports: {
+          inputs: [],
+          outputs: [{ name: "candidateReferenceKey", path: "/candidates/0/referenceKey" }]
+        }
+      }] as never,
+      "Finding_A"
+    )).toEqual(["reference.a", "reference.known"]);
   });
 
   it("detects evidence that needs unavailable object storage before normalization", () => {

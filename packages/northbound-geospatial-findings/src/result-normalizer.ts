@@ -32,6 +32,19 @@ export interface AssembleGeospatialFindingsInput {
   readonly sourceBinding: NormalizedSourceProductBinding;
   /** Opaque, contract-validated GOWM result tokens used to mint decoder inputs. */
   readonly validatedResults: readonly ValidatedGowmFindingResult[];
+  /** Opaque, result-local authority binding for per-envelope ReferenceProduct subjects. */
+  readonly referenceProductBinding?: ReferenceProductSubjectBinding;
+}
+
+/** Opaque token; its authority and per-envelope subjects live only in a WeakMap. */
+export interface ReferenceProductSubjectBinding {
+  readonly bindingHash: `sha256:${string}`;
+}
+
+export interface CreateReferenceProductSubjectBindingInput {
+  readonly validatedResults: readonly ValidatedGowmFindingResult[];
+  readonly subjectReferenceProductIdsByResult: readonly (readonly string[])[];
+  readonly referenceProductIds: readonly string[];
 }
 
 type GroundingEvidenceItem = GroundingResult11WithSACSGeospatialFindings["evidenceItems"][number];
@@ -59,6 +72,15 @@ interface DecodableEnvelope {
   readonly binding: SourceEnvelopeBinding;
 }
 
+interface ReferenceProductSubjectBindingState {
+  readonly validatedResultSetHash: `sha256:${string}`;
+  readonly referenceProductIds: readonly string[];
+  readonly subjectsByEnvelopeHash: ReadonlyMap<string, readonly string[]>;
+  readonly semanticHash: `sha256:${string}`;
+}
+
+const referenceProductSubjectBindings = new WeakMap<object, ReferenceProductSubjectBindingState>();
+
 const identifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u;
 const sensitiveStringPattern = /(?:https?:\/\/|(?:postgres(?:ql)?|mysql|mongodb|redis|s3|gs|file):\/\/|\bBearer\s+|\bAuthorization\s*[:=]|\btoken\s*[:=]|-----BEGIN\s+(?:RSA\s+)?PRIVATE\s+KEY-----|[A-Za-z]:\\|\\\\[^\\])/iu;
 const sqlDetailPattern = /\b(?:SELECT\s+.+\s+FROM|INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM)\b/iu;
@@ -82,6 +104,22 @@ function assertIdentifiers(values: readonly string[], code: string): void {
   }
 }
 
+function optionalIdentifierSet(
+  value: unknown,
+  invalidCode: string,
+  duplicateCode: string,
+  maximum: number,
+  minimum: number
+): string[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length < minimum || value.length > maximum) {
+    fail(invalidCode);
+  }
+  assertIdentifiers(value as readonly string[], invalidCode);
+  if (new Set(value as readonly string[]).size !== value.length) fail(duplicateCode);
+  return [...value as readonly string[]].sort(compareCodePoints);
+}
+
 function sorted(values: readonly string[]): boolean {
   return values.every(
     (value, index) => index === 0 || compareCodePoints(values[index - 1]!, value) <= 0
@@ -96,17 +134,101 @@ function identityValue(value: PublicItem): string {
 
 function uniqueByIdentity<T extends PublicItem>(
   values: readonly T[],
-  collisionCode: string
+  collisionCode: string,
+  duplicateCode?: string
 ): T[] {
   const valuesById = new Map<string, T>();
   for (const value of values) {
     const id = identityValue(value);
     const prior = valuesById.get(id);
-    if (prior !== undefined && canonicalSha256(prior) !== canonicalSha256(value)) fail(collisionCode);
+    if (prior !== undefined) {
+      if (canonicalSha256(prior) !== canonicalSha256(value)) fail(collisionCode);
+      if (duplicateCode !== undefined) fail(duplicateCode);
+    }
     valuesById.set(id, prior ?? value);
   }
   return [...valuesById.values()]
     .sort((left, right) => compareCodePoints(identityValue(left), identityValue(right)));
+}
+
+function validatedResultSetHash(results: readonly ValidatedGowmFindingResult[]): `sha256:${string}` {
+  return canonicalSha256(results.map((result) => readValidatedGowmFindingResult(result).envelopeHash)
+    .sort(compareCodePoints));
+}
+
+/**
+ * Internal runtime mint. The package root intentionally does not re-export it;
+ * production creates it only from worker-owned ReferenceProduct state.
+ *
+ * @internal
+ */
+export function createReferenceProductSubjectBinding(
+  input: CreateReferenceProductSubjectBindingInput
+): ReferenceProductSubjectBinding {
+  if (!input || typeof input !== "object"
+    || !Array.isArray(input.validatedResults)
+    || input.validatedResults.length < 1
+    || !Array.isArray(input.subjectReferenceProductIdsByResult)
+    || input.subjectReferenceProductIdsByResult.length !== input.validatedResults.length
+    || !Array.isArray(input.referenceProductIds)) {
+    fail("REFERENCE_PRODUCT_SUBJECT_BINDING_INVALID");
+  }
+  const referenceProductIds = optionalIdentifierSet(
+    input.referenceProductIds,
+    "REFERENCE_PRODUCT_ID_SET_INVALID",
+    "REFERENCE_PRODUCT_ID_SET_DUPLICATE",
+    1_000,
+    0
+  )!;
+  const referenceAuthority = new Set(referenceProductIds);
+  const subjectsByEnvelopeHash = new Map<string, readonly string[]>();
+  for (let index = 0; index < input.validatedResults.length; index += 1) {
+    const envelopeHash = readValidatedGowmFindingResult(input.validatedResults[index]!).envelopeHash;
+    if (subjectsByEnvelopeHash.has(envelopeHash)) fail("DUPLICATE_VALIDATED_RESULT");
+    const rawSubjects = input.subjectReferenceProductIdsByResult[index];
+    if (!Array.isArray(rawSubjects)) fail("REFERENCE_PRODUCT_SUBJECT_BINDING_INVALID");
+    const subjects = optionalIdentifierSet(
+      rawSubjects,
+      "SUBJECT_REFERENCE_PRODUCT_ID_SET_INVALID",
+      "SUBJECT_REFERENCE_PRODUCT_ID_SET_DUPLICATE",
+      32,
+      0
+    )!;
+    if (subjects.some((id) => !referenceAuthority.has(id))) {
+      fail("SUBJECT_REFERENCE_PRODUCT_FK_MISSING");
+    }
+    subjectsByEnvelopeHash.set(envelopeHash, freeze(subjects));
+  }
+  const resultSetHash = validatedResultSetHash(input.validatedResults);
+  const projection = [...subjectsByEnvelopeHash.entries()]
+    .sort(([left], [right]) => compareCodePoints(left, right))
+    .map(([envelopeHash, subjectReferenceProductIds]) => ({ envelopeHash, subjectReferenceProductIds }));
+  const semanticHash = canonicalSha256({
+    validatedResultSetHash: resultSetHash,
+    referenceProductIds,
+    subjectsByEnvelopeHash: projection
+  });
+  const token = freeze({ bindingHash: semanticHash });
+  referenceProductSubjectBindings.set(token, {
+    validatedResultSetHash: resultSetHash,
+    referenceProductIds: freeze(referenceProductIds),
+    subjectsByEnvelopeHash,
+    semanticHash
+  });
+  return token;
+}
+
+function readReferenceProductSubjectBinding(
+  binding: ReferenceProductSubjectBinding,
+  validatedResults: readonly ValidatedGowmFindingResult[]
+): ReferenceProductSubjectBindingState {
+  if (binding === null || typeof binding !== "object") fail("REFERENCE_PRODUCT_SUBJECT_BINDING_FORGED");
+  const state = referenceProductSubjectBindings.get(binding);
+  if (state === undefined || binding.bindingHash !== state.semanticHash
+    || state.validatedResultSetHash !== validatedResultSetHash(validatedResults)) {
+    fail("REFERENCE_PRODUCT_SUBJECT_BINDING_FORGED");
+  }
+  return state;
 }
 
 function assertNoSensitiveProjection(value: unknown): void {
@@ -156,7 +278,8 @@ function requireCanonicalOrder<T extends PublicItem>(
 /** Validate schema locks, canonical sets, and every result-local foreign key. */
 export function assertGeospatialFindingsProfileIntegrity(
   profileValue: unknown,
-  evidenceItemIdsValue: readonly string[]
+  evidenceItemIdsValue: readonly string[],
+  referenceProductIdsValue?: readonly string[]
 ): asserts profileValue is Profile {
   defaultSacsGeospatialSchemaRegistry().validate("geospatial-findings.schema.json", profileValue);
   const profile = profileValue as Profile;
@@ -169,6 +292,20 @@ export function assertGeospatialFindingsProfileIntegrity(
     fail("EVIDENCE_ID_SET_DUPLICATE");
   }
   const evidenceIds = new Set(evidenceItemIdsValue);
+  const referenceProductIds = optionalIdentifierSet(
+    referenceProductIdsValue,
+    "REFERENCE_PRODUCT_ID_SET_INVALID",
+    "REFERENCE_PRODUCT_ID_SET_DUPLICATE",
+    1_000,
+    0
+  );
+  const referenceProductIdSet = referenceProductIds === undefined
+    ? undefined
+    : new Set(referenceProductIds);
+  if (referenceProductIdSet === undefined
+    && profile.findings.some((finding) => (finding.subjectReferenceProductIds?.length ?? 0) > 0)) {
+    fail("REFERENCE_PRODUCT_AUTHORITY_REQUIRED");
+  }
 
   requireCanonicalOrder(profile.findings, "FINDING_ORDER_NON_CANONICAL", "FINDING_ID_DUPLICATE", "FINDING_ID_COLLISION");
   requireCanonicalOrder(profile.sourceProducts, "SOURCE_PRODUCT_ORDER_NON_CANONICAL", "SOURCE_PRODUCT_ID_DUPLICATE", "SOURCE_PRODUCT_ID_COLLISION");
@@ -190,6 +327,11 @@ export function assertGeospatialFindingsProfileIntegrity(
     }
     for (const id of finding.evidenceItemIds) {
       if (!evidenceIds.has(id)) fail("FINDING_EVIDENCE_FK_MISSING");
+    }
+    if (referenceProductIdSet !== undefined) {
+      for (const id of finding.subjectReferenceProductIds ?? []) {
+        if (!referenceProductIdSet.has(id)) fail("SUBJECT_REFERENCE_PRODUCT_FK_MISSING");
+      }
     }
   }
   for (const gap of profile.gaps) {
@@ -422,9 +564,16 @@ export function assembleGeospatialFindingsResult(
   input: AssembleGeospatialFindingsInput
 ): GeospatialFindingsAssembly {
   if (input === null || typeof input !== "object") fail("INVALID_ASSEMBLY_INPUT");
-  if (Object.keys(input).some((key) => key !== "sourceBinding" && key !== "validatedResults")) {
+  if (Object.keys(input).some((key) =>
+    key !== "sourceBinding"
+      && key !== "validatedResults"
+      && key !== "referenceProductBinding")) {
     fail("UNKNOWN_ASSEMBLY_FIELD");
   }
+  const referenceBinding = input.referenceProductBinding === undefined
+    ? undefined
+    : readReferenceProductSubjectBinding(input.referenceProductBinding, input.validatedResults);
+  const referenceProductIds = referenceBinding?.referenceProductIds;
   const sourceProjection = readNormalizedSourceProductBinding(input.sourceBinding);
   if (sourceProjection.sourceProducts.length > 64) fail("SOURCE_PRODUCT_LIMIT_EXCEEDED");
   const matches = bindingByHash(sourceProjection, input.validatedResults);
@@ -467,8 +616,15 @@ export function assembleGeospatialFindingsResult(
       fail("RESULT_STATUS_NORMALIZATION_CONTRADICTION");
     }
     if (binding.sourceProductIds.length > 0 && binding.evidenceItemIds.length > 0) {
+      const subjectReferenceProductIds = referenceBinding?.subjectsByEnvelopeHash.get(validated.envelopeHash) ?? [];
       decodable.push({
-        input: createFindingDecoderInput({ validatedResult: result, sourceBinding: input.sourceBinding }),
+        input: createFindingDecoderInput({
+          validatedResult: result,
+          sourceBinding: input.sourceBinding,
+          ...(subjectReferenceProductIds.length === 0
+            ? {}
+            : { subjectReferenceProductIds })
+        }),
         result,
         binding
       });
@@ -492,7 +648,7 @@ export function assembleGeospatialFindingsResult(
     gaps.push(...envelopeGaps);
   }
 
-  const canonicalFindings = uniqueByIdentity(findings, "FINDING_ID_COLLISION");
+  const canonicalFindings = uniqueByIdentity(findings, "FINDING_ID_COLLISION", "DUPLICATE_SEMANTIC_FINDING");
   const canonicalSourceProducts = uniqueByIdentity(sourceProjection.sourceProducts, "SOURCE_PRODUCT_ID_COLLISION");
   const canonicalGaps = uniqueByIdentity(gaps, "GAP_ID_COLLISION");
   const qualifiedSourceIds = new Set(sourceProjection.envelopeBindings
@@ -528,7 +684,7 @@ export function assembleGeospatialFindingsResult(
   if (canonicalSha256(evidenceItemIds) !== canonicalSha256(boundEvidenceItemIds)) {
     fail("EVIDENCE_BINDING_SET_MISMATCH");
   }
-  assertGeospatialFindingsProfileIntegrity(profile, evidenceItemIds);
+  assertGeospatialFindingsProfileIntegrity(profile, evidenceItemIds, referenceProductIds);
   assertNoOpaqueRuntimeLeak(profile, sourceProjection);
   const evidenceItemSetHash = canonicalSha256(evidenceItems);
   return freeze({
