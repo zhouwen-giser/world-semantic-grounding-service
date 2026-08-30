@@ -1,0 +1,14 @@
+phase,acceptance,deliverable
+W33,W33-*,source and GDPS handoff lock
+W34,W34-*,contract intake and generated types
+W35,W35-*,descriptor consumer
+W36,W36-*,semantic product intent
+W37,W37-*,generic requirement planning
+W38,W38-*,lock-driven trusted snapshot
+W39,W39-*,recipe authorization and matcher
+W40,W40-*,descriptor-driven compiler
+W41,W41-*,Gateway-only execution
+W42,W42-*,evidence and status
+W43,W43-*,currentness
+W44,W44-*,real natural-language E2E
+W45,W45-*,regression and delivery

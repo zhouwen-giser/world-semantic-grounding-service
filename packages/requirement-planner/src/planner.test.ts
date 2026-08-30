@@ -151,7 +151,7 @@ describe("SemanticRequirementPlanner", () => {
     ];
     expect([...observed].sort()).toEqual([...originalKinds].sort());
     expect(stableRecipeCatalog.filter((entry) => entry.maturity === "STABLE")).toHaveLength(9);
-    expect(stableRecipeCatalog.filter((entry) => entry.maturity === "PREVIEW")).toHaveLength(7);
+    expect(stableRecipeCatalog.filter((entry) => entry.maturity === "PREVIEW")).toHaveLength(14);
   });
 
   it("creates typed dependencies and rejects a dependency cycle", () => {

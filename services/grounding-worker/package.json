@@ -13,6 +13,7 @@
     "@wsgs/delegated-identity": "0.2.0",
     "@wsgs/deterministic-parser": "0.1.0",
     "@wsgs/evidence-normalizer": "0.1.0",
+    "@wsgs/gdps-descriptor-consumer": "0.2.0",
     "@wsgs/gowm-contract-intake": "0.1.0",
     "@wsgs/gowm-execution-evidence": "0.2.0",
     "@wsgs/gowm-gateway-client": "0.1.0",

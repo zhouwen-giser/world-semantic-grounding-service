@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:locked-gdps-recipe:2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recipeId",
+    "semanticPattern",
+    "requirementType",
+    "queryProfile",
+    "allowedOperations",
+    "maturityPolicy",
+    "productIdPolicy",
+    "inputBindings",
+    "outputSemantics"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-locked-gdps-recipe/2.0"
+    },
+    "recipeId": {
+      "type": "string"
+    },
+    "semanticPattern": {
+      "enum": [
+        "GDPS_LAND_COVER_AT_REFERENCE",
+        "GDPS_WETLANDS_IN_AREA",
+        "GDPS_OBSTACLES_NEAR_REFERENCE",
+        "GDPS_BLOCKED_AREAS_IN_AREA",
+        "GDPS_HIGH_GROUND_IN_AREA",
+        "GDPS_ELEVATION_AT_REFERENCE",
+        "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+        "GDPS_GENERIC_SAMPLE_VALUE",
+        "GDPS_GENERIC_PROFILE_VALUE",
+        "GDPS_GENERIC_FIND_CLASS",
+        "GDPS_GENERIC_FIND_RANGE",
+        "GDPS_GENERIC_VECTOR_IN_AREA",
+        "GDPS_GENERIC_VECTOR_NEARBY",
+        "GDPS_GENERIC_VECTOR_INTERSECTS"
+      ]
+    },
+    "requirementType": {
+      "type": "string"
+    },
+    "descriptorConstraint": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "queryProfile": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "allowedOperations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "operationId",
+          "operationVersion",
+          "inputSchemaHash",
+          "outputSchemaHash",
+          "semanticProfileHash"
+        ]
+      }
+    },
+    "maturityPolicy": {
+      "type": "object",
+      "required": [
+        "allowed",
+        "requiresExactHashes"
+      ],
+      "properties": {
+        "allowed": {
+          "const": "PREVIEW"
+        },
+        "requiresExactHashes": {
+          "const": true
+        }
+      }
+    },
+    "productIdPolicy": {
+      "enum": [
+        "UNBOUND_UNLESS_EXPLICIT",
+        "FORBIDDEN",
+        "REQUIRED"
+      ]
+    },
+    "inputBindings": {
+      "type": "object"
+    },
+    "outputSemantics": {
+      "type": "object"
+    },
+    "previewAuthorizationRequired": {
+      "const": true
+    }
+  }
+}

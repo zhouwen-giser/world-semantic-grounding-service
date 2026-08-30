@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "wsgs-gdps-status-map/1.0",
+  "mappings": [
+    {
+      "upstreamCondition": "NORMAL_RESULT",
+      "wsgsStatus": "COMPLETED",
+      "semanticCode": "OK",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "EMPTY_COLLECTION",
+      "wsgsStatus": "COMPLETED",
+      "semanticCode": "NO_MATCH_FOUND",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "PRODUCT_NOT_AVAILABLE",
+      "wsgsStatus": "UNRESOLVED",
+      "semanticCode": "DATA_GAP",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "PRODUCT_COVERAGE_INSUFFICIENT",
+      "wsgsStatus": "UNRESOLVED",
+      "semanticCode": "COVERAGE_GAP",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "AMBIGUOUS_PRODUCT_SELECTION",
+      "wsgsStatus": "AMBIGUOUS",
+      "semanticCode": "PRODUCT_AMBIGUITY",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "PRODUCT_COVERAGE_AMBIGUOUS",
+      "wsgsStatus": "AMBIGUOUS",
+      "semanticCode": "COVERAGE_AMBIGUITY",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "CAPABILITY_ABSENT",
+      "wsgsStatus": "UNRESOLVED",
+      "semanticCode": "CAPABILITY_GAP",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "TRUNCATED",
+      "wsgsStatus": "PARTIAL",
+      "semanticCode": "RESULT_TRUNCATED",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "SOURCE_CHANGED_DURING_QUERY",
+      "wsgsStatus": "INDETERMINATE",
+      "semanticCode": "SOURCE_CHANGED",
+      "retryPolicy": "ONCE"
+    },
+    {
+      "upstreamCondition": "REFERENCE_AMBIGUOUS",
+      "wsgsStatus": "AMBIGUOUS",
+      "semanticCode": "REFERENCE_AMBIGUOUS",
+      "retryPolicy": "NONE"
+    },
+    {
+      "upstreamCondition": "PROVIDER_OR_PROTOCOL_FAILURE",
+      "wsgsStatus": "FAILED",
+      "semanticCode": "UPSTREAM_FAILURE",
+      "retryPolicy": "ONCE"
+    }
+  ]
+}

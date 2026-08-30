@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "wsgs-gdps-semantic-concept-map/1.0",
+  "operationIdsForbidden": true,
+  "concepts": [
+    {
+      "conceptCode": "SLOPE",
+      "aliases": ["坡度", "地面坡度", "slope"],
+      "descriptorCandidates": ["SLOPE/DEGREE"],
+      "allowedQuerySemantics": ["READ_VALUE", "READ_PROFILE", "FIND_VALUE_RANGE_AREAS"]
+    },
+    {
+      "conceptCode": "ASPECT",
+      "aliases": ["坡向", "朝向坡", "aspect"],
+      "descriptorCandidates": ["ASPECT/DEGREE"],
+      "allowedQuerySemantics": ["READ_VALUE", "FIND_VALUE_RANGE_AREAS"]
+    },
+    {
+      "conceptCode": "TERRAIN_ROUGHNESS",
+      "aliases": ["地形粗糙度", "崎岖度", "terrain roughness"],
+      "descriptorCandidates": ["TERRAIN_ROUGHNESS/TRI_SCORE"],
+      "allowedQuerySemantics": ["READ_VALUE", "FIND_VALUE_RANGE_AREAS"]
+    },
+    {
+      "conceptCode": "FLOOD_RISK",
+      "aliases": ["洪水风险", "淹没风险", "flood risk"],
+      "descriptorCandidates": ["FLOOD_RISK/FLOOD_RISK_CLASS"],
+      "allowedQuerySemantics": ["FIND_CLASS_AREAS"]
+    },
+    {
+      "conceptCode": "SOIL_TYPE",
+      "aliases": ["土壤类型", "soil type"],
+      "descriptorCandidates": ["SOIL_TYPE/SOIL_CLASS"],
+      "allowedQuerySemantics": ["READ_VALUE", "FIND_CLASS_AREAS"]
+    },
+    {
+      "conceptCode": "SOIL_MOISTURE",
+      "aliases": ["土壤湿度等级", "地面湿润程度", "soil moisture"],
+      "descriptorCandidates": ["SOIL_MOISTURE_CLASS/MOISTURE_CLASS"],
+      "allowedQuerySemantics": ["READ_VALUE", "FIND_CLASS_AREAS"]
+    },
+    {
+      "conceptCode": "GROUND_STABILITY",
+      "aliases": ["地面稳定性", "地基稳定性", "ground stability"],
+      "descriptorCandidates": ["GROUND_STABILITY/STABILITY_CLASS"],
+      "allowedQuerySemantics": ["READ_VALUE", "FIND_CLASS_AREAS"]
+    },
+    {
+      "conceptCode": "DRAINAGE_NETWORK",
+      "aliases": ["排水沟", "排水网络", "沟渠", "drainage"],
+      "descriptorCandidates": ["DRAINAGE_NETWORK/DRAINAGE_FEATURES"],
+      "allowedQuerySemantics": ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
+    },
+    {
+      "conceptCode": "BRIDGE",
+      "aliases": ["桥梁", "桥", "bridge"],
+      "descriptorCandidates": ["BRIDGE/BRIDGE_FEATURES"],
+      "allowedQuerySemantics": ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
+    },
+    {
+      "conceptCode": "TUNNEL",
+      "aliases": ["隧道", "tunnel"],
+      "descriptorCandidates": ["TUNNEL/TUNNEL_FEATURES"],
+      "allowedQuerySemantics": ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
+    },
+    {
+      "conceptCode": "FORD",
+      "aliases": ["涉水点", "浅滩通道", "ford"],
+      "descriptorCandidates": ["FORD/FORD_FEATURES"],
+      "allowedQuerySemantics": ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY"]
+    },
+    {
+      "conceptCode": "CULVERT",
+      "aliases": ["涵洞", "culvert"],
+      "descriptorCandidates": ["CULVERT/CULVERT_FEATURES"],
+      "allowedQuerySemantics": ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY"]
+    },
+    {
+      "conceptCode": "COMMUNICATION_COVERAGE",
+      "aliases": ["通信覆盖", "信号强度", "通信盲区", "communication coverage"],
+      "descriptorCandidates": ["COMMUNICATION_COVERAGE/SIGNAL_STRENGTH_DBM"],
+      "allowedQuerySemantics": ["READ_VALUE", "READ_PROFILE", "FIND_VALUE_RANGE_AREAS"]
+    },
+    {
+      "conceptCode": "UAV_RESTRICTION",
+      "aliases": ["无人机限制区", "禁飞区", "限高区", "uav restriction"],
+      "descriptorCandidates": ["UAV_RESTRICTION/RESTRICTION_ZONES"],
+      "allowedQuerySemantics": ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
+    },
+    {
+      "conceptCode": "VEGETATION_HEIGHT",
+      "aliases": ["植被高度", "林冠高度", "canopy height"],
+      "descriptorCandidates": ["VEGETATION_STRUCTURE/CANOPY_HEIGHT_M"],
+      "allowedQuerySemantics": ["READ_VALUE", "READ_PROFILE", "FIND_VALUE_RANGE_AREAS"]
+    },
+    {
+      "conceptCode": "VEGETATION_DENSITY",
+      "aliases": ["植被密度", "灌木密度", "vegetation density"],
+      "descriptorCandidates": ["VEGETATION_STRUCTURE/VEGETATION_DENSITY_CLASS"],
+      "allowedQuerySemantics": ["READ_VALUE", "FIND_CLASS_AREAS"]
+    }
+  ]
+}

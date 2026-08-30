@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-handoff-intake:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sources",
+    "provider",
+    "inventory",
+    "locks",
+    "gatewayBinding",
+    "status"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-gdps-handoff-intake/1.0"
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wsgsSha",
+        "gdpsSha",
+        "gowmSha"
+      ],
+      "properties": {
+        "wsgsSha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "gdpsSha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "gowmSha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "required": [
+        "providerId",
+        "providerVersion",
+        "manifestHash"
+      ],
+      "properties": {
+        "providerId": {
+          "const": "gdps.geospatial-products"
+        },
+        "providerVersion": {
+          "type": "string"
+        },
+        "manifestHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "required": [
+        "productTypeCount",
+        "descriptorProfileCount",
+        "capabilityCount"
+      ],
+      "properties": {
+        "productTypeCount": {
+          "const": 34
+        },
+        "descriptorProfileCount": {
+          "const": 35
+        },
+        "capabilityCount": {
+          "const": 30
+        }
+      }
+    },
+    "locks": {
+      "type": "object",
+      "required": [
+        "consumerLockHash",
+        "capabilityLockHash",
+        "descriptorLockHash",
+        "recipeLockHash"
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "gatewayBinding": {
+      "type": "object",
+      "required": [
+        "contractCatalogRevision",
+        "semanticCatalogHash",
+        "bindingRevision"
+      ]
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL"
+      ]
+    }
+  }
+}

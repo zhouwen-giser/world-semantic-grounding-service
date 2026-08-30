@@ -4,8 +4,10 @@ import { resolve } from "node:path";
 
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
+import type { DeterministicParseResult } from "@wsgs/deterministic-parser";
 import { canonicalSha256, type PipelineStageContext } from "@wsgs/grounding-pipeline";
 import { stableRecipeIds } from "@wsgs/requirement-planner";
+import type { GdpsLockedRecipe } from "@wsgs/trusted-capability-snapshot";
 import type { Pool } from "pg";
 import { describe, expect, it } from "vitest";
 
@@ -18,15 +20,41 @@ import {
   capabilityCatalogHash,
   canonicalLfSha256,
   computeWorldQueryNodeRequestHashes,
+  mergeKnownReferenceProducts,
+  normalizeGdpsWorldQuerySources,
   normalizeReferenceResolution,
   normalizeValidation,
   oversizedEvidencePayload,
   persistAcceptedWorldQueryJob,
   productionReferenceMentions,
+  referenceMentionsRequiringResolution,
   selectProductionSouthboundLock
 } from "./production-module.js";
 
 const digest = (character: string): `sha256:${string}` => `sha256:${character.repeat(64)}`;
+
+function lockedRecipe(entry: Parameters<typeof selectProductionSouthboundLock>[0]["previewOperations"][number]): GdpsLockedRecipe {
+  return {
+    schemaVersion: "wsgs-locked-gdps-recipe/2.0",
+    recipeId: "recipe-gdps-land-cover-at-reference",
+    semanticPattern: "GDPS_LAND_COVER_AT_REFERENCE",
+    requirementType: "READ_LAND_COVER",
+    descriptorConstraint: { descriptorId: "LAND_COVER", descriptorHash: digest("d") },
+    queryProfile: null,
+    previewAuthorizationRequired: true,
+    maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+    productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+    inputBindings: {},
+    outputSemantics: { currentOnly: true },
+    allowedOperations: [{
+      operationId: entry.operationId,
+      operationVersion: entry.operationVersion,
+      inputSchemaHash: entry.inputSchemaHash,
+      outputSchemaHash: entry.outputSchemaHash,
+      semanticProfileHash: entry.semanticProfileHash
+    }]
+  };
+}
 
 function nearbyPlanning(distanceMm: number | null = 1_000_000): Parameters<typeof buildRecipeOperationInput>[0] {
   const resolveRequirement = {
@@ -200,7 +228,7 @@ describe("production stage module authority boundaries", () => {
       maturity: "PREVIEW"
     });
 
-    const selected = selectProductionSouthboundLock(lock, ["GDPS_LAND_COVER_AT_REFERENCE"]);
+    const selected = selectProductionSouthboundLock(lock, [lockedRecipe(lock.previewOperations.at(-1)!)]);
 
     expect(selected.previewOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`))
       .toEqual(["landcover.get-class@1.0"]);
@@ -214,8 +242,89 @@ describe("production stage module authority boundaries", () => {
       "wsgs-southbound-operation-lock-v2.json"
     ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
 
-    expect(() => selectProductionSouthboundLock(lock, ["GDPS_LAND_COVER_AT_REFERENCE"]))
+    const missing = lockedRecipe({ ...lock.previewOperations[0]!, operationId: "landcover.get-class", operationVersion: "1.0" });
+    expect(() => selectProductionSouthboundLock(lock, [missing]))
       .toThrow("PRODUCTION_PREVIEW_OPERATION_LOCK_MISSING_landcover.get-class");
+  });
+
+  it("normalizes a GDPS world-query node with the exact recipe and descriptor authority", () => {
+    const operation = {
+      operationId: "geo-raster.sample",
+      operationVersion: "1.0",
+      inputSchemaHash: digest("1"),
+      outputSchemaHash: digest("2"),
+      semanticProfileHash: digest("3")
+    } as const;
+    const recipe: GdpsLockedRecipe = {
+      schemaVersion: "wsgs-locked-gdps-recipe/2.0",
+      recipeId: "recipe-gdps-generic-sample-value",
+      semanticPattern: "GDPS_GENERIC_SAMPLE_VALUE",
+      requirementType: "READ_GEO_PRODUCT_VALUE",
+      descriptorConstraint: null,
+      queryProfile: "SAMPLE_VALUE_OR_CLASS",
+      previewAuthorizationRequired: true,
+      maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+      productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+      inputBindings: {},
+      outputSemantics: { currentOnly: true },
+      allowedOperations: [operation]
+    };
+    const base = worldQuerySubmission();
+    const submission = {
+      ...base,
+      plan: {
+        ...base.plan,
+        nodes: [{ ...base.plan.nodes[0]!, nodeId: "Node_3", operation }]
+      },
+      parameters: {
+        ...base.parameters,
+        descriptorId: "SLOPE/DEGREE",
+        descriptorHash: digest("4"),
+        productType: "SLOPE",
+        productProfile: "DEGREE",
+        queryProfile: "SAMPLE_VALUE"
+      }
+    };
+    const source = normalizeGdpsWorldQuerySources(submission, {
+      nodes: [{
+        nodeId: "Node_3",
+        result: {
+          operation: { operationId: operation.operationId, operationVersion: operation.operationVersion },
+          status: "COMPLETED",
+          output: { value: { productId: "slope-main", contentHash: digest("5"), truncated: false } },
+          dataSnapshot: { digest: digest("6") },
+          computeSnapshot: { digest: digest("7") },
+          receipts: [{ receiptId: "gdps-receipt-1" }],
+          evidenceReferences: [{ evidenceId: "gdps-evidence-1" }]
+        }
+      }]
+    }, {
+      lock: {
+        schemaVersion: "wsgs-gdps-recipe-lock/2.0",
+        providerId: "gdps.geospatial-products",
+        providerVersion: "0.2.1",
+        descriptorRegistryHash: digest("8"),
+        productTypeCount: 34,
+        profileCount: 35,
+        capabilityLockHash: digest("9"),
+        recipes: [recipe]
+      },
+      lockHash: digest("a")
+    });
+    expect(source).toMatchObject([{
+      nodeId: "Node_3",
+      evidence: {
+        recipeId: recipe.recipeId,
+        recipeLockHash: digest("a"),
+        descriptorId: "SLOPE/DEGREE",
+        descriptorHash: digest("4"),
+        productId: "slope-main",
+        contentHash: digest("5"),
+        normalizedStatus: "COMPLETED",
+        receiptIds: ["gdps-receipt-1"],
+        evidenceIds: ["gdps-evidence-1"]
+      }
+    }]);
   });
 
   it("publishes candidate rank without leaking provider topology", () => {
@@ -323,6 +432,35 @@ describe("production stage module authority boundaries", () => {
     ]);
   });
 
+  it("does not re-resolve an exact known reference selected by a continuation", () => {
+    const known = {
+      mentionId: "known", surfaceText: "滨河路",
+      span: { encoding: "UTF16_CODE_UNIT" as const, start: 0, end: 3 },
+      expectedKinds: ["LAYER_FEATURE"], extractionSources: ["KNOWN_REFERENCE" as const]
+    };
+    const model = {
+      mentionId: "model", surfaceText: "设备",
+      span: { encoding: "UTF16_CODE_UNIT" as const, start: 7, end: 9 },
+      expectedKinds: ["WORLD_OBJECT"], extractionSources: ["DOMAIN_MODEL" as const]
+    };
+    const deterministic: DeterministicParseResult = {
+      parserVersion: "deterministic-parser/1.0",
+      mentions: [{
+        mentionId: "known", surfaceText: "滨河路",
+        span: known.span, expectedKinds: ["LAYER_FEATURE"], extractionSource: "KNOWN_REFERENCE", priority: 400,
+        candidate: {
+          kind: "KNOWN_REFERENCE", value: { alias: "滨河路" }, approximate: false,
+          requiresUpstreamValidation: true,
+          referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: `wrf_${"d".repeat(32)}`, version: "1.0.0" }
+        }
+      }],
+      ambiguities: [], priorGroundings: [], warnings: []
+    };
+    expect(referenceMentionsRequiringResolution([known, model], deterministic)).toEqual([
+      expect.objectContaining({ mentionId: "model", expectedKinds: ["WORLD_OBJECT"] })
+    ]);
+  });
+
   it("publishes a bounded northbound lease only for a currently usable reference", () => {
     const key = { namespace: "gowm" as const, kind: "WORLD_OBJECT", id: `wrf_${"b".repeat(32)}`, version: "7" };
     const product = {
@@ -388,6 +526,25 @@ describe("production stage module authority boundaries", () => {
       { ...base, operationId: "result.validate" }
     ], 1)).toThrowError(expect.objectContaining({ code: "PINNED_VALIDATION_OPERATION_UNAVAILABLE" }));
     expect(() => assertPriorGroundingReplaySupport([], 0)).not.toThrow();
+  });
+
+  it("keeps KnownWorldReferences on the EXECUTE path when resolver output is empty", () => {
+    const key = { namespace: "gowm" as const, kind: "WORLD_OBJECT", id: `wrf_${"c".repeat(32)}`, version: "7" };
+    const merged = mergeKnownReferenceProducts(normalizeReferenceResolution(null, []), [{
+      alias: "2号车",
+      referenceKey: key,
+      referenceType: "VEHICLE",
+      sourceMessageId: "message-1",
+      sourceGroundingId: "grounding-1"
+    }]);
+    expect(merged.referenceProducts).toHaveLength(1);
+    expect(merged.referenceProducts[0]).toMatchObject({
+      referenceKey: key,
+      displayName: "2号车",
+      matchedBy: "EXACT_REFERENCE_KEY",
+      revalidationRequired: true,
+      safeSummary: { source: "contextCapsule" }
+    });
   });
 
   it("builds the real reference.resolve shape and converts 1 km from millimetres to metres", () => {

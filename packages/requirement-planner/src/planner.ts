@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import type { GroundingGraph } from "@wsgs/contracts";
+import type { GroundedGeospatialProductIntent } from "@wsgs/gdps-descriptor-consumer";
 
 import { stableRecipeCatalog } from "./catalog.js";
 import {
@@ -81,6 +82,13 @@ const outputByRequirement: Record<RequirementType, string> = {
   FIND_OBSTACLES: "obstacles",
   FIND_BLOCKED_AREAS: "blockedAreas",
   EXPLAIN_TRAVERSABILITY: "traversabilityExplanation",
+  READ_GEO_PRODUCT_VALUE: "geospatialProductValue",
+  READ_GEO_PRODUCT_PROFILE: "geospatialProductProfile",
+  FIND_GEO_PRODUCT_CLASS_AREAS: "geospatialProductClassAreas",
+  FIND_GEO_PRODUCT_VALUE_RANGE_AREAS: "geospatialProductRangeAreas",
+  FIND_GEO_VECTOR_FEATURES_IN_AREA: "geospatialVectorFeatures",
+  FIND_GEO_VECTOR_FEATURES_NEARBY: "geospatialVectorFeatures",
+  FIND_GEO_VECTOR_INTERSECTIONS: "geospatialVectorIntersections",
   EXACT_VERIFY: "verifiedReferences",
   VALIDATE_RESULT: "validatedResult"
 };
@@ -107,6 +115,13 @@ const targetByRequirement: Record<RequirementType, string> = {
   FIND_OBSTACLES: "/point",
   FIND_BLOCKED_AREAS: "/selector",
   EXPLAIN_TRAVERSABILITY: "/point",
+  READ_GEO_PRODUCT_VALUE: "/point",
+  READ_GEO_PRODUCT_PROFILE: "/line",
+  FIND_GEO_PRODUCT_CLASS_AREAS: "/selector",
+  FIND_GEO_PRODUCT_VALUE_RANGE_AREAS: "/selector",
+  FIND_GEO_VECTOR_FEATURES_IN_AREA: "/selector",
+  FIND_GEO_VECTOR_FEATURES_NEARBY: "/point",
+  FIND_GEO_VECTOR_INTERSECTIONS: "/geometry",
   EXACT_VERIFY: "/candidates",
   VALIDATE_RESULT: "/result"
 };
@@ -373,7 +388,8 @@ function dependencyKey(dependency: DependencyAccumulator): string {
 
 function inputsForRequirement(
   accumulator: RequirementAccumulator,
-  signals: GraphSignals
+  signals: GraphSignals,
+  groundedProductIntents: readonly GroundedGeospatialProductIntent[]
 ): Record<string, PlannerJson> {
   const sourceNodeIds = [...accumulator.sourceNodeIds].sort();
   const common = sourceNodeIds.length === 0 ? {} : { sourceNodeIds };
@@ -413,6 +429,37 @@ function inputsForRequirement(
         })),
         explicitProductIds: signals.explicitProductIds
       };
+    case "READ_GEO_PRODUCT_VALUE":
+    case "READ_GEO_PRODUCT_PROFILE":
+    case "FIND_GEO_PRODUCT_CLASS_AREAS":
+    case "FIND_GEO_PRODUCT_VALUE_RANGE_AREAS":
+    case "FIND_GEO_VECTOR_FEATURES_IN_AREA":
+    case "FIND_GEO_VECTOR_FEATURES_NEARBY":
+    case "FIND_GEO_VECTOR_INTERSECTIONS": {
+      const sourceSet = new Set(sourceNodeIds);
+      const intents = groundedProductIntents.filter((intent) =>
+        intent.sourceNodeIds.some((source) => sourceSet.has(source))
+      );
+      return {
+        ...common,
+        referenceNodeIds: signals.referenceNodeIds,
+        descriptorIntents: intents.map((intent) => ({
+          intentId: intent.intentId,
+          descriptorId: intent.descriptorId,
+          descriptorHash: intent.descriptorHash,
+          productType: intent.productType,
+          productProfile: intent.productProfile,
+          representation: intent.representation,
+          queryProfile: intent.queryProfile,
+          ...(intent.explicitProductId ? { explicitProductId: intent.explicitProductId } : {}),
+          ...(intent.classCodes ? { classCodes: intent.classCodes } : {}),
+          ...(intent.ranges ? { ranges: intent.ranges as PlannerJson } : {}),
+          ...(intent.propertyFilters ? { propertyFilters: intent.propertyFilters as PlannerJson } : {}),
+          ...(intent.platformProfile ? { platformProfile: intent.platformProfile } : {}),
+          ...(intent.spatialConstraint ? { spatialConstraint: intent.spatialConstraint as PlannerJson } : {})
+        }))
+      };
+    }
     case "SEARCH_CATALOG":
       return {
         ...common,
@@ -460,6 +507,8 @@ export class SemanticRequirementPlanner {
     validateExecutionPolicy(input.executionPolicy);
     const products = normalizeRequestedProducts(input.requestedProducts);
     const signals = collectSignals(input.groundingGraph);
+    const groundedProductIntents = [...(input.groundedProductIntents ?? [])]
+      .sort((left, right) => left.intentId.localeCompare(right.intentId));
     const worldPlanningRequested = products.some((product) => !localProducts.has(product));
     if (!worldPlanningRequested) {
       return { status: "NO_WORLD_QUERY_REQUIRED", graph: null, selectedRecipeIds: [], capabilityGaps: [] };
@@ -469,13 +518,17 @@ export class SemanticRequirementPlanner {
     const gaps: PlannerCapabilityGap[] = [];
     const terrainSources = tokenSources(signals, terrainTokens);
     const visibilitySources = tokenSources(signals, visibilityTokens);
-    if (terrainSources.length > 0) gaps.push(makeGap("TERRAIN_CAPABILITY_REQUIRED", "TERRAIN", primaryProduct, terrainSources));
+    if (terrainSources.length > 0 && !groundedProductIntents.some((intent) => ["SLOPE", "ASPECT", "TERRAIN_ROUGHNESS"].includes(intent.productType))) {
+      gaps.push(makeGap("TERRAIN_CAPABILITY_REQUIRED", "TERRAIN", primaryProduct, terrainSources));
+    }
     if (visibilitySources.length > 0) gaps.push(makeGap("VISIBILITY_CAPABILITY_REQUIRED", "VISIBILITY", primaryProduct, visibilitySources));
     if (signals.unsupportedSpatialNodeIds.length > 0) {
       gaps.push(makeGap("UNSUPPORTED_EXPRESSION", "UNSUPPORTED_SPATIAL_RELATION", primaryProduct, signals.unsupportedSpatialNodeIds));
     }
     const floodSources = tokenSources(signals, floodRiskTokens);
-    if (floodSources.length > 0) gaps.push(makeGap("UNSUPPORTED_EXPRESSION", "FLOOD_RISK", primaryProduct, floodSources));
+    if (floodSources.length > 0 && !groundedProductIntents.some((intent) => intent.productType === "FLOOD_RISK")) {
+      gaps.push(makeGap("UNSUPPORTED_EXPRESSION", "FLOOD_RISK", primaryProduct, floodSources));
+    }
     for (const product of products.filter((value) => previewOnlyProducts.has(value))) {
       gaps.push(makeGap("UNSUPPORTED_EXPRESSION", product, product, []));
     }
@@ -507,6 +560,30 @@ export class SemanticRequirementPlanner {
     for (const [recipeId, sources] of gdpsSelections) {
       if (sources.length > 0 && needsQuery) addRecipe(recipeId, queryProduct, sources);
     }
+    const genericRecipeByProfile: Readonly<Record<GroundedGeospatialProductIntent["queryProfile"], StableRecipeId>> = {
+      SAMPLE_VALUE: "GDPS_GENERIC_SAMPLE_VALUE",
+      SAMPLE_CLASS: "GDPS_GENERIC_SAMPLE_VALUE",
+      PROFILE_VALUE: "GDPS_GENERIC_PROFILE_VALUE",
+      FIND_CLASS: "GDPS_GENERIC_FIND_CLASS",
+      FIND_VALUE_RANGE: "GDPS_GENERIC_FIND_RANGE",
+      VECTOR_IN_AREA: "GDPS_GENERIC_VECTOR_IN_AREA",
+      VECTOR_NEARBY: "GDPS_GENERIC_VECTOR_NEARBY",
+      VECTOR_INTERSECTS: "GDPS_GENERIC_VECTOR_INTERSECTS"
+    };
+    const specializedRecipeByProductType: Readonly<Record<string, StableRecipeId>> = {
+      LAND_COVER: "GDPS_LAND_COVER_AT_REFERENCE",
+      WETLAND: "GDPS_WETLANDS_IN_AREA",
+      OBSTACLE: "GDPS_OBSTACLES_NEAR_REFERENCE",
+      UGV_TRAVERSABILITY: "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+      ELEVATION_DTM: "GDPS_ELEVATION_AT_REFERENCE",
+      ELEVATION_DSM: "GDPS_ELEVATION_AT_REFERENCE"
+    };
+    for (const intent of groundedProductIntents) {
+      const specialized = specializedRecipeByProductType[intent.productType];
+      if (needsQuery && (!specialized || !selected.has(specialized))) {
+        addRecipe(genericRecipeByProfile[intent.queryProfile], queryProduct, intent.sourceNodeIds);
+      }
+    }
     const highGroundSources = tokenSources(signals, highGroundTokens);
     if (highGroundSources.length > 0 && needsQuery) {
       if (nearbySources.length > 0) {
@@ -515,7 +592,11 @@ export class SemanticRequirementPlanner {
         addRecipe("GDPS_HIGH_GROUND_IN_AREA", queryProduct, highGroundSources);
       }
     }
-    const gdpsRecipeSelected = [...selected.keys()].some((id) => id.startsWith("GDPS_")) || highGroundSources.length > 0;
+    const gdpsRecipeIds = new Set<StableRecipeId>([
+      ...gdpsSelections.map(([id]) => id), "GDPS_HIGH_GROUND_IN_AREA",
+      ...Object.values(genericRecipeByProfile)
+    ]);
+    const gdpsRecipeSelected = [...selected.keys()].some((id) => gdpsRecipeIds.has(id)) || highGroundSources.length > 0;
     if (needsQuery || needsReferenceSet) {
       if (!gdpsRecipeSelected && nearbySources.length > 0) addRecipe("REFERENCE_NEARBY", queryProduct, nearbySources);
       if (!gdpsRecipeSelected && inAreaSources.length > 0) addRecipe("REFERENCE_IN_AREA", queryProduct, inAreaSources);
@@ -535,7 +616,7 @@ export class SemanticRequirementPlanner {
       addRecipe("CATALOG_SEARCH", "REFERENCE_SETS", tokenSources(signals, catalogTokens));
     }
 
-    if (needsQuery && !spatialRecipeSelected) {
+    if (needsQuery && !spatialRecipeSelected && !gdpsRecipeSelected) {
       const currentSources = tokenSources(signals, currentStateTokens);
       const geometrySources = tokenSources(signals, geometryTokens);
       const provenanceSources = tokenSources(signals, provenanceTokens);
@@ -568,7 +649,8 @@ export class SemanticRequirementPlanner {
     const graphId = stableId("requirement-graph", {
       groundingGraph: normalizedGraph,
       requestedProducts: [...products].sort(),
-      executionPolicy: input.executionPolicy
+      executionPolicy: input.executionPolicy,
+      groundedProductIntents
     });
     const accumulators = new Map<string, RequirementAccumulator>();
     const dependencyAccumulators = new Map<string, DependencyAccumulator>();
@@ -634,7 +716,7 @@ export class SemanticRequirementPlanner {
       requiredForProduct: accumulator.requiredForProduct,
       required: true,
       allowApproximation: accumulator.allowApproximation,
-      inputs: inputsForRequirement(accumulator, signals),
+      inputs: inputsForRequirement(accumulator, signals, groundedProductIntents),
       outputs: [outputByRequirement[accumulator.requirementType]]
     })).sort((left, right) =>
       requirementTypes.indexOf(left.requirementType) - requirementTypes.indexOf(right.requirementType) ||

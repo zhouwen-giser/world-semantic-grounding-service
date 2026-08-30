@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:grounded-geospatial-product-intent:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "intentId",
+    "descriptorId",
+    "descriptorHash",
+    "productType",
+    "productProfile",
+    "representation",
+    "queryProfile",
+    "sourceNodeIds"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-grounded-geospatial-product-intent/1.0"
+    },
+    "intentId": {
+      "type": "string"
+    },
+    "descriptorId": {
+      "type": "string"
+    },
+    "descriptorHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "productType": {
+      "enum": [
+        "ELEVATION_DTM",
+        "ELEVATION_DSM",
+        "LAND_COVER",
+        "TERRAIN_FORM",
+        "SURFACE_WATER",
+        "WETLAND",
+        "SURFACE_MATERIAL",
+        "BUILDING",
+        "OBSTACLE",
+        "UGV_TRAVERSABILITY",
+        "VEGETATION_STRUCTURE",
+        "DRAINAGE_NETWORK",
+        "FLOOD_RISK",
+        "ROBOT_DOG_TRAVERSABILITY",
+        "GROUND_BEARING_CAPACITY",
+        "UAV_RESTRICTION",
+        "LANDING_ZONE_SUITABILITY",
+        "VISIBILITY_COVERAGE",
+        "OBSERVATION_SITE_SUITABILITY",
+        "COMMUNICATION_COVERAGE",
+        "ASSEMBLY_AREA_SUITABILITY",
+        "SLOPE",
+        "ASPECT",
+        "TERRAIN_ROUGHNESS",
+        "SOIL_TYPE",
+        "SOIL_MOISTURE_CLASS",
+        "GROUND_STABILITY",
+        "ROAD_SOURCE",
+        "BRIDGE",
+        "TUNNEL",
+        "FORD",
+        "CULVERT",
+        "BUILDING_HEIGHT",
+        "OBSTACLE_HEIGHT"
+      ]
+    },
+    "productProfile": {
+      "type": "string"
+    },
+    "representation": {
+      "enum": [
+        "RASTER_CONTINUOUS",
+        "RASTER_CATEGORICAL",
+        "VECTOR_FEATURE"
+      ]
+    },
+    "queryProfile": {
+      "enum": [
+        "SAMPLE_VALUE",
+        "PROFILE_VALUE",
+        "FIND_VALUE_RANGE",
+        "SAMPLE_CLASS",
+        "FIND_CLASS",
+        "VECTOR_IN_AREA",
+        "VECTOR_NEARBY",
+        "VECTOR_INTERSECTS"
+      ]
+    },
+    "explicitProductId": {
+      "type": "string"
+    },
+    "classCodes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ranges": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "propertyFilters": {
+      "type": "object"
+    },
+    "platformProfile": {
+      "type": "string"
+    },
+    "spatialConstraint": {
+      "type": "object",
+      "properties": {
+        "relation": {
+          "enum": [
+            "AT",
+            "WITHIN",
+            "NEAR",
+            "INTERSECTS"
+          ]
+        },
+        "distanceM": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "sourceNodeIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceSpans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceNodeId", "encoding", "start", "end"],
+        "properties": {
+          "sourceNodeId": { "type": "string" },
+          "encoding": { "const": "UTF16_CODE_UNIT" },
+          "start": { "type": "integer", "minimum": 0 },
+          "end": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

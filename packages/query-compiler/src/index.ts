@@ -1,7 +1,6 @@
 export const QUERY_COMPILER_VERSION = "wsgs-query-compiler/2.0" as const;
 
 export {
-  GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH,
   TypedWorldQueryCompiler,
   QueryCompilationError,
   queryTemplateRules,
@@ -18,6 +17,7 @@ export type {
   CompileInput,
   CompileResult,
   ExecutionBudgets,
+  GdpsRecipeAuthorization,
   MatchedCapability,
   MaturityPolicy,
   PortRequirement,
