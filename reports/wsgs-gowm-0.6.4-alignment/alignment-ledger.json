@@ -15,6 +15,43 @@
     "sha256": "sha256:1d81b3b5ffb8c069498e04a160499db33e795fcef092db0f9bb9c382440528e4",
     "required": 24
   },
+  "deterministicLedgerHashes": {
+    "schemaVersion": "wsgs-gowm-deterministic-ledger-hashes/1.0",
+    "algorithms": {
+      "developmentLedgerHash": "SHA256_RAW_FILE_BYTES",
+      "alignmentLockHash": "SHA256_RAW_FILE_BYTES",
+      "contractDiffReportHash": "SHA256_RAW_FILE_BYTES",
+      "referenceIdentityReportHash": "SHA256_RAW_FILE_BYTES",
+      "formalPipelineR1R5Hash": "SHA256_RAW_FILE_BYTES",
+      "handoffHash": "SHA256_RAW_FILE_BYTES"
+    },
+    "sources": {
+      "developmentLedgerHash": "reports/wsgs-v0.2/development-acceptance-ledger.json",
+      "alignmentLockHash": "contracts/upstream/gowm-runtime-contract-alignment-lock-v1.json",
+      "contractDiffReportHash": "reports/wsgs-gowm-0.6.4-alignment/contract-diff-report.json",
+      "referenceIdentityReportHash": "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+      "formalPipelineR1R5Hash": "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+      "handoffHash": "contracts/consumers/sacs-development-handoff-v1.json"
+    },
+    "developmentLedgerHash": "sha256:fd2def26d5c34a68121fad531d336d46358b334213dfdefcb09c9e628f73bc74",
+    "alignmentLockHash": "sha256:951a7d7ba83f5e1cbec0c0fa4817ba461438462729b2de32e75405a696ecc2aa",
+    "contractDiffReportHash": "sha256:cdf1f9534fbaf7f49f6b07c2b770781be9d20490d600959c2f3f18e73a048b1f",
+    "referenceIdentityReportHash": "sha256:48c4383cbbf3d80edb8436693d151fe537d5d0d58c108c21dde7931913c222be",
+    "formalPipelineR1R5Hash": "sha256:fb0719b97ac36ce5ab04bd409af40399ce56b697d5d94a2888bfad55f04eea40",
+    "handoffHash": "sha256:9783cb3ebd80dfbb6c0436593d81aee37f44ae863ea6b4430baba9e58f5b947e"
+  },
+  "completionMarkers": [
+    "GOWM_RUNTIME_0_6_4_LOCKED",
+    "GATEWAY_CONTRACT_0_6_3_LOCKED",
+    "RUNTIME_CONTRACT_VERSION_INVARIANT_READY",
+    "GOWM_CONSUMER_ARTIFACT_REALIGNED",
+    "SINGLE_UPSTREAM_AUTHORITY_READY",
+    "REFERENCE_IDENTITY_COMPOSABILITY_CONSUMED",
+    "DIRECT_GOWM_R1_R5_READY",
+    "WSGS_GOWM_R1_R5_READY",
+    "SACS_DEVELOPMENT_HANDOFF_REFRESHED",
+    "WSGS_GOWM_0_6_4_ALIGNMENT_COMPLETE"
+  ],
   "summary": {
     "required": 24,
     "pass": 24,
@@ -367,11 +404,11 @@
         },
         {
           "path": "reports/wsgs-gowm-0.6.4-alignment/handoff-verification-report.json",
-          "sha256": "sha256:b8c3ce4d887dbeb881dda3551c5deba2047b890210274718a0519cc06a098d4a",
+          "sha256": "sha256:ed1c39d7a312830ddf727ba62f0825beda259503ba7505f76e3c27c624a2776f",
           "status": "PASS"
         }
       ],
-      "evidenceHash": "sha256:5f3f05ccc66f69b3e45aed7fd400215394d99ad219c48da4c75b9f221dc50a57"
+      "evidenceHash": "sha256:544d53d4f5c5749227415176648971b611063019e36e370042dc571d31178891"
     },
     {
       "id": "ALIGN-021",
@@ -389,11 +426,11 @@
         },
         {
           "path": "reports/wsgs-gowm-0.6.4-alignment/handoff-verification-report.json",
-          "sha256": "sha256:b8c3ce4d887dbeb881dda3551c5deba2047b890210274718a0519cc06a098d4a",
+          "sha256": "sha256:ed1c39d7a312830ddf727ba62f0825beda259503ba7505f76e3c27c624a2776f",
           "status": "PASS"
         }
       ],
-      "evidenceHash": "sha256:d4d316a4f5e6bc3d0e466cc40f6e2145a007d56bcd195592ccce8dc9d5b06786"
+      "evidenceHash": "sha256:9ef2869af11b778b64ef168d89eb7bd42f9cfcfe72c2a5c23b8a496dc1b75ecf"
     },
     {
       "id": "ALIGN-022",
@@ -440,18 +477,18 @@
       "evidence": [
         {
           "path": "reports/wsgs-gowm-0.6.4-alignment/PR_BODY.md",
-          "sha256": "sha256:b3d4bb98a84e283e969801e7f0c38a2dd20b9d48a553e0821113153c334ea66b",
+          "sha256": "sha256:8948f83eb8a3682a3438862099e152530ae4e4f36a2f24a76d0f727b61ad714e",
           "status": "REVIEWED"
         },
         {
           "path": "reports/wsgs-gowm-0.6.4-alignment/pr-review.json",
-          "sha256": "sha256:775ee4b62098e0d4a20a8fc1f1757cbc799328fae9337f1f52933411bfa9d440",
+          "sha256": "sha256:2908b46b7adc6b3d93943bf1ab0fd43999cddeeb4f853bfc737573b5b71c90a2",
           "status": "PASS"
         }
       ],
-      "evidenceHash": "sha256:fb08e8af586881c45c3d5b598506a5a6c079f0fd0bd392f7ee2b4c209caaba34"
+      "evidenceHash": "sha256:ed083e95b8b18d4352898de07a77c822d52f6feed50f1739af393b1c5d83a044"
     }
   ],
   "marker": "WSGS_GOWM_ALIGNMENT_LEDGER_COMPLETE",
-  "evidenceHash": "sha256:05be5d87bf0ef2e0dd973bb4388f4ae9e6794408de5c8b9a7dc20e72c1e60b9a"
+  "evidenceHash": "sha256:38cd707a65e6efa7ca49836e6742b35e333016ccf52b5acf443159fb905545e6"
 }

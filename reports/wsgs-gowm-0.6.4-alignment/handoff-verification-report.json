@@ -6,6 +6,7 @@
   "handoffCanonicalPayloadHash": "sha256:c08deb53a1cd0365d6588584826f04c830c738aaa38cb3fbf71cda8d0cba2d6d",
   "schemaValidationStatus": "PASS",
   "handoffStatus": "DEVELOPMENT_READY",
+  "developmentLedgerHash": "sha256:fd2def26d5c34a68121fad531d336d46358b334213dfdefcb09c9e628f73bc74",
   "wsgsSourceBinding": {
     "status": "PASS",
     "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
@@ -35,8 +36,9 @@
     "exactTuple": "PASS",
     "alignmentRecipes": "PASS",
     "productionBoundary": "PASS",
-    "wsgsSourceBinding": "PASS"
+    "wsgsSourceBinding": "PASS",
+    "developmentLedgerHash": "PASS"
   },
   "marker": "WSGS_GOWM_HANDOFF_ALIGNMENT_VERIFIED",
-  "evidenceHash": "sha256:e113a0d6fef25561687a8f919b048759eabb86c1fd93a8f9e19e447e603b0c51"
+  "evidenceHash": "sha256:72fbc3e9c4d4e08772c57d9b285a33e287ddc80f99fbab3e37a5aaf25a6b199e"
 }

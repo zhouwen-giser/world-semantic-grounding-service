@@ -104,13 +104,24 @@ describe("GOWM alignment closure generator", () => {
   it("recomputes both raw and LF-canonical PR body hashes", () => {
     const bodyPath = "reports/wsgs-gowm-0.6.4-alignment/PR_BODY.md";
     const evidencePaths = [
+      "reports/wsgs-gowm-0.6.4-alignment/alignment-invariant-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/negative-cases-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/contract-intake-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/contract-diff-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/semantic-migration-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/w00-existing-authorities.json",
+      "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
       "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
       "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
       "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
       "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
       "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
       "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
       "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json",
+      "reports/wsgs-gowm-0.6.4-alignment/handoff-verification-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/alignment-ledger.json",
       "reports/wsgs-gowm-0.6.4-alignment/closure-report.json"
     ];
     const nonClaims = [
@@ -119,6 +130,29 @@ describe("GOWM alignment closure generator", () => {
     ];
     const canonicalBody = [
       "# Draft alignment review",
+      "",
+      "WSGS implementation base: `c2a71a0f455c728ae45d70067f223e1450cfa427`",
+      "Qualified WSGS source head: `b3315cbb5dce9635911a90ac095b93b1efab8e70`",
+      "PR delivery head: verified after push against the live Draft PR metadata",
+      "Exact GOWM source: `fceed92398a0b86c0a0121aa2188a7f1d328e577`",
+      "`runtime=0.6.4 / Gateway contract=0.6.3`",
+      "`@gowm/world-gateway-contracts@0.6.3`",
+      "Machine invariant / negative gate: PASS",
+      "Contract diff: 120 operations; wire schema and operation policy are stable",
+      "world.get-geometry@1.0 spatial.find-intersections@1.0 predicate.evaluate@1.0",
+      "Single upstream authority",
+      "Direct R1-R5: 5/5 PASS",
+      "Formal WSGS pipeline R1-R5: 5/5 PASS",
+      "resolver ReferenceKey is consumed without rewrite",
+      "Ambiguity remains fail-closed",
+      "SACS development handoff",
+      "alignment ledger",
+      "`productionQualified=false`",
+      "EXACT_HISTORICAL_PINNED_REPLAY",
+      "FULL_REAL_DELEGATION_NEGATIVE_MATRIX",
+      "OBJECT_STORAGE_INFRASTRUCTURE",
+      "PRODUCTION_RESTART_MATRIX",
+      "HA_DR_SLO_AND_LOAD_QUALIFICATION",
       "",
       ...evidencePaths,
       "",
@@ -141,6 +175,16 @@ describe("GOWM alignment closure generator", () => {
 
     expect(() => verifyPrReviewArtifact(fixtureRoot, prReview)).not.toThrow();
 
+    const missingSummary = canonicalBody.replace("Contract diff: 120 operations", "Contract inventory: 120 operations");
+    const missingSummaryBytes = Buffer.from(missingSummary, "utf8");
+    writeFileSync(target, missingSummaryBytes);
+    expect(() => verifyPrReviewArtifact(fixtureRoot, {
+      ...prReview,
+      bodyHash: sha256(missingSummaryBytes),
+      bodyCanonicalHash: sha256(missingSummary)
+    })).toThrowError(expect.objectContaining({ code: "ALIGNMENT_PR_BODY_REQUIRED_SUMMARY_MISSING" }));
+
+    writeFileSync(target, rawBody);
     writeFileSync(target, Buffer.concat([rawBody, Buffer.from("tampered\r\n", "utf8")]));
     expect(() => verifyPrReviewArtifact(fixtureRoot, prReview)).toThrowError(
       expect.objectContaining({ code: "ALIGNMENT_PR_BODY_RAW_HASH_MISMATCH" })

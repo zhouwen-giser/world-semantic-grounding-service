@@ -267,10 +267,12 @@ const handoffRecipesMatch =
   JSON.stringify(handoff.alignmentValidatedRecipes) === JSON.stringify(expectedAlignmentRecipes);
 const handoffProductionBoundaryMatches = handoff.productionQualified === false;
 const handoffWsgsCommitValid = /^[0-9a-f]{40}$/u.test(handoff.wsgs?.commit ?? "");
+const handoffDevelopmentLedgerHashValid = /^sha256:[0-9a-f]{64}$/u.test(handoff.developmentLedgerHash ?? "");
 const handoffVerification = {
   schemaVersion: "wsgs-gowm-handoff-verification/1.0",
   status:
-    handoffTupleMatches && handoffRecipesMatch && handoffProductionBoundaryMatches && handoffWsgsCommitValid
+    handoffTupleMatches && handoffRecipesMatch && handoffProductionBoundaryMatches &&
+      handoffWsgsCommitValid && handoffDevelopmentLedgerHashValid
       ? "PASS"
       : "BLOCKED",
   handoffPath: repoPath(handoffPath),
@@ -278,6 +280,7 @@ const handoffVerification = {
   handoffCanonicalPayloadHash: canonicalSha256(handoff),
   schemaValidationStatus: "PASS",
   handoffStatus: handoff.status,
+  developmentLedgerHash: handoff.developmentLedgerHash,
   wsgsSourceBinding: {
     status: handoffWsgsCommitValid ? "PASS" : "BLOCKED",
     sourceCommit: handoff.wsgs?.commit,
@@ -298,7 +301,8 @@ const handoffVerification = {
     exactTuple: handoffTupleMatches ? "PASS" : "BLOCKED",
     alignmentRecipes: handoffRecipesMatch ? "PASS" : "BLOCKED",
     productionBoundary: handoffProductionBoundaryMatches ? "PASS" : "BLOCKED",
-    wsgsSourceBinding: handoffWsgsCommitValid ? "PASS" : "BLOCKED"
+    wsgsSourceBinding: handoffWsgsCommitValid ? "PASS" : "BLOCKED",
+    developmentLedgerHash: handoffDevelopmentLedgerHashValid ? "PASS" : "BLOCKED"
   },
   marker: handoffRecipesMatch
     ? "WSGS_GOWM_HANDOFF_ALIGNMENT_VERIFIED"

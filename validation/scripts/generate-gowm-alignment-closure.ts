@@ -45,6 +45,9 @@ interface CliOptions {
 const DEFAULT_ROOT = resolve(import.meta.dirname, "..", "..");
 const ACCEPTANCE_RELATIVE_PATH = "acceptance/alignment-required.csv";
 const REPORT_ROOT = "reports/wsgs-gowm-0.6.4-alignment";
+const ALIGNMENT_LOCK_RELATIVE_PATH = "contracts/upstream/gowm-runtime-contract-alignment-lock-v1.json";
+const DEVELOPMENT_LEDGER_RELATIVE_PATH = "reports/wsgs-v0.2/development-acceptance-ledger.json";
+const DEVELOPMENT_READY_REPORT_RELATIVE_PATH = "reports/wsgs-v0.2/development-ready-report.json";
 const EXPECTED_ACCEPTANCE_SHA256 =
   "sha256:1d81b3b5ffb8c069498e04a160499db33e795fcef092db0f9bb9c382440528e4" as const;
 const EXPECTED_RUNTIME_COMMIT = "fceed92398a0b86c0a0121aa2188a7f1d328e577" as const;
@@ -72,6 +75,57 @@ const EXPECTED_CRITERION_IDS = Array.from(
   { length: 24 },
   (_unused, index) => `ALIGN-${String(index + 1).padStart(3, "0")}`
 );
+const REQUIRED_COMPLETION_MARKERS = [
+  "GOWM_RUNTIME_0_6_4_LOCKED",
+  "GATEWAY_CONTRACT_0_6_3_LOCKED",
+  "RUNTIME_CONTRACT_VERSION_INVARIANT_READY",
+  "GOWM_CONSUMER_ARTIFACT_REALIGNED",
+  "SINGLE_UPSTREAM_AUTHORITY_READY",
+  "REFERENCE_IDENTITY_COMPOSABILITY_CONSUMED",
+  "DIRECT_GOWM_R1_R5_READY",
+  "WSGS_GOWM_R1_R5_READY",
+  "SACS_DEVELOPMENT_HANDOFF_REFRESHED",
+  "WSGS_GOWM_0_6_4_ALIGNMENT_COMPLETE"
+] as const;
+const COMPLETION_MARKER_CRITERIA: Readonly<Record<(typeof REQUIRED_COMPLETION_MARKERS)[number], readonly string[]>> = {
+  GOWM_RUNTIME_0_6_4_LOCKED: ["ALIGN-002", "ALIGN-003"],
+  GATEWAY_CONTRACT_0_6_3_LOCKED: ["ALIGN-004", "ALIGN-005"],
+  RUNTIME_CONTRACT_VERSION_INVARIANT_READY: ["ALIGN-002", "ALIGN-003", "ALIGN-004", "ALIGN-005", "ALIGN-006"],
+  GOWM_CONSUMER_ARTIFACT_REALIGNED: ["ALIGN-008", "ALIGN-009", "ALIGN-010", "ALIGN-011", "ALIGN-012"],
+  SINGLE_UPSTREAM_AUTHORITY_READY: ["ALIGN-013"],
+  REFERENCE_IDENTITY_COMPOSABILITY_CONSUMED: ["ALIGN-014", "ALIGN-015"],
+  DIRECT_GOWM_R1_R5_READY: ["ALIGN-016"],
+  WSGS_GOWM_R1_R5_READY: ["ALIGN-017", "ALIGN-018", "ALIGN-019"],
+  SACS_DEVELOPMENT_HANDOFF_REFRESHED: ["ALIGN-020", "ALIGN-021"],
+  WSGS_GOWM_0_6_4_ALIGNMENT_COMPLETE: EXPECTED_CRITERION_IDS
+};
+const REQUIRED_PR_BODY_FRAGMENTS = [
+  "WSGS implementation base: `c2a71a0f455c728ae45d70067f223e1450cfa427`",
+  "Qualified WSGS source head: `b3315cbb5dce9635911a90ac095b93b1efab8e70`",
+  "PR delivery head: verified after push against the live Draft PR metadata",
+  "Exact GOWM source: `fceed92398a0b86c0a0121aa2188a7f1d328e577`",
+  "`runtime=0.6.4 / Gateway contract=0.6.3`",
+  "`@gowm/world-gateway-contracts@0.6.3`",
+  "Machine invariant / negative gate: PASS",
+  "Contract diff: 120 operations",
+  "wire schema and operation policy are stable",
+  "world.get-geometry@1.0",
+  "spatial.find-intersections@1.0",
+  "predicate.evaluate@1.0",
+  "Single upstream authority",
+  "Direct R1-R5: 5/5 PASS",
+  "Formal WSGS pipeline R1-R5: 5/5 PASS",
+  "resolver ReferenceKey is consumed without rewrite",
+  "Ambiguity remains fail-closed",
+  "SACS development handoff",
+  "alignment ledger",
+  "`productionQualified=false`",
+  "EXACT_HISTORICAL_PINNED_REPLAY",
+  "FULL_REAL_DELEGATION_NEGATIVE_MATRIX",
+  "OBJECT_STORAGE_INFRASTRUCTURE",
+  "PRODUCTION_RESTART_MATRIX",
+  "HA_DR_SLO_AND_LOAD_QUALIFICATION"
+] as const;
 
 const EVIDENCE_PATHS = {
   baseline: `${REPORT_ROOT}/w00-baseline.json`,
@@ -105,6 +159,28 @@ const OUTPUT_PATHS = {
   readiness: `${REPORT_ROOT}/development-readiness.md`,
   ledger: `${REPORT_ROOT}/alignment-ledger.json`
 } as const;
+
+const REQUIRED_PR_EVIDENCE_PATHS = [
+  EVIDENCE_PATHS.invariant,
+  EVIDENCE_PATHS.negativeAlignment,
+  EVIDENCE_PATHS.intake,
+  EVIDENCE_PATHS.contractDiff,
+  EVIDENCE_PATHS.semanticMigration,
+  EVIDENCE_PATHS.authorities,
+  EVIDENCE_PATHS.referenceIdentity,
+  EVIDENCE_PATHS.referenceNegative,
+  EVIDENCE_PATHS.direct,
+  EVIDENCE_PATHS.runtimeBinding,
+  EVIDENCE_PATHS.runtimeImageBuild,
+  EVIDENCE_PATHS.formal,
+  EVIDENCE_PATHS.wsgsProcessBinding,
+  EVIDENCE_PATHS.wsgsRuntimeImageBuild,
+  EVIDENCE_PATHS.r3Composability,
+  EVIDENCE_PATHS.traceability,
+  EVIDENCE_PATHS.handoff,
+  OUTPUT_PATHS.ledger,
+  OUTPUT_PATHS.closure
+] as const;
 
 const CRITERION_EVIDENCE: Readonly<Record<string, readonly string[]>> = {
   "ALIGN-001": [EVIDENCE_PATHS.baseline],
@@ -695,7 +771,7 @@ function assertFivePassingRecipes(document: JsonObject, label: string): Map<stri
   return new Map(recipes);
 }
 
-function validateStaticEvidence(evidence: Map<string, EvidenceDocument>): void {
+function validateStaticEvidence(root: string, evidence: Map<string, EvidenceDocument>): void {
   const baseline = evidence.get(EVIDENCE_PATHS.baseline)!.document;
   assertSchemaVersion(baseline, "wsgs-gowm-alignment-baseline/1.0", EVIDENCE_PATHS.baseline);
   const baselineWsgs = object(baseline["wsgs"], "baseline.wsgs");
@@ -723,6 +799,12 @@ function validateStaticEvidence(evidence: Map<string, EvidenceDocument>): void {
   invariant(invariantValue["gatewayPackage"] === `${EXPECTED_PACKAGE_NAME}@${EXPECTED_PACKAGE_VERSION}`, "ALIGNMENT_GATEWAY_PACKAGE_MISMATCH", "invariant");
   invariant(invariantValue["gatewayContractVersion"] === EXPECTED_GATEWAY_CONTRACT_VERSION, "ALIGNMENT_GATEWAY_CONTRACT_VERSION_MISMATCH", "invariant");
   invariant(exactSource["status"] === "PASS" && exactSource["sourceCommit"] === EXPECTED_RUNTIME_COMMIT, "ALIGNMENT_EXACT_SOURCE_NOT_PASS");
+  const alignmentLockPath = resolveRepoFile(root, ALIGNMENT_LOCK_RELATIVE_PATH, ALIGNMENT_LOCK_RELATIVE_PATH);
+  invariant(existsSync(alignmentLockPath), "ALIGNMENT_CLOSURE_EVIDENCE_MISSING", ALIGNMENT_LOCK_RELATIVE_PATH);
+  invariant(
+    invariantReport["alignmentLockHash"] === sha256(readFileSync(alignmentLockPath)),
+    "ALIGNMENT_LOCK_FILE_HASH_MISMATCH"
+  );
 
   const negative = evidence.get(EVIDENCE_PATHS.negativeAlignment)!.document;
   assertSchemaVersion(negative, "wsgs-gowm-alignment-negative-cases/1.0", EVIDENCE_PATHS.negativeAlignment);
@@ -1155,7 +1237,7 @@ function validateHandoff(root: string, evidence: Map<string, EvidenceDocument>):
   invariant(verification["marker"] === "WSGS_GOWM_HANDOFF_ALIGNMENT_VERIFIED", "ALIGNMENT_HANDOFF_MARKER_MISMATCH");
   const checks = object(verification["checks"], "handoff-verification.checks");
   invariant(
-    ["schema", "exactTuple", "alignmentRecipes", "productionBoundary", "wsgsSourceBinding"].every(
+    ["schema", "exactTuple", "alignmentRecipes", "productionBoundary", "wsgsSourceBinding", "developmentLedgerHash"].every(
       (check) => checks[check] === "PASS"
     ),
     "ALIGNMENT_HANDOFF_VERIFICATION_INCOMPLETE"
@@ -1180,6 +1262,52 @@ function validateHandoff(root: string, evidence: Map<string, EvidenceDocument>):
   );
   invariant(handoff["schemaVersion"] === "1.0" && handoff["status"] === "DEVELOPMENT_READY", "ALIGNMENT_HANDOFF_STATUS_MISMATCH");
   invariant(handoff["productionQualified"] === false, "ALIGNMENT_PRODUCTION_QUALIFICATION_ESCALATED");
+  const developmentLedgerHash = digest(handoff["developmentLedgerHash"], "handoff.developmentLedgerHash");
+  const developmentLedgerPath = resolveRepoFile(
+    root,
+    DEVELOPMENT_LEDGER_RELATIVE_PATH,
+    DEVELOPMENT_LEDGER_RELATIVE_PATH
+  );
+  invariant(
+    existsSync(developmentLedgerPath),
+    "ALIGNMENT_CLOSURE_EVIDENCE_MISSING",
+    DEVELOPMENT_LEDGER_RELATIVE_PATH
+  );
+  invariant(
+    developmentLedgerHash === sha256(readFileSync(developmentLedgerPath)),
+    "ALIGNMENT_DEVELOPMENT_LEDGER_FILE_HASH_MISMATCH"
+  );
+  const developmentReadyReportPath = resolveRepoFile(
+    root,
+    DEVELOPMENT_READY_REPORT_RELATIVE_PATH,
+    DEVELOPMENT_READY_REPORT_RELATIVE_PATH
+  );
+  invariant(
+    existsSync(developmentReadyReportPath),
+    "ALIGNMENT_CLOSURE_EVIDENCE_MISSING",
+    DEVELOPMENT_READY_REPORT_RELATIVE_PATH
+  );
+  const developmentReadyReportBytes = readFileSync(developmentReadyReportPath);
+  assertNoSecretMaterial(developmentReadyReportBytes, DEVELOPMENT_READY_REPORT_RELATIVE_PATH);
+  let parsedDevelopmentReadyReport: unknown;
+  try {
+    parsedDevelopmentReadyReport = JSON.parse(developmentReadyReportBytes.toString("utf8")) as unknown;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    return fail(
+      "ALIGNMENT_CLOSURE_EVIDENCE_INVALID_JSON",
+      `${DEVELOPMENT_READY_REPORT_RELATIVE_PATH}:${detail}`
+    );
+  }
+  const developmentReadyReport = object(parsedDevelopmentReadyReport, DEVELOPMENT_READY_REPORT_RELATIVE_PATH);
+  invariant(
+    developmentReadyReport["developmentLedgerHash"] === developmentLedgerHash,
+    "ALIGNMENT_DEVELOPMENT_READY_REPORT_LEDGER_HASH_MISMATCH"
+  );
+  invariant(
+    verification["developmentLedgerHash"] === developmentLedgerHash,
+    "ALIGNMENT_HANDOFF_DEVELOPMENT_LEDGER_HASH_MISMATCH"
+  );
   const wsgs = object(handoff["wsgs"], "handoff.wsgs");
   const handoffWsgsCommit = text(wsgs["commit"], "handoff.wsgs.commit");
   invariant(/^[0-9a-f]{40}$/u.test(handoffWsgsCommit), "ALIGNMENT_HANDOFF_WSGS_COMMIT_INVALID");
@@ -1236,16 +1364,7 @@ export function verifyPrReviewArtifact(root: string, prReview: JsonObject): void
     "ALIGNMENT_PR_BODY_CANONICAL_HASH_MISMATCH"
   );
   const evidencePaths = array(prReview["evidencePaths"], "pr-review.evidencePaths");
-  for (const required of [
-    EVIDENCE_PATHS.direct,
-    EVIDENCE_PATHS.runtimeBinding,
-    EVIDENCE_PATHS.runtimeImageBuild,
-    EVIDENCE_PATHS.formal,
-    EVIDENCE_PATHS.wsgsProcessBinding,
-    EVIDENCE_PATHS.wsgsRuntimeImageBuild,
-    EVIDENCE_PATHS.traceability,
-    OUTPUT_PATHS.closure
-  ]) {
+  for (const required of REQUIRED_PR_EVIDENCE_PATHS) {
     invariant(evidencePaths.includes(required), "ALIGNMENT_PR_EVIDENCE_PATH_MISSING", required);
     invariant(canonicalPrBody.includes(required), "ALIGNMENT_PR_BODY_EVIDENCE_PATH_MISSING", required);
   }
@@ -1253,6 +1372,9 @@ export function verifyPrReviewArtifact(root: string, prReview: JsonObject): void
     .map((entry) => text(entry, "pr-review.nonClaim"));
   for (const nonClaim of reportedNonClaims) {
     invariant(canonicalPrBody.includes(nonClaim), "ALIGNMENT_PR_BODY_NON_CLAIM_MISMATCH", nonClaim);
+  }
+  for (const fragment of REQUIRED_PR_BODY_FRAGMENTS) {
+    invariant(canonicalPrBody.includes(fragment), "ALIGNMENT_PR_BODY_REQUIRED_SUMMARY_MISSING", fragment);
   }
   const nonClaims = reportedNonClaims.join(" ").toLowerCase();
   for (const required of ["development readiness only", "production qualification", "release", "deployment", "shared-runtime mutation"]) {
@@ -1307,7 +1429,7 @@ function buildEvidenceMap(root: string): Map<string, EvidenceDocument> {
   for (const relativePath of uniquePaths) {
     evidence.set(relativePath, readEvidence(root, relativePath, statusesByPath.get(relativePath)));
   }
-  validateStaticEvidence(evidence);
+  validateStaticEvidence(root, evidence);
   validateRuntimeEvidence(root, evidence);
   validateHandoff(root, evidence);
   validateClosurePreconditions(root, evidence);
@@ -1353,11 +1475,65 @@ function buildCriterionResults(rows: AcceptanceRow[], evidence: Map<string, Evid
   });
 }
 
+function deriveCompletionMarkers(criteria: CriterionResult[]): string[] {
+  invariant(
+    new Set(REQUIRED_COMPLETION_MARKERS).size === REQUIRED_COMPLETION_MARKERS.length,
+    "ALIGNMENT_COMPLETION_MARKER_DUPLICATE"
+  );
+  const byId = new Map(criteria.map((criterion) => [criterion.id, criterion]));
+  return REQUIRED_COMPLETION_MARKERS.map((marker) => {
+    const requiredCriteria = COMPLETION_MARKER_CRITERIA[marker];
+    invariant(requiredCriteria.length > 0, "ALIGNMENT_COMPLETION_MARKER_MAPPING_EMPTY", marker);
+    invariant(
+      requiredCriteria.every((id) => byId.get(id)?.status === "PASS"),
+      "ALIGNMENT_COMPLETION_MARKER_CRITERIA_NOT_PASS",
+      marker
+    );
+    return marker;
+  });
+}
+
 function buildOutputs(
   acceptanceHash: `sha256:${string}`,
   criteria: CriterionResult[],
   evidence: Map<string, EvidenceDocument>
 ): { closure: JsonObject; readiness: string; ledger: JsonObject } {
+  const completionMarkers = deriveCompletionMarkers(criteria);
+  const direct = evidence.get(EVIDENCE_PATHS.direct)!.document;
+  const directRuntime = object(direct["runtime"], "direct-r1-r5-smoke.runtime");
+  const directBinding = object(directRuntime["runtimeBinding"], "direct-r1-r5-smoke.runtime.runtimeBinding");
+  const formal = evidence.get(EVIDENCE_PATHS.formal)!.document;
+  const handoffPointer = evidence.get(EVIDENCE_PATHS.handoff)!;
+  const handoffVerification = handoffPointer.document;
+  const invariantReport = evidence.get(EVIDENCE_PATHS.invariant)!.document;
+  const deterministicLedgerHashes: JsonObject = {
+    schemaVersion: "wsgs-gowm-deterministic-ledger-hashes/1.0",
+    algorithms: {
+      developmentLedgerHash: "SHA256_RAW_FILE_BYTES",
+      alignmentLockHash: "SHA256_RAW_FILE_BYTES",
+      contractDiffReportHash: "SHA256_RAW_FILE_BYTES",
+      referenceIdentityReportHash: "SHA256_RAW_FILE_BYTES",
+      formalPipelineR1R5Hash: "SHA256_RAW_FILE_BYTES",
+      handoffHash: "SHA256_RAW_FILE_BYTES"
+    },
+    sources: {
+      developmentLedgerHash: DEVELOPMENT_LEDGER_RELATIVE_PATH,
+      alignmentLockHash: ALIGNMENT_LOCK_RELATIVE_PATH,
+      contractDiffReportHash: EVIDENCE_PATHS.contractDiff,
+      referenceIdentityReportHash: EVIDENCE_PATHS.referenceIdentity,
+      formalPipelineR1R5Hash: EVIDENCE_PATHS.formal,
+      handoffHash: EVIDENCE_PATHS.handoffContract
+    },
+    developmentLedgerHash: digest(
+      handoffVerification["developmentLedgerHash"],
+      "handoff-verification.developmentLedgerHash"
+    ),
+    alignmentLockHash: digest(invariantReport["alignmentLockHash"], "alignment-invariant.alignmentLockHash"),
+    contractDiffReportHash: evidence.get(EVIDENCE_PATHS.contractDiff)!.sha256,
+    referenceIdentityReportHash: evidence.get(EVIDENCE_PATHS.referenceIdentity)!.sha256,
+    formalPipelineR1R5Hash: evidence.get(EVIDENCE_PATHS.formal)!.sha256,
+    handoffHash: digest(handoffVerification["handoffFileHash"], "handoff-verification.handoffFileHash")
+  };
   const ledgerPayload: JsonObject = {
     schemaVersion: "wsgs-gowm-alignment-ledger/1.0",
     status: "PASS",
@@ -1375,18 +1551,14 @@ function buildOutputs(
       sha256: acceptanceHash,
       required: 24
     },
+    deterministicLedgerHashes,
+    completionMarkers,
     summary: { required: 24, pass: 24, fail: 0, notRun: 0, blocked: 0 },
     criteria,
     marker: "WSGS_GOWM_ALIGNMENT_LEDGER_COMPLETE"
   };
   const ledger: JsonObject = { ...ledgerPayload, evidenceHash: canonicalSha256(ledgerPayload) };
   const ledgerHash = sha256(stableJson(ledger));
-  const direct = evidence.get(EVIDENCE_PATHS.direct)!.document;
-  const directRuntime = object(direct["runtime"], "direct-r1-r5-smoke.runtime");
-  const directBinding = object(directRuntime["runtimeBinding"], "direct-r1-r5-smoke.runtime.runtimeBinding");
-  const formal = evidence.get(EVIDENCE_PATHS.formal)!.document;
-  const handoffPointer = evidence.get(EVIDENCE_PATHS.handoff)!;
-  const handoffVerification = handoffPointer.document;
   const closurePayload: JsonObject = {
     schemaVersion: "wsgs-gowm-alignment-closure/1.0",
     status: "DEVELOPMENT_READY",
@@ -1444,6 +1616,8 @@ function buildOutputs(
       alignmentValidatedRecipes: EXPECTED_RECIPE_IDS,
       productionQualified: false
     },
+    deterministicLedgerHashes,
+    completionMarkers,
     nonClaims: [
       "This closure is development readiness only.",
       "It is not production qualification, release, deployment, or shared-runtime mutation evidence."
@@ -1459,6 +1633,8 @@ function buildOutputs(
     `- Direct exact-runtime recipes: R1-R5, 5/5 PASS.\n` +
     `- Formal WSGS pipeline recipes: R1-R5, 5/5 PASS.\n` +
     `- SACS handoff records \`alignmentValidatedRecipes=[R1,R2,R3,R4,R5]\`.\n\n` +
+    `- Six deterministic ledger hashes are machine-verified with declared raw-file SHA-256 algorithms.\n` +
+    `- Required completion markers: ${completionMarkers.join(", ")}.\n\n` +
     `This report does not claim production qualification, release, deployment, or shared-runtime mutation.\n`;
   return { closure, readiness, ledger };
 }
@@ -1510,6 +1686,7 @@ export function generateGowmAlignmentClosure(options: CliOptions): JsonObject {
     formalRecipes: "5/5",
     productionQualified: false,
     outputs: OUTPUT_PATHS,
+    completionMarker: "WSGS_GOWM_0_6_4_ALIGNMENT_COMPLETE",
     marker: "WSGS_GOWM_ALIGNMENT_CLOSURE_PASS"
   };
 }
