@@ -644,6 +644,7 @@ interface CaseEvidence {
     worldQueryAnchorReferenceKeyHashes: `sha256:${string}`[];
     gatewayResolverReferenceKeyHashes: `sha256:${string}`[];
     gatewayWorldFactReferenceKeyHashes: `sha256:${string}`[];
+    gatewayWorldFactReferenceObjectHashes: `sha256:${string}`[];
     directOperationKeys: string[];
     planOperationKeys: string[];
     planDataflowBindings: string[];
@@ -657,6 +658,7 @@ interface CaseEvidence {
     resolverOutputConsumedByValidation: boolean;
     resolverOutputConsumedByWorldQuery: boolean;
     worldOutputConsumedBySpatial: boolean;
+    worldFactObjectIdentityPreserved: boolean;
     identityPreserved: boolean;
   };
   traceability: {
@@ -840,6 +842,13 @@ function referenceKeyDigest(value: unknown): `sha256:${string}` | null {
   }) as `sha256:${string}`;
 }
 
+function referenceObjectDigest(value: unknown): `sha256:${string}` | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const key = value as JsonObject;
+  if (key["namespace"] !== "gowm" || typeof key["kind"] !== "string" || typeof key["id"] !== "string") return null;
+  return canonicalSha256({ namespace: key["namespace"], kind: key["kind"], id: key["id"] }) as `sha256:${string}`;
+}
+
 function referenceProductKeyHashes(value: unknown): `sha256:${string}`[] {
   if (!value || typeof value !== "object" || Array.isArray(value)) return [];
   const products = (value as JsonObject)["referenceProducts"];
@@ -847,6 +856,17 @@ function referenceProductKeyHashes(value: unknown): `sha256:${string}`[] {
   return uniqueDigests(products.flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
     const digest = referenceKeyDigest((entry as JsonObject)["referenceKey"]);
+    return digest ? [digest] : [];
+  }));
+}
+
+function referenceProductObjectHashes(value: unknown): `sha256:${string}`[] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const products = (value as JsonObject)["referenceProducts"];
+  if (!Array.isArray(products)) return [];
+  return uniqueDigests(products.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+    const digest = referenceObjectDigest((entry as JsonObject)["referenceKey"]);
     return digest ? [digest] : [];
   }));
 }
@@ -994,29 +1014,45 @@ function gatewayResolverHashes(value: unknown): `sha256:${string}`[] {
   }));
 }
 
-function gatewayWorldFactHashes(value: unknown): `sha256:${string}`[] {
+function gatewayWorldFactHashes(value: unknown): {
+  referenceKeyHashes: `sha256:${string}`[];
+  referenceObjectHashes: `sha256:${string}`[];
+} {
   const output = gatewayEnvelopeOutputValue(value);
-  if (!output || typeof output !== "object" || Array.isArray(output)) return [];
+  if (!output || typeof output !== "object" || Array.isArray(output)) {
+    return { referenceKeyHashes: [], referenceObjectHashes: [] };
+  }
   const outputObject = output as JsonObject;
   const topLevelReference = referenceKeyDigest(outputObject["referenceKey"]);
+  const topLevelObject = referenceObjectDigest(outputObject["referenceKey"]);
   const facts = outputObject["facts"];
   const factReferences = !Array.isArray(facts) ? [] : facts.flatMap((rawFact) => {
     if (!rawFact || typeof rawFact !== "object" || Array.isArray(rawFact)) return [];
     const digest = referenceKeyDigest((rawFact as JsonObject)["referenceKey"]);
     return digest ? [digest] : [];
   });
-  return uniqueDigests([...(topLevelReference ? [topLevelReference] : []), ...factReferences]);
+  const factObjects = !Array.isArray(facts) ? [] : facts.flatMap((rawFact) => {
+    if (!rawFact || typeof rawFact !== "object" || Array.isArray(rawFact)) return [];
+    const digest = referenceObjectDigest((rawFact as JsonObject)["referenceKey"]);
+    return digest ? [digest] : [];
+  });
+  return {
+    referenceKeyHashes: uniqueDigests([...(topLevelReference ? [topLevelReference] : []), ...factReferences]),
+    referenceObjectHashes: uniqueDigests([...(topLevelObject ? [topLevelObject] : []), ...factObjects])
+  };
 }
 
 function gatewayWorldQueryFacts(value: unknown): {
   resolverReferenceKeyHashes: `sha256:${string}`[];
   worldFactReferenceKeyHashes: `sha256:${string}`[];
+  worldFactReferenceObjectHashes: `sha256:${string}`[];
   nodeStatuses: Array<{ operationKey: string; status: string }>;
   upstreamResultHashes: `sha256:${string}`[];
   spatialResultCount: number;
 } {
   const empty = {
-    resolverReferenceKeyHashes: [], worldFactReferenceKeyHashes: [], nodeStatuses: [], upstreamResultHashes: [],
+    resolverReferenceKeyHashes: [], worldFactReferenceKeyHashes: [], worldFactReferenceObjectHashes: [],
+    nodeStatuses: [], upstreamResultHashes: [],
     spatialResultCount: 0
   };
   if (!value || typeof value !== "object" || Array.isArray(value)) return empty;
@@ -1024,6 +1060,7 @@ function gatewayWorldQueryFacts(value: unknown): {
   if (!Array.isArray(outcomes)) return empty;
   const resolverHashes: `sha256:${string}`[] = [];
   const worldFactHashes: `sha256:${string}`[] = [];
+  const worldFactObjectHashes: `sha256:${string}`[] = [];
   const nodeStatuses: Array<{ operationKey: string; status: string }> = [];
   const upstreamResultHashes: `sha256:${string}`[] = [];
   let spatialResultCount = 0;
@@ -1057,7 +1094,9 @@ function gatewayWorldQueryFacts(value: unknown): {
       nodeStatuses.push({ operationKey, status: node["status"] });
       if (operationId === "reference.resolve") resolverHashes.push(...gatewayResolverHashes(node["result"]));
       if (operationId === "world.get-current-state" || operationId === "world.get-geometry") {
-        worldFactHashes.push(...gatewayWorldFactHashes(node["result"]));
+        const worldFacts = gatewayWorldFactHashes(node["result"]);
+        worldFactHashes.push(...worldFacts.referenceKeyHashes);
+        worldFactObjectHashes.push(...worldFacts.referenceObjectHashes);
       }
       if (operationId.startsWith("spatial.")) {
         const spatialValue = gatewayEnvelopeOutputValue(node["result"]);
@@ -1071,6 +1110,7 @@ function gatewayWorldQueryFacts(value: unknown): {
   return {
     resolverReferenceKeyHashes: uniqueDigests(resolverHashes),
     worldFactReferenceKeyHashes: uniqueDigests(worldFactHashes),
+    worldFactReferenceObjectHashes: uniqueDigests(worldFactObjectHashes),
     nodeStatuses,
     upstreamResultHashes: uniqueDigests(upstreamResultHashes),
     spatialResultCount
@@ -1087,6 +1127,7 @@ function compositionProof(
   const gateway = gatewayWorldQueryFacts(checkpointState["GOWM_EXECUTE"]);
   const knownReferenceHashes = knownReferenceKeyHashes(checkpointState);
   const resolveReferenceKeyHashes = referenceProductKeyHashes(resolved);
+  const resolveReferenceObjectHashes = referenceProductObjectHashes(resolved);
   const validatedReferenceKeyHashes = referenceProductKeyHashes(validated);
   const persistedReferenceKeyHashes = referenceProductKeyHashes(terminalResult);
   const validationProducts = validated && typeof validated === "object" && !Array.isArray(validated) &&
@@ -1114,14 +1155,16 @@ function compositionProof(
     containsDigests(gateway.resolverReferenceKeyHashes, resolveReferenceKeyHashes);
   const worldOutputConsumedBySpatial = compiled.dataflowBindings.some((binding) =>
     /^world\.get-(?:current-state|geometry)@[^:]+:[^-]+->spatial\.[^:]+@/u.test(binding));
+  const worldFactObjectIdentityPreserved = gateway.worldFactReferenceKeyHashes.length === 0 ||
+    (resolveReferenceObjectHashes.length > 0 &&
+      sameDigests(gateway.worldFactReferenceObjectHashes, resolveReferenceObjectHashes));
   const identityHashes = uniqueDigests([
     ...knownReferenceHashes,
     ...resolveReferenceKeyHashes,
     ...validatedReferenceKeyHashes,
     ...persistedReferenceKeyHashes,
     ...compiled.anchorReferenceKeyHashes,
-    ...gateway.resolverReferenceKeyHashes,
-    ...gateway.worldFactReferenceKeyHashes
+    ...gateway.resolverReferenceKeyHashes
   ]);
   return {
     knownReferenceKeyHashes: knownReferenceHashes,
@@ -1131,6 +1174,7 @@ function compositionProof(
     worldQueryAnchorReferenceKeyHashes: compiled.anchorReferenceKeyHashes,
     gatewayResolverReferenceKeyHashes: gateway.resolverReferenceKeyHashes,
     gatewayWorldFactReferenceKeyHashes: gateway.worldFactReferenceKeyHashes,
+    gatewayWorldFactReferenceObjectHashes: gateway.worldFactReferenceObjectHashes,
     directOperationKeys: [
       ...(resolveReferenceKeyHashes.length > 0 ? ["reference.resolve@1.0"] : []),
       ...(directValidationProof ? ["reference.validate@1.0"] : [])
@@ -1147,6 +1191,7 @@ function compositionProof(
     resolverOutputConsumedByValidation,
     resolverOutputConsumedByWorldQuery,
     worldOutputConsumedBySpatial,
+    worldFactObjectIdentityPreserved,
     identityPreserved: identityHashes.length === 1
   };
 }
@@ -1495,8 +1540,7 @@ function referenceIdentityHash(evidence: CaseEvidence): `sha256:${string}` {
     ...proof.validatedReferenceKeyHashes,
     ...proof.persistedReferenceKeyHashes,
     ...proof.worldQueryAnchorReferenceKeyHashes,
-    ...proof.gatewayResolverReferenceKeyHashes,
-    ...proof.gatewayWorldFactReferenceKeyHashes
+    ...proof.gatewayResolverReferenceKeyHashes
   ]);
   if (!proof.identityPreserved || hashes.length !== 1) throw new Error(`REFERENCE_IDENTITY_NOT_PRESERVED_${evidence.recipeId}`);
   return hashes[0]!;
@@ -1567,7 +1611,11 @@ function formalCaseEvidence(evidence: CaseEvidence): JsonObject {
     spatialResultCount: evidence.compositionProof.spatialResultCount,
     referenceIdentity: evidence.recipeId === "R2"
       ? { applicable: false, reason: "AMBIGUOUS_REFERENCE_SET" }
-      : { applicable: true, preserved: evidence.compositionProof.identityPreserved },
+      : {
+          applicable: true,
+          preserved: evidence.compositionProof.identityPreserved,
+          worldFactObjectIdentityPreserved: evidence.compositionProof.worldFactObjectIdentityPreserved
+        },
     validationLease: evidence.recipeId === "R2"
       ? { applicable: false, reason: "AMBIGUITY_STOPS_DOWNSTREAM" }
       : { applicable: true, usable: evidence.compositionProof.validationLeaseUsable },
@@ -1584,7 +1632,6 @@ function identityLayers(evidence: CaseEvidence): JsonObject {
     validationReferenceKeyHashes: proof.validatedReferenceKeyHashes,
     planAnchorReferenceKeyHashes: proof.worldQueryAnchorReferenceKeyHashes,
     gatewayResolverReferenceKeyHashes: proof.gatewayResolverReferenceKeyHashes,
-    gatewayWorldFactReferenceKeyHashes: proof.gatewayWorldFactReferenceKeyHashes,
     persistedGetReferenceKeyHashes: proof.persistedReferenceKeyHashes
   };
 }
@@ -1626,7 +1673,8 @@ function emitFormalR1R5Reports(
   if (formalCases.some((entry) => entry.traceability.status !== "PASS")) throw new Error("FORMAL_PIPELINE_TRACEABILITY_INCOMPLETE");
   if (r1.terminalStatus !== "COMPLETED" || r1.completedStages.length !== 14 || r1.gatewayReceiptIdHashes.length < 1 ||
       !r1.compositionProof.directValidationProof || !r1.compositionProof.validationLeaseUsable ||
-      !r1.compositionProof.resolverOutputConsumedByValidation || !r1.compositionProof.resolverOutputConsumedByWorldQuery) {
+      !r1.compositionProof.resolverOutputConsumedByValidation || !r1.compositionProof.resolverOutputConsumedByWorldQuery ||
+      !r1.compositionProof.worldFactObjectIdentityPreserved) {
     throw new Error("FORMAL_R1_INCOMPLETE");
   }
   assertPlanOperations(r1, ["reference.resolve@1.0", "world.get-current-state@1.0"]);
@@ -1639,6 +1687,7 @@ function emitFormalR1R5Reports(
   if (r3.terminalStatus !== "COMPLETED" || !r3.compositionProof.directValidationProof ||
       !r3.compositionProof.validationLeaseUsable || !r3.compositionProof.resolverOutputConsumedByValidation ||
       !r3.compositionProof.resolverOutputConsumedByWorldQuery || !r3.compositionProof.worldOutputConsumedBySpatial ||
+      !r3.compositionProof.worldFactObjectIdentityPreserved ||
       r3.spatialExecutionCount < 1 || r3.compositionProof.spatialResultCount < 1 ||
       r3.gatewayReceiptIdHashes.length + r3.gatewayEvidenceIdHashes.length < 1) {
     throw new Error("FORMAL_R3_COMPOSITION_INCOMPLETE");
@@ -1647,6 +1696,7 @@ function emitFormalR1R5Reports(
   if (r4.terminalStatus !== "COMPLETED" || !r4.compositionProof.directValidationProof ||
       !r4.compositionProof.validationLeaseUsable || !r4.compositionProof.resolverOutputConsumedByValidation ||
       !r4.compositionProof.resolverOutputConsumedByWorldQuery || !r4.compositionProof.worldOutputConsumedBySpatial ||
+      !r4.compositionProof.worldFactObjectIdentityPreserved ||
       r4.spatialExecutionCount < 1 || r4.compositionProof.spatialResultCount < 1 ||
       r4.compositionProof.nearbyRadiusMetres !== 1_000 ||
       r4.gatewayReceiptIdHashes.length + r4.gatewayEvidenceIdHashes.length < 1) {
@@ -1719,10 +1769,10 @@ function emitFormalR1R5Reports(
     observedAt,
     runtimeBindingHash: runtimeBinding.runtimeBindingHash,
     cases: [
-      { recipeId: "R1", referenceIdentityHash: r1IdentityHash, layers: identityLayers(r1), identityPreserved: true, validationLeaseUsable: true, status: "PASS" },
-      { recipeId: "R3", referenceIdentityHash: r3IdentityHash, layers: identityLayers(r3), identityPreserved: true, validationLeaseUsable: true, status: "PASS" },
-      { recipeId: "R4", referenceIdentityHash: r4IdentityHash, layers: identityLayers(r4), identityPreserved: true, validationLeaseUsable: true, status: "PASS" },
-      { recipeId: "R5", referenceIdentityHash: r5IdentityHash, layers: identityLayers(r5), consumesR1PersistedResolverOutput: true, identityPreserved: true, validationLeaseUsable: true, status: "PASS" }
+      { recipeId: "R1", referenceIdentityHash: r1IdentityHash, layers: identityLayers(r1), authoritativeWorldFactReferenceKeyHashes: r1.compositionProof.gatewayWorldFactReferenceKeyHashes, worldFactObjectIdentityPreserved: true, identityPreserved: true, validationLeaseUsable: true, status: "PASS" },
+      { recipeId: "R3", referenceIdentityHash: r3IdentityHash, layers: identityLayers(r3), authoritativeWorldFactReferenceKeyHashes: r3.compositionProof.gatewayWorldFactReferenceKeyHashes, worldFactObjectIdentityPreserved: true, identityPreserved: true, validationLeaseUsable: true, status: "PASS" },
+      { recipeId: "R4", referenceIdentityHash: r4IdentityHash, layers: identityLayers(r4), authoritativeWorldFactReferenceKeyHashes: r4.compositionProof.gatewayWorldFactReferenceKeyHashes, worldFactObjectIdentityPreserved: true, identityPreserved: true, validationLeaseUsable: true, status: "PASS" },
+      { recipeId: "R5", referenceIdentityHash: r5IdentityHash, layers: identityLayers(r5), authoritativeWorldFactReferenceKeyHashes: r5.compositionProof.gatewayWorldFactReferenceKeyHashes, worldFactObjectIdentityPreserved: true, consumesR1PersistedResolverOutput: true, identityPreserved: true, validationLeaseUsable: true, status: "PASS" }
     ],
     r1ToR5: { referenceIdentityHash: r1IdentityHash, persistedCheckpointHandoff: true, knownWorldReferenceConsumed: true, leaseCarriedAndRevalidated: true, status: "PASS" },
     redaction,
@@ -1736,6 +1786,8 @@ function emitFormalR1R5Reports(
     recipeId: "R3",
     referenceIdentityHash: r3IdentityHash,
     identityLayers: identityLayers(r3),
+    authoritativeWorldFactReferenceKeyHashes: r3.compositionProof.gatewayWorldFactReferenceKeyHashes,
+    worldFactObjectIdentityPreserved: true,
     operationKeys: [...new Set([...r3.compositionProof.directOperationKeys, ...r3.compositionProof.planOperationKeys])],
     dataflowBindings: r3.compositionProof.planDataflowBindings,
     gatewayNodeStatuses: r3.compositionProof.gatewayNodeStatuses,

@@ -915,6 +915,7 @@ function validateRuntimeEvidence(root: string, evidence: Map<string, EvidenceDoc
     const validationLease = object(recipe["validationLease"], `formal-pipeline-r1-r5.${recipeId}.validationLease`);
     invariant(
       referenceIdentity["applicable"] === true && referenceIdentity["preserved"] === true &&
+        referenceIdentity["worldFactObjectIdentityPreserved"] === true &&
         validationLease["applicable"] === true && validationLease["usable"] === true,
       "ALIGNMENT_FORMAL_REFERENCE_PROOF_INCOMPLETE",
       recipeId
@@ -930,6 +931,7 @@ function validateRuntimeEvidence(root: string, evidence: Map<string, EvidenceDoc
     const recipe = object(entry, `reference-identity-report.recipes[${index}]`);
     invariant(recipe["status"] === "PASS", "ALIGNMENT_REFERENCE_IDENTITY_NOT_PASS");
     invariant(recipe["identityPreserved"] === true, "ALIGNMENT_REFERENCE_IDENTITY_REWRITTEN");
+    invariant(recipe["worldFactObjectIdentityPreserved"] === true, "ALIGNMENT_WORLD_FACT_OBJECT_IDENTITY_REWRITTEN");
     invariant(recipe["validationLeaseUsable"] === true, "ALIGNMENT_REFERENCE_IDENTITY_LEASE_NOT_USABLE");
     const recipeId = text(recipe["recipeId"] ?? recipe["caseId"], "reference identity recipe id");
     const referenceIdentityHash = digest(
@@ -949,6 +951,14 @@ function validateRuntimeEvidence(root: string, evidence: Map<string, EvidenceDoc
       }
     }
     invariant(observedLayerHashes >= 2, "ALIGNMENT_REFERENCE_IDENTITY_LAYER_EVIDENCE_INCOMPLETE", recipeId);
+    const authoritativeWorldFacts = array(
+      recipe["authoritativeWorldFactReferenceKeyHashes"],
+      `reference-identity-report.${recipeId}.authoritativeWorldFactReferenceKeyHashes`
+    );
+    if (recipeId !== "R5") {
+      invariant(authoritativeWorldFacts.length >= 1, "ALIGNMENT_WORLD_FACT_REFERENCE_EVIDENCE_INCOMPLETE", recipeId);
+      authoritativeWorldFacts.forEach((entry) => digest(entry, `reference-identity-report.${recipeId}.worldFactReferenceKeyHash`));
+    }
     if (recipeId === "R5") {
       invariant(recipe["consumesR1PersistedResolverOutput"] === true, "ALIGNMENT_R1_R5_HANDOFF_NOT_CONSUMED");
     }
@@ -1002,6 +1012,14 @@ function validateRuntimeEvidence(root: string, evidence: Map<string, EvidenceDoc
     "ALIGNMENT_R3_REFERENCE_KEY_REWRITTEN"
   );
   invariant(composability["validationLeaseUsable"] === true, "ALIGNMENT_R3_VALIDATION_LEASE_NOT_USABLE");
+  invariant(composability["worldFactObjectIdentityPreserved"] === true, "ALIGNMENT_R3_WORLD_FACT_OBJECT_IDENTITY_REWRITTEN");
+  invariant(
+    array(
+      composability["authoritativeWorldFactReferenceKeyHashes"],
+      "reference-composability-r3.authoritativeWorldFactReferenceKeyHashes"
+    ).length >= 1,
+    "ALIGNMENT_R3_WORLD_FACT_REFERENCE_EVIDENCE_INCOMPLETE"
+  );
   const operationKeys = [...new Set(
     array(composability["operationKeys"], "reference-composability-r3.operationKeys")
       .map((entry) => text(entry, "reference-composability-r3.operationKey"))
