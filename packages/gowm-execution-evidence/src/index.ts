@@ -7,6 +7,7 @@ export {
 export type {
   GdpsCurrentnessCheck,
   GdpsCurrentProductIdentity,
+  GdpsEvidenceContext,
   GdpsGapKind,
   GdpsGroundingStatus,
   GdpsReplayDecision,

@@ -1,0 +1,328 @@
+id,required,phase,area,scenario,expected,evidence
+W33-001,yes,W33,Baseline,WSGS remote fetched,Actual branch/PR head recorded,SOURCE/SCHEMA
+W33-002,yes,W33,Baseline,PR #5 state,Stack/base strategy selected,SOURCE/SCHEMA
+W33-003,yes,W33,Baseline,GDPS remote fetched,Actual v0.2/v0.2.1 source recorded,SOURCE/SCHEMA
+W33-004,yes,W33,Baseline,GOWM remote fetched,Actual main SHA recorded,SOURCE/SCHEMA
+W33-005,yes,W33,Baseline,GOWM version-string caveat,Exact hashes used instead of version alone,SOURCE/SCHEMA
+W33-006,yes,W33,Baseline,Running GOWM binding,Actual contract/semantic/binding revisions recorded,SOURCE/SCHEMA
+W33-007,yes,W33,Baseline,GDPS handoff located,Actual bundle source identified,SOURCE/SCHEMA
+W33-008,yes,W33,Baseline,Handoff checksum,Bundle checksums verified,SOURCE/SCHEMA
+W33-009,yes,W33,Baseline,Provider identity,gdps.geospatial-products locked,SOURCE/SCHEMA
+W33-010,yes,W33,Baseline,Provider version,Actual provider version recorded,SOURCE/SCHEMA
+W33-011,yes,W33,Baseline,34 ProductTypes,Exact expected set,SOURCE/SCHEMA
+W33-012,yes,W33,Baseline,35 profiles,Exact count and unique IDs,SOURCE/SCHEMA
+W33-013,yes,W33,Baseline,30 operations,Exact 23+7 set,SOURCE/SCHEMA
+W33-014,yes,W33,Baseline,All PREVIEW,Maturity exact,SOURCE/SCHEMA
+W33-015,yes,W33,Baseline,No product history,No forbidden semantics in handoff,SOURCE/SCHEMA
+W33-016,yes,W33,Baseline,WSGS baseline,Actual WSGS SHA and VERSION recorded,SOURCE/SCHEMA
+W33-017,yes,W33,Baseline,Correct task branch base,No PR #5 history rewrite,SOURCE/SCHEMA
+W33-018,yes,W33,Baseline,No direct-endpoint data in handoff,Secrets/internal URLs rejected,SOURCE/SCHEMA
+W33-019,yes,W33,Baseline,Source-lock report,Machine-valid report emitted,SOURCE/SCHEMA
+W33-020,yes,W33,Baseline,Blocked policy,Missing handoff cannot produce COMPLETE,SOURCE/SCHEMA
+W34-001,yes,W34,ContractIntake,Upstream directory,gdps-v0.2.1 bundle stored,SCHEMA/UNIT/STATIC_GUARD
+W34-002,yes,W34,ContractIntake,Consumer lock schema,Valid,SCHEMA/UNIT/STATIC_GUARD
+W34-003,yes,W34,ContractIntake,Capability lock schema,Valid,SCHEMA/UNIT/STATIC_GUARD
+W34-004,yes,W34,ContractIntake,Descriptor lock schema,Valid,SCHEMA/UNIT/STATIC_GUARD
+W34-005,yes,W34,ContractIntake,Recipe lock schema,Valid,SCHEMA/UNIT/STATIC_GUARD
+W34-006,yes,W34,ContractIntake,Dataset lock schema,Valid,SCHEMA/UNIT/STATIC_GUARD
+W34-007,yes,W34,ContractIntake,Gateway binding schema,Valid,SCHEMA/UNIT/STATIC_GUARD
+W34-008,yes,W34,ContractIntake,Consumer package checksums,All files exact,SCHEMA/UNIT/STATIC_GUARD
+W34-009,yes,W34,ContractIntake,Generated descriptor types,Compile,SCHEMA/UNIT/STATIC_GUARD
+W34-010,yes,W34,ContractIntake,Generated descriptor registry,Exact 35 profiles,SCHEMA/UNIT/STATIC_GUARD
+W34-011,yes,W34,ContractIntake,Generated capability lock,Exact 30,SCHEMA/UNIT/STATIC_GUARD
+W34-012,yes,W34,ContractIntake,Generated recipe lock,Exact authorized recipes,SCHEMA/UNIT/STATIC_GUARD
+W34-013,yes,W34,ContractIntake,Generated hashes,Canonical and deterministic,SCHEMA/UNIT/STATIC_GUARD
+W34-014,yes,W34,ContractIntake,Intake report,Pass/fail with issues,SCHEMA/UNIT/STATIC_GUARD
+W34-015,yes,W34,ContractIntake,Generate --check,No drift,SCHEMA/UNIT/STATIC_GUARD
+W34-016,yes,W34,ContractIntake,Duplicate descriptor rejected,Fail closed,SCHEMA/UNIT/STATIC_GUARD
+W34-017,yes,W34,ContractIntake,Unknown ProductType rejected,Fail closed,SCHEMA/UNIT/STATIC_GUARD
+W34-018,yes,W34,ContractIntake,Unknown operation rejected,Fail closed,SCHEMA/UNIT/STATIC_GUARD
+W34-019,yes,W34,ContractIntake,Schema hash drift rejected,Fail closed,SCHEMA/UNIT/STATIC_GUARD
+W34-020,yes,W34,ContractIntake,Semantic hash drift rejected,Fail closed,SCHEMA/UNIT/STATIC_GUARD
+W34-021,yes,W34,ContractIntake,Provider mismatch rejected,Fail closed,SCHEMA/UNIT/STATIC_GUARD
+W34-022,yes,W34,ContractIntake,Gateway revision mismatch rejected,Fail closed,SCHEMA/UNIT/STATIC_GUARD
+W34-023,yes,W34,ContractIntake,Secret path rejected,No secret-bearing fields,SCHEMA/UNIT/STATIC_GUARD
+W34-024,yes,W34,ContractIntake,Current-only guard,No productVersion semantics,SCHEMA/UNIT/STATIC_GUARD
+W34-025,yes,W34,ContractIntake,Contract package exports,Consumers import generated types,SCHEMA/UNIT/STATIC_GUARD
+W35-001,yes,W35,DescriptorConsumer,Package exists,gdps-descriptor-consumer compiles,UNIT/STATIC_GUARD
+W35-002,yes,W35,DescriptorConsumer,Descriptor lookup matched,Type/profile exact,UNIT/STATIC_GUARD
+W35-003,yes,W35,DescriptorConsumer,Descriptor lookup missing,DESCRIPTOR_NOT_FOUND,UNIT/STATIC_GUARD
+W35-004,yes,W35,DescriptorConsumer,Descriptor lookup ambiguous,AMBIGUOUS,UNIT/STATIC_GUARD
+W35-005,yes,W35,DescriptorConsumer,Concept SLOPE,SLOPE/DEGREE,UNIT/STATIC_GUARD
+W35-006,yes,W35,DescriptorConsumer,Concept FLOOD_RISK,FLOOD_RISK/FLOOD_RISK_CLASS,UNIT/STATIC_GUARD
+W35-007,yes,W35,DescriptorConsumer,Concept DRAINAGE,DRAINAGE_NETWORK/DRAINAGE_FEATURES,UNIT/STATIC_GUARD
+W35-008,yes,W35,DescriptorConsumer,Representation continuous,Correct,UNIT/STATIC_GUARD
+W35-009,yes,W35,DescriptorConsumer,Representation categorical,Correct,UNIT/STATIC_GUARD
+W35-010,yes,W35,DescriptorConsumer,Representation vector,Correct,UNIT/STATIC_GUARD
+W35-011,yes,W35,DescriptorConsumer,QueryProfile supported,Pass,UNIT/STATIC_GUARD
+W35-012,yes,W35,DescriptorConsumer,QueryProfile unsupported,Explicit gap,UNIT/STATIC_GUARD
+W35-013,yes,W35,DescriptorConsumer,Vocabulary class valid,Pass,UNIT/STATIC_GUARD
+W35-014,yes,W35,DescriptorConsumer,Vocabulary class invalid,CLASS_CODE_UNSUPPORTED,UNIT/STATIC_GUARD
+W35-015,yes,W35,DescriptorConsumer,Range valid,Pass,UNIT/STATIC_GUARD
+W35-016,yes,W35,DescriptorConsumer,Range invalid order,VALUE_RANGE_INVALID,UNIT/STATIC_GUARD
+W35-017,yes,W35,DescriptorConsumer,Range outside descriptor,VALUE_RANGE_INVALID,UNIT/STATIC_GUARD
+W35-018,yes,W35,DescriptorConsumer,Unit exact,Pass,UNIT/STATIC_GUARD
+W35-019,yes,W35,DescriptorConsumer,Unit compatible conversion,Deterministic conversion or explicit unsupported,UNIT/STATIC_GUARD
+W35-020,yes,W35,DescriptorConsumer,Unit mismatch,UNIT_MISMATCH,UNIT/STATIC_GUARD
+W35-021,yes,W35,DescriptorConsumer,Filter allowlisted,Pass,UNIT/STATIC_GUARD
+W35-022,yes,W35,DescriptorConsumer,Filter not allowlisted,PROPERTY_FILTER_UNSUPPORTED,UNIT/STATIC_GUARD
+W35-023,yes,W35,DescriptorConsumer,Required platform profile,Required enforced,UNIT/STATIC_GUARD
+W35-024,yes,W35,DescriptorConsumer,Forbidden platform profile,Forbidden enforced,UNIT/STATIC_GUARD
+W35-025,yes,W35,DescriptorConsumer,Optional platform profile,Optional accepted,UNIT/STATIC_GUARD
+W35-026,yes,W35,DescriptorConsumer,Recipe lookup,Exact descriptor/query profile,UNIT/STATIC_GUARD
+W35-027,yes,W35,DescriptorConsumer,Recipe absent,Explicit gap,UNIT/STATIC_GUARD
+W35-028,yes,W35,DescriptorConsumer,Descriptor hash evidence,Returned,UNIT/STATIC_GUARD
+W35-029,yes,W35,DescriptorConsumer,No HTTP/DB,Architecture guard,UNIT/STATIC_GUARD
+W35-030,yes,W35,DescriptorConsumer,Deterministic resolution,Same input same evidence hash,UNIT/STATIC_GUARD
+W36-001,yes,W36,SemanticIntent,Intent schema,Valid,UNIT/STATIC_GUARD
+W36-002,yes,W36,SemanticIntent,Grounded intent schema,Valid,UNIT/STATIC_GUARD
+W36-003,yes,W36,SemanticIntent,Slope concept,Detected,UNIT/STATIC_GUARD
+W36-004,yes,W36,SemanticIntent,Aspect concept,Detected,UNIT/STATIC_GUARD
+W36-005,yes,W36,SemanticIntent,Flood concept,Detected,UNIT/STATIC_GUARD
+W36-006,yes,W36,SemanticIntent,Drainage concept,Detected,UNIT/STATIC_GUARD
+W36-007,yes,W36,SemanticIntent,Bridge concept,Detected,UNIT/STATIC_GUARD
+W36-008,yes,W36,SemanticIntent,Communication concept,Detected,UNIT/STATIC_GUARD
+W36-009,yes,W36,SemanticIntent,Vegetation concept,Detected,UNIT/STATIC_GUARD
+W36-010,yes,W36,SemanticIntent,15-30 degree range,Parsed deterministically,UNIT/STATIC_GUARD
+W36-011,yes,W36,SemanticIntent,Greater-than range,Parsed deterministically,UNIT/STATIC_GUARD
+W36-012,yes,W36,SemanticIntent,High/very-high classes,Parsed,UNIT/STATIC_GUARD
+W36-013,yes,W36,SemanticIntent,500m distance,Parsed,UNIT/STATIC_GUARD
+W36-014,yes,W36,SemanticIntent,1km distance,Parsed as 1000m,UNIT/STATIC_GUARD
+W36-015,yes,W36,SemanticIntent,Explicit product,Parsed only from source,UNIT/STATIC_GUARD
+W36-016,yes,W36,SemanticIntent,No product hallucination,Model cannot inject unanchored product,UNIT/STATIC_GUARD
+W36-017,yes,W36,SemanticIntent,Vehicle mention unchanged,Reference semantics preserved,UNIT/STATIC_GUARD
+W36-018,yes,W36,SemanticIntent,Area mention unchanged,Reference semantics preserved,UNIT/STATIC_GUARD
+W36-019,yes,W36,SemanticIntent,Intent has no operationId,Static guard,UNIT/STATIC_GUARD
+W36-020,yes,W36,SemanticIntent,Intent has no providerId,Static guard,UNIT/STATIC_GUARD
+W36-021,yes,W36,SemanticIntent,Concept map has no operationId,Static guard,UNIT/STATIC_GUARD
+W36-022,yes,W36,SemanticIntent,Model unsupported concept,Descriptor gap,UNIT/STATIC_GUARD
+W36-023,yes,W36,SemanticIntent,Invalid source span,Rejected,UNIT/STATIC_GUARD
+W36-024,yes,W36,SemanticIntent,Unit mismatch,Detected before compile,UNIT/STATIC_GUARD
+W36-025,yes,W36,SemanticIntent,No distance in source,Model cannot fabricate,UNIT/STATIC_GUARD
+W36-026,yes,W36,SemanticIntent,Frame 1.0 compatibility,Existing contracts pass,UNIT/STATIC_GUARD
+W36-027,yes,W36,SemanticIntent,Existing GDPS semantics,Seven specialized signals retained,UNIT/STATIC_GUARD
+W36-028,yes,W36,SemanticIntent,Intent evidence,Source node/span evidence retained,UNIT/STATIC_GUARD
+W37-001,yes,W37,Planner,Seven generic requirements declared,Exact set,UNIT/STATIC_GUARD
+W37-002,yes,W37,Planner,Planner no operation IDs,Static guard,UNIT/STATIC_GUARD
+W37-003,yes,W37,Planner,Slope point requirement,READ_GEO_PRODUCT_VALUE,UNIT/STATIC_GUARD
+W37-004,yes,W37,Planner,Slope profile requirement,READ_GEO_PRODUCT_PROFILE,UNIT/STATIC_GUARD
+W37-005,yes,W37,Planner,Slope range requirement,FIND_GEO_PRODUCT_VALUE_RANGE_AREAS,UNIT/STATIC_GUARD
+W37-006,yes,W37,Planner,Flood class requirement,FIND_GEO_PRODUCT_CLASS_AREAS,UNIT/STATIC_GUARD
+W37-007,yes,W37,Planner,Drainage in area,FIND_GEO_VECTOR_FEATURES_IN_AREA,UNIT/STATIC_GUARD
+W37-008,yes,W37,Planner,Drainage nearby,FIND_GEO_VECTOR_FEATURES_NEARBY,UNIT/STATIC_GUARD
+W37-009,yes,W37,Planner,Drainage intersects,FIND_GEO_VECTOR_INTERSECTIONS,UNIT/STATIC_GUARD
+W37-010,yes,W37,Planner,High ground specialized,FIND_HIGH_GROUND,UNIT/STATIC_GUARD
+W37-011,yes,W37,Planner,Wetlands specialized,FIND_WETLANDS,UNIT/STATIC_GUARD
+W37-012,yes,W37,Planner,Land cover specialized,READ_LAND_COVER,UNIT/STATIC_GUARD
+W37-013,yes,W37,Planner,Elevation specialized,READ_ELEVATION,UNIT/STATIC_GUARD
+W37-014,yes,W37,Planner,Traversability specialized,EXPLAIN_TRAVERSABILITY,UNIT/STATIC_GUARD
+W37-015,yes,W37,Planner,Flood no longer fixed unsupported,Generic planned,UNIT/STATIC_GUARD
+W37-016,yes,W37,Planner,Slope no longer terrain gap,Generic planned,UNIT/STATIC_GUARD
+W37-017,yes,W37,Planner,Descriptor gap,Explicit,UNIT/STATIC_GUARD
+W37-018,yes,W37,Planner,Query profile gap,Explicit,UNIT/STATIC_GUARD
+W37-019,yes,W37,Planner,Class invalid,No query planned,UNIT/STATIC_GUARD
+W37-020,yes,W37,Planner,Unit invalid,No query planned,UNIT/STATIC_GUARD
+W37-021,yes,W37,Planner,Explicit product propagated,Only when source anchored,UNIT/STATIC_GUARD
+W37-022,yes,W37,Planner,Requirement graph valid,Schema/hash/dependencies,UNIT/STATIC_GUARD
+W37-023,yes,W37,Planner,Reference dependency point,Resolve→state→requirement,UNIT/STATIC_GUARD
+W37-024,yes,W37,Planner,Reference dependency area,Resolve→geometry→requirement,UNIT/STATIC_GUARD
+W37-025,yes,W37,Planner,Existing planner regression,All prior recipes pass,UNIT/STATIC_GUARD
+W38-001,yes,W38,TrustedSnapshot,No provider 0.1 hardcode,Lock driven,UNIT/REAL_POSTGRES
+W38-002,yes,W38,TrustedSnapshot,No count 23 hardcode,Lock driven,UNIT/REAL_POSTGRES
+W38-003,yes,W38,TrustedSnapshot,No source recipe map,Generated lock driven,UNIT/REAL_POSTGRES
+W38-004,yes,W38,TrustedSnapshot,Consumer lock hash,Snapshot stores,UNIT/REAL_POSTGRES
+W38-005,yes,W38,TrustedSnapshot,Capability lock hash,Snapshot stores,UNIT/REAL_POSTGRES
+W38-006,yes,W38,TrustedSnapshot,Descriptor lock hash,Snapshot stores,UNIT/REAL_POSTGRES
+W38-007,yes,W38,TrustedSnapshot,Recipe lock hash,Snapshot stores,UNIT/REAL_POSTGRES
+W38-008,yes,W38,TrustedSnapshot,34 type count,Snapshot validates,UNIT/REAL_POSTGRES
+W38-009,yes,W38,TrustedSnapshot,35 profile count,Snapshot validates,UNIT/REAL_POSTGRES
+W38-010,yes,W38,TrustedSnapshot,30 capability keys,Snapshot validates,UNIT/REAL_POSTGRES
+W38-011,yes,W38,TrustedSnapshot,Capability intersection,Only locked/runtime capabilities,UNIT/REAL_POSTGRES
+W38-012,yes,W38,TrustedSnapshot,Recipe intersection,Only authorized operations,UNIT/REAL_POSTGRES
+W38-013,yes,W38,TrustedSnapshot,Availability intersection,Unavailable excluded,UNIT/REAL_POSTGRES
+W38-014,yes,W38,TrustedSnapshot,Degraded policy,Explicit,UNIT/REAL_POSTGRES
+W38-015,yes,W38,TrustedSnapshot,Missing capability,Fail closed,UNIT/REAL_POSTGRES
+W38-016,yes,W38,TrustedSnapshot,Schema mismatch,Fail closed,UNIT/REAL_POSTGRES
+W38-017,yes,W38,TrustedSnapshot,Semantic mismatch,Fail closed,UNIT/REAL_POSTGRES
+W38-018,yes,W38,TrustedSnapshot,Expired availability,Refresh/fail closed,UNIT/REAL_POSTGRES
+W38-019,yes,W38,TrustedSnapshot,Provider version from lock,No literal,UNIT/REAL_POSTGRES
+W38-020,yes,W38,TrustedSnapshot,Snapshot deterministic,Canonical hash,UNIT/REAL_POSTGRES
+W38-021,yes,W38,TrustedSnapshot,Job snapshot immutability,Insert-if-absent,UNIT/REAL_POSTGRES
+W38-022,yes,W38,TrustedSnapshot,Product availability separation,No product not capability gap,UNIT/REAL_POSTGRES
+W38-023,yes,W38,TrustedSnapshot,Existing general snapshot regression,Pass,UNIT/REAL_POSTGRES
+W38-024,yes,W38,TrustedSnapshot,Persistence,Lock hashes retained,UNIT/REAL_POSTGRES
+W38-025,yes,W38,TrustedSnapshot,No product history,Static guard,UNIT/REAL_POSTGRES
+W39-001,yes,W39,RecipeMatcher,14 active patterns,Exact set,UNIT/STATIC_GUARD
+W39-002,yes,W39,RecipeMatcher,30 capability locks,All accepted,UNIT/STATIC_GUARD
+W39-003,yes,W39,RecipeMatcher,No prefix authorization,Static guard,UNIT/STATIC_GUARD
+W39-004,yes,W39,RecipeMatcher,Recipe entry required,Missing rejected,UNIT/STATIC_GUARD
+W39-005,yes,W39,RecipeMatcher,Recipe hash required,Drift rejected,UNIT/STATIC_GUARD
+W39-006,yes,W39,RecipeMatcher,Descriptor hash required,Drift rejected,UNIT/STATIC_GUARD
+W39-007,yes,W39,RecipeMatcher,Input schema hash exact,Drift rejected,UNIT/STATIC_GUARD
+W39-008,yes,W39,RecipeMatcher,Output schema hash exact,Drift rejected,UNIT/STATIC_GUARD
+W39-009,yes,W39,RecipeMatcher,Semantic hash exact,Drift rejected,UNIT/STATIC_GUARD
+W39-010,yes,W39,RecipeMatcher,Operation version exact,Drift rejected,UNIT/STATIC_GUARD
+W39-011,yes,W39,RecipeMatcher,PREVIEW selective allow,No global allow,UNIT/STATIC_GUARD
+W39-012,yes,W39,RecipeMatcher,Specialized priority,Selected when exact,UNIT/STATIC_GUARD
+W39-013,yes,W39,RecipeMatcher,Generic fallback,Selected when no specialized,UNIT/STATIC_GUARD
+W39-014,yes,W39,RecipeMatcher,No approximate substitution,Gap,UNIT/STATIC_GUARD
+W39-015,yes,W39,RecipeMatcher,Ambiguous match,Gap,UNIT/STATIC_GUARD
+W39-016,yes,W39,RecipeMatcher,Capability unavailable,Gap,UNIT/STATIC_GUARD
+W39-017,yes,W39,RecipeMatcher,Capability degraded reject,Policy,UNIT/STATIC_GUARD
+W39-018,yes,W39,RecipeMatcher,Capability degraded allow,Evidence,UNIT/STATIC_GUARD
+W39-019,yes,W39,RecipeMatcher,Snapshot mode supported,Checked,UNIT/STATIC_GUARD
+W39-020,yes,W39,RecipeMatcher,ProductId unbound default,Enforced,UNIT/STATIC_GUARD
+W39-021,yes,W39,RecipeMatcher,Explicit product allowed,Source anchored,UNIT/STATIC_GUARD
+W39-022,yes,W39,RecipeMatcher,Provider ID not match key,Static/unit,UNIT/STATIC_GUARD
+W39-023,yes,W39,RecipeMatcher,Matcher evidence descriptor,Included,UNIT/STATIC_GUARD
+W39-024,yes,W39,RecipeMatcher,Matcher evidence recipe,Included,UNIT/STATIC_GUARD
+W39-025,yes,W39,RecipeMatcher,Existing matcher regression,Pass,UNIT/STATIC_GUARD
+W40-001,yes,W40,TypedCompiler,Generic sample template,Resolve→state→sample,UNIT/STATIC_GUARD
+W40-002,yes,W40,TypedCompiler,Generic profile template,Resolve→line geometry→profile,UNIT/STATIC_GUARD
+W40-003,yes,W40,TypedCompiler,Generic class template,Resolve→area geometry→find class,UNIT/STATIC_GUARD
+W40-004,yes,W40,TypedCompiler,Generic range template,Resolve→area geometry→find range,UNIT/STATIC_GUARD
+W40-005,yes,W40,TypedCompiler,Generic vector in-area,Resolve→geometry→find-in-area,UNIT/STATIC_GUARD
+W40-006,yes,W40,TypedCompiler,Generic vector nearby,Resolve→state→find-nearby,UNIT/STATIC_GUARD
+W40-007,yes,W40,TypedCompiler,Generic vector intersects,Resolve→geometry→intersections,UNIT/STATIC_GUARD
+W40-008,yes,W40,TypedCompiler,ProductType literal,Descriptor-bound,UNIT/STATIC_GUARD
+W40-009,yes,W40,TypedCompiler,ProductProfile literal,Descriptor-bound,UNIT/STATIC_GUARD
+W40-010,yes,W40,TypedCompiler,ClassCodes literal,Constraint-bound,UNIT/STATIC_GUARD
+W40-011,yes,W40,TypedCompiler,Ranges literal,Constraint-bound,UNIT/STATIC_GUARD
+W40-012,yes,W40,TypedCompiler,PropertyFilters literal,Validated,UNIT/STATIC_GUARD
+W40-013,yes,W40,TypedCompiler,PlatformProfile literal,Validated,UNIT/STATIC_GUARD
+W40-014,yes,W40,TypedCompiler,Distance binding,Source constraint,UNIT/STATIC_GUARD
+W40-015,yes,W40,TypedCompiler,Point node output,Correct target path,UNIT/STATIC_GUARD
+W40-016,yes,W40,TypedCompiler,Selector node output,Correct target path,UNIT/STATIC_GUARD
+W40-017,yes,W40,TypedCompiler,Line node output,Correct target path,UNIT/STATIC_GUARD
+W40-018,yes,W40,TypedCompiler,Explicit product optional,Bound only if present,UNIT/STATIC_GUARD
+W40-019,yes,W40,TypedCompiler,No default product ID,Static/unit,UNIT/STATIC_GUARD
+W40-020,yes,W40,TypedCompiler,World query parameter hash from lock,No source constant,UNIT/STATIC_GUARD
+W40-021,yes,W40,TypedCompiler,Schema ports exact,Matched,UNIT/STATIC_GUARD
+W40-022,yes,W40,TypedCompiler,Operation input validates,Each generic op,UNIT/STATIC_GUARD
+W40-023,yes,W40,TypedCompiler,Output binding valid,Each generic op,UNIT/STATIC_GUARD
+W40-024,yes,W40,TypedCompiler,Plan hash deterministic,Pass,UNIT/STATIC_GUARD
+W40-025,yes,W40,TypedCompiler,Budget node count,Pass,UNIT/STATIC_GUARD
+W40-026,yes,W40,TypedCompiler,Budget depth,Pass,UNIT/STATIC_GUARD
+W40-027,yes,W40,TypedCompiler,Budget output bytes,Pass,UNIT/STATIC_GUARD
+W40-028,yes,W40,TypedCompiler,Budget runtime,Pass,UNIT/STATIC_GUARD
+W40-029,yes,W40,TypedCompiler,Input geometry kind line,Required for profile,UNIT/STATIC_GUARD
+W40-030,yes,W40,TypedCompiler,Wrong geometry kind,Gap,UNIT/STATIC_GUARD
+W40-031,yes,W40,TypedCompiler,Specialized templates unchanged,Regression,UNIT/STATIC_GUARD
+W40-032,yes,W40,TypedCompiler,Literal/request/node bindings,All supported,UNIT/STATIC_GUARD
+W40-033,yes,W40,TypedCompiler,Reserved parameter guard,Pass,UNIT/STATIC_GUARD
+W40-034,yes,W40,TypedCompiler,No operation IDs in planner,Boundary,UNIT/STATIC_GUARD
+W40-035,yes,W40,TypedCompiler,Compiler contract regression,Pass,UNIT/STATIC_GUARD
+W41-001,yes,W41,GatewayExecution,Gateway-only runtime,No direct GDPS,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-002,yes,W41,GatewayExecution,Consumer locks loaded,Runtime,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-003,yes,W41,GatewayExecution,Descriptor locks loaded,Runtime,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-004,yes,W41,GatewayExecution,Recipe locks loaded,Runtime,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-005,yes,W41,GatewayExecution,Node input assembly,Actual hash matches,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-006,yes,W41,GatewayExecution,Node output resolution,Paths resolve,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-007,yes,W41,GatewayExecution,Known reference selected,Not re-resolved,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-008,yes,W41,GatewayExecution,Reference ambiguity,GDPS not executed,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-009,yes,W41,GatewayExecution,Gateway auth,Pass,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-010,yes,W41,GatewayExecution,Delegation scope,Pass,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-011,yes,W41,GatewayExecution,Deadline,Pass,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-012,yes,W41,GatewayExecution,Idempotency,Pass,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-013,yes,W41,GatewayExecution,Single safe retry,Only eligible technical/source-change case,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-014,yes,W41,GatewayExecution,No infinite retry,Pass,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-015,yes,W41,GatewayExecution,Provider failure,FAILED normalized,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-016,yes,W41,GatewayExecution,Capability gap pre-execution,No Gateway call,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-017,yes,W41,GatewayExecution,Execution records,Persisted,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W41-018,yes,W41,GatewayExecution,Existing Gateway runtime regression,Pass,UNIT/REAL_POSTGRES/GOWM_GATEWAY
+W42-001,yes,W42,EvidenceStatus,Recipe ID evidence,Present,UNIT/REAL_POSTGRES
+W42-002,yes,W42,EvidenceStatus,Recipe lock hash,Present,UNIT/REAL_POSTGRES
+W42-003,yes,W42,EvidenceStatus,Descriptor ID,Present,UNIT/REAL_POSTGRES
+W42-004,yes,W42,EvidenceStatus,Descriptor hash,Present,UNIT/REAL_POSTGRES
+W42-005,yes,W42,EvidenceStatus,Product ID,Present,UNIT/REAL_POSTGRES
+W42-006,yes,W42,EvidenceStatus,Product type,Present,UNIT/REAL_POSTGRES
+W42-007,yes,W42,EvidenceStatus,Product profile,Present,UNIT/REAL_POSTGRES
+W42-008,yes,W42,EvidenceStatus,Content hash,Present,UNIT/REAL_POSTGRES
+W42-009,yes,W42,EvidenceStatus,Query profile,Present,UNIT/REAL_POSTGRES
+W42-010,yes,W42,EvidenceStatus,Data snapshot,Present,UNIT/REAL_POSTGRES
+W42-011,yes,W42,EvidenceStatus,Compute snapshot,Present,UNIT/REAL_POSTGRES
+W42-012,yes,W42,EvidenceStatus,Receipt IDs,Present,UNIT/REAL_POSTGRES
+W42-013,yes,W42,EvidenceStatus,Evidence IDs,Present,UNIT/REAL_POSTGRES
+W42-014,yes,W42,EvidenceStatus,Quality,Preserved if provided,UNIT/REAL_POSTGRES
+W42-015,yes,W42,EvidenceStatus,Truncated false,COMPLETED,UNIT/REAL_POSTGRES
+W42-016,yes,W42,EvidenceStatus,Truncated true,PARTIAL,UNIT/REAL_POSTGRES
+W42-017,yes,W42,EvidenceStatus,Empty collection,COMPLETED/NO_MATCH_FOUND,UNIT/REAL_POSTGRES
+W42-018,yes,W42,EvidenceStatus,Product missing,DATA_GAP,UNIT/REAL_POSTGRES
+W42-019,yes,W42,EvidenceStatus,Coverage insufficient,COVERAGE_GAP,UNIT/REAL_POSTGRES
+W42-020,yes,W42,EvidenceStatus,Product ambiguity,AMBIGUOUS,UNIT/REAL_POSTGRES
+W42-021,yes,W42,EvidenceStatus,Capability missing,CAPABILITY_GAP,UNIT/REAL_POSTGRES
+W42-022,yes,W42,EvidenceStatus,Source changed,INDETERMINATE,UNIT/REAL_POSTGRES
+W42-023,yes,W42,EvidenceStatus,Protocol failure,FAILED,UNIT/REAL_POSTGRES
+W42-024,yes,W42,EvidenceStatus,No productVersion,Static guard,UNIT/REAL_POSTGRES
+W42-025,yes,W42,EvidenceStatus,Evidence payload bounds,Existing object reference behavior preserved,UNIT/REAL_POSTGRES
+W43-001,yes,W43,Currentness,check-current CURRENT,Usable,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-002,yes,W43,Currentness,check-current CHANGED,Stale,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-003,yes,W43,Currentness,check-current NOT_AVAILABLE,Data gap,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-004,yes,W43,Currentness,Strict reuse current,Allowed within policy,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-005,yes,W43,Currentness,Strict reuse changed,Blocked,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-006,yes,W43,Currentness,No silent current execution,Pass,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-007,yes,W43,Currentness,BEST_EFFORT explicit,New query,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-008,yes,W43,Currentness,SOURCE_ADVANCED warning,Present,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-009,yes,W43,Currentness,Previous hash,Recorded,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-010,yes,W43,Currentness,Actual hash,Recorded,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-011,yes,W43,Currentness,No historical read,Pass,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-012,yes,W43,Currentness,No product version,Pass,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-013,yes,W43,Currentness,Source change during query,At most one retry,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-014,yes,W43,Currentness,Second source change,INDETERMINATE,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-015,yes,W43,Currentness,Currentness evidence persisted,Pass,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-016,yes,W43,Currentness,Existing priorGrounding boundary,Not weakened,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-017,yes,W43,Currentness,Replay terminology,Revalidation vs re-execution distinguished,CURRENTNESS/UNIT/REAL_POSTGRES
+W43-018,yes,W43,Currentness,Currentness regression,Pass,CURRENTNESS/UNIT/REAL_POSTGRES
+W44-E2E-01,yes,W44,RealE2E,E2E-SLOPE-POINT,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-02,yes,W44,RealE2E,E2E-SLOPE-RANGE,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-03,yes,W44,RealE2E,E2E-FLOOD-HIGH,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-04,yes,W44,RealE2E,E2E-DRAINAGE-NEARBY,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-05,yes,W44,RealE2E,E2E-HIGH-GROUND,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-06,yes,W44,RealE2E,E2E-WETLAND,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-07,yes,W44,RealE2E,E2E-LAND-COVER,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-08,yes,W44,RealE2E,E2E-TRAVERSABILITY-EXPLAIN,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-09,yes,W44,RealE2E,E2E-EXPLICIT-PRODUCT,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-10,yes,W44,RealE2E,NEG-DESCRIPTOR-GAP,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-11,yes,W44,RealE2E,NEG-DATA-GAP,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-12,yes,W44,RealE2E,NEG-REFERENCE-AMBIGUITY,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-13,yes,W44,RealE2E,NEG-UNIT-MISMATCH,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-14,yes,W44,RealE2E,NEG-RECIPE-DRIFT,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-15,yes,W44,RealE2E,NEG-TRUNCATED,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-E2E-16,yes,W44,RealE2E,NEG-CURRENTNESS,Natural-language case follows locked semantic/descriptor/recipe/plan/Gateway/evidence path,REAL_NATURAL_LANGUAGE_E2E
+W44-X01,yes,W44,Integration,Running GDPS baseline,Ready,RUNNING_GOWM_GATEWAY/REPORT
+W44-X02,yes,W44,Integration,Running GOWM Gateway,Ready,RUNNING_GOWM_GATEWAY/REPORT
+W44-X03,yes,W44,Integration,WSGS API/worker,Ready,RUNNING_GOWM_GATEWAY/REPORT
+W44-X04,yes,W44,Integration,No mock result,Evidence proves real endpoints,RUNNING_GOWM_GATEWAY/REPORT
+W44-X05,yes,W44,Integration,Continuous raster,Real case pass,RUNNING_GOWM_GATEWAY/REPORT
+W44-X06,yes,W44,Integration,Categorical raster,Real case pass,RUNNING_GOWM_GATEWAY/REPORT
+W44-X07,yes,W44,Integration,Vector feature,Real case pass,RUNNING_GOWM_GATEWAY/REPORT
+W44-X08,yes,W44,Integration,Specialized operation,Real case pass,RUNNING_GOWM_GATEWAY/REPORT
+W44-X09,yes,W44,Integration,Explicit product,Real case pass,RUNNING_GOWM_GATEWAY/REPORT
+W44-X10,yes,W44,Integration,Foreign scope,No leak,RUNNING_GOWM_GATEWAY/REPORT
+W44-X11,yes,W44,Integration,Product evidence,Hash and descriptor present,RUNNING_GOWM_GATEWAY/REPORT
+W44-X12,yes,W44,Integration,End-to-end report,Machine-valid,RUNNING_GOWM_GATEWAY/REPORT
+W45-001,yes,W45,RegressionDelivery,npm ci,Pass,CI/REPORT/GIT
+W45-002,yes,W45,RegressionDelivery,npm run build,Pass,CI/REPORT/GIT
+W45-003,yes,W45,RegressionDelivery,npm test,Pass,CI/REPORT/GIT
+W45-004,yes,W45,RegressionDelivery,npm run check,Pass,CI/REPORT/GIT
+W45-005,yes,W45,RegressionDelivery,Contract intake gate,Pass,CI/REPORT/GIT
+W45-006,yes,W45,RegressionDelivery,Architecture boundary,Pass,CI/REPORT/GIT
+W45-007,yes,W45,RegressionDelivery,Real GOWM gate,Pass,CI/REPORT/GIT
+W45-008,yes,W45,RegressionDelivery,Development closure,Pass,CI/REPORT/GIT
+W45-009,yes,W45,RegressionDelivery,Reference regression,Pass,CI/REPORT/GIT
+W45-010,yes,W45,RegressionDelivery,Known reference regression,Pass,CI/REPORT/GIT
+W45-011,yes,W45,RegressionDelivery,Grounding Core regression,Pass,CI/REPORT/GIT
+W45-012,yes,W45,RegressionDelivery,Seven specialized GDPS recipes,Pass,CI/REPORT/GIT
+W45-013,yes,W45,RegressionDelivery,Seven generic GDPS recipes,Pass,CI/REPORT/GIT
+W45-014,yes,W45,RegressionDelivery,Postgres persistence,Pass,CI/REPORT/GIT
+W45-015,yes,W45,RegressionDelivery,Northbound contract,Pass,CI/REPORT/GIT
+W45-016,yes,W45,RegressionDelivery,Evidence map complete,Every acceptance mapped,CI/REPORT/GIT
+W45-017,yes,W45,RegressionDelivery,No aggregate pass,Each row evaluated,CI/REPORT/GIT
+W45-018,yes,W45,RegressionDelivery,No required NOT_RUN,For COMPLETE,CI/REPORT/GIT
+W45-019,yes,W45,RegressionDelivery,Source SHAs,Reported,CI/REPORT/GIT
+W45-020,yes,W45,RegressionDelivery,Runtime revisions,Reported,CI/REPORT/GIT
+W45-021,yes,W45,RegressionDelivery,Task branch pushed,Exact SHA,CI/REPORT/GIT
+W45-022,yes,W45,RegressionDelivery,Draft PR,Correct base,CI/REPORT/GIT
+W45-023,yes,W45,RegressionDelivery,No merge/tag/release,Pass,CI/REPORT/GIT
+W45-024,yes,W45,RegressionDelivery,Final marker policy,Only all-pass,CI/REPORT/GIT
+W45-025,yes,W45,RegressionDelivery,Final report,Complete and honest,CI/REPORT/GIT

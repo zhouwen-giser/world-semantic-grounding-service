@@ -7,6 +7,7 @@
   "types": "dist/index.d.ts",
   "exports": "./dist/index.js",
   "dependencies": {
-    "@wsgs/contracts": "0.1.0"
+    "@wsgs/contracts": "0.1.0",
+    "@wsgs/gdps-descriptor-consumer": "0.2.0"
   }
 }

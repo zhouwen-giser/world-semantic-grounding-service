@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import type { WorldQueryPlanV2 } from "./types.js";
-import {
-  GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH,
-  TypedWorldQueryCompiler,
-  validateCompiledPlan
-} from "./index.js";
+import { TypedWorldQueryCompiler, validateCompiledPlan } from "./index.js";
 import { compileInput } from "./test-fixtures.js";
 
 describe("TypedWorldQueryCompiler v2", () => {
@@ -129,7 +125,7 @@ describe("TypedWorldQueryCompiler v2", () => {
       },
       distanceM: 1_000
     });
-    expect(result.submission.parameterSchemaHash).toBe(GOWM_WORLD_QUERY_PARAMETERS_SCHEMA_HASH);
+    expect(result.submission.parameterSchemaHash).toBe(input.parameterSchemaHash);
     expect(result.submission.plan.nodes.at(-1)?.inputs["radiusM"]).toMatchObject({
       kind: "REQUEST_PATH",
       path: "/distanceM",

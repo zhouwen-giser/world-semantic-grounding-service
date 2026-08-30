@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:geospatial-product-intent:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "intentId",
+    "targetConcept",
+    "querySemantics",
+    "subjectMentionIds"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-geospatial-product-intent/1.0"
+    },
+    "intentId": {
+      "type": "string"
+    },
+    "targetConcept": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{1,127}$"
+    },
+    "querySemantics": {
+      "enum": [
+        "READ_VALUE",
+        "READ_PROFILE",
+        "FIND_CLASS_AREAS",
+        "FIND_VALUE_RANGE_AREAS",
+        "FIND_FEATURES_IN_AREA",
+        "FIND_FEATURES_NEARBY",
+        "FIND_INTERSECTIONS"
+      ]
+    },
+    "subjectMentionIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "classSemantics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "numericConstraint": {
+      "type": "object",
+      "properties": {
+        "ranges": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object"
+          }
+        },
+        "unit": {
+          "type": "string"
+        }
+      }
+    },
+    "spatialConstraint": {
+      "type": "object",
+      "properties": {
+        "relation": {
+          "enum": [
+            "AT",
+            "WITHIN",
+            "NEAR",
+            "INTERSECTS"
+          ]
+        },
+        "distanceM": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "explicitProductPreference": {
+      "type": "string"
+    },
+    "platformProfile": {
+      "type": "string"
+    },
+    "propertyFilters": {
+      "type": "object"
+    },
+    "sourceNodeIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceSpans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceNodeId", "encoding", "start", "end"],
+        "properties": {
+          "sourceNodeId": { "type": "string" },
+          "encoding": { "const": "UTF16_CODE_UNIT" },
+          "start": { "type": "integer", "minimum": 0 },
+          "end": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

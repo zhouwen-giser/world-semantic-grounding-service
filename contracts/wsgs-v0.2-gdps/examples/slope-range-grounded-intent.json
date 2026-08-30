@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "wsgs-grounded-geospatial-product-intent/1.0",
+  "intentId": "intent-slope-range-a",
+  "descriptorId": "SLOPE/DEGREE",
+  "descriptorHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "productType": "SLOPE",
+  "productProfile": "DEGREE",
+  "representation": "RASTER_CONTINUOUS",
+  "queryProfile": "FIND_VALUE_RANGE",
+  "ranges": [
+    {
+      "minimum": 15,
+      "maximum": 30,
+      "minimumInclusive": true,
+      "maximumInclusive": true
+    }
+  ],
+  "sourceNodeIds": [
+    "semantic-operation-slope"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "wsgs-gdps-runtime-pattern-plan/1.0",
+  "specializedPatterns": [
+    "GDPS_LAND_COVER_AT_REFERENCE",
+    "GDPS_WETLANDS_IN_AREA",
+    "GDPS_OBSTACLES_NEAR_REFERENCE",
+    "GDPS_BLOCKED_AREAS_IN_AREA",
+    "GDPS_HIGH_GROUND_IN_AREA",
+    "GDPS_ELEVATION_AT_REFERENCE",
+    "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE"
+  ],
+  "genericPatterns": [
+    "GDPS_GENERIC_SAMPLE_VALUE",
+    "GDPS_GENERIC_PROFILE_VALUE",
+    "GDPS_GENERIC_FIND_CLASS",
+    "GDPS_GENERIC_FIND_RANGE",
+    "GDPS_GENERIC_VECTOR_IN_AREA",
+    "GDPS_GENERIC_VECTOR_NEARBY",
+    "GDPS_GENERIC_VECTOR_INTERSECTS"
+  ],
+  "genericRequirements": [
+    "READ_GEO_PRODUCT_VALUE",
+    "READ_GEO_PRODUCT_PROFILE",
+    "FIND_GEO_PRODUCT_CLASS_AREAS",
+    "FIND_GEO_PRODUCT_VALUE_RANGE_AREAS",
+    "FIND_GEO_VECTOR_FEATURES_IN_AREA",
+    "FIND_GEO_VECTOR_FEATURES_NEARBY",
+    "FIND_GEO_VECTOR_INTERSECTIONS"
+  ],
+  "selectionPriority": [
+    "SPECIALIZED_EXACT",
+    "GENERIC_DESCRIPTOR_EXACT"
+  ],
+  "ambiguousFallback": "CAPABILITY_GAP",
+  "previewPolicy": {
+    "allowAllPreview": false,
+    "requiresRecipeLock": true,
+    "requiresDescriptorHash": true,
+    "requiresOperationHashes": true,
+    "prefixBasedAuthorizationForbidden": true
+  }
+}

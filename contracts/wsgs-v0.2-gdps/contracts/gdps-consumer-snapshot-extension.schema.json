@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-consumer-snapshot-extension:2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "providerId",
+    "providerVersion",
+    "consumerLockHash",
+    "capabilityLockHash",
+    "descriptorLockHash",
+    "recipeLockHash",
+    "productTypeCount",
+    "descriptorProfileCount",
+    "capabilityKeys",
+    "capabilitySnapshotHash"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-gdps-consumer-snapshot/2.0"
+    },
+    "providerId": {
+      "const": "gdps.geospatial-products"
+    },
+    "providerVersion": {
+      "type": "string"
+    },
+    "consumerLockHash": {
+      "type": "string"
+    },
+    "capabilityLockHash": {
+      "type": "string"
+    },
+    "descriptorLockHash": {
+      "type": "string"
+    },
+    "recipeLockHash": {
+      "type": "string"
+    },
+    "productTypeCount": {
+      "const": 34
+    },
+    "descriptorProfileCount": {
+      "const": 35
+    },
+    "capabilityKeys": {
+      "type": "array",
+      "minItems": 30,
+      "maxItems": 30,
+      "items": {
+        "type": "string"
+      }
+    },
+    "capabilitySnapshotHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

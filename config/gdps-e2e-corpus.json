@@ -1,0 +1,155 @@
+{
+  "schemaVersion": "wsgs-gdps-e2e-corpus/2.0",
+  "requiredExecutionPath": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY",
+  "cases": [
+    {
+      "id": "E2E-SLOPE-POINT",
+      "message": "2号车当前位置的坡度是多少？",
+      "expectedPattern": "GDPS_GENERIC_SAMPLE_VALUE",
+      "expectedDescriptor": "SLOPE/DEGREE",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-current-state",
+        "geo-raster.sample"
+      ],
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "E2E-SLOPE-RANGE",
+      "message": "A区内坡度15到30度的区域有哪些？",
+      "expectedPattern": "GDPS_GENERIC_FIND_RANGE",
+      "expectedDescriptor": "SLOPE/DEGREE",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-geometry",
+        "geo-raster.find-by-range"
+      ],
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "E2E-FLOOD-HIGH",
+      "message": "A区内有哪些洪水高风险区域？",
+      "expectedPattern": "GDPS_GENERIC_FIND_CLASS",
+      "expectedDescriptor": "FLOOD_RISK/FLOOD_RISK_CLASS",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-geometry",
+        "geo-raster.find-by-class"
+      ],
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "E2E-DRAINAGE-NEARBY",
+      "message": "2号车附近500米有哪些排水沟？",
+      "expectedPattern": "GDPS_GENERIC_VECTOR_NEARBY",
+      "expectedDescriptor": "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-current-state",
+        "geo-vector.find-nearby"
+      ],
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "E2E-HIGH-GROUND",
+      "message": "A区内有哪些高地？",
+      "expectedPattern": "GDPS_HIGH_GROUND_IN_AREA",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-geometry",
+        "terrain.find-high-ground"
+      ],
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "E2E-WETLAND",
+      "message": "A区内有哪些湿地？",
+      "expectedPattern": "GDPS_WETLANDS_IN_AREA",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-geometry",
+        "hydrology.find-wetlands"
+      ],
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "E2E-LAND-COVER",
+      "message": "2号车当前位置是什么地表覆盖？",
+      "expectedPattern": "GDPS_LAND_COVER_AT_REFERENCE",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-current-state",
+        "landcover.get-class"
+      ],
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "E2E-TRAVERSABILITY-EXPLAIN",
+      "message": "2号车当前位置为什么属于该通行性等级？",
+      "expectedPattern": "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE",
+      "expectedOperations": [
+        "reference.resolve",
+        "world.get-current-state",
+        "traversability.explain"
+      ],
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "E2E-EXPLICIT-PRODUCT",
+      "message": "使用 gdps-baseline-slope 数据查询A区15到30度的坡地。",
+      "expectedPattern": "GDPS_GENERIC_FIND_RANGE",
+      "expectedDescriptor": "SLOPE/DEGREE",
+      "expectedExplicitProductId": "gdps-baseline-slope",
+      "expectedStatus": "COMPLETED"
+    },
+    {
+      "id": "NEG-DESCRIPTOR-GAP",
+      "message": "A区内有哪些雪崩风险区域？",
+      "expectedStatus": "UNRESOLVED",
+      "expectedSemanticCode": "DESCRIPTOR_GAP",
+      "mustNotExecuteGdps": true
+    },
+    {
+      "id": "NEG-DATA-GAP",
+      "message": "A区内有哪些无人机限制区？",
+      "precondition": "descriptor/capability present, current product absent",
+      "expectedStatus": "UNRESOLVED",
+      "expectedSemanticCode": "DATA_GAP",
+      "mustNotInferFalse": true
+    },
+    {
+      "id": "NEG-REFERENCE-AMBIGUITY",
+      "message": "滨河路附近有哪些排水沟？",
+      "expectedStatus": "AMBIGUOUS",
+      "mustNotExecuteGdps": true
+    },
+    {
+      "id": "NEG-UNIT-MISMATCH",
+      "message": "A区内坡度大于30米的区域有哪些？",
+      "expectedStatus": "UNRESOLVED",
+      "expectedSemanticCode": "UNIT_MISMATCH",
+      "mustNotExecuteGdps": true
+    },
+    {
+      "id": "NEG-RECIPE-DRIFT",
+      "message": "A区内坡度15到30度的区域有哪些？",
+      "precondition": "recipe semantic hash altered",
+      "expectedStatus": "UNRESOLVED",
+      "expectedSemanticCode": "RECIPE_LOCK_DRIFT",
+      "mustNotExecuteGdps": true
+    },
+    {
+      "id": "NEG-TRUNCATED",
+      "message": "A区内有哪些排水沟？",
+      "precondition": "GDPS returns truncated=true",
+      "expectedStatus": "PARTIAL"
+    },
+    {
+      "id": "NEG-CURRENTNESS",
+      "message": "严格重用之前的坡度查询证据。",
+      "precondition": "stored contentHash differs from current",
+      "expectedStatus": "STALE_OR_SNAPSHOT_MISMATCHED",
+      "mustNotExecuteOriginalQuery": true
+    }
+  ]
+}
