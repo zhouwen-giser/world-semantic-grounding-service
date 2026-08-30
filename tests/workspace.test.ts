@@ -14,7 +14,7 @@ describe("workspace baseline", () => {
   it("pins the service and contract versions", () => {
     expect(WSGS_VERSION).toBe("0.1.0");
     expect(WSGS_CONTRACT_VERSION).toBe("sacs-wsgs-grounding/1.0");
-    expect(GOWM_RUNTIME_SOURCE_COMMIT).toBe("f2894d86eeca121f9cea76c70797ece3b091d51f");
+    expect(GOWM_RUNTIME_SOURCE_COMMIT).toBe("fceed92398a0b86c0a0121aa2188a7f1d328e577");
     expect(GOWM_RUNTIME_VERSION).toBe("0.6.4");
     expect(GOWM_GATEWAY_CONTRACT_VERSION).toBe("0.6.3");
     expect(GOWM_CONSUMER_PACKAGE_VERSION).toBe("0.6.3");

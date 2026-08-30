@@ -9,22 +9,22 @@ import addFormatsModule from "ajv-formats";
 
 export const GOWM_INTAKE_VERSION = "gowm-contract-intake/2.0" as const;
 export const GOWM_SOURCE_REPOSITORY = "zhouwen-giser/geospatial-operational-world-model" as const;
-export const GOWM_RUNTIME_SOURCE_COMMIT = "f2894d86eeca121f9cea76c70797ece3b091d51f" as const;
+export const GOWM_RUNTIME_SOURCE_COMMIT = "fceed92398a0b86c0a0121aa2188a7f1d328e577" as const;
 export const GOWM_RUNTIME_VERSION = "0.6.4" as const;
 export const GOWM_GATEWAY_CONTRACT_VERSION = "0.6.3" as const;
 export const GOWM_CONSUMER_PACKAGE_NAME = "@gowm/world-gateway-contracts" as const;
 export const GOWM_CONSUMER_PACKAGE_VERSION = "0.6.3" as const;
 export const GOWM_CONSUMER_LOGICAL_INTEGRITY =
-  "sha512-KekpsVw943+iWwWcKepSxl408uBqH6oQ/ZzHcsrQrq2EjP+r2zYtljOfFekP6Vksxx1oSbE66rqaHE2rUGv6xw==" as const;
-export const GOWM_CONSUMER_TARBALL_BYTES = 52_872 as const;
+  "sha512-f4bcksAK/JMk67pbkXlTycHREfM/19Xys4PcYhtjPTNW1Q43Xx+GYLlFkir0ePprUmNHo9Mnvksj2d2DOuCFrg==" as const;
+export const GOWM_CONSUMER_TARBALL_BYTES = 52_867 as const;
 export const GOWM_CONSUMER_TARBALL_SHA256 =
-  "866b310ae5d28a49d59683975c858c0da1d46c0565168a8faba7e0c200d9c887" as const;
+  "3ae5372060752877fae34f16eb1b3239eb60878ec69473a502010df8a88ae322" as const;
 export const GOWM_CONSUMER_TARBALL_SHA512 =
-  "sha512-5RvJ9EK3jvTXR/Gzr27E5tqB60+WJbD/WwTUtcPtBBH/c0Cq9ggWArTeFz7515MP+SagE418zXs/FUPS/gcdAA==" as const;
+  "sha512-/QHyUETXwXXb09+cWgWjh9Hh+U24PuYhEh56O0P01lJkL2k+mB09yOPgO+efc9qY8X1FnxQOC4T/xc9pVyGldA==" as const;
 export const GOWM_CONTRACT_CATALOG_REVISION =
   "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a" as const;
 export const GOWM_BINDING_REVISION =
-  "sha256:1d59337bcbd8cb8dd76d0241d08b8c7618f61daa6e9c43d25db45c11994f1394" as const;
+  "sha256:03b3edd8e4a19f2c4e1249e0f0a1595a155119a157ed5c1cd2854cc7bf6fa5ce" as const;
 export const GOWM_SEMANTIC_CATALOG_HASH =
   "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61" as const;
 export const GOWM_AVAILABILITY_CONTRACT_HASH =
@@ -34,11 +34,11 @@ export const GOWM_SNAPSHOT_CONTRACT_HASH =
 export const GOWM_DELEGATION_CONTRACT_HASH =
   "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b" as const;
 export const GOWM_SOUTHBOUND_LOCK_RAW_SHA256 =
-  "765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686" as const;
-/** @deprecated The exact Kek materialization is raw-byte pinned; use GOWM_SOUTHBOUND_LOCK_RAW_SHA256. */
+  "e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a" as const;
+/** @deprecated The authorized exact materialization is raw-byte pinned; use GOWM_SOUTHBOUND_LOCK_RAW_SHA256. */
 export const GOWM_SOUTHBOUND_LOCK_LF_SHA256 = GOWM_SOUTHBOUND_LOCK_RAW_SHA256;
 export const GOWM_MATERIALIZATION_TREE_SHA256 =
-  "sha256:0c6b4e70a8d345135657b20e4d5ed22e81b364bcdb7774ba9238de091cdcd680" as const;
+  "sha256:dee0bda2b950243d25b582fa1f691172997f8b01d837954510ec9f762d822a5a" as const;
 
 const WSGS_SOURCE_REPOSITORY = "zhouwen-giser/world-semantic-grounding-service" as const;
 const WSGS_SOURCE_COMMIT = "c2a71a0f455c728ae45d70067f223e1450cfa427" as const;
@@ -485,7 +485,7 @@ function expectedPackageIntegrityEvidence(): PackageIntegrityEvidence {
       tarballDigestInterpretation: "INDEPENDENT_ARCHIVE_BYTE_INTEGRITY",
       valuesEqual: false,
       statement:
-        "The task-locked Kek value is the upstream logical integrity over canonical pre-lock file records; it is intentionally not the SHA-512 digest of the .tgz bytes."
+        "The authorized alignment value is the upstream logical integrity over canonical pre-lock file records; it is intentionally not the SHA-512 digest of the .tgz bytes."
     }
   };
 }

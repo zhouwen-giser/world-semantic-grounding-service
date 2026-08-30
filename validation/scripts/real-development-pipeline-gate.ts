@@ -93,7 +93,7 @@ if (formalR1R5Only) {
     throw new Error("WSGS_FORMAL_ISOLATED_DATABASE_REQUIRED");
   }
 }
-const expectedGowmRuntimeSourceCommit = "f2894d86eeca121f9cea76c70797ece3b091d51f";
+const expectedGowmRuntimeSourceCommit = "fceed92398a0b86c0a0121aa2188a7f1d328e577";
 const expectedGowmRuntimeVersion = "0.6.4";
 const expectedGatewayContractVersion = "0.6.3";
 const expectedWsgsRuntimeVersion = "0.2.1";

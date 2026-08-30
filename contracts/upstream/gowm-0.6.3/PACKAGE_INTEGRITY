@@ -1,24 +1,24 @@
 {
   "schemaVersion": "1.0",
-  "logicalPackageIntegrity": "sha512-KekpsVw943+iWwWcKepSxl408uBqH6oQ/ZzHcsrQrq2EjP+r2zYtljOfFekP6Vksxx1oSbE66rqaHE2rUGv6xw==",
+  "logicalPackageIntegrity": "sha512-f4bcksAK/JMk67pbkXlTycHREfM/19Xys4PcYhtjPTNW1Q43Xx+GYLlFkir0ePprUmNHo9Mnvksj2d2DOuCFrg==",
   "logicalIntegrityAlgorithm": "SHA512_BASE64_OF_CANONICAL_PRE_LOCK_FILE_RECORDS",
   "tarball": {
     "path": "gowm-world-gateway-contracts-0.6.3.tgz",
-    "bytes": 52872,
-    "sha256": "866b310ae5d28a49d59683975c858c0da1d46c0565168a8faba7e0c200d9c887",
-    "sha512": "sha512-5RvJ9EK3jvTXR/Gzr27E5tqB60+WJbD/WwTUtcPtBBH/c0Cq9ggWArTeFz7515MP+SagE418zXs/FUPS/gcdAA=="
+    "bytes": 52867,
+    "sha256": "3ae5372060752877fae34f16eb1b3239eb60878ec69473a502010df8a88ae322",
+    "sha512": "sha512-/QHyUETXwXXb09+cWgWjh9Hh+U24PuYhEh56O0P01lJkL2k+mB09yOPgO+efc9qY8X1FnxQOC4T/xc9pVyGldA=="
   },
   "materialization": {
     "archiveFileCount": 64,
     "extractedFileCount": 64,
     "rawCrlfPackageFileCount": 58,
-    "treeSha256": "sha256:0c6b4e70a8d345135657b20e4d5ed22e81b364bcdb7774ba9238de091cdcd680",
+    "treeSha256": "sha256:dee0bda2b950243d25b582fa1f691172997f8b01d837954510ec9f762d822a5a",
     "status": "BYTE_IDENTICAL"
   },
   "discrepancy": {
     "taskPackageLockedValueInterpretation": "UPSTREAM_LOGICAL_PRE_LOCK_FILE_RECORD_INTEGRITY",
     "tarballDigestInterpretation": "INDEPENDENT_ARCHIVE_BYTE_INTEGRITY",
     "valuesEqual": false,
-    "statement": "The task-locked Kek value is the upstream logical integrity over canonical pre-lock file records; it is intentionally not the SHA-512 digest of the .tgz bytes."
+    "statement": "The authorized alignment value is the upstream logical integrity over canonical pre-lock file records; it is intentionally not the SHA-512 digest of the .tgz bytes."
   }
 }

@@ -46,26 +46,26 @@ const DEFAULT_ROOT = resolve(import.meta.dirname, "..", "..");
 const ACCEPTANCE_RELATIVE_PATH = "acceptance/alignment-required.csv";
 const REPORT_ROOT = "reports/wsgs-gowm-0.6.4-alignment";
 const EXPECTED_ACCEPTANCE_SHA256 =
-  "sha256:13305ed68eeafc5b3270076676c45ee31bb6008efbd77eb1abbb9f0fdcbe7148" as const;
-const EXPECTED_RUNTIME_COMMIT = "f2894d86eeca121f9cea76c70797ece3b091d51f" as const;
+  "sha256:1d81b3b5ffb8c069498e04a160499db33e795fcef092db0f9bb9c382440528e4" as const;
+const EXPECTED_RUNTIME_COMMIT = "fceed92398a0b86c0a0121aa2188a7f1d328e577" as const;
 const EXPECTED_RUNTIME_VERSION = "0.6.4" as const;
 const EXPECTED_GATEWAY_CONTRACT_VERSION = "0.6.3" as const;
 const EXPECTED_PACKAGE_NAME = "@gowm/world-gateway-contracts" as const;
 const EXPECTED_PACKAGE_VERSION = "0.6.3" as const;
 const EXPECTED_LOGICAL_INTEGRITY =
-  "sha512-KekpsVw943+iWwWcKepSxl408uBqH6oQ/ZzHcsrQrq2EjP+r2zYtljOfFekP6Vksxx1oSbE66rqaHE2rUGv6xw==" as const;
-const EXPECTED_TARBALL_BYTES = "52872" as const;
-const EXPECTED_TARBALL_SHA256 = "866b310ae5d28a49d59683975c858c0da1d46c0565168a8faba7e0c200d9c887" as const;
+  "sha512-f4bcksAK/JMk67pbkXlTycHREfM/19Xys4PcYhtjPTNW1Q43Xx+GYLlFkir0ePprUmNHo9Mnvksj2d2DOuCFrg==" as const;
+const EXPECTED_TARBALL_BYTES = "52867" as const;
+const EXPECTED_TARBALL_SHA256 = "3ae5372060752877fae34f16eb1b3239eb60878ec69473a502010df8a88ae322" as const;
 const EXPECTED_ARCHIVE_SRI =
-  "sha512-5RvJ9EK3jvTXR/Gzr27E5tqB60+WJbD/WwTUtcPtBBH/c0Cq9ggWArTeFz7515MP+SagE418zXs/FUPS/gcdAA==" as const;
+  "sha512-/QHyUETXwXXb09+cWgWjh9Hh+U24PuYhEh56O0P01lJkL2k+mB09yOPgO+efc9qY8X1FnxQOC4T/xc9pVyGldA==" as const;
 const EXPECTED_MATERIALIZATION_TREE =
-  "sha256:0c6b4e70a8d345135657b20e4d5ed22e81b364bcdb7774ba9238de091cdcd680" as const;
+  "sha256:dee0bda2b950243d25b582fa1f691172997f8b01d837954510ec9f762d822a5a" as const;
 const EXPECTED_CONTRACT_CATALOG_REVISION =
   "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a" as const;
 const EXPECTED_SEMANTIC_CATALOG_HASH =
   "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61" as const;
 const EXPECTED_SOUTHBOUND_RAW_SHA256 =
-  "sha256:765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686" as const;
+  "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a" as const;
 const EXPECTED_NORTHBOUND_CONTRACT = "sacs-wsgs-grounding/1.0" as const;
 const EXPECTED_RECIPE_IDS = ["R1", "R2", "R3", "R4", "R5"] as const;
 const EXPECTED_CRITERION_IDS = Array.from(

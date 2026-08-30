@@ -221,7 +221,7 @@ function loadRuntimeImageBuildEvidence(imageDigest: string): JsonObject {
   const { evidenceHash: _evidenceHash, ...payload } = report;
   assertion(canonicalSha256(payload) === evidenceHash, "GOWM_RUNTIME_IMAGE_BUILD_REPORT_HASH_MISMATCH");
   assertion(report["status"] === "PASS", "GOWM_RUNTIME_IMAGE_BUILD_REPORT_NOT_PASS");
-  assertion(report["sourceCommit"] === "f2894d86eeca121f9cea76c70797ece3b091d51f", "GOWM_RUNTIME_IMAGE_BUILD_SOURCE_MISMATCH");
+  assertion(report["sourceCommit"] === "fceed92398a0b86c0a0121aa2188a7f1d328e577", "GOWM_RUNTIME_IMAGE_BUILD_SOURCE_MISMATCH");
   assertion(report["runtimeVersion"] === "0.6.4", "GOWM_RUNTIME_IMAGE_BUILD_VERSION_MISMATCH");
   assertion(report["imageDigest"] === imageDigest, "GOWM_RUNTIME_IMAGE_BUILD_DIGEST_MISMATCH");
   const sourceTree = text(report["sourceTree"], "GOWM_RUNTIME_IMAGE_BUILD_TREE_MISSING");
@@ -280,7 +280,7 @@ function observeExactRuntimeBinding(baseUrl: URL): JsonObject {
   const imageIds = [...new Set(appContainers.map((entry) => entry.Image))];
   assertion(imageIds.length === 1 && /^sha256:[0-9a-f]{64}$/u.test(imageIds[0] ?? ""), "GOWM_RUNTIME_IMAGE_ID_MISMATCH");
   assertion(appContainers.every((entry) =>
-    entry.Config?.Labels?.["org.opencontainers.image.revision"] === "f2894d86eeca121f9cea76c70797ece3b091d51f" &&
+    entry.Config?.Labels?.["org.opencontainers.image.revision"] === "fceed92398a0b86c0a0121aa2188a7f1d328e577" &&
     entry.Config?.Labels?.["org.opencontainers.image.version"] === "0.6.4"), "GOWM_RUNTIME_IMAGE_SOURCE_LABEL_MISMATCH");
   const gateway = appContainers.find((entry) =>
     entry.Config?.Labels?.["com.docker.compose.service"] === "world-capability-gateway");
@@ -293,7 +293,7 @@ function observeExactRuntimeBinding(baseUrl: URL): JsonObject {
     schemaVersion: "wsgs-gowm-runtime-binding/1.0",
     bindingStatus: "PASS",
     observedAt: new Date().toISOString(),
-    sourceCommit: "f2894d86eeca121f9cea76c70797ece3b091d51f",
+    sourceCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
     runtimeVersion: "0.6.4",
     gatewayContractVersion: "0.6.3",
     imageDigest: imageIds[0],
@@ -1282,7 +1282,7 @@ async function main(): Promise<void> {
     wsgsSourceCommit,
     formalWsgsPipelineEvidence: false,
     runtime: {
-      sourceCommit: "f2894d86eeca121f9cea76c70797ece3b091d51f",
+      sourceCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
       runtimeVersion: "0.6.4",
       gatewayContractVersion: "0.6.3",
       consumerPackage: "@gowm/world-gateway-contracts@0.6.3",

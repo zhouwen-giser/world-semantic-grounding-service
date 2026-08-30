@@ -4,8 +4,8 @@
   "authoritative": [
     {
       "path": "contracts/upstream/gowm-runtime-contract-alignment-lock-v1.json",
-      "hash": "sha256:cc0ee0e4bf12f15c9c54630893566d622cb9522d56150c5607de95be147780c7",
-      "runtimeSourceCommit": "f2894d86eeca121f9cea76c70797ece3b091d51f",
+      "hash": "sha256:951a7d7ba83f5e1cbec0c0fa4817ba461438462729b2de32e75405a696ecc2aa",
+      "runtimeSourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
       "runtimeVersion": "0.6.4",
       "gatewayContractVersion": "0.6.3",
       "consumerPackageVersion": "0.6.3"
@@ -26,5 +26,5 @@
     "contracts/upstream/GOWM_VERSION"
   ],
   "independentAuthorityCount": 1,
-  "evidenceHash": "sha256:7e5c6e0465a91add7bb1e884036ef3e3bc1afbf316edcb193b3123dbb602ce59"
+  "evidenceHash": "sha256:98bf3cb0038134592c878cf2ea83e665cad532484d92cf10b7f1c461bd1604c3"
 }

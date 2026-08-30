@@ -1,6 +1,6 @@
 id,phase,requirement,gate,evidence,blocking
 ALIGN-001,W00,Record actual WSGS base and exact GOWM source commit,baseline-reconciliation,reports/.../w00-baseline.json,true
-ALIGN-002,W01,GOWM runtime source commit equals f2894d86...,alignment:gowm:check,alignment invariant report,true
+ALIGN-002,W01,GOWM runtime source commit equals fceed923...,alignment:gowm:check,alignment invariant report,true
 ALIGN-003,W01,GOWM runtime package.json version equals 0.6.4,alignment:gowm:check,alignment invariant report,true
 ALIGN-004,W01,Gateway consumer package version equals 0.6.3,alignment:gowm:check,alignment invariant report,true
 ALIGN-005,W01,Gateway contract version equals 0.6.3,alignment:gowm:check,alignment invariant report,true

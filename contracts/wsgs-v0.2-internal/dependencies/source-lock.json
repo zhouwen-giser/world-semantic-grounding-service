@@ -7,19 +7,19 @@
   },
   "gowmSource": {
     "repository": "zhouwen-giser/geospatial-operational-world-model",
-    "commit": "f2894d86eeca121f9cea76c70797ece3b091d51f",
+    "commit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
     "version": "0.6.4"
   },
   "consumerPackage": {
     "name": "@gowm/world-gateway-contracts",
     "version": "0.6.3",
-    "integrity": "sha512-KekpsVw943+iWwWcKepSxl408uBqH6oQ/ZzHcsrQrq2EjP+r2zYtljOfFekP6Vksxx1oSbE66rqaHE2rUGv6xw==",
+    "integrity": "sha512-f4bcksAK/JMk67pbkXlTycHREfM/19Xys4PcYhtjPTNW1Q43Xx+GYLlFkir0ePprUmNHo9Mnvksj2d2DOuCFrg==",
     "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
     "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
     "availabilityContractHash": "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036",
     "snapshotContractHash": "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0",
     "delegationContractHash": "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b",
-    "southboundLockSha256": "765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686"
+    "southboundLockSha256": "e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a"
   },
   "northboundContractVersion": "sacs-wsgs-grounding/1.0",
   "targetVersion": "0.2.1"
