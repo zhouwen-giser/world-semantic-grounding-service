@@ -436,6 +436,7 @@ function commonReport(inputSetHash: Sha256Digest) {
     },
     generationMode: "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
     inputSetHash,
+    inputHashCanonicalization: "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
     verificationRecipe: {
       writeCommand: "npm run findings:decoder:write",
       checkCommand: "npm run findings:decoder:check",
@@ -461,7 +462,7 @@ function commonReport(inputSetHash: Sha256Digest) {
   } as const;
 }
 
-function rawInputHashes(): Record<string, Sha256Digest> {
+function normalizedTextInputHashes(): Record<string, Sha256Digest> {
   const paths = [
     "packages/northbound-geospatial-findings/fixtures/gdps-real-result-shapes.json",
     "packages/northbound-geospatial-findings/fixtures/gdps-v021-capability-decoder-coverage.json",
@@ -481,7 +482,9 @@ function rawInputHashes(): Record<string, Sha256Digest> {
   ];
   return Object.fromEntries(paths.map((path) => [
     path,
-    sha256Bytes(readFileSync(resolve(repoRoot, path)))
+    sha256Bytes(
+      readFileSync(resolve(repoRoot, path), "utf8").replace(/\r\n?|\n/gu, "\n")
+    )
   ]));
 }
 
@@ -505,7 +508,7 @@ function buildReports(): {
   assert(coverageFixture.sourceLocks["wsgsSourceSha"] === gdpsV021FindingContractClosure.sources.wsgsSha,
     "COVERAGE_WSGS_SOURCE_NOT_FINAL_B");
 
-  const inputHashes = rawInputHashes();
+  const inputHashes = normalizedTextInputHashes();
   const inputSetHash = independentCanonicalHash(inputHashes);
   const common = commonReport(inputSetHash);
   const bindings = bindingsFromClosure();

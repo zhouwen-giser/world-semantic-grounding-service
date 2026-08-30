@@ -6,7 +6,8 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:901cee3e260b3c4953744940ef2b29df981e13ce6dfc481bef05a5820e09aa21",
+  "inputSetHash": "sha256:4787807de58a7c642256beffeedb38a9be4d0c0ca6fd6e4abe57a4dcd563016b",
+  "inputHashCanonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
   "verificationRecipe": {
     "writeCommand": "npm run findings:decoder:write",
     "checkCommand": "npm run findings:decoder:check",

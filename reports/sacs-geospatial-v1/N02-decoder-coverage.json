@@ -6,7 +6,8 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:901cee3e260b3c4953744940ef2b29df981e13ce6dfc481bef05a5820e09aa21",
+  "inputSetHash": "sha256:4787807de58a7c642256beffeedb38a9be4d0c0ca6fd6e4abe57a4dcd563016b",
+  "inputHashCanonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
   "verificationRecipe": {
     "writeCommand": "npm run findings:decoder:write",
     "checkCommand": "npm run findings:decoder:check",
@@ -94,10 +95,10 @@
       "packages/northbound-geospatial-findings/src/types.ts": "sha256:5d6d411ddf9b2fd2dc41f6eb30093637ab830b2a061dad5dd8908b6d63d3e5ba",
       "packages/northbound-geospatial-findings/src/validation.ts": "sha256:cc68fa14f68b8bfd47db176c03aff0fc788e2c360a1f423dee37ecae18fa735b",
       "packages/gdps-descriptor-consumer/src/decoder-authority.ts": "sha256:41f776eeede0ed8f6a674bdc83a052fa61e9e76de5def4b30d2da211d3333d93",
-      "packages/gdps-descriptor-consumer/src/index.ts": "sha256:03b71c3affcfa2f0f67c1d3e2574531eef93df5e0c35b34c4edc14451f949c9f",
+      "packages/gdps-descriptor-consumer/src/index.ts": "sha256:dd2c19e1a88d046743ddbef294f30f67c07229b6e87a5121ebd6a452224b8f27",
       "packages/gowm-contract-intake/src/gdps-v021-finding-contract.generated.ts": "sha256:02ea45f20e366faad4eb78f95557736338b5269d3fcc369f91d6b8f59c93bb7e",
       "packages/gowm-execution-evidence/src/validated-envelope.ts": "sha256:7b97f20e65003f2cb2ea1fc20d723386e93474d4bb1dbc98205634e22cc1a2c4",
-      "validation/scripts/generate-sacs-geospatial-decoder-evidence.ts": "sha256:746bbee863f653f55e6deeda950499ce574d9afa9bb61123600669aaaeb2b557"
+      "validation/scripts/generate-sacs-geospatial-decoder-evidence.ts": "sha256:d295aad3501ce3a6255729d76409bcc7371f2c16c8f9b5a42693bbd4818f0832"
     }
   },
   "coverageHash": "sha256:e1655926bf1e79101f4deb35890b11f5467c4465554a7232145b6e76701ce5fa",
