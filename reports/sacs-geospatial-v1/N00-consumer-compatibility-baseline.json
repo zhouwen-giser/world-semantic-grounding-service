@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "wsgs-v021-n00-sacs-v04-consumer-baseline/1.0",
+  "phase": "N00",
+  "generatedAt": "2026-08-30T12:05:56.879Z",
+  "status": "PASS",
+  "meaning": "CURRENT_CONSUMER_REQUIREMENTS_LOCKED_NOT_RUNTIME_COMPATIBILITY_PASS",
+  "consumer": {
+    "repository": "zhouwen-giser/single-agent-chat-server",
+    "pullRequest": 17,
+    "headSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+    "headTreeSha": "d33f4b79a2a9c90402d36b335b774541cc6c242d",
+    "baseSha": "a957cdaa60dec5a2b3d291f2a97a2ff96a72a182",
+    "qualificationDecision": "BLOCKED_UPSTREAM",
+    "corpus": {
+      "schemaVersion": "sacs-geospatial-e2e-corpus/1.0",
+      "count": 18,
+      "caseIds": [
+        "E2E-01", "E2E-02", "E2E-03", "E2E-04", "E2E-05", "E2E-06", "E2E-07", "E2E-08", "E2E-09", "E2E-10",
+        "NEG-01", "NEG-02", "NEG-03", "NEG-04", "NEG-05", "NEG-06", "NEG-07", "HYBRID-01"
+      ],
+      "gitBlobSha": "52695f2c885927d886e06ddfde058919f5e3d777",
+      "normalizedLfSha256": "sha256:0c68d268e6f14782b5b3ef4487031e26d4d18209bee78a82fdf2ee26110e4a00",
+      "canonicalJsonSha256": "sha256:5db86aa4975eb5ef1972942a47c12bb3a56df17d285c38af881a2fc172a74b52",
+      "fixtureCannotSatisfyLive": true
+    },
+    "sourceFiles": [
+      { "path": "contracts/generated/wsgs-geospatial/wsgs-geospatial-consumer-lock.schema.json", "gitBlobSha": "76ac02adb66c26291bb45c77661671177b88fee4", "normalizedLfSha256": "sha256:f9b83a96d967b4abddd39f31432a504759c445a4b73973dc650e0658ae5906d3" },
+      { "path": "contracts/upstream/wsgs-geospatial/provisional-consumer-intake.json", "gitBlobSha": "44a37fe143f670467ffa1f260921a5ec1ea0926e", "normalizedLfSha256": "sha256:31445e1fa4cf5d82615ab112384e69d92a5931541e9dc1d9e4271f8c5864679e" },
+      { "path": "contracts/v0.4/geospatial/provisional-wsgs-consumer/world-finding.schema.json", "gitBlobSha": "aa85f44c1095413b1f13624271894b604de21471", "normalizedLfSha256": "sha256:c8c6e5392f266ba56bf525fd09cf0167373e2616b059bb4d262d99c644b3aafe" },
+      { "path": "contracts/v0.4/geospatial/provisional-wsgs-consumer/source-product.schema.json", "gitBlobSha": "7e0177909769b048a3d1ffb8de0d80225338f69a", "normalizedLfSha256": "sha256:ec0076a8bf292acc0a0798148704c2380a17074d6b8e257e102f4d24c5560b66" },
+      { "path": "contracts/v0.4/geospatial/explanation-gap.schema.json", "gitBlobSha": "91f05ec59aaf79b99b414385bee0dbf15f43e490", "normalizedLfSha256": "sha256:ba6a7006ebfdf815a5c245ba13c89c04c08de3da54ceb3b68f18a308176721d3" },
+      { "path": "contracts/v0.4/geospatial/source-currentness.schema.json", "gitBlobSha": "1b1427e8bf3d47f323515389d0fee8fd068059c6", "normalizedLfSha256": "sha256:3b22f134a373a356e38d62ace505b611dd47e9f0a05a4adae004df696f3eb046" },
+      { "path": "contracts/v0.4/geospatial/structured-world-selection.schema.json", "gitBlobSha": "7dd10a34ea90c117896a1e9e9a86d0ea87d68066", "normalizedLfSha256": "sha256:83eafbc3d2dd1675e4c27e9af4379c59e86fc7feb3e912f3e91d2de365c931e9" },
+      { "path": "packages/wsgs-geospatial-consumer/src/index.ts", "gitBlobSha": "5a84e89c8896a293637f7acf81e6ca685aa667f2", "normalizedLfSha256": "sha256:64cf7340f90fe74ad1111845c9f7fe97c36ffcb08aa2756f31695756c0f65800" },
+      { "path": "packages/wsgs-http-adapter/src/index.ts", "gitBlobSha": "06179862bffcbe616c4ec601f9c8615d0207acda", "normalizedLfSha256": "sha256:d415c044e7f7273a5a38f961b811a64bc5ea4d376427bda01157b6c82164795c" },
+      { "path": "config/geospatial-explanation/e2e-corpus.json", "gitBlobSha": "52695f2c885927d886e06ddfde058919f5e3d777", "normalizedLfSha256": "sha256:0c68d268e6f14782b5b3ef4487031e26d4d18209bee78a82fdf2ee26110e4a00" }
+    ]
+  },
+  "observedProvisionalLock": {
+    "status": "BLOCKED",
+    "provenance": "TASK_PACKAGE_PROVISIONAL",
+    "blockerCode": "AUTHORITATIVE_WSGS_GEOSPATIAL_HANDOFF_MISSING",
+    "consumerLockHash": "sha256:2367e0467b6044b9cca613101f936cc6db6543374eacf32b135077cd390dd1cf",
+    "declaredSources": {
+      "wsgs": "41bfc77a9f093f4861df433ddef38412f3111351",
+      "gowm": "f2894d86eeca121f9cea76c70797ece3b091d51f",
+      "gdps": "77c68c4ed9c93bd19de15957f2cab89d98585d02"
+    },
+    "sourceAuthority": "UNTRUSTED_STALE_PROVISIONAL_VALUES"
+  },
+  "legacyProducerBaseline": {
+    "contractVersion": "sacs-wsgs-grounding/1.0",
+    "wireSchemaVersion": "1.0",
+    "contractLockFileHash": "sha256:25d70b9b85b356f116a5ee2a881bae2b07ad41aa73a0e4786b77fba24876bc40",
+    "groundingResultSchemaHash": "sha256:6fc490f8a6131957c3f634a963905f016c8d6a34a2cd2418741f81b733a4b619",
+    "capabilitiesSchemaHash": "sha256:b4127b4def969e55626926df76c871dfa7fd2e6b3c890205f8592ac0ecce1af2",
+    "preserveByteForByte": true
+  },
+  "authoritativeTarget": {
+    "groundingContractVersion": "sacs-wsgs-grounding/1.1",
+    "wireSchemaVersion": "1.0",
+    "profile": "sacs-wsgs-geospatial-findings/1.0",
+    "transportMode": "RESULT_EXTENSION",
+    "resultExtensionField": "geospatialFindings",
+    "requestedProducts": [],
+    "currentness": {
+      "mode": "DEDICATED_OPERATION",
+      "operation": "VALIDATE_SOURCE_CURRENTNESS"
+    }
+  },
+  "fieldCompatibility": [
+    { "id": "C01", "field": "GroundingResult.schemaVersion", "consumerRequirement": "1.0", "producerObserved": "1.0", "state": "MATCH" },
+    { "id": "C02", "field": "legacy sacs-wsgs-grounding/1.0 bytes", "consumerRequirement": "PRESERVED", "producerObserved": "LOCKED", "state": "MATCH" },
+    { "id": "C03", "field": "Capabilities.contractVersion", "consumerRequirement": "sacs-wsgs-grounding/1.1", "producerObserved": "sacs-wsgs-grounding/1.0", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C04", "field": "GroundingResult.geospatialFindings", "consumerRequirement": "optional RESULT_EXTENSION field", "producerObserved": "ABSENT", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C05", "field": "geospatialFindings.profile", "consumerRequirement": "sacs-wsgs-geospatial-findings/1.0", "producerObserved": "ABSENT", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C06", "field": "transportMode", "consumerRequirement": "RESULT_EXTENSION", "producerObserved": "UNRESOLVED", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C07", "field": "requestedProducts", "consumerRequirement": "empty for RESULT_EXTENSION", "producerObserved": "NO_AUTHORITATIVE_LOCK", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C08", "field": "six WorldFinding kinds", "consumerRequirement": "exact six-kind union with effective max 128", "producerObserved": "ABSENT", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C09", "field": "SourceProduct authority", "consumerRequirement": "GDPS_CURRENT_PRODUCT", "producerObserved": "ABSENT", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C10", "field": "TypedGap enum", "consumerRequirement": "exact eleven values", "producerObserved": "ABSENT", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C11", "field": "StructuredSelection", "consumerRequirement": "ReferenceKey xor opaque token with scope binding", "producerObserved": "ABSENT", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C12", "field": "currentness.mode", "consumerRequirement": "DEDICATED_OPERATION", "producerObserved": "UNSUPPORTED", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C13", "field": "currentness.operation", "consumerRequirement": "VALIDATE_SOURCE_CURRENTNESS", "producerObserved": "ABSENT", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C14", "field": "authoritative handoff provenance/status/hash", "consumerRequirement": "AUTHORITATIVE_WSGS_HANDOFF READY consumerLockHash", "producerObserved": "MISSING", "state": "PRODUCER_IMPLEMENTATION_GAP" },
+    { "id": "C15", "field": "SACS result parser", "consumerRequirement": "parse and authorize optional geospatialFindings", "consumerObserved": "SUPPORTED", "state": "MATCH" },
+    { "id": "C16", "field": "SACS request operation enum", "consumerRequirement": "accept VALIDATE_SOURCE_CURRENTNESS", "consumerObserved": "FOUR_OPERATIONS_ONLY", "state": "CONSUMER_IMPLEMENTATION_GAP" },
+    { "id": "C17", "field": "SACS capability preflight", "consumerRequirement": "accept exact 1.1 required operation set", "consumerObserved": "EXACT_FOUR_OPERATION_MATCH", "state": "CONSUMER_IMPLEMENTATION_GAP" },
+    { "id": "C18", "field": "SACS authoritative handoff intake", "consumerRequirement": "exact 8+CHECKSUMS inventory", "consumerObserved": "SINGLE_LOCK_ONLY", "state": "CONSUMER_IMPLEMENTATION_GAP" },
+    { "id": "C19", "field": "SACS real geospatial corpus runner", "consumerRequirement": "18 business cases over real path", "consumerObserved": "PREFLIGHT_ONLY_ZERO_BUSINESS_POSTS", "state": "CONSUMER_IMPLEMENTATION_GAP" }
+  ],
+  "hardBlockers": [
+    {
+      "code": "SACS_OPERATION_ENUM_MISSING_VALIDATE_SOURCE_CURRENTNESS",
+      "safeDetail": "The exact PR 17 request parser accepts only four legacy operations."
+    },
+    {
+      "code": "SACS_CAPABILITY_PREFLIGHT_EXACT_SET_MISMATCH",
+      "safeDetail": "Publishing the required fifth operation currently causes WSGS_REQUIRED_OPERATION_SET_MISMATCH."
+    },
+    {
+      "code": "SACS_AUTHORITATIVE_HANDOFF_INTAKE_NOT_IMPLEMENTED",
+      "safeDetail": "The exact PR 17 code parses one provisional lock, not the required authoritative 8+CHECKSUMS bundle."
+    },
+    {
+      "code": "SACS_REAL_18_CASE_RUNNER_NOT_IMPLEMENTED",
+      "safeDetail": "The current preflight records zero business POSTs and cannot satisfy the real consumer gate."
+    }
+  ],
+  "decision": {
+    "requirementsLocked": true,
+    "currentProducerCompatible": false,
+    "consumerReadyForTarget": false,
+    "runtimeCompatible": false,
+    "consumerCompatible": false,
+    "nextPhase": "N01",
+    "g1Status": "NOT_RUN",
+    "productionQualified": false
+  },
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawMessagesIncluded": false,
+    "rawReferenceIdsIncluded": false
+  }
+}

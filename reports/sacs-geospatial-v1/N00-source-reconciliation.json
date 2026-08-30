@@ -1,0 +1,278 @@
+{
+  "schemaVersion": "wsgs-v021-n00-source-reconciliation/1.0",
+  "reportKind": "SOURCE_RECONCILIATION",
+  "phase": "N00",
+  "generatedAt": "2026-08-30T12:05:56.879Z",
+  "generator": {
+    "name": "wsgs-n00-source-reconciliation",
+    "version": "1.0"
+  },
+  "status": "PASS",
+  "statusMeaning": "N00_RECONCILIATION_PASSED_NOT_RUNTIME_QUALIFICATION",
+  "taskPackage": {
+    "zipSha256": "sha256:9309b5144a25285198356a8760d56caaa312bf0f7d670baa079b53416abb0a4b",
+    "taskDocumentSha256": "sha256:29505835efe5f2228de817048ee6dcede4ce67b605aa506c18092ef0b1ec96f8",
+    "phaseManifestSha256": "sha256:6a66b923637f426cbca7ed9f96383d5643c04e8d85d53e25c6e59b454ceb94da",
+    "declaredChecksumEntries": 5,
+    "verifiedChecksumEntries": 5,
+    "packageValidation": "PASS"
+  },
+  "currentHeads": {
+    "wsgs": {
+      "repository": "zhouwen-giser/world-semantic-grounding-service",
+      "branch": "main",
+      "headSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+      "treeSha": "afa91150ea58750f42407be28b619d2db1aee00a",
+      "versionFile": "0.2.0",
+      "packageVersion": "0.2.1",
+      "openPullRequestCount": 0,
+      "mainCi": {
+        "runId": 33304604092,
+        "headSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS",
+        "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/actions/runs/33304604092"
+      }
+    },
+    "gowm": {
+      "repository": "zhouwen-giser/geospatial-operational-world-model",
+      "branch": "main",
+      "headSha": "d69db9b137061f73e07fb75205b0c1fdaa506045",
+      "treeSha": "bb944d712fd7d0c374574d328886a4f6e6001a10",
+      "softwareVersion": "0.7.0",
+      "gatewayContractVersion": "0.7.0",
+      "consumerPackageVersion": "0.7.0",
+      "contractCatalogRevision": "sha256:cebc90e797cfdb256c4e5ae27472dd2ef7b47733337c4ac0fbd32251ef092e2f",
+      "semanticCatalogHash": "sha256:9cb540bbda32d50bdcf9bd3f60d2974bd3fe02393a5c4914e30940dccb719ae2",
+      "classification": "CURRENT_SOURCE_HEAD_ONLY"
+    },
+    "gdps": {
+      "repository": "zhouwen-giser/geospatial-data-product-service",
+      "branch": "main",
+      "headSha": "bad1de09d15e0145d08f16647ed067964420b8cb",
+      "treeSha": "316d74993d2f4a4c326b67e683a7d7ad0df686bd",
+      "providerVersion": "0.2.1",
+      "finalBDeliveryIsAncestor": true,
+      "classification": "CURRENT_SOURCE_HEAD"
+    },
+    "sacs": {
+      "repository": "zhouwen-giser/single-agent-chat-server",
+      "mainSha": "a957cdaa60dec5a2b3d291f2a97a2ff96a72a182",
+      "mainTreeSha": "02ed3b9bf93a68de6247672be5cd268bf8ba4666",
+      "pr17": {
+        "number": 17,
+        "headSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+        "headTreeSha": "d33f4b79a2a9c90402d36b335b774541cc6c242d",
+        "baseSha": "a957cdaa60dec5a2b3d291f2a97a2ff96a72a182",
+        "state": "OPEN",
+        "isDraft": true,
+        "mergeable": "MERGEABLE",
+        "mergeStateStatus": "CLEAN",
+        "checks": { "passed": 2, "failed": 0, "names": ["quality", "container"] },
+        "realCaseCount": 18,
+        "url": "https://github.com/zhouwen-giser/single-agent-chat-server/pull/17"
+      },
+      "pr18": {
+        "number": 18,
+        "headSha": "06c286433dedc8c5887eb887238628d9e588efef",
+        "baseHeadSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+        "state": "OPEN",
+        "isDraft": true,
+        "mergeable": "MERGEABLE",
+        "mergeStateStatus": "CLEAN",
+        "checks": { "passed": 2, "failed": 0, "names": ["quality", "container"] },
+        "realCaseCount": 28,
+        "corpusBlobSha": "d0ef0d3b70c145d175afe7d3f2b71806247e97b5",
+        "corpusNormalizedLfSha256": "sha256:665b2b92b83e26797746f79cb8104da4bec56223a9ac72a6c0aec51ced7423d2",
+        "corpusCanonicalJsonSha256": "sha256:fa73ad4c766b40ccc69c408ab1f173a8219cc9d85a298e10db365d31f7787804",
+        "preG1ObservationOnly": true,
+        "url": "https://github.com/zhouwen-giser/single-agent-chat-server/pull/18"
+      }
+    }
+  },
+  "wsgsMergedCapabilityAudit": [
+    {
+      "pullRequest": 6,
+      "state": "MERGED",
+      "headSha": "65c3716f956c688f48e08a43322548b75af849b8",
+      "mergeSha": "b24e2e7129c22d5290e9a10772414c3acfccf9e8",
+      "checks": "SUCCESS"
+    },
+    {
+      "pullRequest": 7,
+      "state": "MERGED",
+      "headSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb",
+      "mergeSha": "27d14222eec0970b577045f0e52c26501163b2ee",
+      "checks": "SUCCESS"
+    },
+    {
+      "pullRequest": 8,
+      "state": "MERGED",
+      "headSha": "0102a31a9eea6bd492178cee265622b95a64a62b",
+      "mergeSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+      "checks": "SUCCESS"
+    }
+  ],
+  "existingQualifiedTuples": {
+    "wsgsGowm064": {
+      "qualification": "DEVELOPMENT_READY",
+      "wsgsRuntimeSourceSha": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+      "wsgsDeliveryMergeSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+      "gowmSourceSha": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+      "gowmRuntimeVersion": "0.6.4",
+      "gatewayContractVersion": "0.6.3",
+      "r1R5": "5/5 PASS",
+      "evidencePath": "reports/wsgs-gowm-0.6.4-alignment/closure-report.json",
+      "evidenceHash": "sha256:89e3b9e3f6e58db0e03d6753c92ba298c856e9fa3743632a87e0657e1a99f0f2",
+      "productionQualified": false
+    },
+    "gdpsFinalB": {
+      "qualification": "UPSTREAM_DEVELOPMENT_QUALIFIED",
+      "gdpsImplementationSourceSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
+      "gdpsEvidenceDeliverySha": "712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6",
+      "gdpsMergedMainSha": "bad1de09d15e0145d08f16647ed067964420b8cb",
+      "gowmSourceLockSha": "7a3600cfeede1e1eda711a59bdb76caa68c05f64",
+      "wsgsConsumerSourceLockSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb",
+      "handoffBundleHash": "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19",
+      "gatewayCanary": "30/30 PASS",
+      "directProviderCalls": 0,
+      "w43RuntimeQualification": "NOT_RUN",
+      "w44RuntimeQualification": "NOT_RUN",
+      "productionQualified": false
+    }
+  },
+  "nonMainConsumerMaterializations": [
+    {
+      "branch": "codex/wsgs-v0.2-descriptor-gdps-closure-resume",
+      "qualifiedSourceSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb",
+      "deliveryHeadSha": "14abec44e104c8f1b600a9a8d282ed5a1212bfde",
+      "deliveryTreeSha": "f5aeb7698d24341121d9449aac0aab8a3265f021",
+      "mergeBaseWithMain": "65c3716f956c688f48e08a43322548b75af849b8",
+      "isAncestorOfMain": false,
+      "disposition": "RECONCILIATION_INPUT_NOT_BASE_MAIN"
+    }
+  ],
+  "driftDecisions": [
+    {
+      "system": "WSGS",
+      "taskGeneratedSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+      "observedSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+      "classification": "NO_SOURCE_DRIFT"
+    },
+    {
+      "system": "GOWM",
+      "taskGeneratedSha": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+      "observedSha": "d69db9b137061f73e07fb75205b0c1fdaa506045",
+      "classification": "UPSTREAM_MAIN_ADVANCED_DO_NOT_AUTO_UPGRADE_RUNTIME_LOCK"
+    },
+    {
+      "system": "GDPS",
+      "taskGeneratedAuthority": "WSGS_ACCEPTED_HANDOFF",
+      "observedSha": "bad1de09d15e0145d08f16647ed067964420b8cb",
+      "classification": "FINAL_B_MERGED_UPSTREAM_BUT_WSGS_MATERIALIZATION_NOT_IN_MAIN"
+    },
+    {
+      "system": "SACS_PR17",
+      "taskGeneratedSha": "6bbd16b1b4283350fc37aff68f3bd243ea2514aa",
+      "observedSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+      "classification": "CONSUMER_HEAD_ADVANCED_REBASE_TARGET"
+    },
+    {
+      "system": "SACS_PR18",
+      "taskGeneratedSha": "34ffb2fb689e992efde4e763dbc47a2df9dcf1ed",
+      "observedSha": "06c286433dedc8c5887eb887238628d9e588efef",
+      "classification": "OBSERVED_ONLY_UNTIL_G1"
+    }
+  ],
+  "selectedDevelopmentBaseline": {
+    "wsgsBaseMainSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+    "wsgsBaseTreeSha": "afa91150ea58750f42407be28b619d2db1aee00a",
+    "sacsV04ConsumerHeadSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+    "contractTarget": "sacs-wsgs-grounding/1.1",
+    "profile": "sacs-wsgs-geospatial-findings/1.0",
+    "runtimeQualification": "NOT_RUN",
+    "qualifiedSourceSha": null,
+    "runtimeIdentity": null,
+    "rule": "DO_NOT_CROSS_PRODUCT_DISTINCT_QUALIFIED_TUPLES"
+  },
+  "baselineCheck": {
+    "npmCi": {
+      "status": "PASS",
+      "exitCode": 0,
+      "sourceState": "UNMODIFIED_ORIGIN_MAIN"
+    },
+    "initialNpmRunCheck": {
+      "status": "FAIL",
+      "exitCode": 2,
+      "classification": "PREEXISTING_BASELINE_FAILURE",
+      "failingStage": "typecheck",
+      "diagnostic": {
+        "code": "TS7016",
+        "file": "services/grounding-api/src/production.integration.test.ts",
+        "line": 6,
+        "column": 33,
+        "module": "@wsgs/runtime",
+        "safeMessage": "Could not find a declaration file for @wsgs/runtime"
+      },
+      "passedBeforeFailure": [
+        "verify:contracts",
+        "verify:gowm-intake",
+        "verify:gdps-v021",
+        "verify:architecture",
+        "development-closure:63/63"
+      ],
+      "introducedByN00": false
+    }
+  },
+  "versionReconciliation": {
+    "status": "OPEN",
+    "authoritativeTarget": "0.2.1",
+    "mutableSurfaces": [
+      "VERSION",
+      "root and workspace package manifests",
+      "root and workspace package-lock version entries",
+      "Docker OCI label and image tag",
+      "runtime capabilities version and contractVersion",
+      "new handoff metadata",
+      "README",
+      "CHANGELOG"
+    ],
+    "frozenOrExternalSurfaces": [
+      "contracts/wsgs-v0.1/**",
+      "historical reports",
+      "vendored upstream contract and Provider versions"
+    ],
+    "repairRule": "ADDITIVE_1_1_RELEASE_DO_NOT_REWRITE_1_0",
+    "targetPhase": "N01"
+  },
+  "consumerCompatibilityBlocker": {
+    "code": "SACS_PR17_REQUIRED_OPERATION_SET_INCOMPATIBLE",
+    "consumerHeadSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+    "observedOperations": ["GROUND_REFERENCES", "COMPILE_WORLD_QUERY", "EXECUTE_WORLD_QUERY", "VALIDATE_REFERENCES"],
+    "requiredOperation": "VALIDATE_SOURCE_CURRENTNESS",
+    "preflightFailureCode": "WSGS_REQUIRED_OPERATION_SET_MISMATCH",
+    "consumerRequestParserAcceptsRequiredOperation": false,
+    "consumerHasAuthoritativeNineFileIntake": false,
+    "consumerHasReal18CaseRunner": false,
+    "resolutionBoundary": "REQUIRES_UPDATED_AUTHORITATIVE_SACS_CONSUMER_HEAD; WSGS MUST NOT HIDE THE FIFTH OPERATION OR REUSE VALIDATE_REFERENCES"
+  },
+  "branchDelivery": {
+    "branch": "codex/wsgs-v0.2.1-sacs-geospatial-handoff",
+    "baseSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+    "draftPrTitle": "feat: publish authoritative SACS geospatial handoff",
+    "draftPrUrl": null
+  },
+  "decision": {
+    "n00Status": "PASS",
+    "marker": "WSGS_V021_BASELINE_LOCKED",
+    "g1Status": "NOT_RUN",
+    "v03BranchAllowed": false,
+    "productionQualified": false
+  },
+  "redaction": {
+    "credentialsIncluded": false,
+    "internalProviderUrlsIncluded": false,
+    "databaseIdentifiersIncluded": false,
+    "rawReferenceIdsIncluded": false
+  }
+}
