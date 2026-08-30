@@ -259,8 +259,11 @@
   "branchDelivery": {
     "branch": "codex/wsgs-v0.2.1-sacs-geospatial-handoff",
     "baseSha": "318e02a0d77ceb696d46503ab1884ce5d4d17efd",
+    "initialN00CommitSha": "8706859453e2720dd4e16290501ba984a43e030e",
     "draftPrTitle": "feat: publish authoritative SACS geospatial handoff",
-    "draftPrUrl": null
+    "draftPrNumber": 10,
+    "draftPrState": "OPEN_DRAFT",
+    "draftPrUrl": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/10"
   },
   "decision": {
     "n00Status": "PASS",

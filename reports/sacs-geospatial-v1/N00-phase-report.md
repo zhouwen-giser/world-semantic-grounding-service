@@ -104,7 +104,7 @@ Hashes use normalized-LF UTF-8 bytes.
 | `acceptance/sacs-geospatial-v1/acceptance-matrix.csv` | `sha256:9907a03e28882f9ff481aa058a2cc94170e6bdc9bf654dbb3764cf34c9bbfe83` |
 | `acceptance/sacs-geospatial-v1/traceability.csv` | `sha256:27affd52a138db010904101db43af5e99265f357f8d805ebc1a9b090c403f917` |
 | `acceptance/sacs-geospatial-v1/evidence-map.template.json` | `sha256:75a04deb82236f70f4b84186334a44dfe4a2a27561c009b7debe5b4abcdc7441` |
-| `reports/sacs-geospatial-v1/N00-source-reconciliation.json` | `sha256:b51e6629dbf72cf7c130de238c01f95b97628da4abc7004ce8d74d6e42935f28` |
+| `reports/sacs-geospatial-v1/N00-source-reconciliation.json` | `sha256:3b557e155eff7cc313d85052ec32c437c9ccacee9ad75279b2721ebdc1b267ab` |
 | `reports/sacs-geospatial-v1/N00-consumer-compatibility-baseline.json` | `sha256:e12d0e10669995da8646028e3c1633a96539d7414626fdd39d3dfe22561ac3a8` |
 
 The phase report intentionally does not hash itself. Git binds all seven artifacts after commit.
@@ -113,8 +113,9 @@ The phase report intentionally does not hash itself. Git binds all seven artifac
 
 - Branch: `codex/wsgs-v0.2.1-sacs-geospatial-handoff`.
 - Base: `318e02a0d77ceb696d46503ab1884ce5d4d17efd`.
+- Initial N00 commit: `8706859453e2720dd4e16290501ba984a43e030e`.
 - Draft PR title: `feat: publish authoritative SACS geospatial handoff`.
-- Draft PR URL: pending the required N00 commit and first push; it will be recorded by an immediate N00 metadata update.
+- Draft PR: [#10](https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/10), OPEN Draft.
 
 ## Safety and non-claims
 
