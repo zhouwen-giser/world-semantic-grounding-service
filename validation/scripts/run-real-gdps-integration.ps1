@@ -124,9 +124,9 @@ function Assert-V021OperationLock([string]$path) {
     throw "The authoritative GOWM Gateway binding lock is missing; run the approved handoff intake first"
   }
   try {
-    $consumerLock = Get-Content -Raw -LiteralPath $path | ConvertFrom-Json
-    $providerLock = Get-Content -Raw -LiteralPath $gdpsCapabilityLock | ConvertFrom-Json
-    $gatewayDocument = Get-Content -Raw -LiteralPath $gdpsGatewayBindingLock | ConvertFrom-Json
+    $consumerLock = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+    $providerLock = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsCapabilityLock | ConvertFrom-Json
+    $gatewayDocument = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsGatewayBindingLock | ConvertFrom-Json
   } catch {
     throw "The GDPS v0.2.1 operation, capability, or Gateway binding lock is invalid JSON"
   }
@@ -183,7 +183,7 @@ function Assert-ExactGdpsPatternPlan {
     throw "The locked WSGS GDPS recipe plan is missing"
   }
   try {
-    $plan = Get-Content -Raw -LiteralPath $gdpsRecipePlan | ConvertFrom-Json
+    $plan = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsRecipePlan | ConvertFrom-Json
   } catch {
     throw "The locked WSGS GDPS recipe plan is invalid JSON"
   }
@@ -209,7 +209,7 @@ function Assert-ExactGdpsCaseSelection {
     throw "The frozen GDPS v0.2.1 E2E corpus is missing"
   }
   try {
-    $corpus = Get-Content -Raw -LiteralPath $gdpsE2eCorpus | ConvertFrom-Json
+    $corpus = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsE2eCorpus | ConvertFrom-Json
   } catch {
     throw "The frozen GDPS v0.2.1 E2E corpus is invalid JSON"
   }
