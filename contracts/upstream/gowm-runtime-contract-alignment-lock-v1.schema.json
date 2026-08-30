@@ -1,0 +1,376 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/wsgs/gowm-runtime-contract-alignment-lock-v1.schema.json",
+  "title": "WSGS GOWM Runtime / Gateway Contract Alignment Lock v1",
+  "description": "Fail-closed invariant: GOWM runtime is 0.6.4 while the consumed Gateway contract remains 0.6.3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "alignmentId",
+    "status",
+    "taskGeneratedAgainst",
+    "requiredTuple",
+    "gowmRuntime",
+    "gatewayContract",
+    "compatibilityPolicy",
+    "criticalOperationFingerprints",
+    "declaredSemanticProfileMigrations",
+    "requiredInvariantIds"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "./gowm-runtime-contract-alignment-lock-v1.schema.json"
+    },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "alignmentId": {
+      "const": "wsgs-gowm-runtime-0.6.4-gateway-contract-0.6.3"
+    },
+    "status": {
+      "const": "LOCKED"
+    },
+    "taskGeneratedAgainst": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wsgsRepository",
+        "wsgsCommit",
+        "wsgsVersion",
+        "targetWsgsVersion",
+        "northboundContractVersion"
+      ],
+      "properties": {
+        "wsgsRepository": {
+          "const": "zhouwen-giser/world-semantic-grounding-service"
+        },
+        "wsgsCommit": {
+          "const": "c2a71a0f455c728ae45d70067f223e1450cfa427"
+        },
+        "wsgsVersion": {
+          "const": "0.2.0"
+        },
+        "targetWsgsVersion": {
+          "const": "0.2.1"
+        },
+        "northboundContractVersion": {
+          "const": "sacs-wsgs-grounding/1.0"
+        }
+      }
+    },
+    "requiredTuple": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gowmRuntimeVersion",
+        "gatewayContractVersion",
+        "gatewayConsumerPackageVersion",
+        "runtimeAndContractVersionsMustRemainIndependent",
+        "runtimeVersionMustNotBeCopiedIntoContractVersion"
+      ],
+      "properties": {
+        "gowmRuntimeVersion": {
+          "const": "0.6.4"
+        },
+        "gatewayContractVersion": {
+          "const": "0.6.3"
+        },
+        "gatewayConsumerPackageVersion": {
+          "const": "0.6.3"
+        },
+        "runtimeAndContractVersionsMustRemainIndependent": {
+          "const": true
+        },
+        "runtimeVersionMustNotBeCopiedIntoContractVersion": {
+          "const": true
+        }
+      }
+    },
+    "gowmRuntime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "sourceCommit",
+        "softwareVersion",
+        "versionAuthority",
+        "knownNonAuthoritativeVersionFile"
+      ],
+      "properties": {
+        "repository": {
+          "const": "zhouwen-giser/geospatial-operational-world-model"
+        },
+        "sourceCommit": {
+          "const": "fceed92398a0b86c0a0121aa2188a7f1d328e577"
+        },
+        "softwareVersion": {
+          "const": "0.6.4"
+        },
+        "versionAuthority": {
+          "const": "package.json#/version"
+        },
+        "knownNonAuthoritativeVersionFile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "observedValueAtSourceCommit",
+            "mustNotBeUsedAsRuntimeVersionAuthority"
+          ],
+          "properties": {
+            "path": {
+              "const": "VERSION"
+            },
+            "observedValueAtSourceCommit": {
+              "const": "0.6.4"
+            },
+            "mustNotBeUsedAsRuntimeVersionAuthority": {
+              "const": true
+            }
+          }
+        }
+      }
+    },
+    "gatewayContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageName",
+        "packageVersion",
+        "gatewayContractVersion",
+        "packageVersionAuthority",
+        "gatewayContractVersionAuthority",
+        "consumerLogicalIntegrity",
+        "contractCatalogRevision",
+        "semanticCatalogHash",
+        "availabilityContractHash",
+        "snapshotContractHash",
+        "delegationContractHash",
+        "southboundLockFileSha256"
+      ],
+      "properties": {
+        "packageName": {
+          "const": "@gowm/world-gateway-contracts"
+        },
+        "packageVersion": {
+          "const": "0.6.3"
+        },
+        "gatewayContractVersion": {
+          "const": "0.6.3"
+        },
+        "packageVersionAuthority": {
+          "const": "packages/platform/world-gateway-contracts/package.json#/version"
+        },
+        "gatewayContractVersionAuthority": {
+          "const": "packages/platform/world-gateway-contracts/bundle/locks/wsgs-southbound-operation-lock-v2.json#/gatewayContractVersion"
+        },
+        "consumerLogicalIntegrity": {
+          "const": "sha512-f4bcksAK/JMk67pbkXlTycHREfM/19Xys4PcYhtjPTNW1Q43Xx+GYLlFkir0ePprUmNHo9Mnvksj2d2DOuCFrg=="
+        },
+        "contractCatalogRevision": {
+          "const": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a"
+        },
+        "semanticCatalogHash": {
+          "const": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61"
+        },
+        "availabilityContractHash": {
+          "const": "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036"
+        },
+        "snapshotContractHash": {
+          "const": "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0"
+        },
+        "delegationContractHash": {
+          "const": "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b"
+        },
+        "southboundLockFileSha256": {
+          "const": "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a"
+        }
+      }
+    },
+    "compatibilityPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classification",
+        "wireContractVersionChanged",
+        "northboundContractChanged",
+        "runtimeVersionMustNotDetermineGatewayContractVersion",
+        "allowOnlyDeclaredSemanticProfileMigrations",
+        "requireCriticalInputOutputSchemaStability",
+        "requireOperationVersionStability",
+        "requirePermissionAndSnapshotPolicyStability",
+        "singleUpstreamAuthorityRequired",
+        "failClosedOnUnexpectedWireDrift",
+        "failClosed"
+      ],
+      "properties": {
+        "classification": {
+          "const": "BACKWARD_COMPATIBLE_RUNTIME_REALIZATION_WITH_DECLARED_SEMANTIC_REVISIONS"
+        },
+        "wireContractVersionChanged": {
+          "const": false
+        },
+        "northboundContractChanged": {
+          "const": false
+        },
+        "runtimeVersionMustNotDetermineGatewayContractVersion": {
+          "const": true
+        },
+        "allowOnlyDeclaredSemanticProfileMigrations": {
+          "const": true
+        },
+        "requireCriticalInputOutputSchemaStability": {
+          "const": true
+        },
+        "requireOperationVersionStability": {
+          "const": true
+        },
+        "requirePermissionAndSnapshotPolicyStability": {
+          "const": true
+        },
+        "singleUpstreamAuthorityRequired": {
+          "const": true
+        },
+        "failClosedOnUnexpectedWireDrift": {
+          "const": true
+        },
+        "failClosed": {
+          "const": true
+        }
+      }
+    },
+    "criticalOperationFingerprints": {
+      "const": [
+        {
+          "operationId": "reference.resolve",
+          "operationVersion": "1.0",
+          "inputSchemaHash": "sha256:90f4610871c7077358e9ce09bbf139194bf10feebc5eacd448fec0bd81817329",
+          "outputSchemaHash": "sha256:5e0779610b6e8f0ec12c2d47cbfa99d23a2e92f503eaabf06969b732fa21cb41",
+          "semanticProfileHash": "sha256:2345427b162f36cc0792116f20cd337f1e95e0e8284b000ab556b876c45328ad",
+          "maturity": "STABLE",
+          "requiredPermissions": [
+            "data:read"
+          ],
+          "snapshotSupport": "CONSISTENT_AT_START"
+        },
+        {
+          "operationId": "reference.validate",
+          "operationVersion": "1.0",
+          "inputSchemaHash": "sha256:02b86151775176b13aa80fc0a8c595621941ab6ca5b6ba777c78d300ec59fc4b",
+          "outputSchemaHash": "sha256:e5f544f8d40c72dc1dc8039c4f5c83ed94b5d16624e05a68d47c65207941c75c",
+          "semanticProfileHash": "sha256:a79f3acf2cb9a825b367a63da65b63ed0f59746f0847ae30f9fb173082be79fc",
+          "maturity": "STABLE",
+          "requiredPermissions": [
+            "data:read"
+          ],
+          "snapshotSupport": "CONSISTENT_AT_START"
+        },
+        {
+          "operationId": "world.get-current-state",
+          "operationVersion": "1.0",
+          "inputSchemaHash": "sha256:dbfccaff85081bcc161d9e83c4e8959f6ecc35c3c726e01ce83547925dcc7772",
+          "outputSchemaHash": "sha256:56a451b6f9c62e15cb6dfb67821f907124551d96410be1f0cd8626284e46abf9",
+          "semanticProfileHash": "sha256:d41323fdb7bb22db3100e45a3024b978e9325504ab865c5b08852a3caf91a12a",
+          "maturity": "STABLE",
+          "requiredPermissions": [
+            "data:read"
+          ],
+          "snapshotSupport": "CONSISTENT_AT_START"
+        },
+        {
+          "operationId": "world.get-geometry",
+          "operationVersion": "1.0",
+          "inputSchemaHash": "sha256:dbfccaff85081bcc161d9e83c4e8959f6ecc35c3c726e01ce83547925dcc7772",
+          "outputSchemaHash": "sha256:56a451b6f9c62e15cb6dfb67821f907124551d96410be1f0cd8626284e46abf9",
+          "semanticProfileHash": "sha256:cc8df371406aff181616832bf4b6824e30d2cbc50186164b21c1a55e61680d11",
+          "maturity": "STABLE",
+          "requiredPermissions": [
+            "data:read"
+          ],
+          "snapshotSupport": "CONSISTENT_AT_START"
+        },
+        {
+          "operationId": "world.get-provenance",
+          "operationVersion": "1.0",
+          "inputSchemaHash": "sha256:dbfccaff85081bcc161d9e83c4e8959f6ecc35c3c726e01ce83547925dcc7772",
+          "outputSchemaHash": "sha256:56a451b6f9c62e15cb6dfb67821f907124551d96410be1f0cd8626284e46abf9",
+          "semanticProfileHash": "sha256:d41323fdb7bb22db3100e45a3024b978e9325504ab865c5b08852a3caf91a12a",
+          "maturity": "STABLE",
+          "requiredPermissions": [
+            "data:read"
+          ],
+          "snapshotSupport": "CONSISTENT_AT_START"
+        },
+        {
+          "operationId": "spatial.find-in-area",
+          "operationVersion": "1.0",
+          "inputSchemaHash": "sha256:f902acdbe64e91474b7f3d2a94d8cad72a7a2d6182265981a770fb472a8914dd",
+          "outputSchemaHash": "sha256:8aa8231c04110a4fcf235e759bcdd4f2e97db20097bbff62f9161b4ce6f4d161",
+          "semanticProfileHash": "sha256:fecded8fb9803f556acd8030ab05b52e377ab6a95121c9007273f2735233422b",
+          "maturity": "STABLE",
+          "requiredPermissions": [
+            "data:read"
+          ],
+          "snapshotSupport": "CONSISTENT_AT_START"
+        },
+        {
+          "operationId": "spatial.find-nearby",
+          "operationVersion": "1.0",
+          "inputSchemaHash": "sha256:17f7d021a954e30721adb28d02aae1803061455da9f153c1af019779d92ae846",
+          "outputSchemaHash": "sha256:d62bb6f78c53bdd5f7a714682edb91b18a90c9e520f6e642ee5a43d92d61fe23",
+          "semanticProfileHash": "sha256:80e56fb4f234644890de458056d66b78903f1f458460b8a066da75a4a2f18eff",
+          "maturity": "STABLE",
+          "requiredPermissions": [
+            "data:read"
+          ],
+          "snapshotSupport": "CONSISTENT_AT_START"
+        }
+      ]
+    },
+    "declaredSemanticProfileMigrations": {
+      "const": [
+        {
+          "operationId": "world.get-geometry",
+          "operationVersion": "1.0",
+          "fromSemanticProfileHash": "sha256:de483d463f1056e9a1696e24bf4d606239513647e7e60d576065c66acf8c7c1c",
+          "toSemanticProfileHash": "sha256:cc8df371406aff181616832bf4b6824e30d2cbc50186164b21c1a55e61680d11",
+          "classification": "DECLARED_REFERENCE_COMPOSABILITY_SEMANTIC_REVISION"
+        },
+        {
+          "operationId": "spatial.find-intersections",
+          "operationVersion": "1.0",
+          "fromSemanticProfileHash": "sha256:2fc7946a9eee31a7d6d0fbb435cf0e4e737b344095742f6d986d121f79ae5f0e",
+          "toSemanticProfileHash": "sha256:3ff34f5452a95f91988e3dce183a83e27b4ea80ac5995dc92cf1764957b21024",
+          "classification": "DECLARED_SEMANTIC_REVISION"
+        },
+        {
+          "operationId": "predicate.evaluate",
+          "operationVersion": "1.0",
+          "fromSemanticProfileHash": "sha256:8d88e76d7518a05650705508b5a968f9140ed2f5f36196448c89bed8d13618bf",
+          "toSemanticProfileHash": "sha256:61b04699fbafd5f5dfdbaac6beabcdc5ddd533bb07305c4a5f14ceddf8a33c52",
+          "classification": "DECLARED_SEMANTIC_REVISION"
+        }
+      ]
+    },
+    "requiredInvariantIds": {
+      "const": [
+        "INV-GOWM-SOURCE-COMMIT",
+        "INV-GOWM-RUNTIME-VERSION-0.6.4",
+        "INV-GATEWAY-PACKAGE-0.6.3",
+        "INV-GATEWAY-CONTRACT-0.6.3",
+        "INV-RUNTIME-CONTRACT-VERSION-INDEPENDENCE",
+        "INV-CONSUMER-PACKAGE-INTEGRITY",
+        "INV-CONTRACT-CATALOG-REVISION",
+        "INV-SEMANTIC-CATALOG-REVISION",
+        "INV-SOUTHBOUND-LOCK-FILE-HASH",
+        "INV-CRITICAL-WIRE-FINGERPRINTS",
+        "INV-DECLARED-SEMANTIC-MIGRATIONS-ONLY",
+        "INV-NORTHBOUND-CONTRACT-UNCHANGED",
+        "INV-SINGLE-UPSTREAM-AUTHORITY",
+        "INV-UNEXPECTED-DRIFT-FAIL-CLOSED"
+      ]
+    }
+  }
+}

@@ -23,6 +23,18 @@ function sha256File(path) {
   return `sha256:${createHash("sha256").update(readFileSync(path)).digest("hex")}`;
 }
 
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sha256Canonical(value) {
+  return `sha256:${createHash("sha256").update(canonicalJson(value)).digest("hex")}`;
+}
+
 function csvRows(path) {
   const lines = readFileSync(path, "utf8").replaceAll("\r\n", "\n").trimEnd().split("\n");
   return { header: lines[0], rows: lines.slice(1) };
@@ -125,11 +137,32 @@ if (report.status !== "DEVELOPMENT_READY" || report.productionQualified !== fals
     report.realPipelineEvidenceHash !== sha256File(realPipelinePath)) {
   fail("development readiness report is incomplete or hash-drifted");
 }
-const handoff = json(resolve(root, "contracts", "consumers", "sacs-development-handoff-v1.json"));
+const handoffPath = resolve(root, "contracts", "consumers", "sacs-development-handoff-v1.json");
+const handoff = json(handoffPath);
 validate("sacs-development-handoff.schema.json", handoff, "sacs-development-handoff-v1.json");
-if (handoff.wsgs.commit !== report.wsgsCommit || handoff.developmentLedgerHash !== report.developmentLedgerHash ||
-    handoff.productionQualified !== false || JSON.stringify(handoff.stableRecipes) !== JSON.stringify(recipeIds)) {
+if (handoff.developmentLedgerHash !== report.developmentLedgerHash || handoff.productionQualified !== false ||
+    JSON.stringify(handoff.stableRecipes) !== JSON.stringify(recipeIds) ||
+    !Array.isArray(handoff.alignmentValidatedRecipes)) {
   fail("SACS development handoff does not match the tested candidate and ledger");
+}
+const handoffVerification = json(resolve(
+  root,
+  "reports",
+  "wsgs-gowm-0.6.4-alignment",
+  "handoff-verification-report.json"
+));
+const { evidenceHash: handoffEvidenceHash, ...handoffVerificationPayload } = handoffVerification;
+if (handoffVerification.schemaVersion !== "wsgs-gowm-handoff-verification/1.0" ||
+    !["BLOCKED", "PASS"].includes(handoffVerification.status) ||
+    handoffVerification.handoffPath !== "contracts/consumers/sacs-development-handoff-v1.json" ||
+    handoffVerification.handoffFileHash !== sha256File(handoffPath) ||
+    handoffVerification.wsgsSourceBinding?.status !== "PASS" ||
+    handoffVerification.wsgsSourceBinding?.sourceCommit !== handoff.wsgs.commit ||
+    canonicalJson(handoffVerification.exactTuple) !== canonicalJson(handoff.gowm) ||
+    JSON.stringify(handoffVerification.alignmentValidatedRecipes) !== JSON.stringify(handoff.alignmentValidatedRecipes) ||
+    handoffVerification.productionQualified !== handoff.productionQualified ||
+    handoffEvidenceHash !== sha256Canonical(handoffVerificationPayload)) {
+  fail("SACS development handoff alignment binding is incomplete or hash-drifted");
 }
 
 console.log(

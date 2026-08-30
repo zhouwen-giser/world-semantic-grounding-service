@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "wsgs-gowm-contract-diff-report/1.0",
+  "status": "PASS",
+  "baseline": {
+    "sourceCommit": "17dd221330d9af540ec815a39eca96550690299a",
+    "lockHash": "sha256:51c189f2a4359b245b652eeb196410c742231db69dc0232d3f7057bb4368cdf0"
+  },
+  "candidate": {
+    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "lockHash": "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a"
+  },
+  "operationSet": {
+    "before": 120,
+    "after": 120,
+    "equality": "PASS"
+  },
+  "wireSchemaStability": "PASS",
+  "operationPolicyStability": "PASS",
+  "semanticMigrationAllowlistExact": "PASS",
+  "observedSemanticMigrations": [
+    "predicate.evaluate@1.0",
+    "spatial.find-intersections@1.0",
+    "world.get-geometry@1.0"
+  ],
+  "evidenceHash": "sha256:90672a4bd7f2707965a855f252fb0305d4f8da61be1bf0f8ac78d510ebf0aa9e"
+}

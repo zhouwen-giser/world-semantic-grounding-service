@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "wsgs-gowm-semantic-migration-report/1.0",
+  "status": "PASS",
+  "declaredCount": 3,
+  "observedCount": 3,
+  "declaredEqualsObserved": true,
+  "migrations": [
+    {
+      "operationId": "world.get-geometry",
+      "operationVersion": "1.0",
+      "fromSemanticProfileHash": "sha256:de483d463f1056e9a1696e24bf4d606239513647e7e60d576065c66acf8c7c1c",
+      "toSemanticProfileHash": "sha256:cc8df371406aff181616832bf4b6824e30d2cbc50186164b21c1a55e61680d11",
+      "classification": "DECLARED_REFERENCE_COMPOSABILITY_SEMANTIC_REVISION"
+    },
+    {
+      "operationId": "spatial.find-intersections",
+      "operationVersion": "1.0",
+      "fromSemanticProfileHash": "sha256:2fc7946a9eee31a7d6d0fbb435cf0e4e737b344095742f6d986d121f79ae5f0e",
+      "toSemanticProfileHash": "sha256:3ff34f5452a95f91988e3dce183a83e27b4ea80ac5995dc92cf1764957b21024",
+      "classification": "DECLARED_SEMANTIC_REVISION"
+    },
+    {
+      "operationId": "predicate.evaluate",
+      "operationVersion": "1.0",
+      "fromSemanticProfileHash": "sha256:8d88e76d7518a05650705508b5a968f9140ed2f5f36196448c89bed8d13618bf",
+      "toSemanticProfileHash": "sha256:61b04699fbafd5f5dfdbaac6beabcdc5ddd533bb07305c4a5f14ceddf8a33c52",
+      "classification": "DECLARED_SEMANTIC_REVISION"
+    }
+  ],
+  "evidenceHash": "sha256:7c3295740a72d036cecb8fd991bb50e1c2073d2844b58e75ea8aac75b2587036"
+}

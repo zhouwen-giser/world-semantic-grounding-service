@@ -1,0 +1,497 @@
+{
+  "schemaVersion": "wsgs-pipeline-traceability/1.0",
+  "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+  "observedAt": "2026-08-30T08:41:43.167Z",
+  "wsgsSourceBinding": {
+    "status": "PASS",
+    "headCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+    "sourceTree": "e84b8a482e62ceec66bb9b76315b70d7ca7d660d",
+    "evidenceSourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+    "trackedSourceClean": true,
+    "verification": "GIT_HEAD_AND_TRACKED_DIFF"
+  },
+  "runtimeBinding": {
+    "bindingStatus": "PASS",
+    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "runtimeVersion": "0.6.4",
+    "gatewayContractVersion": "0.6.3",
+    "imageDigest": "sha256:5ada61bbebc1bc808e9db14a9ca2aabe9d23211799393f8012e2e63d49eabe18",
+    "instanceEvidenceHash": "sha256:585929a1a9f3d098d784f0ee1ea253c0cb1e585d1baaba44771138e0560bb537",
+    "instanceEvidencePayloadHash": "sha256:cf4a3caaa1b501eee6d1aba2d25138ed5b02c3e8cac2dac70844231930583404",
+    "imageBuildEvidenceHash": "sha256:79920f5e8652e3b1f2a1864a2457fb82ef84158a8d6633d834e4008fc8975f94",
+    "imageBuildEvidencePayloadHash": "sha256:384c19f07ed8be88ee0692d2515c698bdacd227f0544bd2daead9f58df6cf046",
+    "imageBuildEvidencePathHash": "sha256:c1b4d6f75114215ecfac913cdbca9e7dd27666007d9e8e3eb38165e049d57ae2",
+    "imageBuildGeneratedAt": "2026-08-30T05:59:50.682Z",
+    "sourceTree": "0b48090f0491226817c672e998b633200aaa43ce",
+    "observedAt": "2026-08-30T08:29:51.958Z",
+    "runtimeBindingHash": "sha256:2c7f477e441bdc440a5e04b55656f74e3c770d5b2b57e66d2f174395cfc7928d",
+    "runtimeBindingHashBasis": "DIRECT_REPORT_RUNTIME_BINDING_CANONICAL_JSON_WITHOUT_BINDING_HASH",
+    "sourceReportFileHash": "sha256:b26e00b33d3a6b11544b1655b16a9927d3340127071a3942e2d035eb40e7772f",
+    "sourceReportEvidenceHash": "sha256:12ff480d799c669cabe171ab1a4b74a6e27a9a89e740218097534a3e7c2c943d",
+    "sourceReportPathHash": "sha256:9bc3e0962d4be3dd4bc837a132a3359884418f2ca8c5c02790209a24df6d70a2"
+  },
+  "runtimeBindingHash": "sha256:2c7f477e441bdc440a5e04b55656f74e3c770d5b2b57e66d2f174395cfc7928d",
+  "wsgsProcessBinding": {
+    "schemaVersion": "wsgs-external-process-binding/1.0",
+    "bindingStatus": "PASS",
+    "observedAt": "2026-08-30T08:35:30.084Z",
+    "executionMode": "EXTERNAL_PROCESS",
+    "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+    "sourceTree": "e84b8a482e62ceec66bb9b76315b70d7ca7d660d",
+    "runtimeVersion": "0.2.1",
+    "composeProjectHash": "sha256:b300fa7ea6eebd0e606e0896109c980716bd055412401236841c580033b77498",
+    "serviceSetHash": "sha256:6bff29eb90de2d078e027333366cada2aaedf53ff6fd8c59619b1aecf51a395f",
+    "apiEndpointHash": "sha256:06fe9cce033ad9a8a82c23a01b90bd2eb2bb2299c6ee964b762b30fe54920d74",
+    "distinctContainerCount": 3,
+    "apiWorkerImageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
+    "apiPortBindingVerified": true,
+    "containerCommandSetVerified": true,
+    "runtimeEnvironmentAgreementVerified": true,
+    "gowmGatewayEndpointHash": "sha256:fa684aa8d8032c2bca5f8ac7dadd29099e3220e196151cc6edf4833b7148b281",
+    "postgresConnectionVerified": true,
+    "isolatedDatabaseAttested": true,
+    "initialGroundingRowCount": 0,
+    "databaseIdentityHash": "sha256:330a34397a618d9503b91c2f9f27db6b38a7369b7c15743e6d8b7db200a94219",
+    "databaseServerAddressHash": "sha256:b66e3ad01be4cc1de518f8baecdd6f39620ba154871dbc330aa47be9613e9b9a",
+    "databaseServerVersionHash": "sha256:51b3faa0925e83071739ee1b5d0ee29161214be3e6519608ea831cf6551be1ff",
+    "services": [
+      {
+        "service": "grounding-api",
+        "containerIdentityHash": "sha256:bcbbe8251b7e930988ca8a675378b201963b14dc34156d33a86b639e195463d3",
+        "imageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
+        "running": true,
+        "health": "healthy"
+      },
+      {
+        "service": "grounding-worker",
+        "containerIdentityHash": "sha256:73753e53e5c42261ef5bb50ee2d6cf0412112b7d8d8172d7f575698a82ce3c31",
+        "imageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
+        "running": true,
+        "health": "healthy"
+      },
+      {
+        "service": "postgres",
+        "containerIdentityHash": "sha256:1f6f93c1963f8d7f17b42c6ee057d94a0c0d4d7ebcc57f8055182096761026b9",
+        "imageDigest": "sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4",
+        "running": true,
+        "health": "healthy"
+      }
+    ],
+    "runtimeImageBuildEvidence": {
+      "status": "PASS",
+      "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+      "sourceTree": "e84b8a482e62ceec66bb9b76315b70d7ca7d660d",
+      "runtimeVersion": "0.2.1",
+      "imageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
+      "generatedAt": "2026-08-30T08:30:24.887Z",
+      "reportFileHash": "sha256:c4ddba48bdd0e966c46307c129a6c60d63af5c9386f0ff659d68dd81d89aeb43",
+      "reportPayloadHash": "sha256:7d23667c2f9e4512f66fb55ee738d8c000f8f4bfe36df95fe89861eb4cdc0d08",
+      "reportPathHash": "sha256:beed7d88899220d81aa25f5a2c7b272ad69302760a1578615f318b5ee7012e14"
+    },
+    "redaction": {
+      "credentialsIncluded": false,
+      "rawContainerIdsIncluded": false,
+      "rawDatabaseIdentityIncluded": false,
+      "internalTopologyIncluded": false,
+      "localPathsIncluded": false
+    },
+    "bindingHash": "sha256:ac588530608569cef634dd3b8d4952dc4b0e8b5a096278ea2244619065bedadb",
+    "reportFileHash": "sha256:af1a80b3407cf7fb3282b16f187e8562d8460dc4253053a1b1001b71a5f92a26",
+    "reportEvidenceHash": "sha256:f8a86736f8b335877c291baf2d9bacc207fcde3eff2e0b6e9792eaf3a0a37226",
+    "reportPathHash": "sha256:9b1de1071c07102702b418d8b11bdbfc4d43904ecd3a0299630770a42842cd4d"
+  },
+  "wsgsProcessBindingHash": "sha256:ac588530608569cef634dd3b8d4952dc4b0e8b5a096278ea2244619065bedadb",
+  "executionPath": [
+    "PUBLIC_API",
+    "POSTGRES",
+    "WORKER",
+    "PRODUCTION_PIPELINE",
+    "GOWM_GATEWAY",
+    "POSTGRES_PERSIST",
+    "PUBLIC_API_GET"
+  ],
+  "executionMode": "EXTERNAL_PROCESS",
+  "cases": [
+    {
+      "recipeId": "R1",
+      "requestIdHash": "sha256:93f6f279c2a9a881a70792ce69058d0134c610e326d3f606121c91f8e2d9d73e",
+      "groundingIdHash": "sha256:89a2f6bb449cc31d9b4f4779a28e1834e2dcfd6630280fd2c670577ac3fd0c45",
+      "jobIdHash": "sha256:4054661fe024329618d2bb4bcf76d43d5ef24aa29cc42adadda28494cceefa07",
+      "stageHashes": [
+        "sha256:fb99a0be65973bec2684a57d9cc529dba2740182b787d43941c135a4cc040064",
+        "sha256:4a647cb557eae14abf8551eb92c329e7a204fc6cb4cd243d1c1d024404448018",
+        "sha256:0df304e8f1e6a2fc6239f8f5bc216769bcbf2dae8e070ce03c1dcb47cd144a1c",
+        "sha256:ad1be7d710b5e4235fb5b087caef0730a0a0b20bb514d199c99e276e45fdac69",
+        "sha256:8946ccbf1576c3572e6113d97db565379973ff08b1ba662eab51ec05f3ea0190",
+        "sha256:9b883b714f2585daf2abc37e40157cb297c959b153df353bf7b0610564ccb457",
+        "sha256:8a6c4053ef44cda00953f0bc973d8cdaf9de52082dd14b1db933f46f2bacab20",
+        "sha256:7369dcf1a2782000a357bbec2c3d9b13e8de73d83bbb8f0cf07740cf74ef6361",
+        "sha256:a435da8579769e99c4585a1f197f0d626a0004a4e52a3082972e24bea58085a9",
+        "sha256:8108dc4e1905d23b5b19ea65aea2a6adba5cb8c66c7680b5b870de5cc827abb5",
+        "sha256:c8fd82aaec64fb685de6bd26e905b3d1fedbc77d6cdf2c2eb254bec01998e4a1",
+        "sha256:5aeab1a8b77acee3cdf7e5c1bfc4e4e107b0c0c2550addd89410137ce70c799b",
+        "sha256:3126c0386e0602531a32298d0659a09d194ed1dcb09395379b7c15934d962740",
+        "sha256:3126c0386e0602531a32298d0659a09d194ed1dcb09395379b7c15934d962740"
+      ],
+      "planHashes": [
+        "sha256:5338ecf6d980fe9102cffe0635c7e02890e673b1b57435feb2bead26a7bbe3a1"
+      ],
+      "upstreamResultHashes": [
+        "sha256:689dcb2c484a2f729745c70ca6783e10263d0a6a1f6c5b9c2b9d53d5b9cf6f70"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:e56d596663515fc4d1e4c38ca7bf0e3d1364840490ef8186195dbecb46182a9d"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:edf82708dbc5742233dee1eae71be1e2a44ec813e2e103e4eefe9cc5282a1737"
+      ],
+      "gatewayReceiptIdHashes": [
+        "sha256:703889f8196189cece39cc09c6f87993e2229dec184e5041f3bc6b2b822a6795",
+        "sha256:0e16a49bcf62ce902e1f3efbdeda890ee3c6b2802b3b3f83a122cfc555b52ed6"
+      ],
+      "gatewayEvidenceIdHashes": [],
+      "traceability": {
+        "status": "PASS",
+        "api": {
+          "postHttpStatus": 202,
+          "getHttpStatus": 200,
+          "requestHash": "sha256:6da0ee66b68bca57d2da9fcd14295c06e491c487b6a56f208a18740b1cc66aa9"
+        },
+        "postgres": {
+          "requestPayloadHash": "sha256:6da0ee66b68bca57d2da9fcd14295c06e491c487b6a56f208a18740b1cc66aa9",
+          "checkpointStateHash": "sha256:07ed3d171beffad68884575dc8f3be1b6a3d39d655431aa76edc6d3058603ec6",
+          "resultBytesHash": "sha256:9e36ebf225df474c902dc3b98d1c1517ee3a7b7a59c6776027ad5a31f906d596",
+          "resultHash": "sha256:9a1bd160feaea13022727199f060217d93f9e52141483629ed5e4a84e50b820e"
+        },
+        "worker": {
+          "outcome": "SUCCEEDED",
+          "generationCount": 1
+        },
+        "pipeline": {
+          "operation": "EXECUTE_WORLD_QUERY",
+          "expectedStageCount": 14,
+          "terminalEventCount": 14,
+          "eventRecordCount": 28,
+          "eventChainValid": true,
+          "stageOutputsMatchCheckpoint": true,
+          "checkpointLastCompletedStage": "RESULT_PERSIST",
+          "finalRecordHash": "sha256:7f23bcc99ff22ce95bacae791b39736d823f93ec1a5b03046476e4dd94662a00"
+        },
+        "gateway": {
+          "persistedWorldQueryCount": 1,
+          "persistedExecutionCount": 3,
+          "planHashesMatchCheckpoint": true,
+          "upstreamHashesMatchCheckpoint": true
+        },
+        "persistence": {
+          "jobStatus": "COMPLETED",
+          "getMatchesPersistedResult": true
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R2",
+      "requestIdHash": "sha256:1d9e991f04d233e26a3ad32122f8dc7b17bb6b429968259aed3ef33db1352010",
+      "groundingIdHash": "sha256:2dec6e907aafa97333c617f93c0f3e0429734ca20f3fbd8ab499f806beb869b3",
+      "jobIdHash": "sha256:1ec34affd35063c58568e3845e631ddf4e6793308b5dc510dc8bec036178bb5a",
+      "stageHashes": [
+        "sha256:cda2908e96ab47bf6777092eb0d3b53a1db3f08cd7141162379865bdb5d9f7f9",
+        "sha256:4a647cb557eae14abf8551eb92c329e7a204fc6cb4cd243d1c1d024404448018",
+        "sha256:687d2aafac8dd64ff475555af151170f4b6ec3a0631e6d99702867f3f7882ca1",
+        "sha256:9fb01c04f2f52ca0d662324b439ea3f806561fc6f2ecb2f66eee05aee5bbac17",
+        "sha256:fab2bf7e8529149a4aae88fb001339791de0bd160b457f212bdda8f563ba7183",
+        "sha256:29dc9b671fbc0eb95a3d8848725c4c3c67df007051373f40b3f0b38d5fa6bf62",
+        "sha256:a861ae0996fbe8fb87032bf171a785dd6f493b83e989f03c226a73576b9f365b",
+        "sha256:cd1eca4f0cb5ea9c3da28826660c301f18697db4d7928e7222505cd2ef16b953",
+        "sha256:fb578a95974130b3c202f72e65cd04c5fcbc66851d63fcca1e68821622dcb58b",
+        "sha256:c83218e26607f9c214d23521c3f3c3591146e7fc34887a440f33b2526dc52538",
+        "sha256:c106387e8ea6f8fedd30c69407b4833a5398934920f90d1b32ad8f8fa3ce350c",
+        "sha256:a834a9246c6b961e84acbead6d1a087309294d0362baee3aa4323780b98c300f",
+        "sha256:69592e9139928a6b1a6b8f9ebc02b4dd86b8875d45d531819c2e6e80e77c6481",
+        "sha256:69592e9139928a6b1a6b8f9ebc02b4dd86b8875d45d531819c2e6e80e77c6481"
+      ],
+      "planHashes": [],
+      "upstreamResultHashes": [],
+      "gatewayQueryIdHashes": [],
+      "gatewayJobIdHashes": [],
+      "gatewayReceiptIdHashes": [],
+      "gatewayEvidenceIdHashes": [],
+      "traceability": {
+        "status": "PASS",
+        "api": {
+          "postHttpStatus": 202,
+          "getHttpStatus": 200,
+          "requestHash": "sha256:374a1ea16eb5e864b798a2e7b3f9e1330defcde0b2700730513cf3130706985c"
+        },
+        "postgres": {
+          "requestPayloadHash": "sha256:374a1ea16eb5e864b798a2e7b3f9e1330defcde0b2700730513cf3130706985c",
+          "checkpointStateHash": "sha256:49666f5046c4db9ae8078ef9a45e93d1d009c86d4c69ae6b7ff58cc72ebb92dd",
+          "resultBytesHash": "sha256:b7f36ad2c05eae55acdd6f9d75b66a63aa5dddc26b5e5720e48413cec79c5be1",
+          "resultHash": "sha256:71544f6a107c5c2fcd316b73a94527877477b94bec513c97a273ff8b5e18a15a"
+        },
+        "worker": {
+          "outcome": "SUCCEEDED",
+          "generationCount": 1
+        },
+        "pipeline": {
+          "operation": "EXECUTE_WORLD_QUERY",
+          "expectedStageCount": 14,
+          "terminalEventCount": 14,
+          "eventRecordCount": 28,
+          "eventChainValid": true,
+          "stageOutputsMatchCheckpoint": true,
+          "checkpointLastCompletedStage": "RESULT_PERSIST",
+          "finalRecordHash": "sha256:a26937f111b94375e47e4319f9a3e56fd660a0fb1ddcbc269f5d26af392e43d0"
+        },
+        "gateway": {
+          "persistedWorldQueryCount": 0,
+          "persistedExecutionCount": 0,
+          "planHashesMatchCheckpoint": true,
+          "upstreamHashesMatchCheckpoint": true
+        },
+        "persistence": {
+          "jobStatus": "AMBIGUOUS",
+          "getMatchesPersistedResult": true
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R3",
+      "requestIdHash": "sha256:4f122adf99ecabdda9d80a3dfdf87d3d675e68fa30636699b29065ffe091288d",
+      "groundingIdHash": "sha256:1f499da4d3dedd9df58559f6200321a1a612fc1558584f286c71b56bfc60a460",
+      "jobIdHash": "sha256:56c84e0726c5b38c2354b69f49686405572a58063c4315bc52d86f653f0ef3c6",
+      "stageHashes": [
+        "sha256:54923f6ce7a8416ce160af318e275b14807dd6ff13c54d5a10797fcddb682b48",
+        "sha256:4a647cb557eae14abf8551eb92c329e7a204fc6cb4cd243d1c1d024404448018",
+        "sha256:1a080693e8126cfb190591165bb4a603fd72cbe4d3e939b53b89aeb3f5fd273e",
+        "sha256:b331e6740c14abdc8c97474d83253a672af27097b74e63afcfd76afd2a8bcb7d",
+        "sha256:1cc68089d74ca76a81b391330f8c695daccf77dee2041332c27a582d2d625fc0",
+        "sha256:dad48bd08b746afe7e6122460ec058aaba8a7da0d728eed1951151e8381bbc8b",
+        "sha256:49e0dc08eea3c39ef2a7e06f4e9f4f53b27ebd7510bb4137612c8108ba14007e",
+        "sha256:d5075d977c793dbfc1ed96332fdeca6eeec3b3c33ed2fa09ad0049b0b8363626",
+        "sha256:7731b422c3d6fce863ebfbd8885ade4869846e922adaf8abb0f055816fd34588",
+        "sha256:e42c31b672cce269615b6d2fdbc5d30f0b337082bcf6676e220cb38eb1a5937f",
+        "sha256:7c1bc1f6cbc5225594d016aebb9dec37fec20b4d4f7c88a182a93d0c67ffc87d",
+        "sha256:3a0a5f93fe3164822b1e466929a4b26270242238675c1d6afc1ee26a8c488752",
+        "sha256:74209ba29f8ca6b0a6d354c45ea806bcb5c6d5ba0ff86012c010cca0a13fb10f",
+        "sha256:74209ba29f8ca6b0a6d354c45ea806bcb5c6d5ba0ff86012c010cca0a13fb10f"
+      ],
+      "planHashes": [
+        "sha256:60c6d2f97c94a2cc96a94d396394d15ed30905eac2d2e1d8f7a8fd9325a7274b"
+      ],
+      "upstreamResultHashes": [
+        "sha256:9959c738aa1dbff8b4adfb661108912dd51a702aef6a3ab89c0664ab690604cc"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:07ed5670fe529c2dcd3c777a1ccbe5d3dd86deea4b7a140fa2f9170177164fbf"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:f79bbf7558ff8bb5a9894d2b280e8e2b60e3e58cd804ee331441612e0d9bf511"
+      ],
+      "gatewayReceiptIdHashes": [
+        "sha256:4fbee2808fac5c78d54f1f08ae847abb7562568adb532cf2bc1a0ad2f454ef5d",
+        "sha256:93553922186f5d612acee590d431803fff1ac231ea76982ffcb2eae63b8bbf33",
+        "sha256:b44cdd853a5b871e5a4c55fff7ab21aa81f9f47b6ab1dba5da0a361a8cb5b2d3"
+      ],
+      "gatewayEvidenceIdHashes": [
+        "sha256:346ae2124146ca2d5daad25fe90c969d484497bb3dbc9547f3a2a79c4637236c",
+        "sha256:b40a6705fe04fc0cd0461a837e7bc9ddc7bf1eacb7a92807865a5f35df2ff3ae",
+        "sha256:ef3b30db6ee4ffa2719fe9c204944ed02c0a47fa39f77e02c8522faa8fe1f9c8",
+        "sha256:8622fe11185e60c1a03797a7ec7031584743c3b64405ee33688512467d9ae851"
+      ],
+      "traceability": {
+        "status": "PASS",
+        "api": {
+          "postHttpStatus": 202,
+          "getHttpStatus": 200,
+          "requestHash": "sha256:166f1fb5f9a6a731341704b66d4174bdc19adcf10aee8728878e80eac79ad665"
+        },
+        "postgres": {
+          "requestPayloadHash": "sha256:166f1fb5f9a6a731341704b66d4174bdc19adcf10aee8728878e80eac79ad665",
+          "checkpointStateHash": "sha256:7d632c88e85bb4195d4336d396868f0ddc6adf6fc81fa37a4ae29d2aad34c484",
+          "resultBytesHash": "sha256:312f880fd9ddd37478085ac0955a29d3e9f15c4007cca74df84150b7782c5808",
+          "resultHash": "sha256:b5828562b74779339a8a9c085ffdeae40102908dd7aa2523322d2f5c1e835d9d"
+        },
+        "worker": {
+          "outcome": "SUCCEEDED",
+          "generationCount": 1
+        },
+        "pipeline": {
+          "operation": "EXECUTE_WORLD_QUERY",
+          "expectedStageCount": 14,
+          "terminalEventCount": 14,
+          "eventRecordCount": 28,
+          "eventChainValid": true,
+          "stageOutputsMatchCheckpoint": true,
+          "checkpointLastCompletedStage": "RESULT_PERSIST",
+          "finalRecordHash": "sha256:21e109a9cf3f5ac0665a23537eb65f63c70b845c924833c7f0f1312e70d88ca3"
+        },
+        "gateway": {
+          "persistedWorldQueryCount": 1,
+          "persistedExecutionCount": 4,
+          "planHashesMatchCheckpoint": true,
+          "upstreamHashesMatchCheckpoint": true
+        },
+        "persistence": {
+          "jobStatus": "COMPLETED",
+          "getMatchesPersistedResult": true
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R4",
+      "requestIdHash": "sha256:f8ab1cbfd521143dadcdda1a5137affba99484eaaa22ebf378f75c88d652074d",
+      "groundingIdHash": "sha256:9f8e27cc7fca54d75ec1eb69a55885948213aff4298f8b0b8310e25395db5608",
+      "jobIdHash": "sha256:980ed3564b24813e59ffc6b72b200c1cc4c7de5cdd74da9c272e0ad5b72bec09",
+      "stageHashes": [
+        "sha256:6818d38f8c1d970977869175134b5ffabd27c5cffaeec0054c6e3390f0142ac0",
+        "sha256:2f5a57609c72db57e5f5b9176db29f0f4f3cc26c2b3cb0e52d923fe0530d363b",
+        "sha256:56c172d682058aff28963b1d46455986f5f2b3f797a47fc844a6640bb4917ff4",
+        "sha256:3df2ef49c57b6551df04d409f2cf0629dc33a1ae0c2e643dec593ffe837f1739",
+        "sha256:20c26234f25e812236da7588c3f345f0c81182cefedea4a779dcc84e52fcbb37",
+        "sha256:9b883b714f2585daf2abc37e40157cb297c959b153df353bf7b0610564ccb457",
+        "sha256:a23cd4c07f01995c45074834e8669c0dd9fdf48618bde44b119715547c1c8121",
+        "sha256:3e4917198f15e520c57eac2aa63b642911348fe5a1ebdbec915e5676caeb0a10",
+        "sha256:75823accb94f4fb60545d94bccc1f26c20c58cc758747e4b8e2dbdab8bf8f3e6",
+        "sha256:a8a03a02b231688b2ef2595133e5265385aa349acc4e455309ba12a596724545",
+        "sha256:eaad5c2b389c68561fee7a14ff0d8c12c488b5f92ad35d3a0bb9f81f3cf5d1d5",
+        "sha256:f0580315399d702d80ff0f900eab19fecbaac001f85df04a79167e58b645904e",
+        "sha256:05d030e4b42720202f22b2c3475e2575664db58e2a7231ac21d4268f36db80f5",
+        "sha256:05d030e4b42720202f22b2c3475e2575664db58e2a7231ac21d4268f36db80f5"
+      ],
+      "planHashes": [
+        "sha256:cce3959c0e0a75c0c3510ad279c2dd313cf1324c8cb89ae4a6654c8206d35b7f"
+      ],
+      "upstreamResultHashes": [
+        "sha256:7bbb8bb7c3c49439afb972b1115774d8e747ab847b3c4d36f4deb93c92226bac"
+      ],
+      "gatewayQueryIdHashes": [
+        "sha256:dea2293ef031cc237ebc360774d2ac432a9e06799c80b966383b8eb18724fca0"
+      ],
+      "gatewayJobIdHashes": [
+        "sha256:e6ed2ae51928d4c6bf4271dc8cdb32c30afc0e51275a3f637161b0c43edce196"
+      ],
+      "gatewayReceiptIdHashes": [
+        "sha256:5a62e92291aa0e3e80bb99fedc38a7325e7a813d70c64d1dadbc2cd1239f8936",
+        "sha256:354c599bbf57efef1caca53882983f307ad924f71bd4ba44e0633e150c48c4bd",
+        "sha256:8715d0481368610321822057e9dea2caa2a1559aa325da64446ae5e513582f22"
+      ],
+      "gatewayEvidenceIdHashes": [
+        "sha256:ac2c7eae0f1e39ac2a4eb701957b4e516131509a04a5599ab14b59e7bb59e074",
+        "sha256:346ae2124146ca2d5daad25fe90c969d484497bb3dbc9547f3a2a79c4637236c",
+        "sha256:b40a6705fe04fc0cd0461a837e7bc9ddc7bf1eacb7a92807865a5f35df2ff3ae",
+        "sha256:2dbecc4e5e88c3d84d9186f08405cc3494d50dd2aa348da7723d98e75c30bbac",
+        "sha256:ef3b30db6ee4ffa2719fe9c204944ed02c0a47fa39f77e02c8522faa8fe1f9c8",
+        "sha256:8622fe11185e60c1a03797a7ec7031584743c3b64405ee33688512467d9ae851"
+      ],
+      "traceability": {
+        "status": "PASS",
+        "api": {
+          "postHttpStatus": 202,
+          "getHttpStatus": 200,
+          "requestHash": "sha256:1ca7c97767812e62a13205ea5eeeb20ef7e7c438eadd48903e203b53d570e52a"
+        },
+        "postgres": {
+          "requestPayloadHash": "sha256:1ca7c97767812e62a13205ea5eeeb20ef7e7c438eadd48903e203b53d570e52a",
+          "checkpointStateHash": "sha256:ae693dc3ae83b4d60a8abc12294140294d378bfde2c0f32aa20b4e80539bf9fb",
+          "resultBytesHash": "sha256:ca8b24ee8b794e0718be4687d91abdd927cfe04a5fc3ec58b02ecf60413933e0",
+          "resultHash": "sha256:52e8094df9e89793c2fca3f26464d3e69f85c8309722d90e932e6f4e60695161"
+        },
+        "worker": {
+          "outcome": "SUCCEEDED",
+          "generationCount": 1
+        },
+        "pipeline": {
+          "operation": "EXECUTE_WORLD_QUERY",
+          "expectedStageCount": 14,
+          "terminalEventCount": 14,
+          "eventRecordCount": 28,
+          "eventChainValid": true,
+          "stageOutputsMatchCheckpoint": true,
+          "checkpointLastCompletedStage": "RESULT_PERSIST",
+          "finalRecordHash": "sha256:6c6820eb2234f3e4a1143748e97bb9c75ae0a1f540f613dcfee3399b8d66364a"
+        },
+        "gateway": {
+          "persistedWorldQueryCount": 1,
+          "persistedExecutionCount": 4,
+          "planHashesMatchCheckpoint": true,
+          "upstreamHashesMatchCheckpoint": true
+        },
+        "persistence": {
+          "jobStatus": "COMPLETED",
+          "getMatchesPersistedResult": true
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "recipeId": "R5",
+      "requestIdHash": "sha256:ae878799138400622346ef2dee297928e77c057b3553466123175b17ba7ef907",
+      "groundingIdHash": "sha256:0c2f0f04590bc677e608358925523e5aa6855995059028d260b53270a1527478",
+      "jobIdHash": "sha256:1426ae70aa243f149f88d27fb174cc18417e190b61ce3d889bfd95aba829f0ea",
+      "stageHashes": [
+        "sha256:b10925f0b0815cd1a7f11791735c467d33b379ab61363bb7c0c4138e74fbda48",
+        "sha256:d871aafabad9c50142aaef1aba77f0fd1ade8c1a579eaa045a79bfe01eee405b",
+        "sha256:fa6539f3ed60e026c4e828284d289295512e7e5eb3e853dc626225ccf73f0d36"
+      ],
+      "planHashes": [],
+      "upstreamResultHashes": [],
+      "gatewayQueryIdHashes": [],
+      "gatewayJobIdHashes": [],
+      "gatewayReceiptIdHashes": [],
+      "gatewayEvidenceIdHashes": [],
+      "traceability": {
+        "status": "PASS",
+        "api": {
+          "postHttpStatus": 202,
+          "getHttpStatus": 200,
+          "requestHash": "sha256:a30f43a75139dd2757147019b5f1f4e1a61e972bdf114d4d0cdd8e606cbc7b1e"
+        },
+        "postgres": {
+          "requestPayloadHash": "sha256:a30f43a75139dd2757147019b5f1f4e1a61e972bdf114d4d0cdd8e606cbc7b1e",
+          "checkpointStateHash": "sha256:1c2ba7b83f4d2b32dc5be9f206314ee40c528e58262fba07f2ca53f4c7edf3e0",
+          "resultBytesHash": "sha256:8982713720fd871ef9904ff8232f43a11ba3e2db11e98c6ca2c0f72d02480215",
+          "resultHash": "sha256:b9b80b14b8ad57045412fc1604cf8fda66323c29819d0efce6497ca7f4bacb82"
+        },
+        "worker": {
+          "outcome": "SUCCEEDED",
+          "generationCount": 1
+        },
+        "pipeline": {
+          "operation": "VALIDATE_REFERENCES",
+          "expectedStageCount": 3,
+          "terminalEventCount": 3,
+          "eventRecordCount": 6,
+          "eventChainValid": true,
+          "stageOutputsMatchCheckpoint": true,
+          "checkpointLastCompletedStage": "PRODUCT_ASSEMBLE",
+          "finalRecordHash": "sha256:dfdc4aa5a342c8a640a3d7fda23789a0f2160b240280b1b770b5b7c80cb8d823"
+        },
+        "gateway": {
+          "persistedWorldQueryCount": 0,
+          "persistedExecutionCount": 0,
+          "planHashesMatchCheckpoint": true,
+          "upstreamHashesMatchCheckpoint": true
+        },
+        "persistence": {
+          "jobStatus": "COMPLETED",
+          "getMatchesPersistedResult": true
+        }
+      },
+      "status": "PASS"
+    }
+  ],
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawReferenceIdsIncluded": false,
+    "rawGroundingIdsIncluded": false,
+    "rawRequestIdsIncluded": false,
+    "rawGatewayIdsIncluded": false,
+    "rawBusinessResponsesIncluded": false
+  },
+  "status": "PASS",
+  "evidenceHash": "sha256:3d27b31e80c2b30304c32b529256eced8392c6b498000b90c8a46eb1967f476e"
+}

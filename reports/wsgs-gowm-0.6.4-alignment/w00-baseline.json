@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "wsgs-gowm-alignment-baseline/1.0",
+  "status": "PASS",
+  "wsgs": {
+    "commit": "c2a71a0f455c728ae45d70067f223e1450cfa427",
+    "version": "0.2.0",
+    "targetVersion": "0.2.1"
+  },
+  "gowmRuntime": {
+    "commit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "version": "0.6.4"
+  },
+  "gatewayContract": {
+    "packageName": "@gowm/world-gateway-contracts",
+    "packageVersion": "0.6.3",
+    "contractVersion": "0.6.3"
+  },
+  "northboundContract": "sacs-wsgs-grounding/1.0",
+  "knownMetadataMismatch": {
+    "path": "GOWM/VERSION",
+    "value": "0.6.4",
+    "authoritative": false
+  },
+  "baselineCheck": "npm run check PASS before implementation",
+  "evidenceHash": "sha256:d4096e4a58e1ebb71e24479061816e7bbc6c920958ebaf2dbc274e14fe1f6a2c"
+}

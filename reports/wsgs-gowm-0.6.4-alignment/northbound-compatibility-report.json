@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "wsgs-northbound-compatibility-report/1.0",
+  "status": "PASS",
+  "contractVersion": "sacs-wsgs-grounding/1.0",
+  "contractLockPath": "contracts/wsgs-v0.1/contract-lock.json",
+  "contractLockFileHash": "sha256:25d70b9b85b356f116a5ee2a881bae2b07ad41aa73a0e4786b77fba24876bc40",
+  "changedByAlignment": false,
+  "evidenceHash": "sha256:6ade589e8f765e992ff0fe781c166a6105fc87033d33ad363c8f67d3a56dcd76"
+}

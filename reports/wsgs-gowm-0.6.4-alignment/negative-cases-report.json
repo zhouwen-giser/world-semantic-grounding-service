@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "wsgs-gowm-alignment-negative-cases/1.0",
+  "status": "PASS",
+  "count": 9,
+  "cases": [
+    {
+      "id": "runtime-version",
+      "expectedCode": "GOWM_RUNTIME_VERSION_MISMATCH",
+      "observedCode": "GOWM_RUNTIME_VERSION_MISMATCH",
+      "status": "PASS"
+    },
+    {
+      "id": "gateway-contract-version",
+      "expectedCode": "GATEWAY_CONTRACT_VERSION_MISMATCH",
+      "observedCode": "GATEWAY_CONTRACT_VERSION_MISMATCH",
+      "status": "PASS"
+    },
+    {
+      "id": "gateway-package-version",
+      "expectedCode": "GATEWAY_PACKAGE_VERSION_MISMATCH",
+      "observedCode": "GATEWAY_PACKAGE_VERSION_MISMATCH",
+      "status": "PASS"
+    },
+    {
+      "id": "source-commit",
+      "expectedCode": "GOWM_SOURCE_COMMIT_MISMATCH",
+      "observedCode": "GOWM_SOURCE_COMMIT_MISMATCH",
+      "status": "PASS"
+    },
+    {
+      "id": "wire-schema",
+      "expectedCode": "UNEXPECTED_WIRE_SCHEMA_DRIFT",
+      "observedCode": "UNEXPECTED_WIRE_SCHEMA_DRIFT",
+      "status": "PASS"
+    },
+    {
+      "id": "semantic-profile",
+      "expectedCode": "UNDECLARED_SEMANTIC_PROFILE_DRIFT",
+      "observedCode": "UNDECLARED_SEMANTIC_PROFILE_DRIFT",
+      "status": "PASS"
+    },
+    {
+      "id": "version-conflation",
+      "expectedCode": "RUNTIME_CONTRACT_VERSION_CONFLATED",
+      "observedCode": "RUNTIME_CONTRACT_VERSION_CONFLATED",
+      "status": "PASS"
+    },
+    {
+      "id": "multiple-authorities",
+      "expectedCode": "MULTIPLE_UPSTREAM_AUTHORITIES",
+      "observedCode": "MULTIPLE_UPSTREAM_AUTHORITIES",
+      "status": "PASS"
+    },
+    {
+      "id": "fail-open",
+      "expectedCode": "ALIGNMENT_MUST_FAIL_CLOSED",
+      "observedCode": "ALIGNMENT_MUST_FAIL_CLOSED",
+      "status": "PASS"
+    }
+  ],
+  "evidenceHash": "sha256:179d6e6c95e047f19c37e7f26da0f14a875d5b66e775aa75638e1bbf9c1b58a5"
+}

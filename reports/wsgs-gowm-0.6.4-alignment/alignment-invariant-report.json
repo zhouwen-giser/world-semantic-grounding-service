@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "wsgs-gowm-runtime-contract-alignment-report/1.0",
+  "status": "PASS",
+  "markers": [
+    "GOWM_RUNTIME_0_6_4_LOCKED",
+    "GATEWAY_CONTRACT_0_6_3_LOCKED",
+    "RUNTIME_CONTRACT_VERSION_INVARIANT_READY"
+  ],
+  "alignmentLockHash": "sha256:951a7d7ba83f5e1cbec0c0fa4817ba461438462729b2de32e75405a696ecc2aa",
+  "invariant": {
+    "status": "PASS",
+    "invariant": "GOWM_RUNTIME_0_6_4__GATEWAY_CONTRACT_0_6_3",
+    "runtimeCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "runtimeVersion": "0.6.4",
+    "gatewayPackage": "@gowm/world-gateway-contracts@0.6.3",
+    "gatewayContractVersion": "0.6.3",
+    "criticalOperationCount": 7,
+    "declaredSemanticMigrationCount": 3
+  },
+  "exactSourceVerification": {
+    "status": "PASS",
+    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "liveOperationCount": 120,
+    "sourceDirectoryIncluded": false
+  },
+  "evidenceHash": "sha256:1bfa4427f9966ed88512764e9ed9ba0f5065f0db1f0cc2861c4ff8835a29c8d4"
+}

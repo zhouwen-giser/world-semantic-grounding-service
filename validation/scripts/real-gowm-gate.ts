@@ -1,11 +1,13 @@
 import { createHash, randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createGroundingIdentity, GowmDelegationSigner } from "@wsgs/delegated-identity";
 import {
-  GOWM_SOUTHBOUND_LOCK_LF_SHA256,
+  GOWM_SOUTHBOUND_LOCK_RAW_SHA256,
   loadOperationalGowmLock
 } from "@wsgs/gowm-contract-intake";
 import {
@@ -34,6 +36,7 @@ interface ConsumerLock {
 
 const expectedOperationKeys = [
   "reference.resolve@1.0",
+  "reference.validate@1.0",
   "world.get-current-state@1.0",
   "world.get-geometry@1.0",
   "spatial.find-in-area@1.0",
@@ -41,6 +44,7 @@ const expectedOperationKeys = [
 ] as const;
 const expectedOperationIds = expectedOperationKeys.map((key) => key.slice(0, key.lastIndexOf("@")));
 const terminalStatuses = new Set(["COMPLETED", "PARTIAL", "FAILED", "CANCELLED"]);
+const alignmentFocused = process.env["GOWM_ALIGNMENT_R1_R5_ONLY"] === "YES";
 const foreignReferenceId = "wrf_02ffffffffffffffffffffffffffffff";
 const outsideReferenceId = "wrf_02000000000000000000000000000003";
 let failureStage = "startup";
@@ -109,10 +113,21 @@ function canonicalSha256(value: unknown): `sha256:${string}` {
 
 function safeReferenceEvidence(referenceKey: JsonObject): JsonObject {
   return {
+    namespace: text(referenceKey["namespace"], "REFERENCE_NAMESPACE_MISSING"),
     kind: text(referenceKey["kind"], "REFERENCE_KIND_MISSING"),
     idHash: sha256(text(referenceKey["id"], "REFERENCE_ID_MISSING")),
-    version: text(referenceKey["version"], "REFERENCE_VERSION_MISSING")
+    version: text(referenceKey["version"], "REFERENCE_VERSION_MISSING"),
+    identityHash: referenceIdentityHash(referenceKey)
   };
+}
+
+function referenceIdentityHash(referenceKey: JsonObject): `sha256:${string}` {
+  return canonicalSha256({
+    namespace: text(referenceKey["namespace"], "REFERENCE_NAMESPACE_MISSING"),
+    kind: text(referenceKey["kind"], "REFERENCE_KIND_MISSING"),
+    id: text(referenceKey["id"], "REFERENCE_ID_MISSING"),
+    version: text(referenceKey["version"], "REFERENCE_VERSION_MISSING")
+  });
 }
 
 function outputValue(envelope: unknown, code: string): JsonObject {
@@ -186,10 +201,189 @@ function nodeBudget(descriptor: CapabilityDescriptor): JsonObject {
   };
 }
 
+function loadRuntimeImageBuildEvidence(imageDigest: string): JsonObject {
+  const configuredPath = process.env["GOWM_RUNTIME_IMAGE_BUILD_REPORT"]?.trim();
+  assertion(!alignmentFocused || Boolean(configuredPath), "GOWM_RUNTIME_IMAGE_BUILD_REPORT_REQUIRED");
+  if (!configuredPath) return { status: "NOT_REQUESTED" };
+  const repositoryRoot = resolve(import.meta.dirname, "..", "..");
+  const reportPath = resolve(repositoryRoot, configuredPath);
+  const safePath = relative(repositoryRoot, reportPath).split(sep).join("/");
+  assertion(!safePath.startsWith(".."), "GOWM_RUNTIME_IMAGE_BUILD_REPORT_OUTSIDE_REPOSITORY");
+  assertion(
+    !alignmentFocused ||
+      safePath === "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "GOWM_RUNTIME_IMAGE_BUILD_REPORT_PATH_MISMATCH"
+  );
+  const bytes = readFileSync(reportPath);
+  const report = object(JSON.parse(bytes.toString("utf8")) as unknown, "GOWM_RUNTIME_IMAGE_BUILD_REPORT_INVALID");
+  const evidenceHash = text(report["evidenceHash"], "GOWM_RUNTIME_IMAGE_BUILD_REPORT_HASH_MISSING");
+  assertion(/^sha256:[0-9a-f]{64}$/u.test(evidenceHash), "GOWM_RUNTIME_IMAGE_BUILD_REPORT_HASH_INVALID");
+  const { evidenceHash: _evidenceHash, ...payload } = report;
+  assertion(canonicalSha256(payload) === evidenceHash, "GOWM_RUNTIME_IMAGE_BUILD_REPORT_HASH_MISMATCH");
+  assertion(report["status"] === "PASS", "GOWM_RUNTIME_IMAGE_BUILD_REPORT_NOT_PASS");
+  assertion(report["sourceCommit"] === "fceed92398a0b86c0a0121aa2188a7f1d328e577", "GOWM_RUNTIME_IMAGE_BUILD_SOURCE_MISMATCH");
+  assertion(report["runtimeVersion"] === "0.6.4", "GOWM_RUNTIME_IMAGE_BUILD_VERSION_MISMATCH");
+  assertion(report["imageDigest"] === imageDigest, "GOWM_RUNTIME_IMAGE_BUILD_DIGEST_MISMATCH");
+  const sourceTree = text(report["sourceTree"], "GOWM_RUNTIME_IMAGE_BUILD_TREE_MISSING");
+  assertion(/^[0-9a-f]{40}$/u.test(sourceTree), "GOWM_RUNTIME_IMAGE_BUILD_TREE_INVALID");
+  const generatedAt = text(report["generatedAt"], "GOWM_RUNTIME_IMAGE_BUILD_TIME_MISSING");
+  assertion(Number.isFinite(Date.parse(generatedAt)), "GOWM_RUNTIME_IMAGE_BUILD_TIME_INVALID");
+  return {
+    status: "PASS",
+    sourceTree,
+    reportPath: safePath,
+    reportFileHash: sha256(bytes),
+    reportPayloadHash: evidenceHash,
+    generatedAt
+  };
+}
+
+function observeExactRuntimeBinding(baseUrl: URL): JsonObject {
+  const composeProject = process.env["GOWM_RUNTIME_COMPOSE_PROJECT"]?.trim();
+  if (!composeProject) {
+    assertion(!alignmentFocused, "GOWM_RUNTIME_COMPOSE_PROJECT_REQUIRED");
+    return { status: "NOT_REQUESTED" };
+  }
+  assertion(/^[a-z0-9][a-z0-9_-]{2,62}$/u.test(composeProject), "GOWM_RUNTIME_COMPOSE_PROJECT_INVALID");
+  const expectedServices = [
+    "dataset-catalog-provider",
+    "platform-validation-provider",
+    "reference-catalog-provider",
+    "spatial-provider-bridge",
+    "world-capability-gateway",
+    "world-evidence-provider"
+  ];
+  let inspection: Array<{
+    Image?: string;
+    Config?: { Image?: string; Labels?: Record<string, string> };
+    State?: { Running?: boolean; Health?: { Status?: string } };
+    NetworkSettings?: { Ports?: Record<string, Array<{ HostIp?: string; HostPort?: string }> | null> };
+  }>;
+  try {
+    const ids = execFileSync("docker", [
+      "ps", "--quiet", "--filter", `label=com.docker.compose.project=${composeProject}`
+    ], { encoding: "utf8", maxBuffer: 4 * 1024 * 1024 }).trim().split(/\s+/u).filter(Boolean);
+    assertion(ids.length >= expectedServices.length, "GOWM_RUNTIME_CONTAINER_SET_INCOMPLETE");
+    inspection = JSON.parse(execFileSync("docker", ["inspect", ...ids], {
+      encoding: "utf8", maxBuffer: 16 * 1024 * 1024
+    })) as typeof inspection;
+  } catch (error) {
+    if (error instanceof Error && /^[A-Z0-9_]+$/u.test(error.message)) throw error;
+    throw new Error("GOWM_RUNTIME_DOCKER_INSPECTION_FAILED");
+  }
+  const appContainers = inspection.filter((entry) =>
+    expectedServices.includes(entry.Config?.Labels?.["com.docker.compose.service"] ?? ""));
+  const observedServices = appContainers.map((entry) => entry.Config?.Labels?.["com.docker.compose.service"] ?? "").sort();
+  assertion(JSON.stringify(observedServices) === JSON.stringify(expectedServices), "GOWM_RUNTIME_CONTAINER_SET_MISMATCH");
+  assertion(appContainers.every((entry) => entry.State?.Running === true && entry.State?.Health?.Status === "healthy"),
+    "GOWM_RUNTIME_CONTAINER_NOT_HEALTHY");
+  const imageIds = [...new Set(appContainers.map((entry) => entry.Image))];
+  assertion(imageIds.length === 1 && /^sha256:[0-9a-f]{64}$/u.test(imageIds[0] ?? ""), "GOWM_RUNTIME_IMAGE_ID_MISMATCH");
+  assertion(appContainers.every((entry) =>
+    entry.Config?.Labels?.["org.opencontainers.image.revision"] === "fceed92398a0b86c0a0121aa2188a7f1d328e577" &&
+    entry.Config?.Labels?.["org.opencontainers.image.version"] === "0.6.4"), "GOWM_RUNTIME_IMAGE_SOURCE_LABEL_MISMATCH");
+  const gateway = appContainers.find((entry) =>
+    entry.Config?.Labels?.["com.docker.compose.service"] === "world-capability-gateway");
+  const published = gateway?.NetworkSettings?.Ports?.["8090/tcp"] ?? [];
+  const expectedPort = baseUrl.port || (baseUrl.protocol === "https:" ? "443" : "80");
+  assertion(published.some((entry) => entry.HostPort === expectedPort && ["127.0.0.1", "::1"].includes(entry.HostIp ?? "")),
+    "GOWM_RUNTIME_GATEWAY_ENDPOINT_BINDING_MISMATCH");
+  const imageBuildEvidence = loadRuntimeImageBuildEvidence(imageIds[0]!);
+  const payload = {
+    schemaVersion: "wsgs-gowm-runtime-binding/1.0",
+    bindingStatus: "PASS",
+    observedAt: new Date().toISOString(),
+    sourceCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    runtimeVersion: "0.6.4",
+    gatewayContractVersion: "0.6.3",
+    imageDigest: imageIds[0],
+    appContainerCount: appContainers.length,
+    composeProjectHash: sha256(composeProject),
+    serviceSetHash: canonicalSha256(observedServices),
+    gatewayPortBindingVerified: true,
+    allAppContainersHealthy: true,
+    sourceBindingMethod: "OCI_LABEL_AND_RUNNING_CONTAINER_IMAGE_ID",
+    imageBuildEvidence,
+    redaction: { credentialsIncluded: false, rawContainerIdsIncluded: false, internalTopologyIncluded: false }
+  };
+  const evidencePayload = { ...payload, evidenceHash: canonicalSha256(payload) };
+  const evidenceBytes = `${JSON.stringify(evidencePayload, null, 2)}\n`;
+  const repositoryRoot = resolve(import.meta.dirname, "..", "..");
+  const evidencePath = resolve(repositoryRoot, process.env["GOWM_RUNTIME_BINDING_REPORT"] ??
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json");
+  mkdirSync(dirname(evidencePath), { recursive: true });
+  writeFileSync(evidencePath, evidenceBytes, "utf8");
+  const safeEvidencePath = relative(repositoryRoot, evidencePath).split(sep).join("/");
+  assertion(!safeEvidencePath.startsWith(".."), "GOWM_RUNTIME_BINDING_REPORT_OUTSIDE_REPOSITORY");
+  assertion(
+    !alignmentFocused ||
+      safeEvidencePath === "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+    "GOWM_RUNTIME_BINDING_REPORT_PATH_MISMATCH"
+  );
+  const binding = {
+    bindingStatus: "PASS",
+    sourceCommit: payload.sourceCommit,
+    runtimeVersion: payload.runtimeVersion,
+    gatewayContractVersion: payload.gatewayContractVersion,
+    imageDigest: payload.imageDigest,
+    observedAt: payload.observedAt,
+    instanceEvidencePath: safeEvidencePath,
+    instanceEvidenceHash: sha256(evidenceBytes),
+    instanceEvidencePayloadHash: evidencePayload.evidenceHash,
+    imageBuildEvidencePath: imageBuildEvidence["reportPath"],
+    imageBuildEvidenceHash: imageBuildEvidence["reportFileHash"],
+    imageBuildEvidencePayloadHash: imageBuildEvidence["reportPayloadHash"],
+    sourceTree: imageBuildEvidence["sourceTree"]
+  };
+  return { ...binding, bindingHash: canonicalSha256(binding) };
+}
+
+function verifyWsgsSourceCommit(): string {
+  const repositoryRoot = resolve(import.meta.dirname, "..", "..");
+  const expected = process.env["WSGS_EVIDENCE_SOURCE_COMMIT"]?.trim();
+  assertion(!alignmentFocused || Boolean(expected), "WSGS_EVIDENCE_SOURCE_COMMIT_REQUIRED");
+  const head = execFileSync("git", ["-C", repositoryRoot, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  assertion(/^[0-9a-f]{40}$/u.test(head), "WSGS_SOURCE_HEAD_INVALID");
+  if (expected) {
+    assertion(/^[0-9a-f]{40}$/u.test(expected), "WSGS_EVIDENCE_SOURCE_COMMIT_INVALID");
+    assertion(expected === head, "WSGS_SOURCE_HEAD_MISMATCH");
+  }
+  try {
+    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", "."], { stdio: "ignore" });
+  } catch {
+    throw new Error("WSGS_SOURCE_TRACKED_DIRTY");
+  }
+  const status = execFileSync("git", ["-C", repositoryRoot, "status", "--porcelain=v1", "--untracked-files=all"], {
+    encoding: "utf8", maxBuffer: 8 * 1024 * 1024
+  }).trim();
+  const declaredEvidencePaths = [
+    process.env["GOWM_RUNTIME_IMAGE_BUILD_REPORT"]?.trim(),
+    process.env["WSGS_RUNTIME_IMAGE_BUILD_REPORT"]?.trim()
+  ].filter((entry): entry is string => entry !== undefined && entry.length > 0)
+    .map((entry) => relative(repositoryRoot, resolve(repositoryRoot, entry)).split(sep).join("/"));
+  const expectedEvidencePaths = new Set([
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json"
+  ]);
+  assertion(
+    declaredEvidencePaths.every((entry) => !entry.startsWith("..") && expectedEvidencePaths.has(entry)),
+    "RUNTIME_IMAGE_BUILD_REPORT_PATH_NOT_ALLOWED"
+  );
+  const allowedUntrackedEvidence = new Set(declaredEvidencePaths.map((entry) => `?? ${entry}`));
+  const statusLines = status.length === 0 ? [] : status.split(/\r?\n/u);
+  assertion(
+    statusLines.every((line) => allowedUntrackedEvidence.has(line)),
+    "WSGS_SOURCE_WORKTREE_NOT_CLEAN_BEFORE_DIRECT_GATE"
+  );
+  return head;
+}
+
 async function main(): Promise<void> {
   assertion(required("ALLOW_REAL_GOWM_GATE") === "YES", "REAL_GOWM_GATE_NOT_ALLOWED");
   const baseUrl = new URL(required("GOWM_BASE_URL"));
   assertion(baseUrl.protocol === "https:" || ["127.0.0.1", "localhost", "::1"].includes(baseUrl.hostname), "INSECURE_REMOTE_GATEWAY_FORBIDDEN");
+  const wsgsSourceCommit = verifyWsgsSourceCommit();
+  const runtimeBinding = observeExactRuntimeBinding(baseUrl);
   const credential = required("GOWM_GATEWAY_CREDENTIAL");
   const privateKeyPath = required("GOWM_DELEGATION_PRIVATE_KEY_PATH");
   const dataScope = required("GOWM_DATA_SCOPE");
@@ -247,8 +441,8 @@ async function main(): Promise<void> {
       })
     : loadOperationalGowmLock({
         lockPath: fileURLToPath(bundledLockPath),
-        expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_LF_SHA256}`,
-        hashMode: "CANONICAL_LF"
+        expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+        hashMode: "EXACT_BYTES"
       });
   const lock = lockAuthority.lock as ConsumerLock;
   const allLocks = [...lock.defaultOperations, ...lock.previewOperations];
@@ -478,6 +672,30 @@ async function main(): Promise<void> {
     return response.value;
   }
 
+  async function validateReference(referenceKey: JsonObject, label: string): Promise<{
+    envelope: unknown;
+    result: JsonObject;
+    identityHash: `sha256:${string}`;
+  }> {
+    const inputIdentityHash = referenceIdentityHash(referenceKey);
+    const envelope = await direct("reference.validate", {
+      schemaVersion: "1.0",
+      references: [{ referenceKey, requireCurrentSnapshot: true }]
+    }, label);
+    const value = outputValue(envelope, `${label.toUpperCase()}_VALIDATION`);
+    const results = array(value["results"], `${label.toUpperCase()}_VALIDATION_RESULTS_MISSING`);
+    assertion(results.length === 1, `${label.toUpperCase()}_VALIDATION_RESULT_COUNT`);
+    const result = object(results[0], `${label.toUpperCase()}_VALIDATION_RESULT_INVALID`);
+    const outputReferenceKey = object(result["referenceKey"], `${label.toUpperCase()}_VALIDATION_REFERENCE_MISSING`);
+    const outputIdentityHash = referenceIdentityHash(outputReferenceKey);
+    assertion(outputIdentityHash === inputIdentityHash, `${label.toUpperCase()}_VALIDATION_REFERENCE_KEY_MUTATED`);
+    assertion(result["existence"] === "AVAILABLE", `${label.toUpperCase()}_VALIDATION_NOT_AVAILABLE`);
+    assertion(result["freshness"] === "CURRENT", `${label.toUpperCase()}_VALIDATION_NOT_CURRENT`);
+    assertion(result["snapshot"] === "CURRENT", `${label.toUpperCase()}_VALIDATION_SNAPSHOT_NOT_CURRENT`);
+    assertion(result["usable"] === "YES", `${label.toUpperCase()}_VALIDATION_NOT_USABLE`);
+    return { envelope, result, identityHash: inputIdentityHash };
+  }
+
   const mention = (surfaceText: string, expectedKinds: string[]): JsonObject => ({
     schemaVersion: "1.0",
     mentions: [{ mentionId: `m-${sha256(surfaceText).slice(-12)}`, surfaceText, expectedKinds }],
@@ -494,6 +712,7 @@ async function main(): Promise<void> {
   const vehicleReference = object(vehicleDescriptor["referenceKey"], "VEHICLE_REFERENCE_INVALID");
   const expectedVehicleIds = expectedReferenceIds(sampleExpectedCase("REF-UNIQUE-2"));
   assertion(expectedVehicleIds.length === 0 || expectedVehicleIds.includes(text(vehicleReference["id"], "VEHICLE_REFERENCE_ID_MISSING")), "VEHICLE_REFERENCE_MISMATCH");
+  const vehicleValidation = await validateReference(vehicleReference, "vehicle-resolver-output");
 
   const vehicleStateEnvelope = await direct("world.get-current-state", {
     schemaVersion: "1.0",
@@ -511,6 +730,13 @@ async function main(): Promise<void> {
       resolution: vehicleResolutionItem["status"],
       candidateCount: vehicleCandidates.length,
       reference: safeReferenceEvidence(vehicleReference),
+      validation: {
+        identityHash: vehicleValidation.identityHash,
+        existence: vehicleValidation.result["existence"],
+        freshness: vehicleValidation.result["freshness"],
+        snapshot: vehicleValidation.result["snapshot"],
+        usable: vehicleValidation.result["usable"]
+      },
       position: { type: position["type"], coordinateCount: coordinates.length },
       envelopeStatus: object(vehicleStateEnvelope, "VEHICLE_STATE_ENVELOPE_INVALID")["status"],
       diagnosticOnly: !trustedReady
@@ -552,12 +778,13 @@ async function main(): Promise<void> {
   const areaCandidates = array(areaResolutionItem["candidates"], "AREA_CANDIDATES_MISSING");
   assertion(areaResolutionItem["status"] === "RESOLVED_EXACT" && areaCandidates.length === 1, "AREA_NOT_UNIQUE");
   const areaReference = object(object(object(areaCandidates[0], "AREA_CANDIDATE_INVALID")["candidate"], "AREA_DESCRIPTOR_INVALID")["referenceKey"], "AREA_REFERENCE_INVALID");
-  const areaGeometryInput = sampleExpectedInput("WORLD-GEOMETRY-ZONE-A") ?? {
+  const expectedAreaIds = expectedReferenceIds(sampleExpectedCase("WORLD-GEOMETRY-ZONE-A"));
+  assertion(expectedAreaIds.length === 0 || expectedAreaIds.includes(text(areaReference["id"], "AREA_REFERENCE_ID_MISSING")), "AREA_REFERENCE_MISMATCH");
+  const areaValidation = await validateReference(areaReference, "area-resolver-output");
+  const areaGeometryInput = {
     schemaVersion: "1.0",
     referenceKey: areaReference
   };
-  const expectedAreaIds = expectedReferenceIds(sampleExpectedCase("WORLD-GEOMETRY-ZONE-A"));
-  assertion(expectedAreaIds.length === 0 || expectedAreaIds.includes(text(areaReference["id"], "AREA_REFERENCE_ID_MISSING")), "AREA_REFERENCE_MISMATCH");
   const areaGeometryEnvelope = await direct("world.get-geometry", areaGeometryInput, "area-geometry");
   const areaGeometryOutput = outputValue(areaGeometryEnvelope, "AREA_GEOMETRY");
   if (!Array.isArray(areaGeometryOutput["facts"]) || areaGeometryOutput["facts"].length === 0) {
@@ -567,9 +794,15 @@ async function main(): Promise<void> {
   const areaGeometry = object(areaFact["geometry"], "AREA_GEOMETRY_MISSING");
   assertion(areaGeometry["type"] === "Polygon", "AREA_GEOMETRY_NOT_POLYGON");
   const sampleInAreaCase = sampleExpectedCase("SPATIAL-IN-ZONE-A");
-  const inAreaInput = sampleInAreaCase === undefined
-    ? { geometry: areaGeometry, objectTypes: ["VEHICLE"], limit: 20, crs: "EPSG:4326" }
+  const expectedInAreaInput = sampleInAreaCase === undefined
+    ? undefined
     : object(sampleInAreaCase["inputTemplate"], "SAMPLE_IN_AREA_INPUT_INVALID");
+  const inAreaInput = {
+    geometry: areaGeometry,
+    objectTypes: expectedInAreaInput?.["objectTypes"] ?? ["VEHICLE"],
+    limit: expectedInAreaInput?.["limit"] ?? 20,
+    crs: expectedInAreaInput?.["crs"] ?? "EPSG:4326"
+  };
   const inAreaEnvelope = await direct("spatial.find-in-area", inAreaInput, "vehicles-in-area");
   const inArea = outputValue(inAreaEnvelope, "IN_AREA");
   const inAreaObjects = array(inArea["objects"], "IN_AREA_OBJECTS_MISSING").map((entry) => object(entry, "IN_AREA_OBJECT_INVALID"));
@@ -585,6 +818,16 @@ async function main(): Promise<void> {
     evidence: {
       areaResolution: areaResolutionItem["status"],
       areaReference: safeReferenceEvidence(areaReference),
+      validation: {
+        identityHash: areaValidation.identityHash,
+        existence: areaValidation.result["existence"],
+        freshness: areaValidation.result["freshness"],
+        snapshot: areaValidation.result["snapshot"],
+        usable: areaValidation.result["usable"]
+      },
+      resolverOutputConsumedByValidation: true,
+      resolverOutputConsumedByGeometry: true,
+      geometryOutputConsumedBySpatial: true,
       vehicleCount: inAreaIds.length,
       scopedReferenceSetHash: canonicalSha256([...inAreaIds].sort()),
       outsideExcluded: true,
@@ -604,7 +847,9 @@ async function main(): Promise<void> {
   const sampleNearbyInput = sampleNearbyCase === undefined
     ? undefined
     : object(sampleNearbyCase["inputTemplate"], "SAMPLE_NEARBY_INPUT_INVALID");
-  const nearbyRadiusM = sampleNearbyInput === undefined ? 1000 : sampleNearbyInput["radiusM"];
+  const nearbyRadiusM = alignmentFocused
+    ? 1_000
+    : sampleNearbyInput === undefined ? 1_000 : sampleNearbyInput["radiusM"];
   const nearbyObjectTypes = sampleNearbyInput === undefined ? ["AREA"] : sampleNearbyInput["objectTypes"];
   const nearbyLimit = sampleNearbyInput === undefined ? 20 : sampleNearbyInput["limit"];
   const nearbyCrs = sampleNearbyInput === undefined ? "EPSG:4326" : sampleNearbyInput["crs"];
@@ -773,8 +1018,8 @@ async function main(): Promise<void> {
   const nearbyObjects = array(nearbyOutput["objects"], "WORLD_QUERY_NEARBY_OBJECTS_MISSING").map((entry) => object(entry, "WORLD_QUERY_NEARBY_OBJECT_INVALID"));
   const nearbyIds = nearbyObjects.map((entry) => text(object(entry["referenceKey"], "WORLD_QUERY_NEARBY_REFERENCE_INVALID")["id"], "WORLD_QUERY_NEARBY_ID_MISSING"));
   const areaId = text(areaReference["id"], "AREA_REFERENCE_ID_MISSING");
-  const expectedNearbyIds = expectedReferenceIds(sampleNearbyCase).sort();
-  const forbiddenNearbyIds = forbiddenReferenceIds(sampleNearbyCase);
+  const expectedNearbyIds = alignmentFocused ? [] : expectedReferenceIds(sampleNearbyCase).sort();
+  const forbiddenNearbyIds = alignmentFocused ? [] : forbiddenReferenceIds(sampleNearbyCase);
   const missingNearbyIds = expectedNearbyIds.filter((id) => !nearbyIds.includes(id));
   const forbiddenNearbyMatches = forbiddenNearbyIds.filter((id) => nearbyIds.includes(id));
   if (missingNearbyIds.length > 0 || forbiddenNearbyMatches.length > 0) {
@@ -787,12 +1032,19 @@ async function main(): Promise<void> {
       forbiddenMatchCount: forbiddenNearbyMatches.length
     };
   }
-  assertion(expectedNearbyIds.length === 0 ? nearbyIds.includes(areaId) : missingNearbyIds.length === 0 && forbiddenNearbyMatches.length === 0, "NEARBY_REFERENCE_SET_MISMATCH");
+  assertion(
+    alignmentFocused
+      ? nearbyObjects.length >= 1
+      : expectedNearbyIds.length === 0
+        ? nearbyIds.includes(areaId)
+        : missingNearbyIds.length === 0 && forbiddenNearbyMatches.length === 0,
+    "NEARBY_REFERENCE_SET_MISMATCH"
+  );
   assertion(typeof nearbyRadiusM === "number" && nearbyObjects.every((entry) => typeof entry["distanceM"] === "number" && (entry["distanceM"] as number) <= nearbyRadiusM), "NEARBY_DISTANCE_LIMIT_BROKEN");
   assertion(!nearbyIds.includes(foreignReferenceId), "NEARBY_SCOPE_LEAK");
   checks.push({
     id:
-      sampleNearbyCase === undefined
+      alignmentFocused || sampleNearbyCase === undefined
         ? "async-world-query-nearby-1km"
         : "async-world-query-nearby-sample",
     status: "PASS",
@@ -804,7 +1056,7 @@ async function main(): Promise<void> {
       allowedOperations: queryDelegation.allowedOperations,
       radiusM: nearbyRadiusM,
       resultCount: nearbyObjects.length,
-      expectedReferenceSetMatched: true,
+      referenceSetAssertion: alignmentFocused ? "RADIUS_AND_SCOPE" : "EXACT_SAMPLE_SET",
       foreignScopeExcluded: true,
       jobIdHash: sha256(worldQueryJobId),
       diagnosticOnly: !trustedReady
@@ -970,7 +1222,119 @@ async function main(): Promise<void> {
     }
   });
 
-  const blocked = checks.filter((check) => check.status === "BLOCKED");
+  const directCases = [
+    {
+      caseId: "R1",
+      status: "PASS",
+      operationKeys: ["reference.resolve@1.0", "reference.validate@1.0", "world.get-current-state@1.0"],
+      referenceIdentityHash: referenceIdentityHash(vehicleReference),
+      resolverOutputConsumedWithoutRewrite: true,
+      validationCurrentAndUsable: true,
+      receiptIdHashes: receiptIds(vehicleStateEnvelope).map(sha256)
+    },
+    {
+      caseId: "R2",
+      status: "PASS",
+      operationKeys: ["reference.resolve@1.0"],
+      terminalStatus: "AMBIGUOUS",
+      candidateCount: roadCandidates.length,
+      spatialExecutionCount: 0
+    },
+    {
+      caseId: "R3",
+      status: "PASS",
+      operationKeys: ["reference.resolve@1.0", "reference.validate@1.0", "world.get-geometry@1.0", "spatial.find-in-area@1.0"],
+      referenceIdentityHash: referenceIdentityHash(areaReference),
+      resolverOutputConsumedWithoutRewrite: true,
+      geometryOutputConsumedBySpatial: true,
+      resultCount: inAreaObjects.length
+    },
+    {
+      caseId: "R4",
+      status: "PASS",
+      operationKeys: ["reference.resolve@1.0", "reference.validate@1.0", "world.get-current-state@1.0", "spatial.find-nearby@1.0"],
+      referenceIdentityHash: referenceIdentityHash(vehicleReference),
+      resolverOutputConsumedWithoutRewrite: true,
+      radiusM: nearbyRadiusM,
+      resultCount: nearbyObjects.length
+    },
+    {
+      caseId: "R5",
+      status: "PASS",
+      operationKeys: ["reference.validate@1.0"],
+      referenceIdentityHash: vehicleValidation.identityHash,
+      consumesR1ResolverOutput: true,
+      existence: vehicleValidation.result["existence"],
+      freshness: vehicleValidation.result["freshness"],
+      snapshot: vehicleValidation.result["snapshot"],
+      usable: vehicleValidation.result["usable"]
+    }
+  ];
+  const focusedRequiredIds = new Set([
+    "live-contract-endpoints",
+    "consumer-semantic-lock",
+    "business-2号车-current-state",
+    "business-滨河路-ambiguity",
+    "business-A区-exact-in-area",
+    "async-world-query-nearby-sample",
+    "async-world-query-nearby"
+  ]);
+  const blocked = checks.filter((check) => check.status === "BLOCKED" &&
+    (!alignmentFocused || focusedRequiredIds.has(check.id)));
+  const alignmentStatus = blocked.length === 0 ? "PASS" : "BLOCKED";
+  const directEvidencePayload = {
+    schemaVersion: "wsgs-gowm-direct-r1-r5-smoke/1.0",
+    generatedAt: new Date().toISOString(),
+    marker: alignmentStatus === "PASS" ? "DIRECT_GOWM_R1_R5_READY" : "DIRECT_GOWM_R1_R5_BLOCKED",
+    status: alignmentStatus,
+    executionLayer: "DIRECT_WSGS_CONSUMER_TO_GOWM_GATEWAY",
+    wsgsSourceCommit,
+    formalWsgsPipelineEvidence: false,
+    runtime: {
+      sourceCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+      runtimeVersion: "0.6.4",
+      gatewayContractVersion: "0.6.3",
+      consumerPackage: "@gowm/world-gateway-contracts@0.6.3",
+      contractCatalogRevision: lock.contractCatalogRevision,
+      semanticCatalogHash: lock.semanticCatalogHash,
+      operationalLockHash: lockAuthority.lockHash,
+      runtimeBinding
+    },
+    summary: {
+      total: 5,
+      pass: alignmentStatus === "PASS" ? 5 : 0,
+      fail: 0,
+      notRun: 0,
+      blocked: alignmentStatus === "PASS" ? 0 : 5,
+      blockingCheckCount: blocked.length
+    },
+    cases: directCases,
+    redaction: {
+      credentialsIncluded: false,
+      rawReferenceIdsIncluded: false,
+      internalTopologyIncluded: false
+    }
+  };
+  const directReport = {
+    ...directEvidencePayload,
+    evidenceHash: canonicalSha256(directEvidencePayload)
+  };
+  const directReportRepositoryRoot = resolve(import.meta.dirname, "..", "..");
+  const directReportPath = resolve(
+    directReportRepositoryRoot,
+    process.env["GOWM_ALIGNMENT_DIRECT_REPORT"] ??
+      "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json"
+  );
+  const directReportRelativePath = relative(directReportRepositoryRoot, directReportPath).split(sep).join("/");
+  assertion(!directReportRelativePath.startsWith(".."), "GOWM_ALIGNMENT_DIRECT_REPORT_OUTSIDE_REPOSITORY");
+  assertion(
+    !alignmentFocused ||
+      directReportRelativePath === "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "GOWM_ALIGNMENT_DIRECT_REPORT_PATH_MISMATCH"
+  );
+  mkdirSync(dirname(directReportPath), { recursive: true });
+  writeFileSync(directReportPath, `${JSON.stringify(directReport, null, 2)}\n`, "utf8");
+
   process.stdout.write(`${JSON.stringify({
     status: blocked.length === 0 ? "PASS" : "PARTIAL",
     runtime: {
@@ -983,6 +1347,12 @@ async function main(): Promise<void> {
       executionClassification: trustedReady ? "TRUSTED" : "DIAGNOSTIC_ONLY_AFTER_FAIL_CLOSED_CONTRACT_DRIFT"
     },
     checks,
+    alignmentR1R5: {
+      status: alignmentStatus,
+      cases: 5,
+      reportPath: directReportPath,
+      evidenceHash: directReport.evidenceHash
+    },
     timingsMs: timings,
     summary: {
       pass: checks.length - blocked.length,

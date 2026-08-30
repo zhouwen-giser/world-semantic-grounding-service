@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "wsgs-gowm-authority-inventory/1.0",
+  "status": "PASS",
+  "authoritative": [
+    {
+      "path": "contracts/upstream/gowm-runtime-contract-alignment-lock-v1.json",
+      "hash": "sha256:951a7d7ba83f5e1cbec0c0fa4817ba461438462729b2de32e75405a696ecc2aa",
+      "runtimeSourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+      "runtimeVersion": "0.6.4",
+      "gatewayContractVersion": "0.6.3",
+      "consumerPackageVersion": "0.6.3"
+    }
+  ],
+  "generatedCompatibilityProjections": [
+    "contracts/upstream/gowm-0.6.3/SOURCE_LOCK.json"
+  ],
+  "historicalNonAuthorities": [
+    "contracts/upstream/gowm-v0.4/",
+    "contracts/upstream/required-gowm-capabilities.json",
+    "contracts/upstream/optional-gowm-capabilities.json",
+    "execplans/EP-wsgs-v0.2-gowm-063.md",
+    "reports/wsgs-v0.2/"
+  ],
+  "removedConflictingAuthorities": [
+    "contracts/upstream/GOWM_COMMIT",
+    "contracts/upstream/GOWM_VERSION"
+  ],
+  "independentAuthorityCount": 1,
+  "evidenceHash": "sha256:98bf3cb0038134592c878cf2ea83e665cad532484d92cf10b7f1c461bd1604c3"
+}

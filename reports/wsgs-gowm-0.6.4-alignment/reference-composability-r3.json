@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "wsgs-reference-composability-r3/1.0",
+  "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+  "observedAt": "2026-08-30T08:41:43.167Z",
+  "runtimeBindingHash": "sha256:2c7f477e441bdc440a5e04b55656f74e3c770d5b2b57e66d2f174395cfc7928d",
+  "recipeId": "R3",
+  "referenceIdentityHash": "sha256:bfda76d71a92640f567769aa5bed8cc2b25b62178884b8420175f4e6dba40afd",
+  "identityLayers": {
+    "knownReferenceKeyHashes": [],
+    "resolverReferenceKeyHashes": [
+      "sha256:bfda76d71a92640f567769aa5bed8cc2b25b62178884b8420175f4e6dba40afd"
+    ],
+    "validationReferenceKeyHashes": [
+      "sha256:bfda76d71a92640f567769aa5bed8cc2b25b62178884b8420175f4e6dba40afd"
+    ],
+    "planAnchorReferenceKeyHashes": [
+      "sha256:bfda76d71a92640f567769aa5bed8cc2b25b62178884b8420175f4e6dba40afd"
+    ],
+    "gatewayResolverReferenceKeyHashes": [
+      "sha256:bfda76d71a92640f567769aa5bed8cc2b25b62178884b8420175f4e6dba40afd"
+    ],
+    "persistedGetReferenceKeyHashes": [
+      "sha256:bfda76d71a92640f567769aa5bed8cc2b25b62178884b8420175f4e6dba40afd"
+    ]
+  },
+  "authoritativeWorldFactReferenceKeyHashes": [
+    "sha256:2f028a51397c427154da229694c41ebe1124b374207a150a08a212b951dd16f7"
+  ],
+  "worldFactObjectIdentityPreserved": true,
+  "operationKeys": [
+    "reference.resolve@1.0",
+    "reference.validate@1.0",
+    "spatial.find-in-area@1.0",
+    "world.get-geometry@1.0"
+  ],
+  "dataflowBindings": [
+    "reference.resolve@1.0:candidateReferenceKey->world.get-geometry@1.0:referenceKey",
+    "world.get-geometry@1.0:geometry->spatial.find-in-area@1.0:geometry"
+  ],
+  "gatewayNodeStatuses": [
+    {
+      "operationKey": "reference.resolve@1.0",
+      "status": "COMPLETED"
+    },
+    {
+      "operationKey": "world.get-geometry@1.0",
+      "status": "COMPLETED"
+    },
+    {
+      "operationKey": "spatial.find-in-area@1.0",
+      "status": "COMPLETED"
+    }
+  ],
+  "resolverOutputConsumedByValidation": true,
+  "resolverOutputConsumedByGeometry": true,
+  "geometryOutputConsumedBySpatial": true,
+  "validationLeaseUsable": true,
+  "spatialExecutionCount": 1,
+  "spatialResultCount": 4,
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawReferenceIdsIncluded": false,
+    "rawGroundingIdsIncluded": false,
+    "rawRequestIdsIncluded": false,
+    "rawGatewayIdsIncluded": false,
+    "rawBusinessResponsesIncluded": false
+  },
+  "status": "PASS",
+  "evidenceHash": "sha256:ae0f9016e17fdd632b8c38707d7bc96d425311545481b9373e74cb2a3c990b05"
+}

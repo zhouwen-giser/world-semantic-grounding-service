@@ -1,0 +1,3 @@
+services:
+  postgres:
+    image: ${GOWM_ALIGNMENT_POSTGRES_IMAGE:-wsgs-gowm-fceed-postgres:18-3.6}

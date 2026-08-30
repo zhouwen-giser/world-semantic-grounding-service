@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "wsgs-gowm-repository-check/1.0",
+  "status": "PASS",
+  "command": "npm run check",
+  "exitCode": 0,
+  "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+  "sourceTree": "e84b8a482e62ceec66bb9b76315b70d7ca7d660d",
+  "gowmSourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+  "alignmentExactSourceVerification": "PASS",
+  "gowmSourceDirectoryHash": "sha256:7ce983fde2bf5a5d65acefcc644b6e2a085ad16829bbb321bd688cea41e137f4",
+  "gowmSourceDirectoryHashMethod": "GIT_LS_TREE_RECURSIVE_RAW_SHA256",
+  "repositoryChecks": {
+    "contracts": "PASS",
+    "architecture": "PASS",
+    "development": "PASS",
+    "typecheck": "PASS",
+    "testsPassed": 426,
+    "testsSkipped": 20
+  },
+  "evidenceHash": "sha256:c2b425d61898314c25a92310ee6a1171c79099d5ff15d94eb93753283fa52ded"
+}

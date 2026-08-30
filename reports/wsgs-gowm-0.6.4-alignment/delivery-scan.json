@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "wsgs-gowm-delivery-scan/1.0",
+  "status": "PASS",
+  "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
+  "secretsFound": 0,
+  "generatedDrift": false,
+  "credentialsIncluded": false,
+  "scannedScope": [
+    "contracts/consumers/sacs-development-handoff-v1.json",
+    "reports/wsgs-gowm-0.6.4-alignment",
+    "tracked-and-untracked-delivery-diff"
+  ],
+  "checks": {
+    "exactAuthorizedCredentialMatch": "PASS",
+    "privateKeyMaterial": "PASS",
+    "bearerOrTokenAssignment": "PASS",
+    "generatedEvidenceCheck": "PASS",
+    "gitDiffCheck": "PASS"
+  },
+  "evidenceHash": "sha256:d37eb7b3790f83848dbefdb50210d96bb8f2f55a57a56c5bb3739318ff95a7cc"
+}

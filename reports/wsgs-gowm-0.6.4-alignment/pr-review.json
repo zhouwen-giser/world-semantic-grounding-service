@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "wsgs-gowm-pr-review/1.0",
+  "status": "PASS",
+  "draft": true,
+  "productionQualified": false,
+  "bodyPath": "reports/wsgs-gowm-0.6.4-alignment/PR_BODY.md",
+  "bodyHash": "sha256:8948f83eb8a3682a3438862099e152530ae4e4f36a2f24a76d0f727b61ad714e",
+  "bodyCanonicalHash": "sha256:8948f83eb8a3682a3438862099e152530ae4e4f36a2f24a76d0f727b61ad714e",
+  "evidencePaths": [
+    "reports/wsgs-gowm-0.6.4-alignment/alignment-invariant-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/negative-cases-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/contract-intake-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/contract-diff-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/semantic-migration-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/w00-existing-authorities.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+    "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+    "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json",
+    "reports/wsgs-gowm-0.6.4-alignment/handoff-verification-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/alignment-ledger.json",
+    "reports/wsgs-gowm-0.6.4-alignment/closure-report.json"
+  ],
+  "nonClaims": [
+    "Development readiness only",
+    "production qualification",
+    "release",
+    "deployment",
+    "shared-runtime mutation"
+  ],
+  "evidenceHash": "sha256:77e40c0c5694c5b5940511033a2a5fa338bd9da5f757074420fc2a08e80b07e5"
+}

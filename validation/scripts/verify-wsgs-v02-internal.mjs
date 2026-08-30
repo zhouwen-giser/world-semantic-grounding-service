@@ -196,8 +196,8 @@ artifactFiles.sort((left, right) => relative(repositoryRoot, left).localeCompare
 const lock = {
   lockVersion: "1.0",
   taskPackageVersion: "R1",
-  sourceCommitAtGeneration: "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
-  gowmSourceCommit: "17dd221330d9af540ec815a39eca96550690299a",
+  sourceCommitAtGeneration: "c2a71a0f455c728ae45d70067f223e1450cfa427",
+  gowmSourceCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
   artifacts: artifactFiles.map((path) => {
     const bytes = normalizedLf(path);
     return {

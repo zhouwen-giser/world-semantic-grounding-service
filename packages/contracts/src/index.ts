@@ -1,7 +1,30 @@
 export const WSGS_VERSION = "0.1.0" as const;
 export const WSGS_CONTRACT_VERSION = "sacs-wsgs-grounding/1.0" as const;
-export const GOWM_VERSION = "0.6.3" as const;
-export const GOWM_COMMIT = "17dd221330d9af540ec815a39eca96550690299a" as const;
+
+export {
+  GOWM_CONSUMER_PACKAGE_NAME,
+  GOWM_CONSUMER_PACKAGE_VERSION,
+  GOWM_GATEWAY_CONTRACT_VERSION,
+  GOWM_RUNTIME_CONTRACT_ALIGNMENT_LOCK,
+  GOWM_RUNTIME_CONTRACT_ALIGNMENT_LOCK_RELATIVE_PATH,
+  GOWM_RUNTIME_SOURCE_COMMIT,
+  GOWM_RUNTIME_VERSION,
+  GowmRuntimeContractAlignmentLockError,
+  loadGowmRuntimeContractAlignmentLock
+} from "./gowm-alignment.js";
+export type {
+  GowmAlignmentCompatibilityPolicy,
+  GowmAlignmentCriticalOperationFingerprint,
+  GowmAlignmentDeclaredSemanticProfileMigration,
+  GowmAlignmentGatewayContract,
+  GowmAlignmentRequiredTuple,
+  GowmAlignmentRuntime,
+  GowmAlignmentTaskSource,
+  GowmRuntimeContractAlignmentLock,
+  GowmSha256Digest,
+  GowmSha512Integrity,
+  LoadGowmRuntimeContractAlignmentLockOptions
+} from "./gowm-alignment.js";
 
 export const groundingOperations = [
   "GROUND_REFERENCES",

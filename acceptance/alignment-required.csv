@@ -1,0 +1,25 @@
+id,phase,requirement,gate,evidence,blocking
+ALIGN-001,W00,Record actual WSGS base and exact GOWM source commit,baseline-reconciliation,reports/.../w00-baseline.json,true
+ALIGN-002,W01,GOWM runtime source commit equals fceed923...,alignment:gowm:check,alignment invariant report,true
+ALIGN-003,W01,GOWM runtime package.json version equals 0.6.4,alignment:gowm:check,alignment invariant report,true
+ALIGN-004,W01,Gateway consumer package version equals 0.6.3,alignment:gowm:check,alignment invariant report,true
+ALIGN-005,W01,Gateway contract version equals 0.6.3,alignment:gowm:check,alignment invariant report,true
+ALIGN-006,W01,Runtime and contract versions remain independent,negative mutation tests,negative-cases report,true
+ALIGN-007,W01,Northbound sacs-wsgs-grounding/1.0 unchanged,contract hash check,northbound compatibility report,true
+ALIGN-008,W02,Consumer package logical integrity matches lock,contract intake,contract-intake-report.json,true
+ALIGN-009,W02,Catalog and semantic revisions match approved realization,contract intake,contract-intake-report.json,true
+ALIGN-010,W02,Southbound raw lock SHA-256 matches,contract intake,contract-intake-report.json,true
+ALIGN-011,W02,Full operation set and wire schema diff is stable,lock diff gate,contract-diff-report.json,true
+ALIGN-012,W02,Only exactly declared semantic migrations are observed,lock diff gate,semantic-migration-report.json,true
+ALIGN-013,W03,Single upstream authority enforced,authority scan,existing-authorities report,true
+ALIGN-014,W04,Reference identity unchanged through resolve/validate/geometry,reference identity gate,reference-identity-report.json,true
+ALIGN-015,W04,Ambiguous reference performs zero spatial executions,R2 gate,reference-negative-cases.json,true
+ALIGN-016,W05,Direct GOWM R1-R5 pass on exact runtime,direct real gate,direct-r1-r5-smoke.json,true
+ALIGN-017,W06,Formal WSGS pipeline R1-R5 pass,formal pipeline gate,formal-pipeline-r1-r5.json,true
+ALIGN-018,W06,R3 uses same A区 ReferenceKey and completes spatial query,formal pipeline gate,formal-pipeline-r1-r5.json,true
+ALIGN-019,W06,Results are persisted and retrievable through WSGS API,formal pipeline gate,pipeline-traceability.json,true
+ALIGN-020,W07,SACS development handoff records runtime 0.6.4 / contract 0.6.3,handoff verifier,sacs-development-handoff-v1.json,true
+ALIGN-021,W07,productionQualified remains false,handoff verifier,sacs-development-handoff-v1.json,true
+ALIGN-022,W08,npm run check passes,repository check,closure-report.json,true
+ALIGN-023,W08,No secrets or generated drift in commit,delivery scan,closure-report.json,true
+ALIGN-024,W08,Draft PR includes non-claims and evidence paths,PR review,PR body,true
