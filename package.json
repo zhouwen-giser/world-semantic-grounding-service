@@ -57,6 +57,8 @@
     "gdps:w20:write": "node validation/scripts/generate-gdps-source-baseline.mjs --write",
     "gdps:v021:intake": "node validation/scripts/intake-gdps-v021-handoff.mjs",
     "gdps:v021:intake:check": "node validation/scripts/intake-gdps-v021-handoff.mjs --check",
+    "gdps:v021:operation-lock:write": "tsx validation/scripts/generate-live-gdps-operation-lock.ts --write",
+    "gdps:v021:operation-lock:check": "tsx validation/scripts/generate-live-gdps-operation-lock.ts",
     "gdps:v021:acceptance:write": "node validation/scripts/generate-gdps-v021-acceptance-ledger.mjs --write",
     "gdps:v021:acceptance:check": "node validation/scripts/generate-gdps-v021-acceptance-ledger.mjs",
     "gdps:development:check": "tsx validation/scripts/generate-gdps-development-evidence.ts",

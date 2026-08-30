@@ -348,14 +348,23 @@ function verifyWsgsSourceCommit(): string {
     assertion(/^[0-9a-f]{40}$/u.test(expected), "WSGS_EVIDENCE_SOURCE_COMMIT_INVALID");
     assertion(expected === head, "WSGS_SOURCE_HEAD_MISMATCH");
   }
+  const exactTrackedRuntimeOutputs = [
+    "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+  ] as const;
+  const verifiedSourcePathspecs = alignmentFocused
+    ? [".", ...exactTrackedRuntimeOutputs.map((path) => `:(top,exclude,literal)${path}`)]
+    : ["."];
   try {
-    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", "."], { stdio: "ignore" });
+    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", ...verifiedSourcePathspecs], {
+      stdio: "ignore"
+    });
   } catch {
     throw new Error("WSGS_SOURCE_TRACKED_DIRTY");
   }
   const status = execFileSync("git", ["-C", repositoryRoot, "status", "--porcelain=v1", "--untracked-files=all"], {
     encoding: "utf8", maxBuffer: 8 * 1024 * 1024
-  }).trim();
+  }).replace(/(?:\r?\n)+$/u, "");
   const declaredEvidencePaths = [
     process.env["GOWM_RUNTIME_IMAGE_BUILD_REPORT"]?.trim(),
     process.env["WSGS_RUNTIME_IMAGE_BUILD_REPORT"]?.trim()
@@ -370,9 +379,23 @@ function verifyWsgsSourceCommit(): string {
     "RUNTIME_IMAGE_BUILD_REPORT_PATH_NOT_ALLOWED"
   );
   const allowedUntrackedEvidence = new Set(declaredEvidencePaths.map((entry) => `?? ${entry}`));
-  const statusLines = status.length === 0 ? [] : status.split(/\r?\n/u);
+  if (alignmentFocused) {
+    for (const path of exactTrackedRuntimeOutputs) {
+      try {
+        execFileSync("git", ["-C", repositoryRoot, "ls-files", "--error-unmatch", "--", path], {
+          stdio: "ignore"
+        });
+      } catch {
+        throw new Error("GOWM_ALIGNMENT_RUNTIME_EVIDENCE_OUTPUT_NOT_TRACKED");
+      }
+    }
+  }
+  const allowedTrackedRuntimeEvidence = new Set(
+    alignmentFocused ? exactTrackedRuntimeOutputs.map((entry) => ` M ${entry}`) : []
+  );
+  const statusLines = status.length === 0 ? [] : status.split(/\r?\n/u).filter((line) => line.length > 0);
   assertion(
-    statusLines.every((line) => allowedUntrackedEvidence.has(line)),
+    statusLines.every((line) => allowedUntrackedEvidence.has(line) || allowedTrackedRuntimeEvidence.has(line)),
     "WSGS_SOURCE_WORKTREE_NOT_CLEAN_BEFORE_DIRECT_GATE"
   );
   return head;

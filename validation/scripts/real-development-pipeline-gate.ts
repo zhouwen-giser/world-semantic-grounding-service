@@ -238,6 +238,40 @@ function repositoryRelativePath(path: string, code: string): string {
   return candidate.split(sep).join("/");
 }
 
+const n04OperationLockRelativePath =
+  "contracts/generated/gdps-v0.2.1/wsgs-southbound-operation-lock-v2.json" as const;
+
+interface VerifiedN04OperationLockBinding {
+  operationLockHash: `sha256:${string}`;
+  operationLockPathHash: `sha256:${string}`;
+}
+
+function verifyN04OperationLockBinding(
+  sourceBinding: VerifiedWsgsSourceBinding
+): VerifiedN04OperationLockBinding {
+  const configuredPath = resolve(repositoryRoot, required("GOWM_SOUTHBOUND_LOCK_FILE"));
+  const relativePath = repositoryRelativePath(configuredPath, "N04_OPERATION_LOCK_OUTSIDE_REPOSITORY");
+  if (relativePath !== n04OperationLockRelativePath) throw new Error("N04_OPERATION_LOCK_PATH_MISMATCH");
+  const expectedHash = digest(required("GOWM_SOUTHBOUND_LOCK_SHA256"), "N04_OPERATION_LOCK_HASH_INVALID");
+  const runtimeBytes = readFileSync(configuredPath);
+  if (sha256(runtimeBytes) !== expectedHash) throw new Error("N04_OPERATION_LOCK_HASH_MISMATCH");
+  let committedBytes: Buffer;
+  try {
+    committedBytes = execFileSync(
+      "git",
+      ["-C", repositoryRoot, "show", `${sourceBinding.headCommit}:${relativePath}`],
+      { maxBuffer: 16 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] }
+    );
+  } catch {
+    throw new Error("N04_OPERATION_LOCK_NOT_IN_QUALIFIED_SOURCE");
+  }
+  if (!committedBytes.equals(runtimeBytes)) throw new Error("N04_OPERATION_LOCK_SOURCE_BYTES_MISMATCH");
+  return {
+    operationLockHash: expectedHash,
+    operationLockPathHash: safeId(relativePath)
+  };
+}
+
 function loadVerifiedRuntimeBinding(): VerifiedRuntimeBinding {
   const reportPath = resolve(repositoryRoot, required("GOWM_ALIGNMENT_DIRECT_REPORT"));
   const relativeReportPath = relative(repositoryRoot, reportPath);
@@ -2484,6 +2518,7 @@ async function runN04ResultExtensionGate(
   runtimeBinding: VerifiedRuntimeBinding
 ): Promise<void> {
   if (!productionExecutor) throw new Error("N04_PRODUCTION_EXECUTOR_REQUIRED");
+  const operationLockBinding = verifyN04OperationLockBinding(wsgsSourceBinding);
   const legacyCapabilities = await fetchJson(baseUrl, "/v1/capabilities", { headers: n04LegacyHeaders });
   if (legacyCapabilities.status !== 200 ||
       legacyCapabilities.headers.get("wsgs-contract-version") !== "sacs-wsgs-grounding/1.0" ||
@@ -2690,7 +2725,9 @@ async function runN04ResultExtensionGate(
     upstreamRuntime: {
       sourceCommit: runtimeBinding.sourceCommit,
       runtimeBindingHash: runtimeBinding.runtimeBindingHash,
-      gatewayContractVersion: runtimeBinding.gatewayContractVersion
+      gatewayContractVersion: runtimeBinding.gatewayContractVersion,
+      operationLockHash: operationLockBinding.operationLockHash,
+      operationLockPathHash: operationLockBinding.operationLockPathHash
     },
     negotiation: {
       legacyContractVersion: "sacs-wsgs-grounding/1.0",

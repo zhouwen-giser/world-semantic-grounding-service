@@ -65,7 +65,15 @@ const paths = {
   workerResultSchema: "services/grounding-worker/src/result-schema.ts",
   workerResultSchemaTest: "services/grounding-worker/src/result-schema.test.ts",
   architectureBoundary: "validation/scripts/architecture-boundary.mjs",
-  realDevelopmentGate: "validation/scripts/real-development-pipeline-gate.ts"
+  liveGdpsOperationLockGenerator: "validation/scripts/generate-live-gdps-operation-lock.ts",
+  gowmBaseOperationLock:
+    "contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json",
+  gdpsCapabilityLock: "contracts/upstream/gdps-v0.2.1/GDPS_CAPABILITY_LOCK.json",
+  gdpsGatewayBindingLock: "contracts/upstream/gdps-v0.2.1/GOWM_GATEWAY_BINDING_LOCK.json",
+  generatedGdpsOperationLock: "contracts/generated/gdps-v0.2.1/wsgs-southbound-operation-lock-v2.json",
+  realGowmGate: "validation/scripts/real-gowm-gate.ts",
+  realDevelopmentGate: "validation/scripts/real-development-pipeline-gate.ts",
+  runRealGdpsIntegration: "validation/scripts/run-real-gdps-integration.ps1"
 } as const;
 
 const realRuntimeReportPath = "reports/sacs-geospatial-v1/N04-real-runtime.json";
@@ -346,10 +354,26 @@ exact(
 );
 
 const upstreamRuntime = record(realRuntimeReport["upstreamRuntime"], "N04_UPSTREAM_RUNTIME_INVALID");
-exactKeys(upstreamRuntime, ["sourceCommit", "runtimeBindingHash", "gatewayContractVersion"], "N04_UPSTREAM_RUNTIME_KEYS_INVALID");
+exactKeys(upstreamRuntime, [
+  "sourceCommit",
+  "runtimeBindingHash",
+  "gatewayContractVersion",
+  "operationLockHash",
+  "operationLockPathHash"
+], "N04_UPSTREAM_RUNTIME_KEYS_INVALID");
 commit(upstreamRuntime["sourceCommit"], "N04_UPSTREAM_SOURCE_SHA_INVALID");
 digest(upstreamRuntime["runtimeBindingHash"], "N04_UPSTREAM_RUNTIME_BINDING_HASH_INVALID");
 nonEmptyString(upstreamRuntime["gatewayContractVersion"], "N04_UPSTREAM_GATEWAY_CONTRACT_VERSION_INVALID");
+exact(
+  digest(upstreamRuntime["operationLockHash"], "N04_UPSTREAM_OPERATION_LOCK_HASH_INVALID"),
+  sourceHash(paths.generatedGdpsOperationLock),
+  "N04_UPSTREAM_OPERATION_LOCK_HASH_MISMATCH"
+);
+exact(
+  digest(upstreamRuntime["operationLockPathHash"], "N04_UPSTREAM_OPERATION_LOCK_PATH_HASH_INVALID"),
+  sha256(paths.generatedGdpsOperationLock),
+  "N04_UPSTREAM_OPERATION_LOCK_PATH_HASH_MISMATCH"
+);
 
 const negotiation = record(realRuntimeReport["negotiation"], "N04_NEGOTIATION_INVALID");
 exactKeys(negotiation, [
@@ -583,7 +607,16 @@ const verificationEvidence = {
     },
     {
       logicalId: "REAL_RESULT_EXTENSION_GATE",
-      inputLogicalIds: ["realDevelopmentGate"],
+      inputLogicalIds: [
+        "liveGdpsOperationLockGenerator",
+        "gowmBaseOperationLock",
+        "gdpsCapabilityLock",
+        "gdpsGatewayBindingLock",
+        "generatedGdpsOperationLock",
+        "realGowmGate",
+        "realDevelopmentGate",
+        "runRealGdpsIntegration"
+      ],
       disposition: "REAL_RUNTIME_REPORT_HASH_VERIFIED",
       currentExecutionClaimed: true,
       runtimeReportHash

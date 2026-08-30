@@ -27,6 +27,16 @@ $evidenceDirectory = Join-Path $repositoryRoot $(if ($LegacyV02Evidence) {
 if (-not $GdpsArtifactRoot) {
   $GdpsArtifactRoot = Join-Path $repositoryRoot "contracts\generated\gdps-v0.2.1"
 }
+if (-not $LegacyV02Evidence) {
+  $canonicalGdpsArtifactRoot = (Resolve-Path -LiteralPath (
+    Join-Path $repositoryRoot "contracts\generated\gdps-v0.2.1"
+  )).Path
+  if (-not (Test-Path -LiteralPath $GdpsArtifactRoot -PathType Container) -or
+      (Resolve-Path -LiteralPath $GdpsArtifactRoot).Path -ne $canonicalGdpsArtifactRoot) {
+    throw "GDPS v0.2.1 real integration must consume the repository-qualified generated artifact root"
+  }
+  $GdpsArtifactRoot = $canonicalGdpsArtifactRoot
+}
 $operationLock = if ($LegacyV02Evidence) {
   Join-Path $repositoryRoot "reports\wsgs-v0.2-gdps\w26-combined-southbound-operation-lock.json"
 } else {
@@ -222,9 +232,28 @@ function Assert-ExactGdpsCaseSelection {
 }
 
 function Get-CleanSourceCommit {
-  $dirty = @(git -C $repositoryRoot status --porcelain=v1 --untracked-files=normal)
+  $allowedRuntimeEvidence = @(
+    "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+  )
+  $allowedRuntimeEvidenceSet = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+  foreach ($path in $allowedRuntimeEvidence) { [void]$allowedRuntimeEvidenceSet.Add($path) }
+  foreach ($path in $allowedRuntimeEvidence) {
+    git -C $repositoryRoot ls-files --error-unmatch -- $path 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "The declared runtime evidence output must remain tracked: $path" }
+  }
+  $dirty = @(git -C $repositoryRoot status --porcelain=v1 --untracked-files=all)
   if ($LASTEXITCODE -ne 0) { throw "Unable to inspect WSGS source provenance" }
-  if ($dirty.Count -ne 0) { throw "WSGS source must be clean before recording real GDPS evidence" }
+  $seenRuntimeEvidence = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+  foreach ($line in $dirty) {
+    if ($line -notmatch '^ M (.+)$') {
+      throw "WSGS source must be clean except for unstaged exact runtime evidence outputs"
+    }
+    $path = $Matches[1].Replace("\", "/")
+    if (-not $allowedRuntimeEvidenceSet.Contains($path) -or -not $seenRuntimeEvidence.Add($path)) {
+      throw "WSGS source contains an unauthorized or duplicate runtime evidence modification"
+    }
+  }
   $commit = (git -C $repositoryRoot rev-parse HEAD).Trim()
   if ($LASTEXITCODE -ne 0 -or $commit -notmatch '^[a-f0-9]{40}$') {
     throw "Unable to resolve exact WSGS source commit"
