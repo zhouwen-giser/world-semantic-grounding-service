@@ -282,11 +282,35 @@ function validateVersionSurfaces() {
   }
   records.sort((left, right) => left.path.localeCompare(right.path));
   if (records.length !== 19) fail("WORKSPACE_MANIFEST_INVENTORY_DRIFT", String(records.length));
+  const releaseSurfaces = [
+    {
+      path: "Dockerfile",
+      expectedFragment: 'org.opencontainers.image.version="0.2.1"'
+    },
+    {
+      path: "compose.yaml",
+      expectedFragment: "WSGS_RUNTIME_IMAGE:-wsgs:0.2.1"
+    },
+    {
+      path: "README.md",
+      expectedFragment: "WSGS 0.2.1 development candidate"
+    },
+    {
+      path: "CHANGELOG.md",
+      expectedFragment: "## 0.2.1 candidate - 2026-08-30"
+    }
+  ];
+  for (const surface of releaseSurfaces) {
+    if (!text(join(repositoryRoot, surface.path)).includes(surface.expectedFragment)) {
+      fail("RELEASE_SURFACE_DRIFT", `${surface.path}:${surface.expectedFragment}`);
+    }
+  }
   return {
     version: "0.2.1",
     workspaceManifestCount: records.length,
     records,
-    surfaceHash: canonicalHash(records)
+    releaseSurfaces,
+    surfaceHash: canonicalHash({ records, releaseSurfaces })
   };
 }
 
@@ -478,20 +502,40 @@ const commonReport = {
   generator,
   generationMode: "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
   inputSetHash,
-  command: {
-    write: "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
-    check: "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
-    exitCode: 0,
-    stdoutSummary: "WSGS_V021_GEOSPATIAL_CONTRACT_READY"
+  verificationRecipe: {
+    writeCommand: "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
+    checkCommand: "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
+    expectedSuccessMarker: "WSGS_V021_GEOSPATIAL_CONTRACT_READY",
+    embeddedExecutionClaim: false,
+    exitCode: null
+  },
+  executionEvidence: {
+    status: "RECORDED_EXTERNALLY_IN_PHASE_REPORT_AND_CI",
+    phaseReportPath: "reports/sacs-geospatial-v1/N01-phase-report.md"
   },
   runtimeQualification: "NOT_RUN",
   consumerRuntimeQualification: "BLOCKED_UPSTREAM",
   productionQualified: false,
   versionSurfaces: {
-    version: versionSurfaces.version,
-    workspaceManifestCount: versionSurfaces.workspaceManifestCount,
-    surfaceHash: versionSurfaces.surfaceHash,
-    status: "PASS"
+    sourceAndWorkspace: {
+      version: versionSurfaces.version,
+      workspaceManifestCount: versionSurfaces.workspaceManifestCount,
+      surfaceHash: versionSurfaces.surfaceHash,
+      status: "PASS"
+    },
+    releaseSourceFiles: {
+      status: "PASS",
+      paths: versionSurfaces.releaseSurfaces.map((surface) => surface.path)
+    },
+    runtimeCapabilities: {
+      status: "NOT_RUN",
+      ownerPhase: "N04"
+    },
+    authoritativeHandoffMetadata: {
+      status: "NOT_RUN",
+      ownerPhase: "N08"
+    },
+    crossPhaseAcceptanceGate: "NOT_RUN"
   }
 };
 
@@ -557,7 +601,7 @@ const schemaValidationReport = {
 const sacsCompatibilityReport = {
   schemaVersion: "wsgs-v021-n01-sacs-schema-compatibility/1.0",
   ...commonReport,
-  status: "PASS_WITH_KNOWN_CONSUMER_IMPLEMENTATION_BLOCKERS",
+  status: "SCHEMA_COMPATIBILITY_PASS_CONSUMER_BLOCKED",
   consumer: {
     repository: "zhouwen-giser/single-agent-chat-server",
     pullRequest: 17,

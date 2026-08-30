@@ -6,21 +6,46 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:09bc79ea3eecfe734bb98908671ec99e22ccdbf9ad02a0b1422827b346677b71",
-  "command": {
-    "write": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
-    "check": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
-    "exitCode": 0,
-    "stdoutSummary": "WSGS_V021_GEOSPATIAL_CONTRACT_READY"
+  "inputSetHash": "sha256:e84f1708518c0348492ec49bca78746197f8ce820862eabe934125f516d992cf",
+  "verificationRecipe": {
+    "writeCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
+    "checkCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
+    "expectedSuccessMarker": "WSGS_V021_GEOSPATIAL_CONTRACT_READY",
+    "embeddedExecutionClaim": false,
+    "exitCode": null
+  },
+  "executionEvidence": {
+    "status": "RECORDED_EXTERNALLY_IN_PHASE_REPORT_AND_CI",
+    "phaseReportPath": "reports/sacs-geospatial-v1/N01-phase-report.md"
   },
   "runtimeQualification": "NOT_RUN",
   "consumerRuntimeQualification": "BLOCKED_UPSTREAM",
   "productionQualified": false,
   "versionSurfaces": {
-    "version": "0.2.1",
-    "workspaceManifestCount": 19,
-    "surfaceHash": "sha256:22b0a90a9368d08c98c00c996591c90790700994839de611021c2d8c529a7c29",
-    "status": "PASS"
+    "sourceAndWorkspace": {
+      "version": "0.2.1",
+      "workspaceManifestCount": 19,
+      "surfaceHash": "sha256:99d20afe187ef91db22cb0b92bc66a4b42a92d2796bd1f4811e44bf3b5f5e154",
+      "status": "PASS"
+    },
+    "releaseSourceFiles": {
+      "status": "PASS",
+      "paths": [
+        "Dockerfile",
+        "compose.yaml",
+        "README.md",
+        "CHANGELOG.md"
+      ]
+    },
+    "runtimeCapabilities": {
+      "status": "NOT_RUN",
+      "ownerPhase": "N04"
+    },
+    "authoritativeHandoffMetadata": {
+      "status": "NOT_RUN",
+      "ownerPhase": "N08"
+    },
+    "crossPhaseAcceptanceGate": "NOT_RUN"
   },
   "status": "PASS",
   "legacyRelease": {

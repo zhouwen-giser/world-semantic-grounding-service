@@ -62,16 +62,16 @@ The original legacy lock remains:
 
 ## Deterministic evidence
 
-All generated evidence is content-addressed, contains no wall clock or absolute local path, and was generated once then checked twice without drift.
+All generated evidence is content-addressed, contains no wall clock or absolute local path, and was generated once then checked twice without drift. The deterministic JSON records the verification recipe with `embeddedExecutionClaim=false` and `exitCode=null`; actual command results are recorded in this phase report and hosted CI rather than fabricated inside generated output.
 
 | Artifact | SHA-256 |
 |---|---|
 | `contracts/wsgs-v0.2.1-sacs-geospatial/contract-release-lock.json` | `sha256:77573e3d2912ef29c7f3c0bba1233934b2cdacd832446278a713effee5c70fc0` |
-| `reports/sacs-geospatial-v1/N01-contract-diff.json` | `sha256:162f8b3474ebe88e41410676b1bf9500aaa762c8421be57b616103ad2d04d744` |
-| `reports/sacs-geospatial-v1/N01-schema-validation.json` | `sha256:729cfd64cad48ac49813cce5ed8549809902818ecc59377bc45936057141adc5` |
-| `reports/sacs-geospatial-v1/N01-sacs-schema-compatibility.json` | `sha256:0e5d0a4ff0fdbda7609aace5eb935e91376bec61aac5ea39e39f532d1497d9cb` |
+| `reports/sacs-geospatial-v1/N01-contract-diff.json` | `sha256:4807b9766f8526eb0239b4f325e9de97ccbb43f20e2c01b78c43e13270d7b79d` |
+| `reports/sacs-geospatial-v1/N01-schema-validation.json` | `sha256:0aea1fbd461be52b784de0ba8e19f5e5d68e6e12300d01ace72ea6e3a5bb9037` |
+| `reports/sacs-geospatial-v1/N01-sacs-schema-compatibility.json` | `sha256:9c1af7f5e39a70a8173d3fd6b61a9bc21de5f7bc22fcad49e7b942a2092c1046` |
 
-Common deterministic input-set hash: `sha256:09bc79ea3eecfe734bb98908671ec99e22ccdbf9ad02a0b1422827b346677b71`.
+Common deterministic input-set hash: `sha256:e84f1708518c0348492ec49bca78746197f8ce820862eabe934125f516d992cf`.
 
 ## Verification
 
@@ -92,7 +92,7 @@ No shared WSGS, GOWM, GDPS, or SACS instance was modified or restarted. No crede
 
 - V21-G01: PASS from N00.
 - V21-G03: PASS.
-- V21-G02: NOT_RUN as a cross-phase gate. Source and contract version surfaces are aligned, but runtime capabilities and the N08 authoritative handoff do not yet exist.
+- V21-G02: NOT_RUN as a cross-phase gate. Package/workspace, OCI source, compose, README, and CHANGELOG surfaces are aligned, while runtime capabilities are explicitly deferred to N04 and authoritative handoff metadata to N08.
 - V21-G04–V21-G14: NOT_RUN.
 - Runtime qualification: NOT_RUN.
 - Real SACS v0.4 cases executed: 0/18.
