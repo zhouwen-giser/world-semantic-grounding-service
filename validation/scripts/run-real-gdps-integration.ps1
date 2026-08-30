@@ -321,7 +321,12 @@ try {
     throw "The GDPS integration data scope must be one exact non-wildcard claim"
   }
   $randomBytes = New-Object byte[] 32
-  [Security.Cryptography.RandomNumberGenerator]::Fill($randomBytes)
+  $randomNumberGenerator = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try {
+    $randomNumberGenerator.GetBytes($randomBytes)
+  } finally {
+    $randomNumberGenerator.Dispose()
+  }
   $env:WSGS_REQUEST_ENCRYPTION_KEY_BASE64 = [Convert]::ToBase64String($randomBytes)
   $env:DATABASE_URL = "postgresql://wsgs:${databasePassword}@127.0.0.1:${DatabaseHostPort}/wsgs"
   $env:ALLOW_REAL_DEVELOPMENT_PIPELINE_GATE = "YES"
