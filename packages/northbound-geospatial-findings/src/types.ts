@@ -7,6 +7,7 @@ import type {
   GowmFindingResultStatus,
   ValidatedGowmFindingResult
 } from "@wsgs/gowm-execution-evidence";
+import type { NormalizedSourceProductBinding } from "./source-normalizer.js";
 
 export type Sha256Digest = `sha256:${string}`;
 
@@ -68,7 +69,9 @@ export interface FindingDecoderInput {
 
 export interface FindingDecoderInputSource {
   readonly validatedResult: ValidatedGowmFindingResult;
-  readonly trustedProvenance: TrustedProvenanceBinding;
+  /** Opaque N03 binding minted from the authenticated result envelope. */
+  readonly sourceBinding: NormalizedSourceProductBinding;
+  readonly subjectReferenceProductIds?: readonly string[];
 }
 
 /** N02 consumes these opaque bindings; N03 owns their materialization and FK checks. */

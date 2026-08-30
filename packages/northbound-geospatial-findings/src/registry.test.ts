@@ -12,7 +12,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   FINDING_DECODER_PATTERNS,
-  TRUSTED_PROVENANCE_BINDING_MARKER,
   FindingDecoderRegistry,
   canonicalJson,
   canonicalSha256,
@@ -26,6 +25,11 @@ import {
   type GowmResultStatus,
   type Sha256Digest
 } from "./index.js";
+import {
+  createTrustedSourceContext,
+  normalizeSourceProducts,
+  type SourceGroundingIdentity
+} from "./source-normalizer.js";
 
 type TestVectorDocument = {
   fixtureClass: string;
@@ -101,6 +105,50 @@ function schemaForOperation(operationId: string): { uri: string; hash: Sha256Dig
 }
 
 const digest = (character: string): Sha256Digest => `sha256:${character.repeat(64)}`;
+const testDataScope = "scope-gdps-v021-baseline";
+
+function trustedSourceContext() {
+  const identity: Omit<SourceGroundingIdentity, "authorizationContextHash"> = {
+    servicePrincipalId: "wsgs-runtime",
+    actorId: "sacs-service",
+    dataScopes: [testDataScope],
+    datasetScopes: ["wsgs-demo-main"],
+    permissions: ["wsgs.grounding.execute"]
+  };
+  return createTrustedSourceContext(
+    { ...identity, authorizationContextHash: canonicalSha256(identity) },
+    testDataScope
+  );
+}
+
+function withLockedCatalogMetadata(payload: unknown): unknown {
+  // The decoder fixture predates N03's optional catalog provenance fields.
+  // Materialize them only from the unique pinned FINAL_B descriptor; never
+  // infer a profile or caller-provided hash.
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) return payload;
+  const cloned = structuredClone(payload) as Record<string, unknown>;
+  const products = Array.isArray(cloned["products"]) ? cloned["products"] : [cloned];
+  for (const candidate of products) {
+    if (candidate === null || typeof candidate !== "object" || Array.isArray(candidate)) continue;
+    const product = candidate as Record<string, unknown>;
+    if (product["metadata"] !== undefined) continue;
+    const matches = gdpsV021FindingContractClosure.descriptorAuthority.registry.descriptors.filter(
+      ({ productType }) => productType === product["productType"]
+    );
+    if (matches.length !== 1) {
+      throw new Error(`catalog test product lacks one exact descriptor: ${String(product["productType"])}`);
+    }
+    const descriptor = matches[0]!;
+    product["metadata"] = {
+      gdpsDescriptor: {
+        descriptorId: descriptor.descriptorId,
+        descriptorHash: canonicalSha256(descriptor)
+      },
+      productProfile: descriptor.productProfile
+    };
+  }
+  return cloned;
+}
 
 const operationByPattern: Readonly<Record<FindingDecoderPattern, string>> = {
   SAMPLE_VALUE: "elevation.sample",
@@ -166,7 +214,8 @@ function fullEnvelope(
   payload: unknown,
   status: GowmResultStatus = "COMPLETED",
   operationId = operationByPattern[pattern],
-  schema = schemaByPattern[pattern]
+  schema = schemaByPattern[pattern],
+  requestId = "request.n02.test-vector"
 ): GowmResultEnvelope {
   const operation = { operationId, operationVersion: "1.0" };
   const operationLock = gdpsV021FindingContractClosure.operations.find((candidate) =>
@@ -183,13 +232,40 @@ function fullEnvelope(
     policy: { version: "gdps-budget/1.0", digest: digest("3") },
     schemas: { inputSchemaHash: operationLock.inputSchemaHash, outputSchemaHash: schema.hash }
   };
-  const outputHash = canonicalSha256(payload);
+  const authoritativePayload = operationLock.findingBinding.applicability === "CATALOG"
+    ? withLockedCatalogMetadata(payload)
+    : payload;
+  const outputHash = canonicalSha256(authoritativePayload);
+  const payloadRecord = authoritativePayload as Record<string, unknown>;
+  const catalogSnapshot = operationLock.findingBinding.applicability === "CATALOG";
+  const snapshotDigest = catalogSnapshot
+    ? outputHash
+    : payloadRecord["contentHash"] as Sha256Digest;
+  const snapshotId = catalogSnapshot
+    ? `catalog:${testDataScope}`
+    : `${testDataScope}:${String(payloadRecord["productId"])}`;
   return {
     providerProtocolVersion: "1.0",
-    requestId: "request.n02.test-vector",
+    requestId,
     operation,
     status,
-    output: { schemaUri: schema.uri, schemaHash: schema.hash, value: payload },
+    output: { schemaUri: schema.uri, schemaHash: schema.hash, value: authoritativePayload },
+    dataSnapshot: {
+      consistency: "CONSISTENT_AT_START",
+      capturedAt: "2026-08-30T00:00:00Z",
+      scopeDigest: canonicalSha256({ dataScopeKey: testDataScope }),
+      resources: [{
+        referenceKey: {
+          namespace: "gdps",
+          kind: "DATASET",
+          id: snapshotId,
+          version: snapshotDigest
+        },
+        authority: "gdps.geospatial-products",
+        pinning: "PINNED",
+        digest: snapshotDigest
+      }]
+    },
     computeSnapshot,
     receipts: [{
       receiptId: "receipt.n02.test-vector",
@@ -211,20 +287,7 @@ function fullEnvelope(
       changes: { repairApplied: false, typeChanged: false },
       warnings: []
     }],
-    evidenceReferences: [{
-      evidenceId: "evidence.n02.test-vector",
-      authority: "gdps.geospatial-products",
-      evidenceType: "CURRENT_PROJECTION_SOURCE",
-      referenceKey: {
-        namespace: "gdps",
-        kind: "DATASET",
-        id: "scope-gdps-v021-baseline:gdps-baseline-product",
-        version: digest("6")
-      },
-      schemaUri: "urn:gdps:current-product:1.0",
-      schemaHash: digest("7"),
-      observedAt: "2026-08-30T00:00:00Z"
-    }],
+    evidenceReferences: [],
     warnings: [],
     consumption: { inputBytes: 128, outputBytes: 512, rows: 1 },
     execution: {
@@ -240,6 +303,7 @@ function decoderInput(
   pattern: FindingDecoderPattern,
   payload: unknown,
   options: {
+    requestId?: string;
     status?: GowmResultStatus;
     operationId?: string;
     schema?: { uri: string; hash: Sha256Digest };
@@ -248,8 +312,6 @@ function decoderInput(
     unit?: string;
     allowedClassCodes?: readonly string[];
     queryProfile?: FindingDecoderPattern;
-    evidenceItemIds?: readonly string[];
-    sourceProductIds?: readonly string[];
     subjectReferenceProductIds?: readonly string[];
   } = {}
 ): FindingDecoderInput {
@@ -259,7 +321,8 @@ function decoderInput(
     payload,
     options.status,
     options.operationId ?? operationByPattern[pattern],
-    schema
+    schema,
+    options.requestId
   );
   const productType = options.productType ?? {
     SAMPLE_VALUE: "ELEVATION_DTM",
@@ -281,14 +344,14 @@ function decoderInput(
     ...(pattern === "CATALOG" ? {} : { descriptorId: `${productType}/${productProfile}` })
   });
   const validatedResult = validateGowmFindingResultEnvelope(operationAuthority, envelope);
+  const sourceBinding = normalizeSourceProducts({
+    trustedContext: trustedSourceContext(),
+    validatedResults: [validatedResult]
+  });
   return createFindingDecoderInput({
     validatedResult,
-    trustedProvenance: {
-      marker: TRUSTED_PROVENANCE_BINDING_MARKER,
-      evidenceItemIds: options.evidenceItemIds ?? ["evidence.n02.test-vector"],
-      sourceProductIds: options.sourceProductIds ?? ["source.gdps.test-vector"],
-      subjectReferenceProductIds: options.subjectReferenceProductIds ?? ["reference.test-vector"]
-    }
+    sourceBinding,
+    subjectReferenceProductIds: options.subjectReferenceProductIds ?? ["reference.test-vector"]
   });
 }
 
@@ -566,7 +629,9 @@ describe("descriptor/profile finding decoder registry", () => {
     expect(result.gaps.map(({ gapKind }) => gapKind)).toEqual(["DATA_GAP"]);
   });
 
-  it.each(["NO_DATA", "INDETERMINATE"] as const)("returns zero findings for %s", (status) => {
+  it.each(["NO_DATA", "INDETERMINATE"] as const)(
+    "requires the N03 status normalizer instead of decoder-local inference for %s",
+    (status) => {
     const noDataPayload = {
       schemaVersion: "gdps-raster-sample-result/1.0",
       productId: "gdps-baseline-dtm",
@@ -576,9 +641,10 @@ describe("descriptor/profile finding decoder registry", () => {
       noData: true
     };
     const input = decoderInput("SAMPLE_VALUE", noDataPayload, { status, unit: "metre" });
-    const result = new FindingDecoderRegistry([exactRegistration(input)]).decode(input);
-    expect(result.findings).toEqual([]);
-    expect(result.gaps).toHaveLength(1);
+    expectErrorCode(
+      () => new FindingDecoderRegistry([exactRegistration(input)]).decode(input),
+      "N03_STATUS_NORMALIZATION_REQUIRED"
+    );
   });
 
   it("fails closed on an unknown schema and never copies safePayload", () => {
@@ -647,6 +713,25 @@ describe("descriptor/profile finding decoder registry", () => {
     const left = registry.decode(leftInput);
     const right = registry.decode(rightInput);
     expect(canonicalJson(left)).toBe(canonicalJson(right));
+    expect(left.findingSetHash).toBe(right.findingSetHash);
+  });
+
+  it("keeps finding identity stable across request-id-only envelope drift", () => {
+    const leftInput = decoderInput("SAMPLE_VALUE", testVectors.payloads["pointMeasurement"], {
+      requestId: "request.n02.retry-a",
+      unit: "metre"
+    });
+    const rightInput = decoderInput("SAMPLE_VALUE", testVectors.payloads["pointMeasurement"], {
+      requestId: "request.n02.retry-b",
+      unit: "metre"
+    });
+    const registry = new FindingDecoderRegistry([exactRegistration(leftInput)]);
+    const left = registry.decode(leftInput);
+    const right = registry.decode(rightInput);
+
+    expect(left.findings[0]?.evidenceItemIds).toEqual(right.findings[0]?.evidenceItemIds);
+    expect(left.findings[0]?.sourceProductIds).toEqual(right.findings[0]?.sourceProductIds);
+    expect(left.findings[0]?.findingId).toBe(right.findings[0]?.findingId);
     expect(left.findingSetHash).toBe(right.findingSetHash);
   });
 
@@ -1068,10 +1153,9 @@ describe("descriptor/profile finding decoder registry", () => {
       ...(item as Record<string, unknown>),
       productId: `product-${index}`
     }));
-    const input = decoderInput("CATALOG", catalog);
     expectErrorCode(
-      () => new FindingDecoderRegistry([exactRegistration(input)]).decode(input),
-      "CATALOG_RESULT_LIMIT_EXCEEDED"
+      () => decoderInput("CATALOG", catalog),
+      "SOURCE_PRODUCT_SET_LIMIT_EXCEEDED"
     );
   });
 

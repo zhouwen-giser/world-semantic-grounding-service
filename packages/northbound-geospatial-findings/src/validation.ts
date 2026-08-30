@@ -11,6 +11,10 @@ import {
   type FindingDescriptorContext,
   type Sha256Digest
 } from "./types.js";
+import {
+  readNormalizedSourceProductBinding,
+  type NormalizedSourceProductBinding
+} from "./source-normalizer.js";
 
 export type JsonObject = Record<string, unknown>;
 export type Position = [number, number];
@@ -96,8 +100,13 @@ export function stringCodes(value: unknown, code: string, maximum: number, itemM
   return [...new Set(values)].sort(compareCodePoints);
 }
 
-export function identifierArray(value: readonly string[], code: string, maximum: number): string[] {
-  if (!Array.isArray(value) || value.length < 1 || value.length > maximum) {
+export function identifierArray(
+  value: readonly string[],
+  code: string,
+  maximum: number,
+  minimum = 1
+): string[] {
+  if (!Array.isArray(value) || value.length < minimum || value.length > maximum) {
     throw new FindingDecoderError(code);
   }
   const normalized = value.map((item) => identifier(item, code));
@@ -212,6 +221,8 @@ export interface ValidatedDecoderInput {
 interface DecoderInputState {
   readonly validatedResult: ValidatedGowmFindingResult;
   readonly envelopeHash: Sha256Digest;
+  readonly sourceBinding: NormalizedSourceProductBinding;
+  readonly provenanceHash: Sha256Digest;
 }
 
 const decoderInputs = new WeakMap<object, DecoderInputState>();
@@ -226,6 +237,30 @@ function freeze<T>(value: T): T {
 
 export function createFindingDecoderInput(source: FindingDecoderInputSource): FindingDecoderInput {
   const validated = readValidatedGowmFindingResult(source.validatedResult);
+  const sourceProjection = readNormalizedSourceProductBinding(source.sourceBinding);
+  const sourceEnvelopeBinding = sourceProjection.envelopeBindings.find(
+    (binding) => binding.envelopeHash === validated.envelopeHash
+  );
+  if (sourceEnvelopeBinding === undefined) {
+    throw new FindingDecoderError("SOURCE_PROVENANCE_ENVELOPE_MISSING");
+  }
+  if (sourceEnvelopeBinding.qualification.status === "REJECTED") {
+    throw new FindingDecoderError("SOURCE_PROVENANCE_REJECTED");
+  }
+  const knownSourceProductIds = new Set(
+    sourceProjection.sourceProducts.map(({ sourceProductId }) => sourceProductId)
+  );
+  if (sourceEnvelopeBinding.sourceProductIds.some((id) => !knownSourceProductIds.has(id))) {
+    throw new FindingDecoderError("SOURCE_PROVENANCE_PRODUCT_FK_MISSING");
+  }
+  const trustedProvenance = freeze({
+    marker: TRUSTED_PROVENANCE_BINDING_MARKER,
+    evidenceItemIds: [...sourceEnvelopeBinding.evidenceItemIds],
+    sourceProductIds: [...sourceEnvelopeBinding.sourceProductIds],
+    ...(source.subjectReferenceProductIds === undefined
+      ? {}
+      : { subjectReferenceProductIds: [...source.subjectReferenceProductIds] })
+  });
   const operation = validated.operation;
   const descriptor: FindingDescriptorContext = {
     authorityKind: operation.authorityKind,
@@ -255,11 +290,13 @@ export function createFindingDecoderInput(source: FindingDecoderInputSource): Fi
   const input = freeze({
     envelope: validated.envelope,
     descriptor: freeze(descriptor),
-    trustedProvenance: freeze(structuredClone(source.trustedProvenance))
+    trustedProvenance
   });
   decoderInputs.set(input, {
     validatedResult: source.validatedResult,
-    envelopeHash: validated.envelopeHash
+    envelopeHash: validated.envelopeHash,
+    sourceBinding: source.sourceBinding,
+    provenanceHash: sourceEnvelopeBinding.provenanceHash
   });
   return input;
 }
@@ -275,6 +312,21 @@ export function validateDecoderInput(input: FindingDecoderInput): ValidatedDecod
     || validated.envelopeHash !== state.envelopeHash
     || canonicalSha256(input.envelope) !== state.envelopeHash) {
     throw new FindingDecoderError("VALIDATED_ENVELOPE_MUTATED");
+  }
+  const sourceProjection = readNormalizedSourceProductBinding(state.sourceBinding);
+  const sourceEnvelopeBinding = sourceProjection.envelopeBindings.find(
+    (binding) => binding.envelopeHash === state.envelopeHash
+  );
+  if (sourceEnvelopeBinding === undefined
+    || sourceEnvelopeBinding.provenanceHash !== state.provenanceHash
+    || canonicalSha256({
+      evidenceItemIds: input.trustedProvenance.evidenceItemIds,
+      sourceProductIds: input.trustedProvenance.sourceProductIds
+    }) !== canonicalSha256({
+      evidenceItemIds: sourceEnvelopeBinding.evidenceItemIds,
+      sourceProductIds: sourceEnvelopeBinding.sourceProductIds
+    })) {
+    throw new FindingDecoderError("SOURCE_PROVENANCE_BINDING_MISMATCH");
   }
   if (input.trustedProvenance.marker !== TRUSTED_PROVENANCE_BINDING_MARKER) {
     throw new FindingDecoderError("UNTRUSTED_PROVENANCE_BINDING");
@@ -334,12 +386,14 @@ export function validateDecoderInput(input: FindingDecoderInput): ValidatedDecod
   const evidenceItemIds = identifierArray(
     input.trustedProvenance.evidenceItemIds,
     "INVALID_EVIDENCE_BINDING",
-    256
+    256,
+    0
   );
   const sourceProductIds = identifierArray(
     input.trustedProvenance.sourceProductIds,
     "INVALID_SOURCE_PRODUCT_BINDING",
-    64
+    64,
+    0
   );
   const subjectReferenceProductIds = input.trustedProvenance.subjectReferenceProductIds === undefined
     ? undefined

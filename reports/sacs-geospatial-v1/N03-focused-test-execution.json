@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "wsgs-v021-n03-focused-test-execution/1.0",
+  "status": "PASS",
+  "inputSetHash": "sha256:1859c832afe68916e6be344a83544957f6b48dff29a18090fc3c053e21a6c41e",
+  "suites": [
+    {
+      "logicalTestId": "DECODER_REGISTRY",
+      "passed": 48
+    },
+    {
+      "logicalTestId": "GAP_NORMALIZER",
+      "passed": 31
+    },
+    {
+      "logicalTestId": "RESULT_NORMALIZER",
+      "passed": 23
+    },
+    {
+      "logicalTestId": "SOURCE_NORMALIZER",
+      "passed": 14
+    }
+  ],
+  "totals": {
+    "expected": 116,
+    "passed": 116,
+    "failed": 0,
+    "pending": 0
+  },
+  "executionClass": "FOCUSED_UNIT",
+  "exitCode": 0,
+  "credentialsIncluded": false,
+  "localPathsIncluded": false,
+  "requestIdentifiersIncluded": false
+}

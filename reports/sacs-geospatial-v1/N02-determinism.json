@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:4787807de58a7c642256beffeedb38a9be4d0c0ca6fd6e4abe57a4dcd563016b",
+  "inputSetHash": "sha256:430ce6c2cff861aa1c55fe49c1a72c5b989aa6196da583904a9eb5dd7bb735a5",
   "inputHashCanonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
   "verificationRecipe": {
     "writeCommand": "npm run findings:decoder:write",
@@ -62,9 +62,9 @@
         "findingKind": "POINT_MEASUREMENT",
         "findingCount": 1,
         "gapKinds": [],
-        "findingSetHash": "sha256:6e49a10cc93fc1bf38dfb6f19b09db50ab7a25abf89a542eb512f71395796eba",
-        "independentFindingSetHash": "sha256:6e49a10cc93fc1bf38dfb6f19b09db50ab7a25abf89a542eb512f71395796eba",
-        "outputHash": "sha256:ea61b4fba633e1bf895197578c52fbc93767386743219a9fb5d4aa22dc87ee35"
+        "findingSetHash": "sha256:3f4abe7ad75df19f0665c36e2791dabbf332d713f0eeb87809b7ff7497c55d90",
+        "independentFindingSetHash": "sha256:3f4abe7ad75df19f0665c36e2791dabbf332d713f0eeb87809b7ff7497c55d90",
+        "outputHash": "sha256:037a85395322e322bc8a43346a5e337f46165b30f95df3e7821b934c37d7dde6"
       },
       {
         "caseId": "REAL_SHAPE_POINT_CLASSIFICATION",
@@ -81,9 +81,9 @@
         "findingKind": "POINT_CLASSIFICATION",
         "findingCount": 1,
         "gapKinds": [],
-        "findingSetHash": "sha256:e9b9a5cbf7c494285a18b41a416c466635f422fd032eee4af0f38a62ba12e2e3",
-        "independentFindingSetHash": "sha256:e9b9a5cbf7c494285a18b41a416c466635f422fd032eee4af0f38a62ba12e2e3",
-        "outputHash": "sha256:a35a3c5916c2b1e7749420806256aede7b8fb849b6b1b565fa3be68dc704bda1"
+        "findingSetHash": "sha256:cc661d78a07f9c1f78eefa1843d436bd93f1b0b6cacb454a860fdfa2795797eb",
+        "independentFindingSetHash": "sha256:cc661d78a07f9c1f78eefa1843d436bd93f1b0b6cacb454a860fdfa2795797eb",
+        "outputHash": "sha256:f9dfecf989f18481a55876fe9f21a0f8ead668bec85f693a6524352e2a74041e"
       },
       {
         "caseId": "REAL_SHAPE_SPATIAL_FEATURE_COLLECTION",
@@ -102,9 +102,9 @@
         "gapKinds": [
           "TRUNCATED"
         ],
-        "findingSetHash": "sha256:653914a88ec5d64df77bd5f45327368c02427921b1a1cb43e05c76e22d23564d",
-        "independentFindingSetHash": "sha256:653914a88ec5d64df77bd5f45327368c02427921b1a1cb43e05c76e22d23564d",
-        "outputHash": "sha256:7607b2cbf670812416088f8cbf44513afa694b4c7584e01fd2f07eaf1f2ec727"
+        "findingSetHash": "sha256:025068dd43e286ee91a803612c3196da37d2ceb0200137c340b5dc1df9e8d500",
+        "independentFindingSetHash": "sha256:025068dd43e286ee91a803612c3196da37d2ceb0200137c340b5dc1df9e8d500",
+        "outputHash": "sha256:40510d2029390025b4d1f24058698f7139c39c27c7cb2af017d6d9f720e600fe"
       },
       {
         "caseId": "REAL_SHAPE_PROFILE",
@@ -121,9 +121,9 @@
         "findingKind": "PROFILE",
         "findingCount": 1,
         "gapKinds": [],
-        "findingSetHash": "sha256:9f7182790ea262ffa13259e3236c707b636cab8771256c0ef823d1bc1ff9defa",
-        "independentFindingSetHash": "sha256:9f7182790ea262ffa13259e3236c707b636cab8771256c0ef823d1bc1ff9defa",
-        "outputHash": "sha256:c0ab7dd0db41138aaab5ab1d3761ce852f076fa5f89833ee2b47b47b0e0b4f4a"
+        "findingSetHash": "sha256:38eea1043a259a6e2b0573c6cb58a19315a69e23968e4288e1550fc301f66fd0",
+        "independentFindingSetHash": "sha256:38eea1043a259a6e2b0573c6cb58a19315a69e23968e4288e1550fc301f66fd0",
+        "outputHash": "sha256:542e6867c267e32ffb74403dc1539b3f106912222ea1e03b3563cd07cf4db32f"
       },
       {
         "caseId": "REAL_SHAPE_QUALIFIED_EXPLANATION",
@@ -140,9 +140,9 @@
         "findingKind": "QUALIFIED_EXPLANATION",
         "findingCount": 1,
         "gapKinds": [],
-        "findingSetHash": "sha256:20d87f97fb1a459335dc599f5a96be4570e97fff1f916153cef1b371d604a9a5",
-        "independentFindingSetHash": "sha256:20d87f97fb1a459335dc599f5a96be4570e97fff1f916153cef1b371d604a9a5",
-        "outputHash": "sha256:3808755196f84e669d815215428abfa40e9a0821a7814588e57424f381a6d3cc"
+        "findingSetHash": "sha256:dca753fcf3a49700043f7e498027fe3b6720113bba8e308942185c0bec400d84",
+        "independentFindingSetHash": "sha256:dca753fcf3a49700043f7e498027fe3b6720113bba8e308942185c0bec400d84",
+        "outputHash": "sha256:f67f970b91774eb0a86120e03fe4ebce334082015fe64c8f0c4f4ec0e5e37c73"
       },
       {
         "caseId": "REAL_SHAPE_CATALOG",
@@ -159,9 +159,9 @@
         "findingKind": "CATALOG",
         "findingCount": 1,
         "gapKinds": [],
-        "findingSetHash": "sha256:640d610e5db7cd9fb1a29af50fef0052907a7effaeeeff584adf46836b23abd6",
-        "independentFindingSetHash": "sha256:640d610e5db7cd9fb1a29af50fef0052907a7effaeeeff584adf46836b23abd6",
-        "outputHash": "sha256:745be36dc6444631a4a526166861399b86a613238f81e16f2429f6d4fd98077b"
+        "findingSetHash": "sha256:67a718987108691aab53560ebf5bdb2ef0a1ba5288124fdedc3155e3d866efb1",
+        "independentFindingSetHash": "sha256:67a718987108691aab53560ebf5bdb2ef0a1ba5288124fdedc3155e3d866efb1",
+        "outputHash": "sha256:03c24f99ebe2cce13a2ac9341a4a2bbbf1fd5ba702b8c958f1caf5410939a4bf"
       }
     ]
   },
@@ -175,8 +175,8 @@
         "operationId": "geo-raster.sample",
         "pattern": "SAMPLE_VALUE",
         "findingKind": "POINT_MEASUREMENT",
-        "findingSetHash": "sha256:22abab40ac6a6984cb8b1a260d324ff13717eeb5148487a9909d6910f9e064ad",
-        "independentFindingSetHash": "sha256:22abab40ac6a6984cb8b1a260d324ff13717eeb5148487a9909d6910f9e064ad",
+        "findingSetHash": "sha256:7c1917c0ba8a7d045c8d3ae609cfd14fb2cd0e45e525df24ff693d43c417a273",
+        "independentFindingSetHash": "sha256:7c1917c0ba8a7d045c8d3ae609cfd14fb2cd0e45e525df24ff693d43c417a273",
         "rawPayloadPassThrough": false
       },
       {
@@ -185,8 +185,8 @@
         "operationId": "geo-raster.profile",
         "pattern": "PROFILE_VALUE",
         "findingKind": "PROFILE",
-        "findingSetHash": "sha256:1b9016318d42dd329009deff75b9aed5e378e6ebe298343c998669660f2c7fbd",
-        "independentFindingSetHash": "sha256:1b9016318d42dd329009deff75b9aed5e378e6ebe298343c998669660f2c7fbd",
+        "findingSetHash": "sha256:90a377f09c622d3fcb93567a8e272cc1189c52ab4c755c7ceff20756ed35e98a",
+        "independentFindingSetHash": "sha256:90a377f09c622d3fcb93567a8e272cc1189c52ab4c755c7ceff20756ed35e98a",
         "rawPayloadPassThrough": false
       },
       {
@@ -195,8 +195,8 @@
         "operationId": "geo-raster.find-by-range",
         "pattern": "FIND_VALUE_RANGE",
         "findingKind": "SPATIAL_FEATURE_COLLECTION",
-        "findingSetHash": "sha256:497727cabf12362602d1e8b573aa533f60421cbfc40268cd16fc866d34310c19",
-        "independentFindingSetHash": "sha256:497727cabf12362602d1e8b573aa533f60421cbfc40268cd16fc866d34310c19",
+        "findingSetHash": "sha256:0448489c0717c3f4680c62cd0863bd51d8cc1dc91616668cf0054aa2dfc737fc",
+        "independentFindingSetHash": "sha256:0448489c0717c3f4680c62cd0863bd51d8cc1dc91616668cf0054aa2dfc737fc",
         "rawPayloadPassThrough": false
       },
       {
@@ -205,8 +205,8 @@
         "operationId": "geo-product.get",
         "pattern": "CATALOG",
         "findingKind": "CATALOG",
-        "findingSetHash": "sha256:b4b6893e30cf94ed3695a18201e259783ba35b276d79ab2d0583e64f437b5151",
-        "independentFindingSetHash": "sha256:b4b6893e30cf94ed3695a18201e259783ba35b276d79ab2d0583e64f437b5151",
+        "findingSetHash": "sha256:60d1fb8fbc953e4fd493885c91bf90d5243e1413e1bdd47841960a39ce13adab",
+        "independentFindingSetHash": "sha256:60d1fb8fbc953e4fd493885c91bf90d5243e1413e1bdd47841960a39ce13adab",
         "rawPayloadPassThrough": false
       }
     ]
@@ -214,11 +214,9 @@
   "statusSemantics": {
     "noData": {
       "status": "PASS",
-      "findingCount": 0,
-      "gapKinds": [
-        "DATA_GAP"
-      ],
-      "findingSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      "owner": "N03_SOURCE_GAP_NORMALIZER",
+      "decoderErrorCode": "N03_STATUS_NORMALIZATION_REQUIRED",
+      "findingCount": 0
     },
     "legalCompletedNoDataPayload": {
       "status": "PASS",
@@ -259,36 +257,36 @@
       "gapKinds": [
         "TRUNCATED"
       ],
-      "findingSetHash": "sha256:653914a88ec5d64df77bd5f45327368c02427921b1a1cb43e05c76e22d23564d"
+      "findingSetHash": "sha256:025068dd43e286ee91a803612c3196da37d2ceb0200137c340b5dc1df9e8d500"
     }
   },
   "deterministicExecution": {
     "repeatedRunCount": 3,
     "byteIdentical": true,
-    "outputHash": "sha256:1e3dd87ee222046313ec6a78ff0080d7ce48f9ae65d3bc23d8fd4fea14341654",
-    "findingSetHash": "sha256:0efc7a56907abfc1cb3503026a0fe401cbd0ced6f353008f4be7994554c4be82",
-    "independentFindingSetHash": "sha256:0efc7a56907abfc1cb3503026a0fe401cbd0ced6f353008f4be7994554c4be82",
+    "outputHash": "sha256:543e59035b873e4b2d0bbdaf0c50a46a0c13f8389111f925c91997e666a8ee72",
+    "findingSetHash": "sha256:650663e6967dc3991e7b6c8e2e656346bd3ef12614d814f8c50735d94014027a",
+    "independentFindingSetHash": "sha256:650663e6967dc3991e7b6c8e2e656346bd3ef12614d814f8c50735d94014027a",
     "independentRecomputation": "PASS",
     "permutations": [
       {
         "caseId": "FEATURE_ORDER",
         "status": "PASS",
-        "outputHash": "sha256:7607b2cbf670812416088f8cbf44513afa694b4c7584e01fd2f07eaf1f2ec727"
+        "outputHash": "sha256:40510d2029390025b4d1f24058698f7139c39c27c7cb2af017d6d9f720e600fe"
       },
       {
         "caseId": "PROVENANCE_ORDER",
         "status": "PASS",
-        "outputHash": "sha256:ea61b4fba633e1bf895197578c52fbc93767386743219a9fb5d4aa22dc87ee35"
+        "outputHash": "sha256:037a85395322e322bc8a43346a5e337f46165b30f95df3e7821b934c37d7dde6"
       },
       {
         "caseId": "REQUEST_ID",
         "status": "PASS",
-        "outputHash": "sha256:ea61b4fba633e1bf895197578c52fbc93767386743219a9fb5d4aa22dc87ee35"
+        "outputHash": "sha256:037a85395322e322bc8a43346a5e337f46165b30f95df3e7821b934c37d7dde6"
       },
       {
         "caseId": "INPUT_ORDER",
         "status": "PASS",
-        "outputHash": "sha256:1e3dd87ee222046313ec6a78ff0080d7ce48f9ae65d3bc23d8fd4fea14341654"
+        "outputHash": "sha256:543e59035b873e4b2d0bbdaf0c50a46a0c13f8389111f925c91997e666a8ee72"
       }
     ]
   },

@@ -168,7 +168,6 @@ export function validateGowmFindingResultEnvelope(
   }
 
   if (!Array.isArray(envelope.receipts)) fail("INVALID_RECEIPT");
-  if (envelope.status !== "FAILED" && envelope.receipts.length === 0) fail("RECEIPT_REQUIRED");
   const computeSnapshotHash = canonicalSha256(computeSnapshot);
   const receiptIds = envelope.receipts.map(receiptId);
   assertUnique(receiptIds, "DUPLICATE_RECEIPT_ID");

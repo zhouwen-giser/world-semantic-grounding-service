@@ -18,7 +18,6 @@ import {
   validateGowmFindingResultEnvelope
 } from "@wsgs/gowm-execution-evidence";
 import {
-  TRUSTED_PROVENANCE_BINDING_MARKER,
   FindingDecoderRegistry,
   canonicalJson,
   canonicalSha256,
@@ -34,6 +33,11 @@ import {
   type Sha256Digest,
   type StandardDecoderSchemaBinding
 } from "../../packages/northbound-geospatial-findings/src/index.js";
+import {
+  createTrustedSourceContext,
+  normalizeSourceProducts,
+  type SourceGroundingIdentity
+} from "../../packages/northbound-geospatial-findings/src/source-normalizer.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -233,6 +237,30 @@ function rowByOperation(fixture: CoverageFixture, operationId: string): Coverage
   return row;
 }
 
+function withLockedCatalogMetadata(payload: unknown): unknown {
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) return payload;
+  const cloned = structuredClone(payload) as JsonObject;
+  const products = Array.isArray(cloned["products"]) ? cloned["products"] : [cloned];
+  for (const candidate of products) {
+    if (candidate === null || typeof candidate !== "object" || Array.isArray(candidate)) continue;
+    const product = candidate as JsonObject;
+    if (product["metadata"] !== undefined) continue;
+    const matches = gdpsV021FindingContractClosure.descriptorAuthority.registry.descriptors.filter(
+      ({ productType }) => productType === product["productType"]
+    );
+    assert(matches.length === 1, `CATALOG_PRODUCT_DESCRIPTOR_AMBIGUOUS_${String(product["productType"])}`);
+    const descriptor = matches[0]!;
+    product["metadata"] = {
+      gdpsDescriptor: {
+        descriptorId: descriptor.descriptorId,
+        descriptorHash: canonicalSha256(descriptor)
+      },
+      productProfile: descriptor.productProfile
+    };
+  }
+  return cloned;
+}
+
 function completeEnvelope(
   row: CoverageRow,
   payload: unknown,
@@ -257,7 +285,27 @@ function completeEnvelope(
       outputSchemaHash: operationLock.outputSchemaHash
     }
   };
-  const outputHash = canonicalSha256(payload);
+  const authoritativePayload = operationLock.findingBinding.applicability === "CATALOG"
+    ? withLockedCatalogMetadata(payload)
+    : payload;
+  const outputHash = canonicalSha256(authoritativePayload);
+  const dataScope = "scope-gdps-v021-baseline";
+  const payloadRecord = authoritativePayload !== null
+    && typeof authoritativePayload === "object"
+    && !Array.isArray(authoritativePayload)
+    ? authoritativePayload as JsonObject
+    : {};
+  const catalogSnapshot = operationLock.findingBinding.applicability === "CATALOG";
+  const productContentHash = typeof payloadRecord["contentHash"] === "string"
+    ? payloadRecord["contentHash"] as Sha256Digest
+    : undefined;
+  const productId = typeof payloadRecord["productId"] === "string"
+    ? payloadRecord["productId"]
+    : undefined;
+  const snapshotDigest = catalogSnapshot ? outputHash : productContentHash ?? outputHash;
+  const snapshotId = catalogSnapshot || productId === undefined
+    ? `catalog:${dataScope}`
+    : `${dataScope}:${productId}`;
   return {
     providerProtocolVersion: "1.0",
     requestId,
@@ -266,7 +314,23 @@ function completeEnvelope(
     output: {
       schemaUri: row.outputSchemaUri,
       schemaHash: row.outputSchemaHash,
-      value: payload
+      value: authoritativePayload
+    },
+    dataSnapshot: {
+      consistency: "CONSISTENT_AT_START",
+      capturedAt: "2026-08-30T00:00:00Z",
+      scopeDigest: canonicalSha256({ dataScopeKey: dataScope }),
+      resources: [{
+        referenceKey: {
+          namespace: "gdps",
+          kind: "DATASET",
+          id: snapshotId,
+          version: snapshotDigest
+        },
+        authority: gdpsV021FindingContractClosure.provider.providerId,
+        pinning: "PINNED",
+        digest: snapshotDigest
+      }]
     },
     computeSnapshot,
     receipts: [{
@@ -289,20 +353,9 @@ function completeEnvelope(
       changes: { repairApplied: false, typeChanged: false },
       warnings: []
     }],
-    evidenceReferences: [{
-      evidenceId: "evidence.n02.fixture",
-      authority: gdpsV021FindingContractClosure.provider.providerId,
-      evidenceType: "CURRENT_PROJECTION_SOURCE",
-      referenceKey: {
-        namespace: "gdps",
-        kind: "DATASET",
-        id: "scope-gdps-v021-baseline:gdps-baseline-product",
-        version: digest("6")
-      },
-      schemaUri: "urn:gdps:current-product:1.0",
-      schemaHash: digest("7"),
-      observedAt: "2026-08-30T00:00:00Z"
-    }],
+    // FINAL_B runtime may omit upstream evidenceReferences; WSGS derives its
+    // result-local provenance evidence from the validated snapshot and receipt.
+    evidenceReferences: [],
     warnings: [],
     consumption: { inputBytes: 128, outputBytes: 512, rows: 1 },
     execution: {
@@ -321,11 +374,24 @@ type DecoderInputOptions = {
   productProfile?: string;
   unit?: string;
   allowedClassCodes?: readonly string[];
-  evidenceItemIds?: readonly string[];
-  sourceProductIds?: readonly string[];
   subjectReferenceProductIds?: readonly string[];
   descriptorQueryProfile?: FindingDecoderPattern;
 };
+
+function trustedSourceContext() {
+  const identityBody = {
+    servicePrincipalId: "wsgs-runtime",
+    actorId: "sacs-service",
+    dataScopes: ["scope-gdps-v021-baseline"],
+    datasetScopes: ["wsgs-demo-main"],
+    permissions: ["wsgs.grounding.execute"]
+  };
+  const identity: SourceGroundingIdentity = {
+    ...identityBody,
+    authorizationContextHash: canonicalSha256(identityBody)
+  };
+  return createTrustedSourceContext(identity, "scope-gdps-v021-baseline");
+}
 
 function descriptorIdFor(
   operation: GdpsFindingContractClosureOperation,
@@ -400,15 +466,15 @@ function decoderInput(
   );
   const { authority } = operationAuthorityFor(row, pattern, payload, options);
   const validatedResult = validateGowmFindingResultEnvelope(authority, envelope);
+  const sourceBinding = normalizeSourceProducts({
+    trustedContext: trustedSourceContext(),
+    validatedResults: [validatedResult]
+  });
   return createFindingDecoderInput({
     validatedResult,
-    trustedProvenance: {
-      marker: TRUSTED_PROVENANCE_BINDING_MARKER,
-      evidenceItemIds: options.evidenceItemIds ?? ["evidence.n02.a", "evidence.n02.b"],
-      sourceProductIds: options.sourceProductIds ?? ["source.n02.a", "source.n02.b"],
-      subjectReferenceProductIds: options.subjectReferenceProductIds
-        ?? ["reference.n02.a", "reference.n02.b"]
-    }
+    sourceBinding,
+    subjectReferenceProductIds: options.subjectReferenceProductIds
+      ?? ["reference.n02.a", "reference.n02.b"]
   });
 }
 
@@ -474,6 +540,7 @@ function normalizedTextInputHashes(): Record<string, Sha256Digest> {
     "packages/northbound-geospatial-findings/src/registry.test.ts",
     "packages/northbound-geospatial-findings/src/types.ts",
     "packages/northbound-geospatial-findings/src/validation.ts",
+    "packages/northbound-geospatial-findings/src/source-normalizer.ts",
     "packages/gdps-descriptor-consumer/src/decoder-authority.ts",
     "packages/gdps-descriptor-consumer/src/index.ts",
     "packages/gowm-contract-intake/src/gdps-v021-finding-contract.generated.ts",
@@ -716,9 +783,15 @@ function buildReports(): {
     },
     { status: "NO_DATA", unit: "metre" }
   );
-  const noData = registry.decode(noDataInput);
-  assert(noData.status === "NO_DATA" && noData.findings.length === 0, "NO_DATA_NOT_EMPTY");
-  assert(noData.gaps[0]?.gapKind === "DATA_GAP", "NO_DATA_GAP_MISSING");
+  let noDataOwnershipCode = "NO_ERROR";
+  try {
+    registry.decode(noDataInput);
+  } catch (error) {
+    noDataOwnershipCode = typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code: unknown }).code)
+      : String(error);
+  }
+  assert(noDataOwnershipCode === "N03_STATUS_NORMALIZATION_REQUIRED", "NO_DATA_NOT_DELEGATED_TO_N03");
 
   const legalNoDataInput = decoderInput(
     rowByOperation(coverageFixture, "elevation.sample"),
@@ -830,8 +903,6 @@ function buildReports(): {
     vectorCases[0]!.payload,
     {
       unit: "metre",
-      evidenceItemIds: ["evidence.n02.b", "evidence.n02.a"],
-      sourceProductIds: ["source.n02.b", "source.n02.a"],
       subjectReferenceProductIds: ["reference.n02.b", "reference.n02.a"]
     }
   );
@@ -907,9 +978,9 @@ function buildReports(): {
     statusSemantics: {
       noData: {
         status: "PASS",
-        findingCount: noData.findings.length,
-        gapKinds: noData.gaps.map(({ gapKind }) => gapKind),
-        findingSetHash: noData.findingSetHash
+        owner: "N03_SOURCE_GAP_NORMALIZER",
+        decoderErrorCode: noDataOwnershipCode,
+        findingCount: 0
       },
       legalCompletedNoDataPayload: {
         status: "PASS",
@@ -1072,16 +1143,15 @@ function buildReports(): {
     () => new FindingDecoderRegistry([invalidOutputRegistration]).decode(sampleInput)
   ));
 
-  const badProvenance = createFindingDecoderInput({
-    validatedResult: validateGowmFindingResultEnvelope(sampleOperationAuthority, sampleEnvelope),
-    trustedProvenance: {
-      marker: "UNTRUSTED" as never,
-      evidenceItemIds: ["evidence.n02.a"],
-      sourceProductIds: ["source.n02.a"],
+  negatives.push(expectedError(
+    "NEG_PROVENANCE_BINDING",
+    "SOURCE_PROVENANCE_BINDING_FORGED",
+    () => createFindingDecoderInput({
+      validatedResult: validateGowmFindingResultEnvelope(sampleOperationAuthority, sampleEnvelope),
+      sourceBinding: {} as never,
       subjectReferenceProductIds: ["reference.n02.a"]
-    }
-  });
-  negatives.push(expectedError("NEG_PROVENANCE_MARKER", "UNTRUSTED_PROVENANCE_BINDING", () => sampleRegistry.decode(badProvenance)));
+    })
+  ));
 
   const safePayloadInput = { ...cloneInput(), safePayload: { secret: "redacted" } } as FindingDecoderInput;
   negatives.push(expectedError("NEG_SAFE_PAYLOAD", "SAFE_PAYLOAD_INPUT_FORBIDDEN", () => sampleRegistry.decode(safePayloadInput)));
@@ -1216,7 +1286,7 @@ function buildReports(): {
 
   const badBinding = structuredClone(shapes.payloads["pointClassificationGeneric"]) as JsonObject;
   badBinding["productType"] = "OTHER_PRODUCT";
-  negatives.push(expectedError("NEG_GENERIC_BINDING", "GENERIC_DESCRIPTOR_BINDING_MISMATCH", () => registry.decode(decoderInput(
+  negatives.push(expectedError("NEG_GENERIC_BINDING", "SOURCE_PRODUCT_TYPE_MISMATCH", () => registry.decode(decoderInput(
     rowByOperation(coverageFixture, "geo-raster.sample"),
     "SAMPLE_CLASS",
     badBinding,
@@ -1331,7 +1401,7 @@ function buildReports(): {
     findingKinds: { expected: 6, passed: 6 },
     realShapeVectors: { expected: 10, passed: 10, fixtureClass: "TEST_VECTOR", findingKinds: 6 },
     statusCases: {
-      noData: "PASS",
+      noDataDelegatedToN03: "PASS",
       legalCompletedNoDataPayload: "PASS",
       emptyCollections: "PASS",
       partialEmptyCollection: "PASS",

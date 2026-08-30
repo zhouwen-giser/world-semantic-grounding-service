@@ -236,32 +236,18 @@ export class FindingDecoderRegistry {
 
   decode(input: FindingDecoderInput): FindingDecodeResult {
     validateDecoderInput(input);
-    if (input.envelope.status === "NO_DATA") {
-      return emptyResult(
-        input,
-        "NO_DATA",
-        typedGap(input, "DATA_GAP", "INFO", "WSGS_UPSTREAM_NO_DATA")
-      );
-    }
-    if (input.envelope.status === "INDETERMINATE") {
-      return emptyResult(
-        input,
-        "INDETERMINATE",
-        typedGap(input, "DATA_GAP", "WARNING", "WSGS_UPSTREAM_INDETERMINATE")
-      );
-    }
-    if (input.envelope.status === "FAILED") {
-      return emptyResult(
-        input,
-        "INDETERMINATE",
-        typedGap(input, "UPSTREAM_FAILURE", "BLOCKING", "WSGS_UPSTREAM_FAILURE")
-      );
+    if (input.envelope.status !== "COMPLETED" && input.envelope.status !== "PARTIAL") {
+      // Status semantics are owned by the N03 normalizer, which is bound to
+      // the opaque source/evidence token. Keeping that decision out of N02
+      // prevents INDETERMINATE or provider failure from being downgraded to a
+      // data-absence claim by a decoder-only caller.
+      throw new FindingDecoderError("N03_STATUS_NORMALIZATION_REQUIRED");
     }
     const selected = this.select(input);
     if (selected === undefined) {
       return emptyResult(
         input,
-        input.envelope.status,
+        "INDETERMINATE",
         typedGap(input, "UNSUPPORTED_FINDING_SCHEMA", "BLOCKING", "UNSUPPORTED_FINDING_SCHEMA")
       );
     }
