@@ -69,6 +69,10 @@ const paths = {
 } as const;
 
 const realRuntimeReportPath = "reports/sacs-geospatial-v1/N04-real-runtime.json";
+const excludedRuntimeEvidenceOutputs = [
+  "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+  "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+] as const;
 
 function sha256(value: string | Buffer): Sha256Digest {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
@@ -320,6 +324,7 @@ exactKeys(sourceBinding, [
   "evidenceSourceCommit",
   "trackedSourceClean",
   "untrackedSourceClean",
+  "excludedRuntimeEvidenceOutputs",
   "verification"
 ], "N04_SOURCE_BINDING_KEYS_INVALID");
 exact(sourceBinding["status"], "PASS", "N04_SOURCE_BINDING_NOT_PASS");
@@ -328,7 +333,17 @@ exact(sourceBinding["sourceTree"], qualifiedRuntimeSourceTree, "N04_SOURCE_BINDI
 exact(sourceBinding["evidenceSourceCommit"], qualifiedRuntimeSourceSha, "N04_SOURCE_BINDING_EVIDENCE_SHA_MISMATCH");
 exact(sourceBinding["trackedSourceClean"], true, "N04_SOURCE_BINDING_TRACKED_DIRTY");
 exact(sourceBinding["untrackedSourceClean"], true, "N04_SOURCE_BINDING_UNTRACKED_DIRTY");
-exact(sourceBinding["verification"], "GIT_HEAD_AND_FULL_WORKTREE_STATUS", "N04_SOURCE_BINDING_VERIFICATION_INVALID");
+const sourceBindingExclusions = sourceBinding["excludedRuntimeEvidenceOutputs"];
+if (!Array.isArray(sourceBindingExclusions) ||
+    sourceBindingExclusions.length !== excludedRuntimeEvidenceOutputs.length ||
+    sourceBindingExclusions.some((path, index) => path !== excludedRuntimeEvidenceOutputs[index])) {
+  throw new Error("N04_SOURCE_BINDING_EVIDENCE_OUTPUT_EXCLUSIONS_INVALID");
+}
+exact(
+  sourceBinding["verification"],
+  "GIT_HEAD_AND_WORKTREE_STATUS_EXCLUDING_EXACT_RUNTIME_EVIDENCE_OUTPUTS",
+  "N04_SOURCE_BINDING_VERIFICATION_INVALID"
+);
 
 const upstreamRuntime = record(realRuntimeReport["upstreamRuntime"], "N04_UPSTREAM_RUNTIME_INVALID");
 exactKeys(upstreamRuntime, ["sourceCommit", "runtimeBindingHash", "gatewayContractVersion"], "N04_UPSTREAM_RUNTIME_KEYS_INVALID");

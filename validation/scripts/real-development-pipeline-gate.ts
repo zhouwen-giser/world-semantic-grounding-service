@@ -144,8 +144,22 @@ interface VerifiedWsgsSourceBinding {
   evidenceSourceCommit: string;
   trackedSourceClean: true;
   untrackedSourceClean: true;
-  verification: "GIT_HEAD_AND_FULL_WORKTREE_STATUS";
+  excludedRuntimeEvidenceOutputs: readonly [
+    "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+  ];
+  verification: "GIT_HEAD_AND_WORKTREE_STATUS_EXCLUDING_EXACT_RUNTIME_EVIDENCE_OUTPUTS";
 }
+
+const excludedRuntimeEvidenceOutputs = [
+  "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+  "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+] as const;
+
+const verifiedSourcePathspecs = [
+  ".",
+  ...excludedRuntimeEvidenceOutputs.map((path) => `:(top,exclude,literal)${path}`)
+];
 
 function verifyWsgsSourceBinding(): VerifiedWsgsSourceBinding {
   const packageDocument = object(
@@ -167,7 +181,7 @@ function verifyWsgsSourceBinding(): VerifiedWsgsSourceBinding {
   }
   if (head !== sourceCommit || !/^[0-9a-f]{40}$/u.test(sourceTree)) throw new Error("WSGS_SOURCE_HEAD_MISMATCH");
   try {
-    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", "."], {
+    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", ...verifiedSourcePathspecs], {
       stdio: "ignore"
     });
   } catch {
@@ -175,7 +189,7 @@ function verifyWsgsSourceBinding(): VerifiedWsgsSourceBinding {
   }
   const worktreeStatus = execFileSync(
     "git",
-    ["-C", repositoryRoot, "status", "--porcelain=v1", "--untracked-files=all"],
+    ["-C", repositoryRoot, "status", "--porcelain=v1", "--untracked-files=all", "--", ...verifiedSourcePathspecs],
     { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
   ).trim();
   if (worktreeStatus) throw new Error("WSGS_SOURCE_WORKTREE_DIRTY");
@@ -186,7 +200,8 @@ function verifyWsgsSourceBinding(): VerifiedWsgsSourceBinding {
     evidenceSourceCommit: sourceCommit,
     trackedSourceClean: true,
     untrackedSourceClean: true,
-    verification: "GIT_HEAD_AND_FULL_WORKTREE_STATUS"
+    excludedRuntimeEvidenceOutputs,
+    verification: "GIT_HEAD_AND_WORKTREE_STATUS_EXCLUDING_EXACT_RUNTIME_EVIDENCE_OUTPUTS"
   };
 }
 
