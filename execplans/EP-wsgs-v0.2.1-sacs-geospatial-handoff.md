@@ -1,6 +1,6 @@
 # WSGS v0.2.1 Authoritative SACS Geospatial Handoff
 
-Status: N02 complete; N03 source/unit qualification in progress; G1 NOT_RUN; productionQualified=false.
+Status: N03 complete; N04 is next; G1 NOT_RUN; productionQualified=false.
 
 ## Purpose and non-goals
 
@@ -76,7 +76,7 @@ N01 will align mutable surfaces to `0.2.1`: `VERSION`, root/workspace package ma
 | N00 | current online sources | reconcile sources, plan, matrix, consumer baseline | `WSGS_V021_BASELINE_LOCKED` | COMPLETE |
 | N01 | N00 pushed | additive 1.1 and geospatial profile contracts | `WSGS_V021_GEOSPATIAL_CONTRACT_READY` | COMPLETE |
 | N02 | N01 pushed | descriptor/profile-driven six-kind decoder registry | `WSGS_V021_FINDING_DECODER_READY` | COMPLETE |
-| N03 | N02 pushed | SourceProduct, typed gaps, provenance | `WSGS_V021_GEOSPATIAL_PROVENANCE_READY` | IN_PROGRESS |
+| N03 | N02 pushed | SourceProduct, typed gaps, provenance | `WSGS_V021_GEOSPATIAL_PROVENANCE_READY` | COMPLETE |
 | N04 | N03 pushed | API, capabilities, result-extension runtime | `WSGS_V021_RESULT_EXTENSION_READY` | NOT_RUN |
 | N05 | N04 pushed | structured selection and opaque token | `WSGS_V021_STRUCTURED_SELECTION_READY` | NOT_RUN |
 | N06 | N05 pushed | dedicated source currentness operation | `WSGS_V021_CURRENTNESS_READY` | NOT_RUN |
@@ -94,7 +94,7 @@ Accepted evidence classes are SOURCE, CONTRACT, UNIT, POSTGRES_INTEGRATION, REAL
 
 N02 source/contract/unit evidence is bound by `reports/sacs-geospatial-v1/decoder-report.json` to the raw hashes of `N02-decoder-coverage.json`, `N02-determinism.json`, and `N02-negative-cases.json`. It records 30/30 classified capability locks (29 supported, one N06-owned non-finding capability), ten authoritative TEST_VECTOR shape executions across six finding kinds, three byte-identical runs, four ordering/identity permutations, independent finding-set hash recomputation, and 32 fail-closed/static-boundary cases. Runtime, SACS consumer E2E, G1, and production qualification remain NOT_RUN/false.
 
-N03 source/unit evidence is bound by `reports/sacs-geospatial-v1/provenance-report.json` to the complete provenance-normalization input set and a sanitized focused-test execution attestation. The four focused suites pass 116/116 and cover SourceProduct, typed gaps, result-local foreign keys, scope negatives, and receipt/evidence determinism. The real signed Gateway upstream gate remains NOT_RUN, so V21-G06 remains NOT_RUN and the N03 completion marker is not emitted yet.
+N03 source/unit evidence is bound by `reports/sacs-geospatial-v1/provenance-report.json` to the complete provenance-normalization input set and a sanitized focused-test execution attestation. The four focused suites pass 116/116 and cover SourceProduct, typed gaps, result-local foreign keys, scope negatives, and receipt/evidence determinism. The real signed Gateway-only `geo-product.get@1.0` gate qualified exact source `9d22e90366ce2233d6ff1d1742a8888c946b64f4`: HTTP 200, terminal COMPLETED, one SourceProduct, one Finding, one EvidenceItem, zero gaps, and zero direct Provider/database calls. V21-G06 and the N03 marker are PASS. N04 must bind `subjectReferenceProductIds` from the opaque, result-local ReferenceProduct set before exposing the extension; duplicate semantic envelope aggregation remains fail-closed until a stable node/input identity or deterministic receipt merge is defined.
 
 ## Real SACS v0.4 gate
 
