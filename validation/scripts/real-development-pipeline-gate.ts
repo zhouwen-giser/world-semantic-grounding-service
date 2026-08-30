@@ -544,7 +544,7 @@ async function observeExternalWsgsProcessBinding(
     result_count: string;
   }>(`SELECT current_database() AS database_name,
              current_user AS database_user,
-             inet_server_addr()::text AS server_address,
+             host(inet_server_addr()) AS server_address,
              inet_server_port() AS server_port,
              current_setting('server_version') AS server_version,
              (SELECT count(*)::text FROM wsgs.grounding_request) AS request_count,
