@@ -17,6 +17,7 @@ import {
   type PipelineStageContext,
   type PipelineStageHandler
 } from "@wsgs/grounding-pipeline";
+import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -47,14 +48,13 @@ const geospatialResult = JSON.parse(readFileSync(new URL(
   import.meta.url
 ), "utf8")) as Record<string, unknown>;
 
-const identity = {
+const identity = createGroundingIdentity({
   servicePrincipalId: "sacs-service",
   actorId: "operator-1",
   dataScopes: ["region-a"],
   datasetScopes: ["roads", "vehicles"],
-  permissions: ["grounding.read"],
-  authorizationContextHash: `sha256:${"a".repeat(64)}`
-};
+  permissions: ["grounding.read"]
+});
 
 function request(suffix: string, text = "secret-route-vehicle-2"): Record<string, unknown> {
   return {
@@ -291,6 +291,107 @@ integration("W04 PostgreSQL production adapters", () => {
       idempotency_result_count: "0",
       job_status: "RUNNING"
     });
+  });
+
+  it("restores the full authenticated scope set and keeps reads and cancellation authorization-hash isolated", async () => {
+    const multiScopeIdentity = createGroundingIdentity({
+      servicePrincipalId: "sacs-service",
+      actorId: "operator-multi-scope",
+      dataScopes: ["region-a", "region-b"],
+      datasetScopes: ["roads", "vehicles"],
+      permissions: ["grounding.read"]
+    });
+    const scopedBackend = new ProductionGroundingBackend({
+      store: backendStore,
+      sealer: codec,
+      readiness: () => backendStore.readiness(),
+      capabilities: async () => ({}),
+      captureAdmissionSnapshot: async () => admissionSnapshot,
+      selectDataScope: () => "region-b",
+      sourceRetentionMs: 60_000
+    });
+    const created = await scopedBackend.create(
+      multiScopeIdentity,
+      "idem-multi-scope",
+      request("multi-scope"),
+      true
+    );
+    const groundingId = (created.value as Record<string, unknown>)["groundingId"] as string;
+    const persisted = await pool.query<{ request_metadata: Record<string, unknown> }>(
+      "SELECT request_metadata FROM wsgs.grounding_request WHERE grounding_id = $1",
+      [groundingId]
+    );
+    expect(persisted.rows[0]?.request_metadata).toMatchObject({
+      dataScopes: ["region-a", "region-b"]
+    });
+
+    const claim = await new PostgresGroundingWorkerStore(pool, codec).claimNext("worker-multi-scope", 5_000);
+    expect(claim?.initialState["identity"]).toEqual({
+      ...multiScopeIdentity,
+      dataScope: "region-b"
+    });
+
+    const foreignContext = createGroundingIdentity({
+      servicePrincipalId: multiScopeIdentity.servicePrincipalId,
+      actorId: multiScopeIdentity.actorId,
+      dataScopes: ["region-b", "region-c"],
+      datasetScopes: [...multiScopeIdentity.datasetScopes],
+      permissions: [...multiScopeIdentity.permissions]
+    });
+    expect(await scopedBackend.get(foreignContext, groundingId)).toBeNull();
+    expect(await scopedBackend.cancel(foreignContext, groundingId)).toBeNull();
+    expect(await scopedBackend.get(multiScopeIdentity, groundingId)).toMatchObject({ status: "RUNNING" });
+  });
+
+  it("fails closed when persisted scopes exclude the selected scope or drift from the authorization hash", async () => {
+    const multiScopeIdentity = createGroundingIdentity({
+      servicePrincipalId: "sacs-service",
+      actorId: "operator-tampered-scope",
+      dataScopes: ["region-a", "region-b"],
+      datasetScopes: ["roads"],
+      permissions: ["grounding.read"]
+    });
+    const scopedBackend = new ProductionGroundingBackend({
+      store: backendStore,
+      sealer: codec,
+      readiness: () => backendStore.readiness(),
+      capabilities: async () => ({}),
+      captureAdmissionSnapshot: async () => admissionSnapshot,
+      selectDataScope: () => "region-b",
+      sourceRetentionMs: 60_000
+    });
+    const created = await scopedBackend.create(
+      multiScopeIdentity,
+      "idem-tampered-scope",
+      request("tampered-scope"),
+      true
+    );
+    const hashDrift = await scopedBackend.create(
+      multiScopeIdentity,
+      "idem-hash-drift",
+      request("hash-drift"),
+      true
+    );
+    const groundingId = (created.value as Record<string, unknown>)["groundingId"] as string;
+    const hashDriftGroundingId = (hashDrift.value as Record<string, unknown>)["groundingId"] as string;
+    await pool.query(
+      `UPDATE wsgs.grounding_request
+          SET request_metadata = jsonb_set(request_metadata, '{dataScopes}', '["region-a"]'::jsonb)
+        WHERE grounding_id = $1`,
+      [groundingId]
+    );
+    await expect(
+      new PostgresGroundingWorkerStore(pool, codec).claimNext("worker-tampered-scope", 5_000)
+    ).rejects.toThrow("selected data scope is not authorized");
+    await pool.query(
+      `UPDATE wsgs.grounding_request
+          SET request_metadata = jsonb_set(request_metadata, '{dataScopes}', '["region-b"]'::jsonb)
+        WHERE grounding_id = $1`,
+      [hashDriftGroundingId]
+    );
+    await expect(
+      new PostgresGroundingWorkerStore(pool, codec).claimNext("worker-hash-drift", 5_000)
+    ).rejects.toThrow("authorization context hash is inconsistent");
   });
 
   it("persists and replays the full 1.1 extension only under its immutable selection", async () => {

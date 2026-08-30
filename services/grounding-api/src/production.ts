@@ -85,6 +85,24 @@ function readinessProbeFromEnvironment(): ProductionReadinessProbe {
   };
 }
 
+const authorityIdentifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/u;
+
+/**
+ * Reads the server-owned primary data scope used when an authenticated
+ * principal carries more than one authorized scope. The request body never
+ * participates in this selection.
+ */
+export function primaryDataScopeFromEnvironment(
+  environment: Readonly<NodeJS.ProcessEnv> = process.env
+): string | undefined {
+  const value = environment["WSGS_PRIMARY_DATA_SCOPE"];
+  if (value === undefined) return undefined;
+  if (!authorityIdentifierPattern.test(value)) {
+    throw new Error("WSGS_PRIMARY_DATA_SCOPE must be one exact authority identifier");
+  }
+  return value;
+}
+
 /**
  * Builds the exact public capability projection selected at the authenticated
  * API boundary. Keeping this pure makes both the legacy freeze and the staged
@@ -192,6 +210,7 @@ export function createProductionBackendFromEnvironment(
     pollIntervalMs: integerEnvironment("WSGS_SYNC_POLL_INTERVAL_MS", 50, 1, 5_000)
   });
   const requiredReadiness = options.readinessProbe ?? readinessProbeFromEnvironment();
+  const primaryDataScope = primaryDataScopeFromEnvironment();
   const readiness = async (): Promise<{ ready: boolean; reasons: string[] }> => {
     const [database, capabilities] = await Promise.all([
       store.readiness(),
@@ -207,6 +226,7 @@ export function createProductionBackendFromEnvironment(
     captureAdmissionSnapshot: (context) => requiredReadiness.captureAdmissionSnapshot(context),
     capabilities: async (_identity, contractSelection) =>
       groundingCapabilitiesForSelection(contractSelection, await readiness()),
+    ...(primaryDataScope === undefined ? {} : { selectDataScope: () => primaryDataScope }),
     sourceRetentionMs: integerEnvironment("WSGS_SOURCE_RETENTION_MS", 3_600_000, 1_000, 604_800_000)
   });
   return { backend, close: () => pool.end() };

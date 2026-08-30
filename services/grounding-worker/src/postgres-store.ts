@@ -9,6 +9,7 @@ import {
   type GroundingContractSelection,
   type PipelineStage
 } from "@wsgs/grounding-pipeline";
+import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import type { Notification, Pool, PoolClient } from "pg";
 
 import type { GroundingWorker } from "./worker.js";
@@ -141,6 +142,51 @@ function storedContractSelection(metadata: Record<string, unknown>): GroundingCo
   }
 }
 
+function storedAuthorityList(
+  value: unknown,
+  label: string,
+  allowEmpty: boolean
+): string[] {
+  if (!Array.isArray(value) || (!allowEmpty && value.length === 0) ||
+    value.some((entry) => typeof entry !== "string" || entry.length === 0) ||
+    new Set(value).size !== value.length) {
+    throw new PostgresWorkerStoreError(`Stored trusted identity ${label} are invalid`);
+  }
+  return [...value] as string[];
+}
+
+function restoredIdentity(row: ClaimRow, metadata: Record<string, unknown>): Readonly<Record<string, unknown>> {
+  // Pre-v0.2.1 rows did not persist the complete list. Their one selected
+  // scope remains recoverable without weakening new multi-scope rows.
+  const dataScopes = metadata["dataScopes"] === undefined
+    ? [row.data_scope]
+    : storedAuthorityList(metadata["dataScopes"], "data scopes", false);
+  const datasetScopes = storedAuthorityList(row.dataset_scopes, "dataset scopes", true);
+  const permissions = storedAuthorityList(metadata["permissions"], "permissions", false);
+  if (!dataScopes.includes(row.data_scope)) {
+    throw new PostgresWorkerStoreError("Stored selected data scope is not authorized by the trusted identity");
+  }
+  let restored;
+  try {
+    restored = createGroundingIdentity({
+      servicePrincipalId: row.principal_id,
+      actorId: row.actor_id,
+      dataScopes,
+      datasetScopes,
+      permissions
+    });
+  } catch {
+    throw new PostgresWorkerStoreError("Stored trusted identity authority is invalid");
+  }
+  if (restored.authorizationContextHash !== row.authorization_context_hash) {
+    throw new PostgresWorkerStoreError("Stored trusted identity authorization context hash is inconsistent");
+  }
+  return {
+    ...restored,
+    dataScope: row.data_scope,
+  };
+}
+
 async function persistResultProducts(
   client: PoolClient,
   groundingId: string,
@@ -266,17 +312,7 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
       !Array.isArray(claimed.row.request_metadata)
       ? claimed.row.request_metadata as Record<string, unknown>
       : {};
-    const datasetScopes = Array.isArray(claimed.row.dataset_scopes) &&
-      claimed.row.dataset_scopes.every((entry) => typeof entry === "string")
-      ? claimed.row.dataset_scopes as string[]
-      : [];
-    const permissions = Array.isArray(metadata["permissions"]) &&
-      metadata["permissions"].every((entry) => typeof entry === "string")
-      ? metadata["permissions"] as string[]
-      : [];
-    if (permissions.length === 0) {
-      throw new PostgresWorkerStoreError("Stored trusted identity permissions are missing");
-    }
+    const identity = restoredIdentity(claimed.row, metadata);
     const contractSelection = storedContractSelection(metadata);
     return {
       jobId: claimed.row.job_id,
@@ -291,15 +327,7 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
         request: jsonObject(plaintext),
         idempotencyKey: claimed.row.idempotency_key,
         contractSelection,
-        identity: {
-          servicePrincipalId: claimed.row.principal_id,
-          actorId: claimed.row.actor_id,
-          dataScopes: [claimed.row.data_scope],
-          dataScope: claimed.row.data_scope,
-          datasetScopes,
-          permissions,
-          authorizationContextHash: claimed.row.authorization_context_hash
-        }
+        identity
       },
       immutableLocks: claimed.immutableLocks
     };

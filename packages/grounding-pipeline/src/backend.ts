@@ -305,6 +305,7 @@ export class ProductionGroundingBackend {
         locale: source["locale"],
         messageId: source["messageId"],
         operation: requestedOperation,
+        dataScopes: [...identity.dataScopes],
         permissions: [...identity.permissions],
         contractSelection: negotiatedContract
       })

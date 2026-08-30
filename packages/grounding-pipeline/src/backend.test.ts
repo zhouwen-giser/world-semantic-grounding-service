@@ -71,7 +71,10 @@ class MemoryBackendStore implements ProductionGroundingStore {
   }
 }
 
-function backend(store = new MemoryBackendStore()) {
+function backend(
+  store = new MemoryBackendStore(),
+  selectDataScope?: (identity: ProductionGroundingIdentity, request: Record<string, unknown>) => string
+) {
   const seal = vi.fn(async (_plaintext: Uint8Array) => new Uint8Array([7, 8, 9]));
   const notify = vi.fn();
   let id = 0;
@@ -85,6 +88,7 @@ function backend(store = new MemoryBackendStore()) {
       readiness: async () => ({ ready: true, reasons: [] }),
       capabilities: async () => ({ service: "wsgs", executable: true }),
       captureAdmissionSnapshot: async () => admissionSnapshot,
+      selectDataScope,
       cancellationNotifier: { notify },
       now: () => Date.parse("2026-08-27T00:00:00Z"),
       newId: () => String(++id).padStart(8, "0")
@@ -182,6 +186,34 @@ describe("ProductionGroundingBackend", () => {
       selectDataScope: () => "region-c"
     });
     await expect(expanded.create(multiple, "idem-expand", request(), true)).rejects.toBeInstanceOf(ProductionBackendError);
+  });
+
+  it("persists every authenticated scope while selecting one server-owned primary scope", async () => {
+    const multiple = {
+      ...identity,
+      dataScopes: ["region-a", "region-b"],
+      authorizationContextHash: canonicalSha256({
+        servicePrincipalId: identity.servicePrincipalId,
+        actorId: identity.actorId,
+        dataScopes: ["region-a", "region-b"],
+        datasetScopes: identity.datasetScopes,
+        permissions: identity.permissions
+      })
+    };
+    const fixture = backend(new MemoryBackendStore(), () => "region-b");
+    await expect(fixture.value.create(multiple, "idem-primary-scope", request(), true)).resolves.toMatchObject({
+      kind: "JOB"
+    });
+    expect(fixture.store.submissions[0]).toMatchObject({
+      identity: {
+        dataScope: "region-b",
+        dataScopes: ["region-a", "region-b"],
+        authorizationContextHash: multiple.authorizationContextHash
+      },
+      requestMetadata: {
+        dataScopes: ["region-a", "region-b"]
+      }
+    });
   });
 
   it("propagates scoped cancellation to the live worker notifier", async () => {
