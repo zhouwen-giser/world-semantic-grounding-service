@@ -11,6 +11,19 @@ services:
       WSGS_STATIC_DATA_SCOPES: ${WSGS_STATIC_DATA_SCOPES:?Set WSGS_STATIC_DATA_SCOPES}
       WSGS_STATIC_DATASET_SCOPES: ${WSGS_STATIC_DATASET_SCOPES:?Set WSGS_STATIC_DATASET_SCOPES}
       WSGS_STATIC_PERMISSIONS: ${WSGS_STATIC_PERMISSIONS:-grounding.read,data:read,dataset:read}
+      GOWM_SOUTHBOUND_LOCK_FILE: ""
+      GOWM_SOUTHBOUND_LOCK_SHA256: ""
+    secrets:
+      - source: gowm_delegation_private_key
+        target: gowm-delegation-private-key.pem
+
+  grounding-worker:
+    environment:
+      GOWM_SOUTHBOUND_LOCK_FILE: ""
+      GOWM_SOUTHBOUND_LOCK_SHA256: ""
+    secrets:
+      - source: gowm_delegation_private_key
+        target: gowm-delegation-private-key.pem
 
 volumes:
   wsgs-postgres-data:
