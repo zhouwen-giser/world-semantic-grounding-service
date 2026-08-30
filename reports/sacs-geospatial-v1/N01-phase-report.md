@@ -81,6 +81,7 @@ Common deterministic input-set hash: `sha256:09bc79ea3eecfe734bb98908671ec99e22c
 | `npm run contracts:sacs-geospatial:check` (two independent checks) | PASS both times; `schemas=10 examples=19 negative=11 sacsBidirectional=14 legacyArtifacts=32` |
 | `npm run contracts:check` | PASS; GOWM alignment, legacy, internal, GDPS, N01, and generated-type gates all passed |
 | `npm run typecheck` | PASS |
+| `npx vitest run tests/workspace.test.ts` | PASS 1/1; software, additive contract, and legacy contract constants are pinned |
 | N01 schema registry focused tests | 3/3 PASS |
 | Direct SACS PR #17 fixture projection validation | 7/7 PASS |
 | Secret/path scan over N01 reports and release lock | PASS; zero forbidden value/path matches |
