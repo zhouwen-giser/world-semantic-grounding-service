@@ -847,7 +847,9 @@ async function main(): Promise<void> {
   const sampleNearbyInput = sampleNearbyCase === undefined
     ? undefined
     : object(sampleNearbyCase["inputTemplate"], "SAMPLE_NEARBY_INPUT_INVALID");
-  const nearbyRadiusM = sampleNearbyInput === undefined ? 1000 : sampleNearbyInput["radiusM"];
+  const nearbyRadiusM = alignmentFocused
+    ? 1_000
+    : sampleNearbyInput === undefined ? 1_000 : sampleNearbyInput["radiusM"];
   const nearbyObjectTypes = sampleNearbyInput === undefined ? ["AREA"] : sampleNearbyInput["objectTypes"];
   const nearbyLimit = sampleNearbyInput === undefined ? 20 : sampleNearbyInput["limit"];
   const nearbyCrs = sampleNearbyInput === undefined ? "EPSG:4326" : sampleNearbyInput["crs"];
