@@ -16,6 +16,7 @@
     { "path": "packages/gowm-execution-evidence" },
     { "path": "packages/prior-grounding" },
     { "path": "packages/evidence-normalizer" },
+    { "path": "packages/northbound-geospatial-findings" },
     { "path": "packages/runtime" },
     { "path": "packages/grounding-pipeline" },
     { "path": "services/grounding-api" },

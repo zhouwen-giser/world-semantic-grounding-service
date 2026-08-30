@@ -743,3 +743,5 @@ export function expectedGowmPackageIntegrityEvidence(): Readonly<PackageIntegrit
 
 export * from "./schema-registry.js";
 export * from "./operational-lock.js";
+export * from "./gdps-v021-finding-contract.generated.js";
+export * from "./gdps-schema-registry.js";

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gdps:current-product:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "productId",
+    "productType",
+    "dataScopeKey",
+    "name",
+    "contentHash",
+    "loadedAt",
+    "enabled",
+    "extent",
+    "storageKind"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "gdps-current-product/1.0"
+    },
+    "productId": {
+      "type": "string"
+    },
+    "productType": {
+      "enum": [
+        "ELEVATION_DTM",
+        "ELEVATION_DSM",
+        "LAND_COVER",
+        "TERRAIN_FORM",
+        "SURFACE_WATER",
+        "WETLAND",
+        "SURFACE_MATERIAL",
+        "BUILDING",
+        "OBSTACLE",
+        "UGV_TRAVERSABILITY",
+        "VEGETATION_STRUCTURE",
+        "DRAINAGE_NETWORK",
+        "FLOOD_RISK",
+        "ROBOT_DOG_TRAVERSABILITY",
+        "GROUND_BEARING_CAPACITY",
+        "UAV_RESTRICTION",
+        "LANDING_ZONE_SUITABILITY",
+        "VISIBILITY_COVERAGE",
+        "OBSERVATION_SITE_SUITABILITY",
+        "COMMUNICATION_COVERAGE",
+        "ASSEMBLY_AREA_SUITABILITY",
+        "SLOPE",
+        "ASPECT",
+        "TERRAIN_ROUGHNESS",
+        "SOIL_TYPE",
+        "SOIL_MOISTURE_CLASS",
+        "GROUND_STABILITY",
+        "ROAD_SOURCE",
+        "BRIDGE",
+        "TUNNEL",
+        "FORD",
+        "CULVERT",
+        "BUILDING_HEIGHT",
+        "OBSTACLE_HEIGHT"
+      ]
+    },
+    "dataScopeKey": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "loadedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "dataTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "extent": {
+      "type": "object"
+    },
+    "storageKind": {
+      "enum": [
+        "RASTER_FILE",
+        "POSTGIS_VECTOR"
+      ]
+    },
+    "crs": {
+      "type": "string"
+    },
+    "verticalDatum": {
+      "type": "string"
+    },
+    "resolution": {
+      "type": "object"
+    },
+    "vocabulary": {
+      "type": "object"
+    },
+    "quality": {
+      "type": "object"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

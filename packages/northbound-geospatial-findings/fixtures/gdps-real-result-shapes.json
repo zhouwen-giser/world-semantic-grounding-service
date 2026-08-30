@@ -1,0 +1,251 @@
+{
+  "fixtureClass": "TEST_VECTOR",
+  "sourceAuthority": {
+    "repository": "zhouwen-giser/geospatial-data-product-service",
+    "implementationSourceSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
+    "deliveryEvidenceSha": "712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6",
+    "schemas": [
+      "contracts/raster-sample-result.schema.json",
+      "contracts/elevation-profile-result.schema.json",
+      "contracts/patch-query-result.schema.json",
+      "contracts/product-search-result.schema.json",
+      "contracts/current-product.schema.json"
+    ]
+  },
+  "payloads": {
+    "pointMeasurement": {
+      "schemaVersion": "gdps-raster-sample-result/1.0",
+      "productId": "gdps-baseline-dtm",
+      "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "point": { "type": "Point", "coordinates": [116.391, 39.907] },
+      "value": 53.25,
+      "confidence": 0.98,
+      "noData": false
+    },
+    "pointMeasurementGenericService": {
+      "schemaVersion": "gdps-geo-raster-sample-result/1.0",
+      "productId": "gdps-baseline-dtm",
+      "productType": "ELEVATION_DTM",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "descriptorId": "ELEVATION_DTM/DEFAULT",
+      "descriptorHash": "sha256:7e033d18b36916c2e9db8951b3211769dda96244bbfc4d43fc05854f771b93db",
+      "result": {
+        "schemaVersion": "gdps-raster-sample-result/1.0",
+        "productId": "gdps-baseline-dtm",
+        "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "point": { "type": "Point", "coordinates": [116.391, 39.907] },
+        "value": 53.25,
+        "confidence": 0.98,
+        "noData": false,
+        "unit": "metre"
+      }
+    },
+    "pointClassificationGeneric": {
+      "schemaVersion": "gdps-geo-raster-sample-result/1.0",
+      "productId": "gdps-baseline-ugv-traversability",
+      "productType": "UGV_TRAVERSABILITY",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "descriptorId": "UGV_TRAVERSABILITY/DEFAULT",
+      "descriptorHash": "sha256:b3395f17c44c4bccca5199e350e3f73be70c1436a40271f8c99c686e9fb182cf",
+      "result": {
+        "schemaVersion": "gdps-raster-sample-result/1.0",
+        "productId": "gdps-baseline-ugv-traversability",
+        "contentHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "point": { "type": "Point", "coordinates": [116.392, 39.908] },
+        "value": 2,
+        "classCode": "CONDITIONALLY_PASSABLE",
+        "noData": false
+      }
+    },
+    "spatialFeatures": {
+      "schemaVersion": "gdps-feature-collection-result/1.0",
+      "productId": "gdps-baseline-terrain",
+      "contentHash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "id": "high-ground-b",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[116.4, 39.9], [116.41, 39.9], [116.41, 39.91], [116.4, 39.9]]]
+          },
+          "properties": {
+            "classCode": "HIGH_GROUND",
+            "areaSquareMetres": 142.5,
+            "categoryCode": "TERRAIN"
+          }
+        },
+        {
+          "type": "Feature",
+          "id": "high-ground-a",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[116.38, 39.9], [116.39, 39.9], [116.39, 39.91], [116.38, 39.9]]]
+          },
+          "properties": {
+            "classCode": "HIGH_GROUND",
+            "areaSquareMetres": 125,
+            "categoryCode": "TERRAIN"
+          }
+        }
+      ],
+      "truncated": true
+    },
+    "profile": {
+      "schemaVersion": "gdps-elevation-profile/1.0",
+      "productId": "gdps-baseline-dtm",
+      "contentHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "lengthMetres": 100,
+      "samples": [
+        {
+          "distanceMetres": 0,
+          "point": { "type": "Point", "coordinates": [116.38, 39.9] },
+          "value": 48.2,
+          "noData": false
+        },
+        {
+          "distanceMetres": 100,
+          "point": { "type": "Point", "coordinates": [116.39, 39.91] },
+          "value": 55.7,
+          "noData": false
+        }
+      ]
+    },
+    "profileGenericService": {
+      "schemaVersion": "gdps-geo-raster-profile-result/1.0",
+      "productId": "gdps-baseline-dtm",
+      "productType": "ELEVATION_DTM",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "descriptorId": "ELEVATION_DTM/DEFAULT",
+      "descriptorHash": "sha256:7e033d18b36916c2e9db8951b3211769dda96244bbfc4d43fc05854f771b93db",
+      "result": {
+        "schemaVersion": "gdps-elevation-profile/1.0",
+        "productId": "gdps-baseline-dtm",
+        "contentHash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "lengthMetres": 100,
+        "samples": [
+          {
+            "distanceMetres": 0,
+            "point": { "type": "Point", "coordinates": [116.38, 39.9] },
+            "value": 48.2,
+            "noData": false
+          },
+          {
+            "distanceMetres": 100,
+            "point": { "type": "Point", "coordinates": [116.39, 39.91] },
+            "value": 55.7,
+            "noData": false
+          }
+        ],
+        "unit": "metre"
+      }
+    },
+    "valueRangeGenericService": {
+      "schemaVersion": "gdps-geo-raster-find-by-range-result/1.0",
+      "productId": "gdps-baseline-slope",
+      "productType": "SLOPE",
+      "productProfile": "DEGREE",
+      "contentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "descriptorId": "SLOPE/DEGREE",
+      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
+      "result": {
+        "schemaVersion": "gdps-feature-collection-result/1.0",
+        "productId": "gdps-baseline-slope",
+        "contentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "id": "slope-range-a",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[[116.38, 39.9], [116.39, 39.9], [116.39, 39.91], [116.38, 39.9]]]
+            },
+            "properties": {
+              "areaSquareMetres": 125,
+              "ranges": [
+                { "minimumInclusive": 15, "maximumExclusive": 30 }
+              ]
+            }
+          }
+        ],
+        "truncated": false,
+        "unit": "degree"
+      },
+      "truncated": false
+    },
+    "qualifiedExplanation": {
+      "schemaVersion": "gdps-raster-sample-result/1.0",
+      "productId": "gdps-baseline-ugv-traversability",
+      "contentHash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "point": { "type": "Point", "coordinates": [116.392, 39.908] },
+      "value": 2,
+      "classCode": "CONDITIONALLY_PASSABLE",
+      "noData": false,
+      "explanation": {
+        "classification": "CONDITIONALLY_PASSABLE",
+        "basis": "Current accepted UGV traversability product classification",
+        "quality": { "thematicAccuracy": 0.96 }
+      }
+    },
+    "currentProductGet": {
+      "schemaVersion": "gdps-current-product/1.0",
+      "productId": "gdps-baseline-dtm",
+      "productType": "ELEVATION_DTM",
+      "dataScopeKey": "scope-gdps-v021-baseline",
+      "name": "Baseline terrain model",
+      "contentHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "loadedAt": "2026-08-29T00:00:00Z",
+      "enabled": true,
+      "extent": {},
+      "storageKind": "RASTER_FILE",
+      "crs": "EPSG:4326",
+      "vocabulary": {},
+      "quality": {},
+      "metadata": {
+        "gdpsDescriptor": {
+          "descriptorId": "ELEVATION_DTM/DEFAULT",
+          "descriptorHash": "sha256:7e033d18b36916c2e9db8951b3211769dda96244bbfc4d43fc05854f771b93db",
+          "representation": "RASTER_CONTINUOUS",
+          "queryProfiles": ["FIND_VALUE_RANGE", "PROFILE_VALUE", "SAMPLE_VALUE"],
+          "unit": "metre"
+        },
+        "productProfile": "DEFAULT"
+      }
+    },
+    "catalog": {
+      "schemaVersion": "gdps-product-search-result/1.0",
+      "products": [
+        {
+          "schemaVersion": "gdps-current-product/1.0",
+          "productId": "gdps-baseline-slope",
+          "productType": "SLOPE",
+          "dataScopeKey": "scope-gdps-v021-baseline",
+          "name": "Baseline slope",
+          "contentHash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "loadedAt": "2026-08-29T00:00:00Z",
+          "enabled": true,
+          "extent": {},
+          "storageKind": "RASTER_FILE"
+        },
+        {
+          "schemaVersion": "gdps-current-product/1.0",
+          "productId": "gdps-baseline-dtm",
+          "productType": "ELEVATION_DTM",
+          "dataScopeKey": "scope-gdps-v021-baseline",
+          "name": "Baseline terrain model",
+          "contentHash": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+          "loadedAt": "2026-08-29T00:00:00Z",
+          "enabled": true,
+          "extent": {},
+          "storageKind": "RASTER_FILE"
+        }
+      ],
+      "truncated": false
+    }
+  }
+}

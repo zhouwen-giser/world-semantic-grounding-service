@@ -281,7 +281,38 @@ function validateVersionSurfaces() {
     }
   }
   records.sort((left, right) => left.path.localeCompare(right.path));
-  if (records.length !== 19) fail("WORKSPACE_MANIFEST_INVENTORY_DRIFT", String(records.length));
+  // N01 evidence is an immutable phase checkpoint. Later serial phases may add
+  // workspaces, but every discovered workspace above is still version/lockfile
+  // validated. Keep the N01 semantic preimage bound to the exact 19 manifests
+  // that existed when N01 was qualified, and fail if any checkpoint member is
+  // removed or renamed.
+  const n01WorkspacePaths = [
+    "packages/contracts",
+    "packages/delegated-identity",
+    "packages/deterministic-parser",
+    "packages/evidence-normalizer",
+    "packages/gdps-descriptor-consumer",
+    "packages/gowm-contract-intake",
+    "packages/gowm-execution-evidence",
+    "packages/gowm-gateway-client",
+    "packages/grounding-graph",
+    "packages/grounding-pipeline",
+    "packages/prior-grounding",
+    "packages/query-compiler",
+    "packages/requirement-planner",
+    "packages/runtime",
+    "packages/semantic-frame",
+    "packages/semantic-model",
+    "packages/trusted-capability-snapshot",
+    "services/grounding-api",
+    "services/grounding-worker"
+  ];
+  const recordsByPath = new Map(records.map((record) => [record.path, record]));
+  const n01Records = n01WorkspacePaths.map((path) => {
+    const record = recordsByPath.get(path);
+    if (record === undefined) fail("N01_WORKSPACE_CHECKPOINT_DRIFT", path);
+    return record;
+  });
   const releaseSurfaces = [
     {
       path: "Dockerfile",
@@ -307,10 +338,10 @@ function validateVersionSurfaces() {
   }
   return {
     version: "0.2.1",
-    workspaceManifestCount: records.length,
-    records,
+    workspaceManifestCount: n01Records.length,
+    records: n01Records,
     releaseSurfaces,
-    surfaceHash: canonicalHash({ records, releaseSurfaces })
+    surfaceHash: canonicalHash({ records: n01Records, releaseSurfaces })
   };
 }
 

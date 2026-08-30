@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gdps:check-current-result:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "productId", "currentness"],
+  "properties": {
+    "schemaVersion": {"const": "gdps-check-current-result/1.0"},
+    "productId": {"type": "string", "pattern": "^[a-z][a-z0-9-]{2,63}$"},
+    "currentness": {"enum": ["CURRENT", "CHANGED", "NOT_AVAILABLE"]},
+    "currentContentHash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"currentness": {"enum": ["CURRENT", "CHANGED"]}}},
+      "then": {"required": ["currentContentHash"]}
+    },
+    {
+      "if": {"properties": {"currentness": {"const": "NOT_AVAILABLE"}}},
+      "then": {"not": {"required": ["currentContentHash"]}}
+    }
+  ]
+}

@@ -30,6 +30,17 @@ export {
   parseAndVerifySnapshotManifest,
   parseSnapshotAdherence
 } from "./snapshot.js";
+export {
+  ValidatedGowmResultError,
+  readValidatedGowmFindingResult,
+  validateGowmFindingResultEnvelope
+} from "./validated-envelope.js";
+export type {
+  GowmCapabilityResultEnvelope,
+  GowmFindingResultStatus,
+  ValidatedGowmFindingResult,
+  ValidatedGowmFindingResultProjection
+} from "./validated-envelope.js";
 export type {
   AuthoritativePayloadObjectReference,
   DirectExecutionNormalizationInput,

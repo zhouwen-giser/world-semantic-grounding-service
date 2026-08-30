@@ -1,0 +1,308 @@
+{
+  "schemaVersion": "wsgs-v021-n02-determinism/1.0",
+  "phase": "N02",
+  "generator": {
+    "name": "generate-sacs-geospatial-decoder-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:901cee3e260b3c4953744940ef2b29df981e13ce6dfc481bef05a5820e09aa21",
+  "verificationRecipe": {
+    "writeCommand": "npm run findings:decoder:write",
+    "checkCommand": "npm run findings:decoder:check",
+    "expectedSuccessMarker": "WSGS_V021_FINDING_DECODER_READY",
+    "embeddedExecutionClaim": false,
+    "exitCode": null
+  },
+  "executionEvidence": {
+    "status": "RECORDED_EXTERNALLY_IN_PHASE_REPORT_AND_CI",
+    "phaseReportPath": "reports/sacs-geospatial-v1/N02-phase-report.md"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "consumerRuntimeQualification": "BLOCKED_UPSTREAM",
+  "consumerCompatible": false,
+  "realConsumerCases": {
+    "passed": 0,
+    "total": 18,
+    "status": "NOT_RUN"
+  },
+  "g1": "NOT_RUN",
+  "v03ContentAllowed": false,
+  "productionQualified": false,
+  "status": "PASS",
+  "realShapeAuthority": {
+    "repository": "zhouwen-giser/geospatial-data-product-service",
+    "implementationSourceSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
+    "deliveryEvidenceSha": "712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6",
+    "schemas": [
+      "contracts/raster-sample-result.schema.json",
+      "contracts/elevation-profile-result.schema.json",
+      "contracts/patch-query-result.schema.json",
+      "contracts/product-search-result.schema.json",
+      "contracts/current-product.schema.json"
+    ]
+  },
+  "findingKinds": {
+    "expected": 6,
+    "passed": 6,
+    "cases": [
+      {
+        "caseId": "REAL_SHAPE_POINT_MEASUREMENT",
+        "status": "PASS",
+        "sourceShape": [
+          "contracts/raster-sample-result.schema.json",
+          "contracts/elevation-profile-result.schema.json",
+          "contracts/patch-query-result.schema.json",
+          "contracts/product-search-result.schema.json",
+          "contracts/current-product.schema.json"
+        ],
+        "operationId": "elevation.sample",
+        "pattern": "SAMPLE_VALUE",
+        "findingKind": "POINT_MEASUREMENT",
+        "findingCount": 1,
+        "gapKinds": [],
+        "findingSetHash": "sha256:6e49a10cc93fc1bf38dfb6f19b09db50ab7a25abf89a542eb512f71395796eba",
+        "independentFindingSetHash": "sha256:6e49a10cc93fc1bf38dfb6f19b09db50ab7a25abf89a542eb512f71395796eba",
+        "outputHash": "sha256:ea61b4fba633e1bf895197578c52fbc93767386743219a9fb5d4aa22dc87ee35"
+      },
+      {
+        "caseId": "REAL_SHAPE_POINT_CLASSIFICATION",
+        "status": "PASS",
+        "sourceShape": [
+          "contracts/raster-sample-result.schema.json",
+          "contracts/elevation-profile-result.schema.json",
+          "contracts/patch-query-result.schema.json",
+          "contracts/product-search-result.schema.json",
+          "contracts/current-product.schema.json"
+        ],
+        "operationId": "geo-raster.sample",
+        "pattern": "SAMPLE_CLASS",
+        "findingKind": "POINT_CLASSIFICATION",
+        "findingCount": 1,
+        "gapKinds": [],
+        "findingSetHash": "sha256:e9b9a5cbf7c494285a18b41a416c466635f422fd032eee4af0f38a62ba12e2e3",
+        "independentFindingSetHash": "sha256:e9b9a5cbf7c494285a18b41a416c466635f422fd032eee4af0f38a62ba12e2e3",
+        "outputHash": "sha256:a35a3c5916c2b1e7749420806256aede7b8fb849b6b1b565fa3be68dc704bda1"
+      },
+      {
+        "caseId": "REAL_SHAPE_SPATIAL_FEATURE_COLLECTION",
+        "status": "PASS",
+        "sourceShape": [
+          "contracts/raster-sample-result.schema.json",
+          "contracts/elevation-profile-result.schema.json",
+          "contracts/patch-query-result.schema.json",
+          "contracts/product-search-result.schema.json",
+          "contracts/current-product.schema.json"
+        ],
+        "operationId": "terrain.find-high-ground",
+        "pattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "findingCount": 1,
+        "gapKinds": [
+          "TRUNCATED"
+        ],
+        "findingSetHash": "sha256:653914a88ec5d64df77bd5f45327368c02427921b1a1cb43e05c76e22d23564d",
+        "independentFindingSetHash": "sha256:653914a88ec5d64df77bd5f45327368c02427921b1a1cb43e05c76e22d23564d",
+        "outputHash": "sha256:7607b2cbf670812416088f8cbf44513afa694b4c7584e01fd2f07eaf1f2ec727"
+      },
+      {
+        "caseId": "REAL_SHAPE_PROFILE",
+        "status": "PASS",
+        "sourceShape": [
+          "contracts/raster-sample-result.schema.json",
+          "contracts/elevation-profile-result.schema.json",
+          "contracts/patch-query-result.schema.json",
+          "contracts/product-search-result.schema.json",
+          "contracts/current-product.schema.json"
+        ],
+        "operationId": "elevation.profile",
+        "pattern": "PROFILE_VALUE",
+        "findingKind": "PROFILE",
+        "findingCount": 1,
+        "gapKinds": [],
+        "findingSetHash": "sha256:9f7182790ea262ffa13259e3236c707b636cab8771256c0ef823d1bc1ff9defa",
+        "independentFindingSetHash": "sha256:9f7182790ea262ffa13259e3236c707b636cab8771256c0ef823d1bc1ff9defa",
+        "outputHash": "sha256:c0ab7dd0db41138aaab5ab1d3761ce852f076fa5f89833ee2b47b47b0e0b4f4a"
+      },
+      {
+        "caseId": "REAL_SHAPE_QUALIFIED_EXPLANATION",
+        "status": "PASS",
+        "sourceShape": [
+          "contracts/raster-sample-result.schema.json",
+          "contracts/elevation-profile-result.schema.json",
+          "contracts/patch-query-result.schema.json",
+          "contracts/product-search-result.schema.json",
+          "contracts/current-product.schema.json"
+        ],
+        "operationId": "traversability.explain",
+        "pattern": "QUALIFIED_EXPLANATION",
+        "findingKind": "QUALIFIED_EXPLANATION",
+        "findingCount": 1,
+        "gapKinds": [],
+        "findingSetHash": "sha256:20d87f97fb1a459335dc599f5a96be4570e97fff1f916153cef1b371d604a9a5",
+        "independentFindingSetHash": "sha256:20d87f97fb1a459335dc599f5a96be4570e97fff1f916153cef1b371d604a9a5",
+        "outputHash": "sha256:3808755196f84e669d815215428abfa40e9a0821a7814588e57424f381a6d3cc"
+      },
+      {
+        "caseId": "REAL_SHAPE_CATALOG",
+        "status": "PASS",
+        "sourceShape": [
+          "contracts/raster-sample-result.schema.json",
+          "contracts/elevation-profile-result.schema.json",
+          "contracts/patch-query-result.schema.json",
+          "contracts/product-search-result.schema.json",
+          "contracts/current-product.schema.json"
+        ],
+        "operationId": "geo-product.search",
+        "pattern": "CATALOG",
+        "findingKind": "CATALOG",
+        "findingCount": 1,
+        "gapKinds": [],
+        "findingSetHash": "sha256:640d610e5db7cd9fb1a29af50fef0052907a7effaeeeff584adf46836b23abd6",
+        "independentFindingSetHash": "sha256:640d610e5db7cd9fb1a29af50fef0052907a7effaeeeff584adf46836b23abd6",
+        "outputHash": "sha256:745be36dc6444631a4a526166861399b86a613238f81e16f2429f6d4fd98077b"
+      }
+    ]
+  },
+  "authoritativeShapeAdapters": {
+    "expected": 4,
+    "passed": 4,
+    "cases": [
+      {
+        "caseId": "GENERIC_SAMPLE_NESTED_UNIT",
+        "status": "PASS",
+        "operationId": "geo-raster.sample",
+        "pattern": "SAMPLE_VALUE",
+        "findingKind": "POINT_MEASUREMENT",
+        "findingSetHash": "sha256:22abab40ac6a6984cb8b1a260d324ff13717eeb5148487a9909d6910f9e064ad",
+        "independentFindingSetHash": "sha256:22abab40ac6a6984cb8b1a260d324ff13717eeb5148487a9909d6910f9e064ad",
+        "rawPayloadPassThrough": false
+      },
+      {
+        "caseId": "GENERIC_PROFILE_NESTED_UNIT",
+        "status": "PASS",
+        "operationId": "geo-raster.profile",
+        "pattern": "PROFILE_VALUE",
+        "findingKind": "PROFILE",
+        "findingSetHash": "sha256:1b9016318d42dd329009deff75b9aed5e378e6ebe298343c998669660f2c7fbd",
+        "independentFindingSetHash": "sha256:1b9016318d42dd329009deff75b9aed5e378e6ebe298343c998669660f2c7fbd",
+        "rawPayloadPassThrough": false
+      },
+      {
+        "caseId": "GENERIC_VALUE_RANGE_PROPERTIES",
+        "status": "PASS",
+        "operationId": "geo-raster.find-by-range",
+        "pattern": "FIND_VALUE_RANGE",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "findingSetHash": "sha256:497727cabf12362602d1e8b573aa533f60421cbfc40268cd16fc866d34310c19",
+        "independentFindingSetHash": "sha256:497727cabf12362602d1e8b573aa533f60421cbfc40268cd16fc866d34310c19",
+        "rawPayloadPassThrough": false
+      },
+      {
+        "caseId": "DIRECT_CURRENT_PRODUCT_GET",
+        "status": "PASS",
+        "operationId": "geo-product.get",
+        "pattern": "CATALOG",
+        "findingKind": "CATALOG",
+        "findingSetHash": "sha256:b4b6893e30cf94ed3695a18201e259783ba35b276d79ab2d0583e64f437b5151",
+        "independentFindingSetHash": "sha256:b4b6893e30cf94ed3695a18201e259783ba35b276d79ab2d0583e64f437b5151",
+        "rawPayloadPassThrough": false
+      }
+    ]
+  },
+  "statusSemantics": {
+    "noData": {
+      "status": "PASS",
+      "findingCount": 0,
+      "gapKinds": [
+        "DATA_GAP"
+      ],
+      "findingSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "legalCompletedNoDataPayload": {
+      "status": "PASS",
+      "normalizedStatus": "NO_DATA",
+      "findingCount": 0,
+      "gapKinds": [
+        "DATA_GAP"
+      ]
+    },
+    "emptyCollections": {
+      "status": "PASS",
+      "featureStatus": "NO_DATA",
+      "catalogStatus": "NO_DATA",
+      "negativeFactsInferred": false
+    },
+    "partialEmptyCollection": {
+      "status": "PASS",
+      "normalizedStatus": "PARTIAL",
+      "findingCount": 0,
+      "gapKinds": [
+        "DATA_GAP"
+      ],
+      "severity": "WARNING"
+    },
+    "profileNoData": {
+      "status": "PASS",
+      "mixedStatus": "PARTIAL",
+      "mixedFindingCount": 1,
+      "mixedGapKinds": [
+        "DATA_GAP"
+      ],
+      "allNoDataStatus": "NO_DATA",
+      "allNoDataFindingCount": 0
+    },
+    "partialTruncated": {
+      "status": "PASS",
+      "resultStatus": "PARTIAL",
+      "gapKinds": [
+        "TRUNCATED"
+      ],
+      "findingSetHash": "sha256:653914a88ec5d64df77bd5f45327368c02427921b1a1cb43e05c76e22d23564d"
+    }
+  },
+  "deterministicExecution": {
+    "repeatedRunCount": 3,
+    "byteIdentical": true,
+    "outputHash": "sha256:1e3dd87ee222046313ec6a78ff0080d7ce48f9ae65d3bc23d8fd4fea14341654",
+    "findingSetHash": "sha256:0efc7a56907abfc1cb3503026a0fe401cbd0ced6f353008f4be7994554c4be82",
+    "independentFindingSetHash": "sha256:0efc7a56907abfc1cb3503026a0fe401cbd0ced6f353008f4be7994554c4be82",
+    "independentRecomputation": "PASS",
+    "permutations": [
+      {
+        "caseId": "FEATURE_ORDER",
+        "status": "PASS",
+        "outputHash": "sha256:7607b2cbf670812416088f8cbf44513afa694b4c7584e01fd2f07eaf1f2ec727"
+      },
+      {
+        "caseId": "PROVENANCE_ORDER",
+        "status": "PASS",
+        "outputHash": "sha256:ea61b4fba633e1bf895197578c52fbc93767386743219a9fb5d4aa22dc87ee35"
+      },
+      {
+        "caseId": "REQUEST_ID",
+        "status": "PASS",
+        "outputHash": "sha256:ea61b4fba633e1bf895197578c52fbc93767386743219a9fb5d4aa22dc87ee35"
+      },
+      {
+        "caseId": "INPUT_ORDER",
+        "status": "PASS",
+        "outputHash": "sha256:1e3dd87ee222046313ec6a78ff0080d7ce48f9ae65d3bc23d8fd4fea14341654"
+      }
+    ]
+  },
+  "priority": {
+    "requiredOrder": [
+      "EXACT_OPERATION_SCHEMA",
+      "SEMANTIC_PROFILE",
+      "GENERIC_PATTERN"
+    ],
+    "selections": [
+      "priority.exact",
+      "priority.semantic",
+      "priority.generic"
+    ],
+    "status": "PASS"
+  },
+  "rawPayloadPassThrough": false
+}

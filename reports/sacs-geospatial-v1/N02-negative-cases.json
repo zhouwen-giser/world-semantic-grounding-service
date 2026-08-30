@@ -1,0 +1,237 @@
+{
+  "schemaVersion": "wsgs-v021-n02-negative-cases/1.0",
+  "phase": "N02",
+  "generator": {
+    "name": "generate-sacs-geospatial-decoder-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:901cee3e260b3c4953744940ef2b29df981e13ce6dfc481bef05a5820e09aa21",
+  "verificationRecipe": {
+    "writeCommand": "npm run findings:decoder:write",
+    "checkCommand": "npm run findings:decoder:check",
+    "expectedSuccessMarker": "WSGS_V021_FINDING_DECODER_READY",
+    "embeddedExecutionClaim": false,
+    "exitCode": null
+  },
+  "executionEvidence": {
+    "status": "RECORDED_EXTERNALLY_IN_PHASE_REPORT_AND_CI",
+    "phaseReportPath": "reports/sacs-geospatial-v1/N02-phase-report.md"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "consumerRuntimeQualification": "BLOCKED_UPSTREAM",
+  "consumerCompatible": false,
+  "realConsumerCases": {
+    "passed": 0,
+    "total": 18,
+    "status": "NOT_RUN"
+  },
+  "g1": "NOT_RUN",
+  "v03ContentAllowed": false,
+  "productionQualified": false,
+  "status": "PASS",
+  "negativeCaseCount": 32,
+  "passed": 32,
+  "cases": [
+    {
+      "caseId": "NEG_MARKER",
+      "expected": "UNVALIDATED_RESULT_ENVELOPE",
+      "observed": "UNVALIDATED_RESULT_ENVELOPE",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_POST_VALIDATION_MUTATION",
+      "expected": "UNVALIDATED_RESULT_ENVELOPE",
+      "observed": "UNVALIDATED_RESULT_ENVELOPE",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_OPERATION_LOCK",
+      "expected": "OPERATION_IDENTITY_MISMATCH",
+      "observed": "OPERATION_IDENTITY_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_OUTPUT_SCHEMA_LOCK",
+      "expected": "OUTPUT_SCHEMA_MISMATCH",
+      "observed": "OUTPUT_SCHEMA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_SEMANTIC_PROFILE_LOCK",
+      "expected": "UNVALIDATED_RESULT_ENVELOPE",
+      "observed": "UNVALIDATED_RESULT_ENVELOPE",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_FORGED_FINAL_B_AUTHORITY",
+      "expected": "GDPS_FINDING_AUTHORITY_FORGED",
+      "observed": "GDPS_FINDING_AUTHORITY_FORGED",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_FORGED_OPERATION_AUTHORITY",
+      "expected": "GDPS_FINDING_OPERATION_AUTHORITY_FORGED",
+      "observed": "GDPS_FINDING_OPERATION_AUTHORITY_FORGED",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_CATALOG_DESCRIPTOR",
+      "expected": "GDPS_CATALOG_DESCRIPTOR_FORBIDDEN",
+      "observed": "GDPS_CATALOG_DESCRIPTOR_FORBIDDEN",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_DESCRIPTOR_NOT_LOCKED",
+      "expected": "GDPS_DESCRIPTOR_NOT_LOCKED",
+      "observed": "GDPS_DESCRIPTOR_NOT_LOCKED",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_DECODER_OUTPUT_SCHEMA",
+      "expected": "WSGS_SACS_GEOSPATIAL_SCHEMA_MISMATCH",
+      "observed": "WSGS_SACS_GEOSPATIAL_SCHEMA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_PROVENANCE_MARKER",
+      "expected": "UNTRUSTED_PROVENANCE_BINDING",
+      "observed": "UNTRUSTED_PROVENANCE_BINDING",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_SAFE_PAYLOAD",
+      "expected": "SAFE_PAYLOAD_INPUT_FORBIDDEN",
+      "observed": "SAFE_PAYLOAD_INPUT_FORBIDDEN",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_UNKNOWN_SCHEMA",
+      "expected": "OUTPUT_SCHEMA_MISMATCH",
+      "observed": "OUTPUT_SCHEMA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_OPERATION_PREFIX",
+      "expected": "GDPS_FINDING_OPERATION_NOT_LOCKED",
+      "observed": "GDPS_FINDING_OPERATION_NOT_LOCKED",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_PRIORITY_AMBIGUITY",
+      "expected": "AMBIGUOUS_DECODER_MATCH",
+      "observed": "AMBIGUOUS_DECODER_MATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_GEOMETRY",
+      "expected": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "observed": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_NON_2D_GEOMETRY",
+      "expected": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "observed": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_NONFINITE",
+      "expected": "NON_FINITE_CANONICAL_NUMBER",
+      "observed": "NON_FINITE_CANONICAL_NUMBER",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_UNIT_MISSING",
+      "expected": "UNVALIDATED_RESULT_ENVELOPE",
+      "observed": "UNVALIDATED_RESULT_ENVELOPE",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_CLASS_VOCABULARY",
+      "expected": "CLASS_CODE_NOT_IN_LOCKED_VOCABULARY",
+      "observed": "CLASS_CODE_NOT_IN_LOCKED_VOCABULARY",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_NO_DATA_CONTRADICTION",
+      "expected": "NO_DATA_VALUE_CONTRADICTION",
+      "observed": "NO_DATA_VALUE_CONTRADICTION",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_GENERIC_UNIT_BINDING",
+      "expected": "GENERIC_RESULT_UNIT_MISMATCH",
+      "observed": "GENERIC_RESULT_UNIT_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_GENERIC_SAMPLE_TRUNCATED",
+      "expected": "SAMPLE_RESULT_TRUNCATION_FORBIDDEN",
+      "observed": "SAMPLE_RESULT_TRUNCATION_FORBIDDEN",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_PROFILE_NO_DATA_CONTRADICTION",
+      "expected": "PROFILE_NO_DATA_VALUE_CONTRADICTION",
+      "observed": "PROFILE_NO_DATA_VALUE_CONTRADICTION",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_PROFILE_DISTANCE",
+      "expected": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "observed": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_GENERIC_BINDING",
+      "expected": "GENERIC_DESCRIPTOR_BINDING_MISMATCH",
+      "observed": "GENERIC_DESCRIPTOR_BINDING_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_TRUNCATION_FLAG",
+      "expected": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "observed": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_VALUE_RANGE_REVERSED",
+      "expected": "FEATURE_VALUE_RANGE_REVERSED",
+      "observed": "FEATURE_VALUE_RANGE_REVERSED",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_EMPTY_TRUNCATED",
+      "expected": "EMPTY_TRUNCATED_RESULT_CONTRADICTION",
+      "observed": "EMPTY_TRUNCATED_RESULT_CONTRADICTION",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_UNKNOWN_OUTPUT_FIELD",
+      "expected": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "observed": "GDPS_OUTPUT_VALUE_SCHEMA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_DUPLICATE_DECODER",
+      "expected": "DUPLICATE_DECODER_ID",
+      "observed": "DUPLICATE_DECODER_ID",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_STATIC_PROVIDER_SQL_BYPASS",
+      "expected": "ZERO_DIRECT_PROVIDER_OR_SQL_ROUTES",
+      "observed": "ZERO_DIRECT_PROVIDER_OR_SQL_ROUTES",
+      "status": "PASS_STATIC_BOUNDARY"
+    }
+  ],
+  "policies": {
+    "unknownSchema": "NO_FINDING_PLUS_UNSUPPORTED_FINDING_SCHEMA",
+    "rawPayloadPassThrough": "FORBIDDEN",
+    "directProviderCall": "FORBIDDEN",
+    "directSql": "FORBIDDEN",
+    "prefixMatch": "FORBIDDEN",
+    "ambiguousMatch": "FAIL_CLOSED"
+  }
+}

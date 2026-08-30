@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "wsgs-gdps-handoff-intake/1.0",
+  "sources": {
+    "wsgsSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb",
+    "gdpsSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
+    "gowmSha": "7a3600cfeede1e1eda711a59bdb76caa68c05f64"
+  },
+  "provider": {
+    "providerId": "gdps.geospatial-products",
+    "providerVersion": "0.2.1",
+    "manifestHash": "sha256:e33fe3e114f74ba285caffdfcfe0cfeca1a7103497d20f834eb0d821fa435a18"
+  },
+  "inventory": {
+    "productTypeCount": 34,
+    "descriptorProfileCount": 35,
+    "capabilityCount": 30
+  },
+  "locks": {
+    "consumerLockHash": "sha256:6933cda761adf8ccaa020ced610e8b086c20e8c2509e50d9e19bbc967635accc",
+    "capabilityLockHash": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
+    "descriptorLockHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
+    "recipeLockHash": "sha256:807f536ad3493e5823c1c04c15d634d74d3fac8f7c81f0985ae148878d11f92b",
+    "providerRecipeLockHash": "sha256:fde020db21aae9158a420725b322aa0cd1baa8bac83b35ba795eb252502b2994",
+    "runtimeRecipeLockHash": "sha256:807f536ad3493e5823c1c04c15d634d74d3fac8f7c81f0985ae148878d11f92b",
+    "checksumHash": "sha256:71ff33940ee9c037376d70cfd21c54c767e6324fd37f29a42056cf9ffdb3e0fe"
+  },
+  "gatewayBinding": {
+    "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+    "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+    "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66"
+  },
+  "status": "PASS"
+}

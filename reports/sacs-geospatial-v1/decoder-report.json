@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "wsgs-v021-decoder-report/1.0",
+  "phase": "N02",
+  "generator": {
+    "name": "generate-sacs-geospatial-decoder-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:901cee3e260b3c4953744940ef2b29df981e13ce6dfc481bef05a5820e09aa21",
+  "verificationRecipe": {
+    "writeCommand": "npm run findings:decoder:write",
+    "checkCommand": "npm run findings:decoder:check",
+    "expectedSuccessMarker": "WSGS_V021_FINDING_DECODER_READY",
+    "embeddedExecutionClaim": false,
+    "exitCode": null
+  },
+  "executionEvidence": {
+    "status": "RECORDED_EXTERNALLY_IN_PHASE_REPORT_AND_CI",
+    "phaseReportPath": "reports/sacs-geospatial-v1/N02-phase-report.md"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "consumerRuntimeQualification": "BLOCKED_UPSTREAM",
+  "consumerCompatible": false,
+  "realConsumerCases": {
+    "passed": 0,
+    "total": 18,
+    "status": "NOT_RUN"
+  },
+  "g1": "NOT_RUN",
+  "v03ContentAllowed": false,
+  "productionQualified": false,
+  "status": "PASS",
+  "marker": "WSGS_V021_FINDING_DECODER_READY",
+  "package": "@wsgs/northbound-geospatial-findings",
+  "evidenceReports": {
+    "reports/sacs-geospatial-v1/N02-decoder-coverage.json": "sha256:2f2f7f1d724d50149333a35335cb81240e652700e69458b398330d9ed9772e91",
+    "reports/sacs-geospatial-v1/N02-determinism.json": "sha256:ca49ac91dfc2f3f74ffb357fe9e6dd627c153e118aafb244f74026457ea73842",
+    "reports/sacs-geospatial-v1/N02-negative-cases.json": "sha256:1a875083096528e9022f2977edcf6a4cb537cd29d453f27aa26fd8be3fa12c8e"
+  },
+  "evidenceSetHash": "sha256:882223b478f02f5c732d13c64c94307ccebb9eea0e67853d1ee2984be3df0e1a",
+  "capabilityCoverage": {
+    "total": 30,
+    "supported": 29,
+    "intentionallyGap": 0,
+    "unsupportedSchema": 0,
+    "notApplicable": 1
+  },
+  "findingKinds": {
+    "expected": 6,
+    "passed": 6
+  },
+  "realShapeVectors": {
+    "expected": 10,
+    "passed": 10,
+    "fixtureClass": "TEST_VECTOR",
+    "findingKinds": 6
+  },
+  "statusCases": {
+    "noData": "PASS",
+    "legalCompletedNoDataPayload": "PASS",
+    "emptyCollections": "PASS",
+    "partialEmptyCollection": "PASS",
+    "profileNoData": "PASS",
+    "partialTruncated": "PASS"
+  },
+  "determinism": {
+    "repeatedRuns": 3,
+    "permutations": 4,
+    "independentFindingSetHash": "PASS"
+  },
+  "negativeCases": {
+    "expectedMinimum": 28,
+    "passed": 32
+  },
+  "acceptance": {
+    "acceptanceId": "V21-G05",
+    "status": "PASS"
+  },
+  "nonClaims": {
+    "sharedRuntime": "NOT_RUN",
+    "sacsRealE2E": "NOT_RUN",
+    "realConsumerCases": "0/18",
+    "g1": "NOT_RUN",
+    "v03Content": false,
+    "productionQualified": false
+  }
+}

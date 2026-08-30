@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "gdps-v021-sample-dataset-lock/1.0",
+  "scope": "scope-gdps-v021-baseline",
+  "datasetHash": "sha256:1d217891aa5355bda2f27bda7b1ad02877d00e7006d98c24cc3b997d6a4bfd6b",
+  "products": [
+    {
+      "productId": "gdps-baseline-dtm",
+      "productType": "ELEVATION_DTM",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:993fd49c23153e6c91262ba9da1b25ff8e4860a9a679e1ade0f7a0ea93d1b6c5",
+      "descriptorHash": "sha256:7e033d18b36916c2e9db8951b3211769dda96244bbfc4d43fc05854f771b93db"
+    },
+    {
+      "productId": "gdps-baseline-dsm",
+      "productType": "ELEVATION_DSM",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:a6d164a040052c1dbb009f83599518c98f78b96eb899436226d4a6f53272f81c",
+      "descriptorHash": "sha256:0cb51b27447449e8ce3337002d88f20eb8700b163a43243414ace14abbab08db"
+    },
+    {
+      "productId": "gdps-baseline-terrain",
+      "productType": "TERRAIN_FORM",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1",
+      "descriptorHash": "sha256:3c08d74de6b8fe30ee508e8dd42679a40b022f72d83d86d046879bb7be824822"
+    },
+    {
+      "productId": "gdps-baseline-landcover",
+      "productType": "LAND_COVER",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:c37576c7d8f9a48c7875db54cd5904a0f21807958b80d9e30f7492c6ff81211c",
+      "descriptorHash": "sha256:7056d986494a8a659bec339ae623b1dba4390358261151ff3fd7aceb33f18599"
+    },
+    {
+      "productId": "gdps-baseline-water",
+      "productType": "SURFACE_WATER",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:73ba5a891d6d9c72bf43fa9f123540012c667888ffbf63bacaaa25139f157cb8",
+      "descriptorHash": "sha256:48f79814657001fd4c4812d4d98ab7454d57f4c0170a92f0c0c24650b1eb93b6"
+    },
+    {
+      "productId": "gdps-baseline-wetland",
+      "productType": "WETLAND",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:c73f58d4ddbab800c986e3f5ac8d12a778872464dd9fbf32b5e15ac447fa345f",
+      "descriptorHash": "sha256:8918e4e18fa602e8afa62e75c87f765c9b29649a14dbb6ad7b891fe255938800"
+    },
+    {
+      "productId": "gdps-baseline-surface-material",
+      "productType": "SURFACE_MATERIAL",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:1fee3b4e4a0a5dde5a1b6d0368bb5414531ab7297df5cc006d24ea1d85ea1c2e",
+      "descriptorHash": "sha256:72e0fa7e7739cdb3ae0d97111bbce0f690a174185436469732598a437799b614"
+    },
+    {
+      "productId": "gdps-baseline-buildings",
+      "productType": "BUILDING",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:8c8a6360e597f94abc401156f4d31ef4870b13525238ea9ce7557012485a2fc8",
+      "descriptorHash": "sha256:c0640caad75bb218e7abbeece9e571d1d8033ec9503beeba16c8a193357b60ed"
+    },
+    {
+      "productId": "gdps-baseline-obstacles",
+      "productType": "OBSTACLE",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:c48d07ee5d6fa689132a066d057983bb840f734d503eb6f66fd6c4f9a6dedfa9",
+      "descriptorHash": "sha256:bdaa5c2265dd0b9a039abd647f37f4a7bf9137b556190be71df28172cb1fee74"
+    },
+    {
+      "productId": "gdps-baseline-ugv-traversability",
+      "productType": "UGV_TRAVERSABILITY",
+      "productProfile": "DEFAULT",
+      "contentHash": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a",
+      "descriptorHash": "sha256:b3395f17c44c4bccca5199e350e3f73be70c1436a40271f8c99c686e9fb182cf"
+    },
+    {
+      "productId": "gdps-baseline-slope",
+      "productType": "SLOPE",
+      "productProfile": "DEGREE",
+      "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
+      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e"
+    },
+    {
+      "productId": "gdps-baseline-flood-risk",
+      "productType": "FLOOD_RISK",
+      "productProfile": "FLOOD_RISK_CLASS",
+      "contentHash": "sha256:61f4fa83d539aaa7f0a321caa608a42069c635bd7b49cdfa9e7f1f7885464538",
+      "descriptorHash": "sha256:e2fdf01ee5fd97d2660f67f570de581671e5125c441f0e3578ff8b6aaecbc261"
+    },
+    {
+      "productId": "gdps-baseline-drainage",
+      "productType": "DRAINAGE_NETWORK",
+      "productProfile": "DRAINAGE_FEATURES",
+      "contentHash": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7",
+      "descriptorHash": "sha256:0a9169a48da947a20cbf597c07a09613d3f46a36d3686d594bad5e8d13adb0d1"
+    }
+  ]
+}
