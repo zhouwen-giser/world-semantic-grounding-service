@@ -69,11 +69,12 @@ function canonicalJson(value: unknown): string {
 }
 
 /** Verifies the frozen consumer manifest before returning the canonical parameter-schema hash. */
-export function loadWorldQueryParameterSchemaHash(): `sha256:${string}` {
-  const bundleRoot = fileURLToPath(new URL(
+export function loadWorldQueryParameterSchemaHash(
+  bundleRoot = fileURLToPath(new URL(
     "../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/",
     import.meta.url
-  ));
+  ))
+): `sha256:${string}` {
   const manifest = JSON.parse(readFileSync(join(bundleRoot, "MANIFEST.json"), "utf8")) as {
     files?: Array<{ path?: string; sha256?: string }>;
   };
@@ -83,10 +84,11 @@ export function loadWorldQueryParameterSchemaHash(): `sha256:${string}` {
     throw new OperationalGowmLockError("WORLD_QUERY_PARAMETER_SCHEMA_LOCK_MISSING");
   }
   const bytes = readFileSync(join(bundleRoot, ...relativePath.split("/")));
-  if (createHash("sha256").update(bytes).digest("hex") !== entry.sha256) {
+  const canonicalBytes = canonicalLfBytes(bytes);
+  if (createHash("sha256").update(canonicalBytes).digest("hex") !== entry.sha256) {
     throw new OperationalGowmLockError("WORLD_QUERY_PARAMETER_SCHEMA_LOCK_DRIFT");
   }
-  const schema = JSON.parse(bytes.toString("utf8")) as unknown;
+  const schema = JSON.parse(canonicalBytes.toString("utf8")) as unknown;
   return `sha256:${createHash("sha256").update(canonicalJson(schema), "utf8").digest("hex")}`;
 }
 

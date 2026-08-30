@@ -17,6 +17,7 @@ export type {
   CompileInput,
   CompileResult,
   ExecutionBudgets,
+  GdpsCurrentnessAuthorization,
   GdpsRecipeAuthorization,
   MatchedCapability,
   MaturityPolicy,

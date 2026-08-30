@@ -6,21 +6,29 @@ import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import type { DeterministicParseResult } from "@wsgs/deterministic-parser";
 import { canonicalSha256, type PipelineStageContext } from "@wsgs/grounding-pipeline";
+import { TypedWorldQueryCompiler, canonicalPlanHash } from "@wsgs/query-compiler";
 import { stableRecipeIds } from "@wsgs/requirement-planner";
 import type { GdpsLockedRecipe } from "@wsgs/trusted-capability-snapshot";
 import type { Pool } from "pg";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   PRODUCTION_STABLE_OPERATION_IDS,
   PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
   applyReferenceValidation,
   assertPriorGroundingReplaySupport,
+  augmentGroundingGraphWithCurrentness,
   buildRecipeOperationInput,
   capabilityCatalogHash,
   canonicalLfSha256,
+  compileGdpsBestEffortCurrentSource,
   computeWorldQueryNodeRequestHashes,
+  executeGdpsSequentialCurrentSource,
+  gdpsSourceChangedAttemptRecord,
+  isGdpsSourceChangedDuringQuery,
   mergeKnownReferenceProducts,
+  loadPriorCurrentnessContexts,
+  normalizeGdpsCurrentnessWorldQuery,
   normalizeGdpsWorldQuerySources,
   normalizeReferenceResolution,
   normalizeValidation,
@@ -28,8 +36,10 @@ import {
   persistAcceptedWorldQueryJob,
   productionReferenceMentions,
   referenceMentionsRequiringResolution,
+  recognizeGdpsPriorCurrentnessReplay,
   selectProductionSouthboundLock
 } from "./production-module.js";
+import { authorizeGdps, compileInput } from "../../../packages/query-compiler/src/test-fixtures.js";
 
 const digest = (character: string): `sha256:${string}` => `sha256:${character.repeat(64)}`;
 
@@ -183,6 +193,202 @@ function worldQuerySubmission() {
   };
 }
 
+function currentnessReplay() {
+  return {
+    sourceGroundingId: "grounding-prior-slope",
+    sourceResultHash: digest("1"),
+    selectedEvidenceProductId: "evidence-prior-slope",
+    productId: "gdps-slope-prior",
+    contentHash: digest("2"),
+    sourceOperation: "geo-raster.sample",
+    sourceOperationVersion: "1.0",
+    sourceRecipeId: "recipe-gdps-generic-sample-value",
+    sourceRecipeLockHash: digest("3"),
+    descriptorId: "SLOPE/DEGREE",
+    descriptorHash: digest("4"),
+    productType: "SLOPE",
+    productProfile: "DEGREE",
+    queryProfile: "SAMPLE_VALUE",
+    replayMode: "STRICT" as const,
+    sourceGatewayQueryId: "query-prior-slope",
+    sourceOperationLockHash: digest("a")
+  };
+}
+
+function currentnessAuthorization() {
+  return {
+    recipeId: "gdps-check-current-geo-product" as const,
+    requirementKind: "CHECK_CURRENT_GEO_PRODUCT" as const,
+    providerRecipeLockHash: digest("5"),
+    operationLockHash: digest("6"),
+    allowedOperation: {
+      operationId: "geo-product.check-current" as const,
+      operationVersion: "1.0" as const,
+      inputSchemaHash: digest("7"),
+      outputSchemaHash: digest("8"),
+      semanticProfileHash: digest("9")
+    }
+  };
+}
+
+function currentnessWorldQueryFixture(
+  currentness: "CURRENT" | "CHANGED" | "NOT_AVAILABLE",
+  currentContentHash?: `sha256:${string}`,
+  replayMode: "STRICT" | "BEST_EFFORT" = "STRICT"
+) {
+  const replay = { ...currentnessReplay(), replayMode };
+  const authorization = currentnessAuthorization();
+  const nodeId = "Node_1";
+  const base = worldQuerySubmission();
+  const submission = {
+    ...base,
+    plan: {
+      ...base.plan,
+      nodes: [{
+        ...base.plan.nodes[0]!,
+        nodeId,
+        operation: {
+          operationId: "geo-product.check-current",
+          operationVersion: "1.0",
+          inputSchemaHash: authorization.allowedOperation.inputSchemaHash,
+          outputSchemaHash: authorization.allowedOperation.outputSchemaHash
+        }
+      }]
+    },
+    parameters: {
+      productId: replay.productId,
+      contentHash: replay.contentHash,
+      replayMode,
+      sourceGroundingId: replay.sourceGroundingId,
+      sourceResultHash: replay.sourceResultHash,
+      currentnessRecipeId: authorization.recipeId,
+      currentnessProviderRecipeLockHash: authorization.providerRecipeLockHash,
+      currentnessOperationLockHash: authorization.operationLockHash
+    }
+  };
+  return {
+    replay,
+    authorization,
+    submission,
+    operation: {
+      ...authorization.allowedOperation,
+      maturity: "PREVIEW" as const,
+      snapshotSupport: "CONSISTENT_AT_START" as const,
+      requiredPermissions: ["data:read"]
+    },
+    worldValue: {
+      nodes: [{
+        nodeId,
+        status: "COMPLETED",
+        result: {
+          operation: { operationId: "geo-product.check-current", operationVersion: "1.0" },
+          status: "COMPLETED",
+          output: {
+            schemaHash: authorization.allowedOperation.outputSchemaHash,
+            value: {
+              productId: replay.productId,
+              currentness,
+              ...(currentContentHash ? { currentContentHash } : {})
+            }
+          },
+          computeSnapshot: {
+            operation: { operationId: "geo-product.check-current" },
+            schemas: {
+              inputSchemaHash: authorization.allowedOperation.inputSchemaHash,
+              outputSchemaHash: authorization.allowedOperation.outputSchemaHash
+            }
+          }
+        }
+      }]
+    }
+  };
+}
+
+function bestEffortSourceFixture() {
+  const sourceInput = authorizeGdps(compileInput("GDPS_GENERIC_SAMPLE_VALUE"), {
+    descriptorId: "SLOPE/DEGREE",
+    descriptorHash: digest("4"),
+    productType: "SLOPE",
+    productProfile: "DEGREE"
+  });
+  sourceInput.maturityPolicy.allowPreview = true;
+  sourceInput.parameterValues = {
+    ...sourceInput.parameterValues,
+    queryProfile: "SAMPLE_VALUE"
+  };
+  sourceInput.snapshotPolicy = { mode: "LATEST_AT_START", allowDowngrade: false };
+  const sourceCompiled = new TypedWorldQueryCompiler().compile(sourceInput);
+  if (sourceCompiled.status !== "COMPILED" || !sourceInput.gdpsRecipeAuthorization ||
+      !sourceInput.trustedGdpsRecipeLockHash) {
+    throw new Error("TEST_SOURCE_QUERY_DID_NOT_COMPILE");
+  }
+  const replay = {
+    ...currentnessReplay(),
+    replayMode: "BEST_EFFORT" as const,
+    sourceGatewayQueryId: sourceCompiled.submission.plan.queryId,
+    sourceRecipeLockHash: sourceInput.trustedGdpsRecipeLockHash,
+    sourceOperationLockHash: digest("a")
+  };
+  const recipe: GdpsLockedRecipe = {
+    schemaVersion: "wsgs-locked-gdps-recipe/2.0",
+    recipeId: replay.sourceRecipeId,
+    semanticPattern: "GDPS_GENERIC_SAMPLE_VALUE",
+    requirementType: "READ_GEO_PRODUCT_VALUE",
+    descriptorConstraint: null,
+    queryProfile: replay.queryProfile,
+    previewAuthorizationRequired: true,
+    maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+    productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+    inputBindings: {},
+    outputSemantics: { currentOnly: true },
+    allowedOperations: sourceInput.gdpsRecipeAuthorization.allowedOperations
+  };
+  return {
+    replay,
+    persistedSource: {
+      sourceGroundingId: replay.sourceGroundingId,
+      sourceGatewayQueryId: replay.sourceGatewayQueryId,
+      sourcePlanHash: sourceCompiled.planHash,
+      submission: sourceCompiled.submission
+    },
+    compileOptions: {
+      replay,
+      persistedSource: {
+        sourceGroundingId: replay.sourceGroundingId,
+        sourceGatewayQueryId: replay.sourceGatewayQueryId,
+        sourcePlanHash: sourceCompiled.planHash,
+        submission: sourceCompiled.submission
+      },
+      attempt: 1 as const,
+      requestId: "request-current",
+      idempotencyKey: "idempotency-current",
+      requiredForProduct: "WORLD_EVIDENCE",
+      parameterSchemaHash: sourceInput.parameterSchemaHash,
+      capabilities: sourceInput.capabilities,
+      semanticProfiles: sourceInput.semanticProfiles,
+      operationLocks: sourceInput.operationLocks,
+      operationLockHash: replay.sourceOperationLockHash,
+      availability: sourceInput.availability,
+      allowPreview: true,
+      observedAt: sourceInput.observedAt!,
+      budgets: sourceInput.budgets,
+      recipeLock: {
+        lock: {
+          schemaVersion: "wsgs-gdps-recipe-lock/2.0" as const,
+          providerId: "gdps.geospatial-products" as const,
+          providerVersion: "0.2.1",
+          descriptorRegistryHash: digest("descriptor-registry"),
+          productTypeCount: 34 as const,
+          profileCount: 35 as const,
+          capabilityLockHash: digest("capability-lock"),
+          recipes: [recipe]
+        },
+        lockHash: replay.sourceRecipeLockHash
+      }
+    }
+  };
+}
+
 describe("production stage module authority boundaries", () => {
   it("uses per-node best effort for mixed world-independent and snapshot-bound DAGs", () => {
     expect(PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY).toEqual({
@@ -246,6 +452,54 @@ describe("production stage module authority boundaries", () => {
     expect(() => selectProductionSouthboundLock(lock, [missing]))
       .toThrow("PRODUCTION_PREVIEW_OPERATION_LOCK_MISSING_landcover.get-class");
   });
+
+  it("admits currentness only when the PREVIEW operation matches the exact provider authority", () => {
+    const lock = JSON.parse(readFileSync(resolve(
+      import.meta.dirname,
+      "..", "..", "..",
+      "contracts", "upstream", "gowm-0.6.3", "extracted", "package", "bundle", "locks",
+      "wsgs-southbound-operation-lock-v2.json"
+    ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
+    const authorization = currentnessAuthorization();
+    lock.previewOperations.push({
+      ...lock.previewOperations[0]!,
+      ...authorization.allowedOperation,
+      maturity: "PREVIEW",
+      snapshotSupport: "CONSISTENT_AT_START"
+    });
+    expect(selectProductionSouthboundLock(lock, [], authorization).previewOperations).toEqual([
+      expect.objectContaining({
+        operationId: "geo-product.check-current",
+        operationVersion: "1.0",
+        snapshotSupport: "CONSISTENT_AT_START"
+      })
+    ]);
+    const drifted = structuredClone(authorization);
+    drifted.allowedOperation.outputSchemaHash = digest("0");
+    expect(() => selectProductionSouthboundLock(lock, [], drifted))
+      .toThrow("PRODUCTION_PREVIEW_OPERATION_LOCK_DRIFT_geo-product.check-current");
+  });
+
+  it.each(["NONE", "BEST_EFFORT", "PINNED"] as const)(
+    "rejects %s snapshot support for the exact current-source check",
+    (snapshotSupport) => {
+      const lock = JSON.parse(readFileSync(resolve(
+        import.meta.dirname,
+        "..", "..", "..",
+        "contracts", "upstream", "gowm-0.6.3", "extracted", "package", "bundle", "locks",
+        "wsgs-southbound-operation-lock-v2.json"
+      ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
+      const authorization = currentnessAuthorization();
+      lock.previewOperations.push({
+        ...lock.previewOperations[0]!,
+        ...authorization.allowedOperation,
+        maturity: "PREVIEW",
+        snapshotSupport
+      });
+      expect(() => selectProductionSouthboundLock(lock, [], authorization))
+        .toThrow("PRODUCTION_CURRENTNESS_SNAPSHOT_SUPPORT_INVALID");
+    }
+  );
 
   it("normalizes a GDPS world-query node with the exact recipe and descriptor authority", () => {
     const operation = {
@@ -325,6 +579,538 @@ describe("production stage module authority boundaries", () => {
         evidenceIds: ["gdps-evidence-1"]
       }
     }]);
+  });
+
+  it("recognizes only a persisted, selected GDPS current-product identity", () => {
+    const replay = currentnessReplay();
+    const resultBytes = Buffer.from(JSON.stringify({
+      groundingId: replay.sourceGroundingId,
+      resultHash: replay.sourceResultHash,
+      evidenceItems: [{
+        evidenceProductId: replay.selectedEvidenceProductId,
+        productKind: "CAPABILITY_RESULT",
+        sourceOperation: replay.sourceOperation,
+        safePayload: { productId: replay.productId, contentHash: replay.contentHash }
+      }]
+    }), "utf8");
+    const recognized = recognizeGdpsPriorCurrentnessReplay({
+      sourceGroundingId: replay.sourceGroundingId,
+      sourceResultHash: replay.sourceResultHash,
+      selectedProductIds: [replay.selectedEvidenceProductId],
+      resultBytes,
+      sourceOperationLockHash: replay.sourceOperationLockHash,
+      executions: [{
+        execution_kind: "WORLD_QUERY_NODE",
+        operation_id: replay.sourceOperation,
+        operation_version: "1.0",
+        gateway_query_id: replay.sourceGatewayQueryId,
+        request_hash: digest("request"),
+        data_snapshot: {
+          gdpsSourceEvidence: {
+            productId: replay.productId,
+            contentHash: replay.contentHash,
+            recipeId: replay.sourceRecipeId,
+            recipeLockHash: replay.sourceRecipeLockHash,
+            descriptorId: replay.descriptorId,
+            descriptorHash: replay.descriptorHash,
+            productType: replay.productType,
+            productProfile: replay.productProfile,
+            queryProfile: replay.queryProfile
+          }
+        }
+      }]
+    });
+    expect(recognized).toEqual(replay);
+    expect(() => recognizeGdpsPriorCurrentnessReplay({
+      sourceGroundingId: replay.sourceGroundingId,
+      sourceResultHash: replay.sourceResultHash,
+      selectedProductIds: [replay.selectedEvidenceProductId],
+      resultBytes,
+      sourceOperationLockHash: replay.sourceOperationLockHash,
+      executions: []
+    })).toThrow("PRIOR_GDPS_EXECUTION_EVIDENCE_AMBIGUOUS");
+  });
+
+  it("injects a non-executable prior product marker and builds only check-current input", () => {
+    const replay = currentnessReplay();
+    const augmented = augmentGroundingGraphWithCurrentness({
+      graph: { schemaVersion: "1.0", nodes: [], edges: [] },
+      graphHash: digest("a"),
+      mergedMentions: [],
+      ambiguities: [],
+      completionStatus: "COMPLETE",
+      warnings: []
+    }, [replay]);
+    const priorNode = augmented.graph.nodes[0]!;
+    const validateReference = {
+      requirementId: "requirement-currentness-reference",
+      requirementType: "VALIDATE_REFERENCE" as const,
+      requiredForProduct: "WORLD_EVIDENCE" as const,
+      required: true,
+      allowApproximation: false,
+      inputs: { referenceNodeIds: [] },
+      outputs: ["validatedReferences"]
+    };
+    const validateResult = {
+      requirementId: "requirement-currentness-result",
+      requirementType: "VALIDATE_RESULT" as const,
+      requiredForProduct: "WORLD_EVIDENCE" as const,
+      required: true,
+      allowApproximation: false,
+      inputs: { resultNodeIds: [priorNode.nodeId] },
+      outputs: ["validatedResult"]
+    };
+    const built = buildRecipeOperationInput({
+      recipeId: "PRIOR_RESULT_REVALIDATION",
+      planning: {
+        status: "PLANNED",
+        graph: {
+          schemaVersion: "1.0",
+          graphId: "requirements-currentness",
+          requirements: [validateReference, validateResult],
+          dependencies: [{
+            fromRequirementId: validateReference.requirementId,
+            toRequirementId: validateResult.requirementId,
+            outputName: "validatedReferences",
+            targetPath: "/result"
+          }],
+          graphHash: digest("b")
+        },
+        selectedRecipeIds: ["PRIOR_RESULT_REVALIDATION"],
+        capabilityGaps: []
+      },
+      groundingGraph: augmented,
+      references: normalizeReferenceResolution(null, []),
+      maximumCandidates: 10
+    });
+    expect(built).toMatchObject({
+      status: "READY",
+      operationInput: { productId: replay.productId, contentHash: replay.contentHash },
+      parameterValues: {
+        replayMode: "STRICT",
+        sourceOperation: "geo-raster.sample",
+        descriptorId: "SLOPE/DEGREE"
+      }
+    });
+    expect(JSON.stringify(augmented.graph)).not.toContain("operationInput");
+  });
+
+  it("maps a real-shaped CHANGED currentness output to strict SNAPSHOT_MISMATCHED", () => {
+    const replay = currentnessReplay();
+    const authorization = currentnessAuthorization();
+    const nodeId = "Node_1";
+    const submission = {
+      ...worldQuerySubmission(),
+      plan: {
+        ...worldQuerySubmission().plan,
+        nodes: [{
+          ...worldQuerySubmission().plan.nodes[0]!,
+          nodeId,
+          operation: {
+            operationId: "geo-product.check-current",
+            operationVersion: "1.0",
+            inputSchemaHash: authorization.allowedOperation.inputSchemaHash,
+            outputSchemaHash: authorization.allowedOperation.outputSchemaHash
+          }
+        }]
+      },
+      parameters: {
+        productId: replay.productId,
+        contentHash: replay.contentHash,
+        replayMode: "STRICT",
+        sourceGroundingId: replay.sourceGroundingId,
+        sourceResultHash: replay.sourceResultHash,
+        currentnessRecipeId: authorization.recipeId,
+        currentnessProviderRecipeLockHash: authorization.providerRecipeLockHash,
+        currentnessOperationLockHash: authorization.operationLockHash
+      }
+    };
+    const currentContentHash = digest("c");
+    const result = normalizeGdpsCurrentnessWorldQuery({
+      submission,
+      replay,
+      authorization,
+      operation: {
+        ...authorization.allowedOperation,
+        maturity: "PREVIEW",
+        snapshotSupport: "CONSISTENT_AT_START",
+        requiredPermissions: ["data:read"]
+      },
+      worldValue: {
+        nodes: [{
+          nodeId,
+          status: "COMPLETED",
+          result: {
+            operation: { operationId: "geo-product.check-current", operationVersion: "1.0" },
+            status: "COMPLETED",
+            output: {
+              schemaHash: authorization.allowedOperation.outputSchemaHash,
+              value: { productId: replay.productId, currentness: "CHANGED", currentContentHash }
+            },
+            computeSnapshot: {
+              operation: { operationId: "geo-product.check-current" },
+              schemas: {
+                inputSchemaHash: authorization.allowedOperation.inputSchemaHash,
+                outputSchemaHash: authorization.allowedOperation.outputSchemaHash
+              }
+            }
+          }
+        }]
+      }
+    });
+    expect(result).toEqual({
+      nodeId,
+      currentness: "CHANGED",
+      currentContentHash,
+      decision: {
+        status: "SNAPSHOT_MISMATCHED",
+        mode: "STRICT",
+        source: { productId: replay.productId, contentHash: replay.contentHash },
+        actualContentHash: currentContentHash,
+        executionBlocked: true,
+        warnings: ["SOURCE_CHANGED"]
+      }
+    });
+  });
+
+  it("allows only the same current product identity in STRICT mode", () => {
+    const replay = currentnessReplay();
+    const result = normalizeGdpsCurrentnessWorldQuery(
+      currentnessWorldQueryFixture("CURRENT", replay.contentHash)
+    );
+    expect(result).toMatchObject({
+      currentness: "CURRENT",
+      decision: {
+        status: "REPLAY_ALLOWED",
+        mode: "STRICT",
+        source: { productId: replay.productId, contentHash: replay.contentHash },
+        warnings: []
+      }
+    });
+  });
+
+  it("maps a missing current product to an unresolved data gap in STRICT mode", () => {
+    const result = normalizeGdpsCurrentnessWorldQuery(currentnessWorldQueryFixture("NOT_AVAILABLE"));
+    expect(result).toMatchObject({
+      currentness: "NOT_AVAILABLE",
+      decision: {
+        status: "UNRESOLVED",
+        mode: "STRICT",
+        gapKind: "DATA_GAP",
+        executionBlocked: true,
+        warnings: ["SOURCE_NOT_AVAILABLE"]
+      }
+    });
+  });
+
+  it("maps CHANGED to SOURCE_ADVANCED only under explicit BEST_EFFORT", () => {
+    const currentContentHash = digest("c");
+    const result = normalizeGdpsCurrentnessWorldQuery(
+      currentnessWorldQueryFixture("CHANGED", currentContentHash, "BEST_EFFORT")
+    );
+    expect(result).toMatchObject({
+      currentness: "CHANGED",
+      currentContentHash,
+      decision: {
+        status: "REPLAY_ALLOWED",
+        mode: "BEST_EFFORT",
+        source: { productId: currentnessReplay().productId, contentHash: currentContentHash },
+        priorContentHash: currentnessReplay().contentHash,
+        warnings: ["SOURCE_ADVANCED"]
+      }
+    });
+  });
+
+  it("recompiles a persisted source recipe as a new exact current-source query", () => {
+    const fixture = bestEffortSourceFixture();
+    const result = compileGdpsBestEffortCurrentSource(fixture.compileOptions);
+    expect(result.submission.requestId).toMatch(/^wsgs-refresh-[0-9a-f]{32}$/u);
+    expect(result.submission.requestId).not.toBe(fixture.persistedSource.submission.requestId);
+    expect(result.submission.plan.queryId).not.toBe(fixture.persistedSource.submission.plan.queryId);
+    expect(result.submission.idempotencyKey).toBe("idempotency-current:gdps-current-source:1");
+    expect(result.submission.snapshotPolicy).toEqual({ mode: "LATEST_AT_START", allowDowngrade: false });
+    expect(result.submission.plan.nodes.map((entry) => entry.operation.operationId)).toEqual(
+      fixture.persistedSource.submission.plan.nodes.map((entry) => entry.operation.operationId)
+    );
+    expect(result.submission.plan.nodes.filter((entry) => entry.operation.operationId === "geo-raster.sample"))
+      .toHaveLength(1);
+    expect(JSON.stringify(result)).not.toContain("geo-product.check-current");
+    expect(result.submission.parameters["operationInput"]).toEqual(
+      fixture.persistedSource.submission.parameters["operationInput"]
+    );
+    expect(canonicalPlanHash(result.submission.plan)).toBe(result.planHash);
+  });
+
+  it("never carries historical payload or unknown persisted parameters into the current-source query", () => {
+    const fixture = bestEffortSourceFixture();
+    const injected = structuredClone(fixture.compileOptions);
+    injected.persistedSource.submission.parameters["historicalRasterPayload"] = {
+      type: "FeatureCollection", features: [{ secretHistoricalValue: 1 }]
+    };
+    expect(() => compileGdpsBestEffortCurrentSource(injected))
+      .toThrow("GDPS_BEST_EFFORT_SOURCE_PARAMETER_NOT_AUTHORIZED");
+    const clean = compileGdpsBestEffortCurrentSource(fixture.compileOptions);
+    expect(JSON.stringify(clean)).not.toContain("secretHistoricalValue");
+    expect(JSON.stringify(clean)).not.toContain("historicalRasterPayload");
+  });
+
+  it("executes CHANGED as one new source query and never executes it for NOT_AVAILABLE or STRICT", async () => {
+    const changedAttempts: number[] = [];
+    await expect(executeGdpsSequentialCurrentSource({
+      replayMode: "BEST_EFFORT",
+      currentness: "CHANGED",
+      executeAttempt: async (attempt) => {
+        changedAttempts.push(attempt);
+        return { value: `attempt-${attempt}`, sourceChangedDuringQuery: false };
+      }
+    })).resolves.toEqual({ status: "COMPLETED", attempts: ["attempt-1"] });
+    expect(changedAttempts).toEqual([1]);
+
+    const forbidden = vi.fn(async () => ({ value: "forbidden", sourceChangedDuringQuery: false }));
+    await expect(executeGdpsSequentialCurrentSource({
+      replayMode: "BEST_EFFORT", currentness: "CURRENT", executeAttempt: forbidden
+    })).resolves.toEqual({ status: "CURRENT_CONFIRMED", attempts: [] });
+    await expect(executeGdpsSequentialCurrentSource({
+      replayMode: "BEST_EFFORT", currentness: "NOT_AVAILABLE", executeAttempt: forbidden
+    })).resolves.toEqual({ status: "DATA_GAP", attempts: [] });
+    await expect(executeGdpsSequentialCurrentSource({
+      replayMode: "STRICT", currentness: "CHANGED", executeAttempt: forbidden
+    })).resolves.toEqual({ status: "NOT_RUN_STRICT", attempts: [] });
+    expect(forbidden).not.toHaveBeenCalled();
+  });
+
+  it("retries SOURCE_CHANGED_DURING_QUERY once, then completes or becomes INDETERMINATE", async () => {
+    const firstChanges = await executeGdpsSequentialCurrentSource({
+      replayMode: "BEST_EFFORT",
+      currentness: "CHANGED",
+      executeAttempt: async (attempt) => ({
+        value: `attempt-${attempt}`,
+        sourceChangedDuringQuery: attempt === 1
+      })
+    });
+    expect(firstChanges).toEqual({ status: "COMPLETED", attempts: ["attempt-1", "attempt-2"] });
+
+    const alwaysChanges = await executeGdpsSequentialCurrentSource({
+      replayMode: "BEST_EFFORT",
+      currentness: "CHANGED",
+      executeAttempt: async (attempt) => ({ value: `attempt-${attempt}`, sourceChangedDuringQuery: true })
+    });
+    expect(alwaysChanges).toEqual({
+      status: "INDETERMINATE",
+      attempts: ["attempt-1", "attempt-2"],
+      reasonCode: "SOURCE_CHANGED",
+      upstreamCondition: "SOURCE_CHANGED_DURING_QUERY"
+    });
+  });
+
+  it("recognizes both Gateway error and GDPS INDETERMINATE source-change shapes", () => {
+    const fixture = bestEffortSourceFixture();
+    const submission = compileGdpsBestEffortCurrentSource(fixture.compileOptions).submission;
+    const sourceNode = submission.plan.nodes.find((entry) => entry.operation.operationId === fixture.replay.sourceOperation)!;
+    const baseNode = {
+      nodeId: sourceNode.nodeId,
+      operation: { operationId: fixture.replay.sourceOperation, operationVersion: "1.0" },
+      status: "FAILED"
+    };
+    expect(isGdpsSourceChangedDuringQuery(submission, {
+      nodes: [{
+        ...baseNode,
+        result: {
+          operation: { operationId: fixture.replay.sourceOperation, operationVersion: "1.0" },
+          status: "INDETERMINATE",
+          output: { value: { code: "SOURCE_CHANGED_DURING_QUERY" } }
+        }
+      }]
+    }, fixture.replay.sourceOperation)).toBe(true);
+    expect(isGdpsSourceChangedDuringQuery(submission, {
+      nodes: [{
+        ...baseNode,
+        error: { error: { code: "SOURCE_CHANGED_DURING_QUERY", stage: "DAG_EXECUTION" } }
+      }]
+    }, fixture.replay.sourceOperation)).toBe(true);
+    expect(isGdpsSourceChangedDuringQuery(submission, {
+      nodes: [{ ...baseNode, error: { error: { code: "PROVIDER_NOT_READY" } } }]
+    }, fixture.replay.sourceOperation)).toBe(false);
+  });
+
+  it("persists source-change attempts with their real source operation identity", () => {
+    const fixture = bestEffortSourceFixture();
+    const submission = compileGdpsBestEffortCurrentSource(fixture.compileOptions).submission;
+    const context = {
+      groundingId: "grounding-currentness-replay"
+    } as PipelineStageContext;
+    const resultHash = digest("e");
+    const record = gdpsSourceChangedAttemptRecord(context, {
+      submission,
+      status: "INDETERMINATE",
+      resultHash,
+      delegatedIdentityHash: digest("f"),
+      startedAt: "2026-08-30T00:00:00.000Z",
+      finishedAt: "2026-08-30T00:00:01.000Z",
+      encryptedCheckpointEvidenceMaterial: {
+        checkpointProtection: "AES_256_GCM_INTERNAL_ONLY",
+        responseStatus: 200,
+        response: {
+          queryId: submission.plan.queryId,
+          status: "INDETERMINATE",
+          outputHash: resultHash,
+          nodes: [{
+            nodeId: submission.plan.nodes.find((entry) =>
+              entry.operation.operationId === fixture.replay.sourceOperation)!.nodeId,
+            operation: {
+              operationId: fixture.replay.sourceOperation,
+              operationVersion: fixture.replay.sourceOperationVersion
+            },
+            status: "FAILED",
+            error: { error: { code: "SOURCE_CHANGED_DURING_QUERY", stage: "DAG_EXECUTION" } }
+          }]
+        }
+      }
+    }, fixture.replay, 1, {
+      schemaVersion: "wsgs-gdps-best-effort-current-source/1.0",
+      status: "INDETERMINATE"
+    });
+    expect(record).toMatchObject({
+      groundingId: context.groundingId,
+      executionKind: "WORLD_QUERY",
+      operationId: fixture.replay.sourceOperation,
+      operationVersion: fixture.replay.sourceOperationVersion,
+      gatewayQueryId: submission.plan.queryId,
+      requestHash: canonicalSha256(submission),
+      resultHash,
+      normalizedStatus: "INDETERMINATE",
+      dataSnapshot: {
+        gdpsBestEffortCurrentSource: {
+          attempt: 1,
+          attemptQueryId: submission.plan.queryId,
+          upstreamCondition: "SOURCE_CHANGED_DURING_QUERY"
+        }
+      }
+    });
+  });
+
+  it("rejects a contradictory CURRENT hash instead of silently advancing", () => {
+    expect(() => normalizeGdpsCurrentnessWorldQuery(
+      currentnessWorldQueryFixture("CURRENT", digest("d"))
+    )).toThrow("GDPS_REPLAY_CURRENTNESS_CONTRADICTION");
+  });
+
+  it("fails closed before reading evidence for foreign scope or prior hash mismatch", async () => {
+    const replay = currentnessReplay();
+    const pointer = [{
+      groundingId: replay.sourceGroundingId,
+      resultHash: replay.sourceResultHash,
+      selectedProductIds: [replay.selectedEvidenceProductId]
+    }];
+    const caller = {
+      servicePrincipalId: "wsgs-service",
+      actorId: "actor-1",
+      dataScope: "scope-a",
+      dataScopes: ["scope-a"],
+      datasetScopes: ["dataset-a"],
+      permissions: ["data:read"],
+      authorizationContextHash: digest("e")
+    };
+    const foreignQuery = vi.fn(async () => ({ rows: [] }));
+    await expect(loadPriorCurrentnessContexts({ query: foreignQuery } as never, caller, pointer))
+      .rejects.toMatchObject({ code: "PRIOR_RESULT_NOT_FOUND_IN_SCOPE" });
+    expect(foreignQuery).toHaveBeenCalledWith(expect.stringContaining("result.data_scope = $2"), [
+      replay.sourceGroundingId, "scope-a", "actor-1"
+    ]);
+
+    const mismatchedQuery = vi.fn(async () => ({
+      rows: [{
+        result_hash: digest("f"),
+        result_bytes: Buffer.from("{}", "utf8"),
+        principal_id: caller.servicePrincipalId,
+        dataset_scopes: caller.datasetScopes,
+        authorization_context_hash: caller.authorizationContextHash
+      }]
+    }));
+    await expect(loadPriorCurrentnessContexts({ query: mismatchedQuery } as never, caller, pointer))
+      .rejects.toMatchObject({ code: "PRIOR_RESULT_NOT_FOUND_IN_SCOPE" });
+    expect(mismatchedQuery).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads the source submission only through the same-authority persisted request and query hashes", async () => {
+    const fixture = bestEffortSourceFixture();
+    const replay = fixture.replay;
+    const caller = {
+      servicePrincipalId: "wsgs-service",
+      actorId: "actor-1",
+      dataScope: "scope-a",
+      dataScopes: ["scope-a"],
+      datasetScopes: ["dataset-a"],
+      permissions: ["data:read"],
+      authorizationContextHash: digest("authorization")
+    };
+    const resultBytes = Buffer.from(JSON.stringify({
+      groundingId: replay.sourceGroundingId,
+      resultHash: replay.sourceResultHash,
+      evidenceItems: [{
+        evidenceProductId: replay.selectedEvidenceProductId,
+        productKind: "CAPABILITY_RESULT",
+        sourceOperation: replay.sourceOperation,
+        safePayload: {
+          productId: replay.productId,
+          contentHash: replay.contentHash,
+          historicalRasterPayload: { mustNeverBeReused: true }
+        }
+      }]
+    }), "utf8");
+    const nodeExecution = {
+      execution_kind: "WORLD_QUERY_NODE",
+      operation_id: replay.sourceOperation,
+      operation_version: replay.sourceOperationVersion,
+      gateway_query_id: replay.sourceGatewayQueryId,
+      request_hash: digest("node-request"),
+      data_snapshot: {
+        gdpsSourceEvidence: {
+          productId: replay.productId,
+          contentHash: replay.contentHash,
+          recipeId: replay.sourceRecipeId,
+          recipeLockHash: replay.sourceRecipeLockHash,
+          descriptorId: replay.descriptorId,
+          descriptorHash: replay.descriptorHash,
+          productType: replay.productType,
+          productProfile: replay.productProfile,
+          queryProfile: replay.queryProfile
+        }
+      }
+    };
+    const topExecution = {
+      execution_kind: "WORLD_QUERY",
+      operation_id: null,
+      operation_version: null,
+      gateway_query_id: replay.sourceGatewayQueryId,
+      request_hash: canonicalSha256(fixture.persistedSource.submission),
+      data_snapshot: null
+    };
+    const query = vi.fn()
+      .mockResolvedValueOnce({ rows: [{
+        result_hash: replay.sourceResultHash,
+        result_bytes: resultBytes,
+        principal_id: caller.servicePrincipalId,
+        dataset_scopes: caller.datasetScopes,
+        authorization_context_hash: caller.authorizationContextHash,
+        gowm_operation_lock_hash: replay.sourceOperationLockHash
+      }] })
+      .mockResolvedValueOnce({ rows: [nodeExecution, topExecution] })
+      .mockResolvedValueOnce({ rows: [{
+        query_id: replay.sourceGatewayQueryId,
+        gateway_query_id: replay.sourceGatewayQueryId,
+        plan: fixture.persistedSource.submission,
+        plan_hash: fixture.persistedSource.sourcePlanHash
+      }] });
+    const loaded = await loadPriorCurrentnessContexts({ query } as never, caller, [{
+      groundingId: replay.sourceGroundingId,
+      resultHash: replay.sourceResultHash,
+      selectedProductIds: [replay.selectedEvidenceProductId]
+    }]);
+    expect(loaded.gdpsCurrentnessReplays).toEqual([{ ...replay, replayMode: "STRICT" }]);
+    expect(loaded.gdpsPersistedSourceQueries).toEqual([fixture.persistedSource]);
+    expect(JSON.stringify(loaded)).not.toContain("mustNeverBeReused");
+    expect(query.mock.calls[2]?.[0]).toContain("query_id = $3");
   });
 
   it("publishes candidate rank without leaking provider topology", () => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import type { WorldQueryPlanV2 } from "./types.js";
 import { TypedWorldQueryCompiler, validateCompiledPlan } from "./index.js";
-import { compileInput } from "./test-fixtures.js";
+import { authorizeGdpsCurrentness, compileInput } from "./test-fixtures.js";
 
 describe("TypedWorldQueryCompiler v2", () => {
   const compiler = new TypedWorldQueryCompiler();
@@ -160,24 +160,66 @@ describe("TypedWorldQueryCompiler v2", () => {
     expect(() => validateCompiledPlan(result.submission.plan, input.capabilities)).not.toThrow();
   });
 
-  it("uses an explicit pinned manifest for prior-result revalidation", () => {
-    const input = compileInput("PRIOR_RESULT_REVALIDATION");
-    for (const operationId of ["reference.validate", "snapshot.validate"]) {
-      input.operationLocks.find((lock) => lock.operationId === operationId)!.snapshotSupport = "PINNED";
-    }
-    input.snapshotPolicy = {
-      mode: "PINNED",
-      allowDowngrade: false,
-      pinnedSnapshot: {
-        manifestVersion: "1.0",
-        queryId: "prior-query",
-        snapshotId: "snapshot-1"
-      }
-    };
+  it("compiles prior GDPS evidence to the single exact currentness operation", () => {
+    const input = authorizeGdpsCurrentness(compileInput("PRIOR_RESULT_REVALIDATION"));
     const result = compiler.compile(input);
-    expect(result).toMatchObject({
-      status: "COMPILED",
-      submission: { snapshotPolicy: { mode: "PINNED", allowDowngrade: false } }
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.plan.nodes).toHaveLength(1);
+    expect(result.submission.plan.nodes[0]).toMatchObject({
+      operation: { operationId: "geo-product.check-current", operationVersion: "1.0" },
+      inputs: {
+        productId: { kind: "LITERAL", value: "gdps-slope-prior", targetPath: "/productId" },
+        contentHash: { kind: "LITERAL", value: input.parameterValues?.["contentHash"], targetPath: "/contentHash" }
+      }
+    });
+    expect(Object.keys(result.submission.plan.nodes[0]!.inputs).sort()).toEqual(["contentHash", "productId"]);
+    expect(result.submission.snapshotPolicy).toEqual({ mode: "LATEST_AT_START", allowDowngrade: false });
+    expect(input.operationLocks.find((entry) => entry.operationId === "geo-product.check-current")?.snapshotSupport)
+      .toBe("CONSISTENT_AT_START");
+    expect(JSON.stringify(result)).not.toMatch(/geo-raster\.(?:sample|find-by-range)/u);
+  });
+
+  it("keeps BEST_EFFORT selection on the same currentness-only plan", () => {
+    const input = authorizeGdpsCurrentness(compileInput("PRIOR_RESULT_REVALIDATION"));
+    input.parameterValues = { ...input.parameterValues, replayMode: "BEST_EFFORT" };
+    const result = compiler.compile(input);
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.plan.nodes.map((entry) => entry.operation.operationId))
+      .toEqual(["geo-product.check-current"]);
+    expect(result.submission.parameters).toMatchObject({
+      productId: "gdps-slope-prior",
+      contentHash: input.parameterValues["contentHash"],
+      replayMode: "BEST_EFFORT"
+    });
+    expect(result.submission.snapshotPolicy).toEqual({ mode: "LATEST_AT_START", allowDowngrade: false });
+  });
+
+  it("accepts the full locked GDPS product-id length for currentness", () => {
+    const input = authorizeGdpsCurrentness(compileInput("PRIOR_RESULT_REVALIDATION"));
+    const productId = `g${"d".repeat(127)}`;
+    input.parameterValues = { ...input.parameterValues, productId };
+    const result = compiler.compile(input);
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.parameters["productId"]).toBe(productId);
+  });
+
+  it("fails closed when currentness recipe or operation authority drifts", () => {
+    const recipeDrift = authorizeGdpsCurrentness(compileInput("PRIOR_RESULT_REVALIDATION"));
+    recipeDrift.trustedGdpsProviderRecipeLockHash = `sha256:${"f".repeat(64)}`;
+    expect(compiler.compile(recipeDrift)).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "RECIPE_LOCK_DRIFT" }
+    });
+
+    const operationDrift = authorizeGdpsCurrentness(compileInput("PRIOR_RESULT_REVALIDATION"));
+    operationDrift.operationLocks.find((entry) => entry.operationId === "geo-product.check-current")!.outputSchemaHash =
+      `sha256:${"e".repeat(64)}`;
+    expect(compiler.compile(operationDrift)).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "RECIPE_LOCK_DRIFT" }
     });
   });
 

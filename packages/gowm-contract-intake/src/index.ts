@@ -146,7 +146,7 @@ interface PackageIntegrityEvidence {
     extractedFileCount: typeof PACKAGE_FILE_COUNT;
     rawCrlfPackageFileCount: typeof PACKAGE_FILE_COUNT;
     treeSha256: typeof GOWM_MATERIALIZATION_TREE_SHA256;
-    status: "BYTE_IDENTICAL";
+    status: "ARCHIVE_EXACT_CHECKOUT_CANONICAL_LF_IDENTICAL";
   };
   discrepancy: {
     taskPackageLockedValueInterpretation: "UPSTREAM_LOGICAL_PRE_LOCK_FILE_RECORD_INTEGRITY";
@@ -358,7 +358,7 @@ function expectedPackageIntegrityEvidence(): PackageIntegrityEvidence {
       extractedFileCount: PACKAGE_FILE_COUNT,
       rawCrlfPackageFileCount: PACKAGE_FILE_COUNT,
       treeSha256: GOWM_MATERIALIZATION_TREE_SHA256,
-      status: "BYTE_IDENTICAL"
+      status: "ARCHIVE_EXACT_CHECKOUT_CANONICAL_LF_IDENTICAL"
     },
     discrepancy: {
       taskPackageLockedValueInterpretation: "UPSTREAM_LOGICAL_PRE_LOCK_FILE_RECORD_INTEGRITY",
@@ -546,36 +546,50 @@ export function verifyGowmContractIntake(
   );
 
   const extractedFiles = listRegularFiles(extractedPackageRoot);
-  const extractedRecords: PackageFileRecord[] = extractedFiles.map((filePath) => {
-    const bytes = readFileSync(filePath);
-    return { path: portableRelativePath(extractedPackageRoot, filePath), bytes: bytes.length, sha256: sha256Hex(bytes) };
-  });
-  pass("extracted-file-count", String(extractedRecords.length), String(PACKAGE_FILE_COUNT));
-  const rawCrlfPackageFileCount = extractedFiles.filter((filePath) =>
-    readFileSync(filePath).includes(Buffer.from("\r\n", "ascii"))
+  const extractedPaths = extractedFiles.map((filePath) => portableRelativePath(extractedPackageRoot, filePath));
+  pass("extracted-file-count", String(extractedPaths.length), String(PACKAGE_FILE_COUNT));
+
+  // The byte-locked tarball is the authority for the original CRLF materialization.
+  // A Git checkout may contain either LF or CRLF, so checkout equivalence is
+  // verified separately after canonical LF normalization without weakening the
+  // archive digest, raw tree hash, or file-set gates.
+  const archiveFiles = parseTarballFiles(tarball);
+  const archiveMaterializationRecords: PackageFileRecord[] = [...archiveFiles.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([archivePath, bytes]) => ({
+      path: archivePath.replace(/^package\//u, ""),
+      bytes: bytes.length,
+      sha256: sha256Hex(bytes)
+    }));
+  const rawCrlfPackageFileCount = [...archiveFiles.values()].filter((bytes) =>
+    bytes.includes(Buffer.from("\r\n", "ascii"))
   ).length;
-  pass("raw-crlf-materialization-count", String(rawCrlfPackageFileCount), String(PACKAGE_FILE_COUNT));
+  pass("archive-raw-crlf-materialization-count", String(rawCrlfPackageFileCount), String(PACKAGE_FILE_COUNT));
   pass(
-    "materialization-tree-sha256",
-    `sha256:${sha256Hex(canonicalJson(extractedRecords))}`,
+    "archive-materialization-tree-sha256",
+    `sha256:${sha256Hex(canonicalJson(archiveMaterializationRecords))}`,
     GOWM_MATERIALIZATION_TREE_SHA256
   );
 
-  const archiveFiles = parseTarballFiles(tarball);
   pass("archive-file-count", String(archiveFiles.size), String(PACKAGE_FILE_COUNT));
-  const expectedArchivePaths = extractedRecords.map((record) => `package/${record.path}`);
+  const expectedArchivePaths = extractedPaths.map((entryPath) => `package/${entryPath}`);
   const archivePaths = [...archiveFiles.keys()].sort((left, right) => left.localeCompare(right));
   invariant(canonicalJson(archivePaths) === canonicalJson(expectedArchivePaths), "Tarball and extracted file sets differ");
-  for (const record of extractedRecords) {
-    const archivePath = `package/${record.path}`;
+  for (const entryPath of extractedPaths) {
+    const archivePath = `package/${entryPath}`;
     const archived = archiveFiles.get(archivePath);
     invariant(archived !== undefined, `Tarball is missing ${archivePath}`);
+    const archivedCanonicalLf = normalizeCanonicalLf(archived, archivePath);
+    const extractedCanonicalLf = normalizeCanonicalLf(
+      readFileSync(join(extractedPackageRoot, ...entryPath.split("/"))),
+      entryPath
+    );
     invariant(
-      archived.equals(readFileSync(join(extractedPackageRoot, ...record.path.split("/")))),
-      `Tarball and extracted bytes differ for ${archivePath}`
+      archivedCanonicalLf.equals(extractedCanonicalLf),
+      `Tarball and extracted canonical LF bytes differ for ${archivePath}`
     );
   }
-  pass("archive-extracted-materialization", `${archiveFiles.size} byte-identical files`);
+  pass("archive-checkout-canonical-lf-materialization", `${archiveFiles.size} canonical-LF-identical files`);
   scanForRuntimeMaterial(archiveFiles);
   pass("provider-url-token-db-topology-secrets", "0", "0");
 

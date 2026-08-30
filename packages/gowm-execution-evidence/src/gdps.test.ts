@@ -156,16 +156,20 @@ describe("GDPS current-only replay", () => {
     });
   });
 
-  it("does not reinterpret a missing current product as a replayable negative fact", () => {
-    expect(evaluateGdpsCurrentOnlyReplay("BEST_EFFORT", prior, {
-      productId: "terrain-main",
-      currentness: "NOT_AVAILABLE"
-    })).toMatchObject({
-      status: "UNRESOLVED",
-      gapKind: "DATA_GAP",
-      executionBlocked: true,
-      warnings: ["SOURCE_NOT_AVAILABLE"]
-    });
+  it("maps a missing current product to the same unresolved data gap in every replay mode", () => {
+    for (const mode of ["PINNED", "STRICT", "BEST_EFFORT"] as const) {
+      expect(evaluateGdpsCurrentOnlyReplay(mode, prior, {
+        productId: "terrain-main",
+        currentness: "NOT_AVAILABLE"
+      })).toEqual({
+        status: "UNRESOLVED",
+        mode,
+        source: prior,
+        gapKind: "DATA_GAP",
+        executionBlocked: true,
+        warnings: ["SOURCE_NOT_AVAILABLE"]
+      });
+    }
   });
 });
 

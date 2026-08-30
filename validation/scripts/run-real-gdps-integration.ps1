@@ -3,6 +3,14 @@ param(
   [string]$GatewayBaseUrl = "http://127.0.0.1:18063",
   [int]$DatabaseHostPort = 55464,
   [string]$GdpsArtifactRoot,
+  [string]$GdpsHandoffDirectory,
+  [string]$DriverManifestPath,
+  [string]$DriverSidecarContractFile = $env:WSGS_GDPS_DRIVER_SIDECAR_CONTRACT_FILE,
+  [string]$W43SidecarContractFile = $env:WSGS_GDPS_W43_SIDECAR_CONTRACT_FILE,
+  [string]$W43DriverSourceFile = $env:GDPS_V021_W43_DRIVER_SOURCE_FILE,
+  [string]$GatewayCanarySourceFile = $env:GDPS_V021_GATEWAY_CANARY_SOURCE_FILE,
+  [switch]$RunW43RuntimeGate,
+  [string]$RequestedGateRunId,
   [string]$DataScope,
   [ValidateSet(
     "E2E-SLOPE-POINT", "E2E-SLOPE-RANGE", "E2E-FLOOD-HIGH", "E2E-DRAINAGE-NEARBY",
@@ -17,7 +25,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$databaseContainer = "wsgs-gdps-postgres"
+if ($LegacyV02Evidence) {
+  throw "Legacy GDPS v0.2 evidence is not accepted by the v0.2.1 real integration gate"
+}
+$databaseContainer = "wsgs-gdps-postgres-" + [Guid]::NewGuid().ToString("N").Substring(0, 16)
+$createdDatabaseContainerId = $null
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $evidenceDirectory = Join-Path $repositoryRoot $(if ($LegacyV02Evidence) {
   "reports\wsgs-v0.2-gdps"
@@ -27,12 +39,16 @@ $evidenceDirectory = Join-Path $repositoryRoot $(if ($LegacyV02Evidence) {
 if (-not $GdpsArtifactRoot) {
   $GdpsArtifactRoot = Join-Path $repositoryRoot "contracts\generated\gdps-v0.2.1"
 }
+if (-not $GdpsHandoffDirectory) {
+  $GdpsHandoffDirectory = Join-Path $repositoryRoot "contracts\upstream\gdps-v0.2.1"
+}
 $operationLock = if ($LegacyV02Evidence) {
   Join-Path $repositoryRoot "reports\wsgs-v0.2-gdps\w26-combined-southbound-operation-lock.json"
 } else {
   Join-Path $GdpsArtifactRoot "wsgs-southbound-operation-lock-v2.json"
 }
 $gdpsRecipeLock = Join-Path $GdpsArtifactRoot "wsgs-gdps-recipe-lock.json"
+$gdpsProviderRecipeLock = Join-Path $GdpsHandoffDirectory "GDPS_RECIPE_LOCK.json"
 $gdpsConsumerSnapshot = Join-Path $GdpsArtifactRoot "gdps-consumer-snapshot.json"
 $gdpsDescriptorRegistry = Join-Path $GdpsArtifactRoot "product-type-descriptors.json"
 $gdpsVocabularyRegistry = Join-Path $GdpsArtifactRoot "product-vocabularies.json"
@@ -59,27 +75,16 @@ $expectedGdpsPatterns = @(
   "GDPS_GENERIC_VECTOR_INTERSECTS"
 )
 
-function Get-ExactContainerId {
-  $id = docker ps -aq --filter "name=^/$databaseContainer$"
-  if ($LASTEXITCODE -ne 0) { throw "Unable to inspect the isolated WSGS database container" }
-  return $id
-}
-
-function Assert-ExactContainer([string]$id) {
+function Remove-CreatedDatabaseContainer {
+  $id = $script:createdDatabaseContainerId
   if (-not $id) { return }
   $name = docker inspect --format "{{.Name}}" $id
   if ($LASTEXITCODE -ne 0 -or $name -ne "/$databaseContainer") {
-    throw "Refusing to manage an unexpected database container"
+    throw "Refusing to remove a database container not created by this invocation"
   }
-}
-
-function Remove-ExactDatabaseContainer {
-  $id = Get-ExactContainerId
-  if ($id) {
-    Assert-ExactContainer $id
-    docker rm -f $id | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Unable to remove the isolated WSGS database container" }
-  }
+  docker rm -f $id | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw "Unable to remove this invocation's isolated WSGS database container" }
+  $script:createdDatabaseContainerId = $null
 }
 
 function Import-ProcessEnvironment([string]$path) {
@@ -215,9 +220,34 @@ function Assert-ExactGdpsCaseSelection {
   if ($corpusHash -ne "b9717b9af929fbd82bf0509f9648379aae601a8a0f567ce1d520ad970a8f6525") {
     throw "The frozen GDPS v0.2.1 E2E corpus hash has drifted"
   }
-  $unsupportedDrivers = @("NEG-RECIPE-DRIFT", "NEG-CURRENTNESS")
-  if (-not $GdpsCaseId -or $GdpsCaseId -in $unsupportedDrivers) {
-    throw "GDPS v0.2.1 full-corpus execution is blocked until the isolated recipe-drift and two-stage currentness drivers are implemented"
+}
+
+function Get-ProcessEnvironmentSnapshot {
+  $snapshot = @{}
+  foreach ($entry in Get-ChildItem Env:) {
+    $snapshot[$entry.Name] = [string]$entry.Value
+  }
+  return $snapshot
+}
+
+function Restore-ProcessEnvironment([hashtable]$snapshot) {
+  foreach ($entry in @(Get-ChildItem Env:)) {
+    if (-not $snapshot.ContainsKey($entry.Name)) {
+      Remove-Item -LiteralPath ("Env:" + $entry.Name) -ErrorAction SilentlyContinue
+    }
+  }
+  foreach ($name in $snapshot.Keys) {
+    Set-Item -LiteralPath ("Env:" + $name) -Value $snapshot[$name]
+  }
+}
+
+function Invoke-RepositoryCommand([string[]]$Arguments, [string]$FailureMessage) {
+  Push-Location $repositoryRoot
+  try {
+    & npm.cmd @Arguments
+    if ($LASTEXITCODE -ne 0) { throw $FailureMessage }
+  } finally {
+    Pop-Location
   }
 }
 
@@ -241,24 +271,116 @@ if (-not (Test-Path -LiteralPath $operationLock -PathType Leaf)) {
 Assert-ExactGdpsPatternPlan
 Assert-ExactGdpsCaseSelection
 $sourceCommit = Get-CleanSourceCommit
+$gateRunId = if ($RequestedGateRunId) { $RequestedGateRunId.Trim() } else {
+  "wsgs-gdps-v021-" + [Guid]::NewGuid().ToString("N").Substring(0, 16)
+}
+if ($gateRunId -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{5,63}$') {
+  throw "The requested GDPS gate run id is invalid"
+}
+$canonicalDriverRunDirectory = Join-Path $evidenceDirectory ("drivers\" + $gateRunId)
+if (-not $DriverManifestPath) {
+  $DriverManifestPath = Join-Path $canonicalDriverRunDirectory "driver-manifest.json"
+}
+$DriverManifestPath = [IO.Path]::GetFullPath($DriverManifestPath)
+$canonicalDriverPrefix = [IO.Path]::GetFullPath($canonicalDriverRunDirectory) + [IO.Path]::DirectorySeparatorChar
+if (-not $DriverManifestPath.StartsWith($canonicalDriverPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+  throw "The GDPS driver manifest must be isolated beneath the current gate-run evidence directory"
+}
+$processEnvironmentBefore = Get-ProcessEnvironmentSnapshot
+try {
+  $env:WSGS_GATE_RUN_ID = $gateRunId
+
+$consumerEnvironment = Join-Path $SampleRoot ".runtime\wsgs-sample\wsgs-consumer-host.env"
+$sampleHandoffDirectory = Join-Path $SampleRoot "output\wsgs-sample-handoff"
+if (-not (Test-Path -LiteralPath $consumerEnvironment -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $sampleHandoffDirectory -PathType Container)) {
+  throw "The authorized Sample World consumer handoff is incomplete"
+}
+
+# Credentials are loaded into this process only. All provenance and live-lock
+# checks run before the first Docker or database mutation.
+Import-ProcessEnvironment $consumerEnvironment
+$env:WSGS_GATE_RUN_ID = $gateRunId
+$effectiveDataScope = if ($DataScope) {
+  $DataScope.Trim()
+} elseif ($LegacyV02Evidence) {
+  $env:GATEWAY_DATA_SCOPE_CLAIM
+} else {
+  "scope-gdps-v021-baseline"
+}
+if (-not $effectiveDataScope -or $effectiveDataScope.Contains("*")) {
+  throw "The GDPS integration data scope must be one exact non-wildcard claim"
+}
+
+if (-not $LegacyV02Evidence) {
+  $env:GDPS_V021_HANDOFF_DIR = (Resolve-Path -LiteralPath $GdpsHandoffDirectory).Path
+  $env:GOWM_GATEWAY_BASE_URL = $GatewayBaseUrl
+  $env:WSGS_READINESS_DATA_SCOPE = $effectiveDataScope
+  $env:WSGS_READINESS_DATASET_SCOPES = $env:GATEWAY_DATASET_SCOPE_CLAIM
+  $env:WSGS_READINESS_PERMISSIONS = "data:read,dataset:read,grounding.read"
+  $intakeArguments = @("run", "gdps:v021:intake:check", "--", "--handoff", $env:GDPS_V021_HANDOFF_DIR)
+  if ($W43DriverSourceFile) {
+    $intakeArguments += @("--w43-driver-source", (Resolve-Path -LiteralPath $W43DriverSourceFile).Path)
+  }
+  if ($GatewayCanarySourceFile) {
+    $intakeArguments += @("--gateway-canary-source", (Resolve-Path -LiteralPath $GatewayCanarySourceFile).Path)
+  }
+  Invoke-RepositoryCommand `
+    -Arguments $intakeArguments `
+    -FailureMessage "The GDPS v0.2.1 handoff intake check failed before mutation"
+  Invoke-RepositoryCommand `
+    -Arguments @("run", "gdps:v021:operation-lock:check", "--", "--handoff", $env:GDPS_V021_HANDOFF_DIR,
+      "--gateway-base-url", $GatewayBaseUrl, "--data-scope", $effectiveDataScope) `
+    -FailureMessage "The live GDPS v0.2.1 operation-lock check failed before mutation"
+  Assert-V021OperationLock $operationLock
+
+  $env:ALLOW_REAL_DEVELOPMENT_PIPELINE_GATE = "YES"
+  $env:WSGS_EVIDENCE_SOURCE_COMMIT = $sourceCommit
+  $env:WSGS_GDPS_E2E_CORPUS_FILE = $gdpsE2eCorpus
+  $env:GOWM_SOUTHBOUND_LOCK_FILE = (Resolve-Path -LiteralPath $operationLock).Path
+  $env:WSGS_GDPS_V021_HANDOFF_DIR = $env:GDPS_V021_HANDOFF_DIR
+  $env:WSGS_GDPS_PREFLIGHT_ONLY = "YES"
+  try {
+    Invoke-RepositoryCommand `
+      -Arguments @("run", "gate:real:development") `
+      -FailureMessage "The typed GDPS v0.2.1 authority preflight failed before mutation"
+  } finally {
+    Remove-Item Env:WSGS_GDPS_PREFLIGHT_ONLY -ErrorAction SilentlyContinue
+  }
+}
+
+# Bind the generated consumer artifacts only after intake, live projection, and
+# the typed authority preflight have all accepted the exact upstream handoff.
+# These reads remain before the first Docker or database mutation.
 $gdpsRecipeLockArtifact = Get-RequiredArtifactSha256 $gdpsRecipeLock "The generated GDPS recipe lock"
 $gdpsConsumerSnapshotArtifact = Get-RequiredArtifactSha256 $gdpsConsumerSnapshot "The generated GDPS consumer snapshot"
 $gdpsDescriptorRegistryArtifact = Get-RequiredArtifactSha256 $gdpsDescriptorRegistry "The generated GDPS descriptor registry"
 $gdpsVocabularyRegistryArtifact = Get-RequiredArtifactSha256 $gdpsVocabularyRegistry "The generated GDPS vocabulary registry"
 $gdpsConceptMapArtifact = Get-RequiredArtifactSha256 $gdpsConceptMap "The locked WSGS GDPS semantic concept map"
-Assert-V021OperationLock $operationLock
-
-$consumerEnvironment = Join-Path $SampleRoot ".runtime\wsgs-sample\wsgs-consumer-host.env"
-$handoffDirectory = Join-Path $SampleRoot "output\wsgs-sample-handoff"
-if (-not (Test-Path -LiteralPath $consumerEnvironment -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $handoffDirectory -PathType Container)) {
-  throw "The authorized Sample World consumer handoff is incomplete"
-}
+$gdpsProviderRecipeLockArtifact = Get-RequiredArtifactSha256 $gdpsProviderRecipeLock "The authoritative GDPS provider recipe lock"
+$driverOrchestrationRequired = (-not $GdpsCaseId) -or $GdpsCaseId -in @(
+  "NEG-DATA-GAP", "NEG-RECIPE-DRIFT", "NEG-TRUNCATED", "NEG-CURRENTNESS"
+)
+$driverSidecarArtifact = if ($driverOrchestrationRequired) {
+  if (-not $DriverSidecarContractFile) {
+    throw "The hash-bound isolated GDPS driver sidecar contract is required; four-driver evidence remains NOT_RUN"
+  }
+  Get-RequiredArtifactSha256 $DriverSidecarContractFile "The isolated GDPS driver sidecar contract"
+} else { $null }
+$w43SidecarArtifact = if ($RunW43RuntimeGate) {
+  if ($GdpsCaseId) { throw "W43 six-scenario runtime gate cannot run in single-case diagnostic mode" }
+  if ($gateRunId -notmatch '^wsgs-gdps-v021-[a-z0-9][a-z0-9-]{7,95}$') {
+    throw "W43 runtime gate requires the exact wsgs-gdps-v021 gate-run id format"
+  }
+  if (-not $W43SidecarContractFile) {
+    throw "The hash-bound W43 barrier sidecar contract is required; W43 remains NOT_RUN"
+  }
+  Get-RequiredArtifactSha256 $W43SidecarContractFile "The W43 barrier sidecar contract"
+} else { $null }
 
 $ready = Invoke-RestMethod -Uri "$GatewayBaseUrl/health/ready" -TimeoutSec 5
 if ($ready.status -ne "ok") { throw "The isolated combined Gateway is not ready" }
 
-Remove-ExactDatabaseContainer
 $databasePassword = [Guid]::NewGuid().ToString("N") + [Guid]::NewGuid().ToString("N")
 $env:POSTGRES_PASSWORD = $databasePassword
 try {
@@ -270,7 +392,10 @@ try {
     -e POSTGRES_USER=wsgs `
     -e POSTGRES_DB=wsgs `
     postgres:17.10-alpine3.23
-  if ($LASTEXITCODE -ne 0 -or -not $containerId) { throw "Unable to create the isolated WSGS database" }
+  if ($LASTEXITCODE -ne 0 -or -not $containerId -or $containerId.Trim() -notmatch '^[a-f0-9]{12,64}$') {
+    throw "Unable to create the isolated WSGS database"
+  }
+  $script:createdDatabaseContainerId = $containerId.Trim()
 
   $deadline = (Get-Date).AddSeconds(60)
   do {
@@ -280,17 +405,6 @@ try {
   } until ($databaseReady -or (Get-Date) -gt $deadline)
   if (-not $databaseReady) { throw "The isolated WSGS database did not become ready" }
 
-  Import-ProcessEnvironment $consumerEnvironment
-  $effectiveDataScope = if ($DataScope) {
-    $DataScope.Trim()
-  } elseif ($LegacyV02Evidence) {
-    $env:GATEWAY_DATA_SCOPE_CLAIM
-  } else {
-    "scope-gdps-v021-baseline"
-  }
-  if (-not $effectiveDataScope -or $effectiveDataScope.Contains("*")) {
-    throw "The GDPS integration data scope must be one exact non-wildcard claim"
-  }
   $randomBytes = New-Object byte[] 32
   [Security.Cryptography.RandomNumberGenerator]::Fill($randomBytes)
   $env:WSGS_REQUEST_ENCRYPTION_KEY_BASE64 = [Convert]::ToBase64String($randomBytes)
@@ -302,11 +416,15 @@ try {
   } else {
     $env:WSGS_GDPS_E2E_CORPUS_FILE = $gdpsE2eCorpus
   }
-  if ($GdpsCaseId) { $env:WSGS_GDPS_CASE_ID = $GdpsCaseId }
-  $env:WSGS_GATE_RUN_ID = "gdps-" + [Guid]::NewGuid().ToString("N").Substring(0, 16)
+  if ($GdpsCaseId) {
+    $env:WSGS_GDPS_CASE_ID = $GdpsCaseId
+    $env:WSGS_GDPS_DIAGNOSTIC_ONLY = "YES"
+  } else {
+    Remove-Item Env:WSGS_GDPS_DIAGNOSTIC_ONLY -ErrorAction SilentlyContinue
+  }
   $env:WSGS_EVIDENCE_SOURCE_COMMIT = $sourceCommit
   $env:WSGS_DEVELOPMENT_EVIDENCE_DIR = $evidenceDirectory
-  $env:GOWM_SAMPLE_HANDOFF_DIR = $handoffDirectory
+  $env:GOWM_SAMPLE_HANDOFF_DIR = $sampleHandoffDirectory
   $env:GOWM_GATEWAY_BASE_URL = $GatewayBaseUrl
   $env:GOWM_GATEWAY_TOKEN = $env:GOWM_WSGS_SAMPLE_TOKEN
   $env:GOWM_GATEWAY_TIMEOUT_MS = "120000"
@@ -327,6 +445,23 @@ try {
   $env:WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST = $expectedGdpsPatterns -join ","
   $env:WSGS_GDPS_RECIPE_LOCK_FILE = $gdpsRecipeLockArtifact[0]
   $env:WSGS_GDPS_RECIPE_LOCK_SHA256 = $gdpsRecipeLockArtifact[1]
+  if (-not $LegacyV02Evidence) {
+    $env:WSGS_GDPS_PROVIDER_RECIPE_LOCK_FILE = $gdpsProviderRecipeLockArtifact[0]
+    $env:WSGS_GDPS_PROVIDER_RECIPE_LOCK_SHA256 = $gdpsProviderRecipeLockArtifact[1]
+    $env:WSGS_GDPS_V021_HANDOFF_DIR = (Resolve-Path -LiteralPath $GdpsHandoffDirectory).Path
+    $env:WSGS_GDPS_DRIVER_MANIFEST_FILE = $DriverManifestPath
+    if ($driverSidecarArtifact) {
+      $env:WSGS_GDPS_DRIVER_SIDECAR_CONTRACT_FILE = $driverSidecarArtifact[0]
+      $env:WSGS_GDPS_DRIVER_SIDECAR_CONTRACT_SHA256 = $driverSidecarArtifact[1]
+    }
+    if ($w43SidecarArtifact) {
+      $env:WSGS_RUN_GDPS_W43_RUNTIME_GATE = "YES"
+      $env:WSGS_GDPS_W43_SIDECAR_CONTRACT_FILE = $w43SidecarArtifact[0]
+      $env:WSGS_GDPS_W43_SIDECAR_CONTRACT_SHA256 = $w43SidecarArtifact[1]
+    } else {
+      Remove-Item Env:WSGS_RUN_GDPS_W43_RUNTIME_GATE -ErrorAction SilentlyContinue
+    }
+  }
   $env:WSGS_GDPS_CONSUMER_SNAPSHOT_FILE = $gdpsConsumerSnapshotArtifact[0]
   $env:WSGS_GDPS_CONSUMER_SNAPSHOT_SHA256 = $gdpsConsumerSnapshotArtifact[1]
   $env:WSGS_GDPS_DESCRIPTOR_REGISTRY_FILE = $gdpsDescriptorRegistryArtifact[0]
@@ -350,15 +485,25 @@ try {
   } finally {
     Pop-Location
   }
-} finally {
+  } finally {
   Remove-Item Env:POSTGRES_PASSWORD -ErrorAction SilentlyContinue
   Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_REQUEST_ENCRYPTION_KEY_BASE64 -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_CASE_ID -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GDPS_DIAGNOSTIC_ONLY -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_E2E_CORPUS_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_RECIPE_LOCK_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_RECIPE_LOCK_SHA256 -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GDPS_PROVIDER_RECIPE_LOCK_FILE -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GDPS_PROVIDER_RECIPE_LOCK_SHA256 -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GDPS_V021_HANDOFF_DIR -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GDPS_DRIVER_MANIFEST_FILE -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_RUN_GDPS_W43_RUNTIME_GATE -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GDPS_W43_SIDECAR_CONTRACT_FILE -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GDPS_W43_SIDECAR_CONTRACT_SHA256 -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_GATE_RUN_ID -ErrorAction SilentlyContinue
+  Remove-Item Env:GDPS_V021_HANDOFF_DIR -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_CONSUMER_SNAPSHOT_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_CONSUMER_SNAPSHOT_SHA256 -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_DESCRIPTOR_REGISTRY_FILE -ErrorAction SilentlyContinue
@@ -367,7 +512,12 @@ try {
   Remove-Item Env:WSGS_GDPS_VOCABULARY_REGISTRY_SHA256 -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_SEMANTIC_CONCEPT_MAP_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_SEMANTIC_CONCEPT_MAP_SHA256 -ErrorAction SilentlyContinue
-  if (-not $KeepDatabase) { Remove-ExactDatabaseContainer }
+    if (-not $KeepDatabase) { Remove-CreatedDatabaseContainer }
+  }
+} finally {
+  # This restores every imported consumer variable, including credentials, and
+  # every temporary gate variable even when preflight fails before Docker use.
+  Restore-ProcessEnvironment $processEnvironmentBefore
 }
 
 Write-Output "WSGS_GDPS_REAL_INTEGRATION_GATE_FINISHED"

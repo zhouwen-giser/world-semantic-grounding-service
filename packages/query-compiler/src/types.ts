@@ -56,6 +56,26 @@ export interface GdpsRecipeAuthorization {
   }>;
 }
 
+/**
+ * Descriptor-less authorization for the provider's current-product check.
+ * This is deliberately separate from a query recipe: it can validate a
+ * previously persisted product identity, but it cannot authorize replaying
+ * the product-producing query or reading historical product content.
+ */
+export interface GdpsCurrentnessAuthorization {
+  recipeId: "gdps-check-current-geo-product";
+  requirementKind: "CHECK_CURRENT_GEO_PRODUCT";
+  providerRecipeLockHash: `sha256:${string}`;
+  operationLockHash: `sha256:${string}`;
+  allowedOperation: {
+    operationId: "geo-product.check-current";
+    operationVersion: "1.0";
+    inputSchemaHash: `sha256:${string}`;
+    outputSchemaHash: `sha256:${string}`;
+    semanticProfileHash: `sha256:${string}`;
+  };
+}
+
 export interface ExecutionBudgets {
   maximumNodes: number;
   maximumDepth: number;
@@ -95,6 +115,10 @@ export interface CompileInput {
   gdpsRecipeAuthorization?: GdpsRecipeAuthorization;
   /** Independently loaded exact-byte hash of the trusted GDPS recipe-lock artifact. */
   trustedGdpsRecipeLockHash?: `sha256:${string}`;
+  /** Exact provider-recipe and southbound-lock authority for currentness-only validation. */
+  gdpsCurrentnessAuthorization?: GdpsCurrentnessAuthorization;
+  trustedGdpsProviderRecipeLockHash?: `sha256:${string}`;
+  trustedGdpsOperationLockHash?: `sha256:${string}`;
   /** Canonical hash loaded through the verified GOWM consumer package. */
   parameterSchemaHash: `sha256:${string}`;
   degradedPolicy?: "ALLOW" | "REJECT";

@@ -30,9 +30,11 @@ import {
 } from "@wsgs/gowm-contract-intake";
 import {
   GowmExecutionEvidenceNormalizer,
+  evaluateGdpsCurrentOnlyReplay,
   normalizeGdpsSourceEvidence,
   type EvidenceRequestedProduct,
   type ExecutionEvidenceProduct,
+  type GdpsReplayDecision,
   type GdpsSourceEvidence,
   type GowmExecutionRecord,
   type NormalizedExecutionEvidenceItem,
@@ -51,6 +53,8 @@ import {
 } from "@wsgs/gowm-gateway-client";
 import {
   buildGroundingGraphWithDegradation,
+  canonicalGraphHash,
+  validateGroundingGraph,
   type DegradedGroundingGraphResult,
   type MergedMention,
   type ReferenceGroundingResult,
@@ -70,10 +74,13 @@ import {
   QUERY_COMPILER_VERSION,
   CapabilityMatcher,
   TypedWorldQueryCompiler,
+  canonicalPlanHash,
   queryTemplateRules,
   recipeSnapshotMode,
   type CapabilityGap,
   type CompileResult,
+  type ExecutionBudgets,
+  type GdpsCurrentnessAuthorization,
   type QuerySemanticPattern,
   type WorldQuerySubmission
 } from "@wsgs/query-compiler";
@@ -128,6 +135,8 @@ const commonSchemaPath = fileURLToPath(new URL(
   import.meta.url
 ));
 const referenceIdPattern = /^wrf_[0-9a-f]{32}$/u;
+const sha256Pattern = /^sha256:[0-9a-f]{64}$/u;
+const gdpsProductIdPattern = /^[a-z][a-z0-9-]{2,127}$/u;
 const evidenceProducts = new Set<OperationalRequestedProduct>([
   "WORLD_EVIDENCE",
   "OPERATIONAL_TASKS",
@@ -183,6 +192,7 @@ interface PersistedAuthority {
   availability: OperationAvailabilityList;
   southboundLock: SchemaValidatedSouthboundLock;
   gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
+  gdpsCurrentnessAuthorization?: GdpsCurrentnessAuthorization;
 }
 
 interface LiveAuthority {
@@ -202,6 +212,7 @@ interface Runtime {
   gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
   gdpsRecipeLock?: LoadedGdpsRecipeLock;
   gdpsRecipes: GdpsLockedRecipe[];
+  gdpsCurrentnessAuthorization?: GdpsCurrentnessAuthorization;
   gdpsDescriptor?: {
     consumer: GdpsDescriptorConsumer;
     conceptMap: SemanticConceptMap;
@@ -213,6 +224,41 @@ type PersistedSemanticModelResult = SemanticModelPolicyResult & { receiptId?: st
 
 interface ProductionFactoryOptions {
   pool?: Pool;
+}
+
+export interface GdpsPriorCurrentnessReplay {
+  sourceGroundingId: string;
+  sourceResultHash: `sha256:${string}`;
+  selectedEvidenceProductId: string;
+  productId: string;
+  contentHash: `sha256:${string}`;
+  sourceOperation: string;
+  sourceOperationVersion: string;
+  sourceRecipeId: string;
+  sourceRecipeLockHash: `sha256:${string}`;
+  descriptorId: string;
+  descriptorHash: `sha256:${string}`;
+  productType: string;
+  productProfile: string;
+  queryProfile: string;
+  replayMode: "STRICT" | "BEST_EFFORT";
+  /** Internal correlation only; it is deliberately omitted from the public grounding graph. */
+  sourceGatewayQueryId: string;
+  /** Exact southbound lock used for the persisted source query. */
+  sourceOperationLockHash: `sha256:${string}`;
+}
+
+export interface GdpsPersistedSourceQuery {
+  sourceGroundingId: string;
+  sourceGatewayQueryId: string;
+  sourcePlanHash: `sha256:${string}`;
+  submission: WorldQuerySubmission;
+}
+
+export interface PriorCurrentnessLoadResult {
+  gdpsCurrentnessReplays: GdpsPriorCurrentnessReplay[];
+  gdpsPersistedSourceQueries: GdpsPersistedSourceQuery[];
+  hasOtherPriorProducts: boolean;
 }
 
 function object(value: unknown, code: string): JsonObject {
@@ -306,7 +352,8 @@ function allGatewayLocks(lock: OperationalGowmLock): OperationLock[] {
 
 export function selectProductionSouthboundLock(
   lock: OperationalGowmLock,
-  previewRecipes: readonly GdpsLockedRecipe[] = []
+  previewRecipes: readonly GdpsLockedRecipe[] = [],
+  currentnessAuthorization?: GdpsCurrentnessAuthorization
 ): OperationalGowmLock {
   const available = [...lock.defaultOperations, ...lock.previewOperations];
   const selected = PRODUCTION_STABLE_OPERATION_IDS.map((operationId) => {
@@ -319,6 +366,10 @@ export function selectProductionSouthboundLock(
   });
   const previewOperations = new Map(previewRecipes.flatMap((recipe) => recipe.allowedOperations)
     .map((entry) => [`${entry.operationId}@${entry.operationVersion}`, entry] as const));
+  if (currentnessAuthorization) {
+    const entry = currentnessAuthorization.allowedOperation;
+    previewOperations.set(`${entry.operationId}@${entry.operationVersion}`, entry);
+  }
   const selectedPreview = [...previewOperations.entries()].sort(([left], [right]) => left.localeCompare(right))
     .map(([operationKey, expected]) => {
     const { operationId, operationVersion } = expected;
@@ -331,12 +382,76 @@ export function selectProductionSouthboundLock(
         entry.semanticProfileHash !== expected.semanticProfileHash) {
       throw new ProductionStageModuleError(`PRODUCTION_PREVIEW_OPERATION_LOCK_DRIFT_${operationKey}`);
     }
+    if (currentnessAuthorization && operationKey === "geo-product.check-current@1.0" &&
+        entry.snapshotSupport !== "CONSISTENT_AT_START") {
+      throw new ProductionStageModuleError("PRODUCTION_CURRENTNESS_SNAPSHOT_SUPPORT_INVALID");
+    }
     return entry;
   });
   return {
     ...lock,
     defaultOperations: selected,
     previewOperations: selectedPreview
+  };
+}
+
+interface ProviderCurrentnessRecipe {
+  providerRecipeLockHash: `sha256:${string}`;
+  allowedOperation: GdpsCurrentnessAuthorization["allowedOperation"];
+}
+
+/** Loads the provider recipe as an exact-byte authority; names alone never enable PREVIEW. */
+export function loadProviderCurrentnessRecipe(options: {
+  lockPath: string;
+  expectedSha256: `sha256:${string}`;
+}): ProviderCurrentnessRecipe {
+  if (!sha256Pattern.test(options.expectedSha256)) {
+    throw new ProductionStageModuleError("WSGS_GDPS_PROVIDER_RECIPE_LOCK_EXPECTED_HASH_INVALID");
+  }
+  const bytes = readFileSync(options.lockPath);
+  const actual = `sha256:${createHash("sha256").update(bytes).digest("hex")}` as const;
+  if (actual !== options.expectedSha256) {
+    throw new ProductionStageModuleError("WSGS_GDPS_PROVIDER_RECIPE_LOCK_INTEGRITY_MISMATCH");
+  }
+  let lock: JsonObject;
+  try {
+    lock = object(JSON.parse(bytes.toString("utf8")), "WSGS_GDPS_PROVIDER_RECIPE_LOCK_JSON_INVALID");
+  } catch (error) {
+    if (error instanceof ProductionStageModuleError) throw error;
+    throw new ProductionStageModuleError("WSGS_GDPS_PROVIDER_RECIPE_LOCK_JSON_INVALID");
+  }
+  const policy = object(lock["previewPolicy"], "WSGS_GDPS_PROVIDER_RECIPE_POLICY_INVALID");
+  const recipes = lock["recipes"];
+  if (lock["schemaVersion"] !== "wsgs-gdps-recipe-lock/1.0" ||
+      policy["allowAllPreview"] !== false || policy["requiresExactHashes"] !== true ||
+      !Array.isArray(recipes) || recipes.length !== 30) {
+    throw new ProductionStageModuleError("WSGS_GDPS_PROVIDER_RECIPE_LOCK_CONTRACT_INVALID");
+  }
+  const candidates = recipes.filter((raw) => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+    const recipe = raw as JsonObject;
+    return recipe["recipeId"] === "gdps-check-current-geo-product" &&
+      recipe["requirementKind"] === "CHECK_CURRENT_GEO_PRODUCT" &&
+      recipe["operationId"] === "geo-product.check-current" && recipe["operationVersion"] === "1.0";
+  });
+  if (candidates.length !== 1) {
+    throw new ProductionStageModuleError("WSGS_GDPS_CURRENTNESS_RECIPE_NOT_EXACT");
+  }
+  const recipe = candidates[0] as JsonObject;
+  if (recipe["allowedMaturity"] !== "PREVIEW" ||
+      ![recipe["inputSchemaHash"], recipe["outputSchemaHash"], recipe["semanticProfileHash"]]
+        .every((value) => typeof value === "string" && sha256Pattern.test(value))) {
+    throw new ProductionStageModuleError("WSGS_GDPS_CURRENTNESS_RECIPE_HASH_INVALID");
+  }
+  return {
+    providerRecipeLockHash: actual,
+    allowedOperation: {
+      operationId: "geo-product.check-current",
+      operationVersion: "1.0",
+      inputSchemaHash: recipe["inputSchemaHash"] as `sha256:${string}`,
+      outputSchemaHash: recipe["outputSchemaHash"] as `sha256:${string}`,
+      semanticProfileHash: recipe["semanticProfileHash"] as `sha256:${string}`
+    }
   };
 }
 
@@ -376,6 +491,47 @@ function configuredGdpsRecipes(): {
     throw new ProductionStageModuleError("WSGS_GDPS_CONSUMER_SNAPSHOT_LOCK_DRIFT");
   }
   return { loaded, recipes, consumerSnapshot };
+}
+
+function configuredGdpsCurrentnessAuthorization(
+  gdps: ReturnType<typeof configuredGdpsRecipes>,
+  operationalLock: LoadedOperationalGowmLock
+): GdpsCurrentnessAuthorization | undefined {
+  const lockPath = process.env["WSGS_GDPS_PROVIDER_RECIPE_LOCK_FILE"]?.trim();
+  const expectedSha256 = process.env["WSGS_GDPS_PROVIDER_RECIPE_LOCK_SHA256"]?.trim();
+  if (!gdps.loaded) {
+    if (lockPath || expectedSha256) {
+      throw new ProductionStageModuleError("WSGS_GDPS_RUNTIME_RECIPE_LOCK_REQUIRED_FOR_CURRENTNESS");
+    }
+    return undefined;
+  }
+  if (!lockPath || !expectedSha256) {
+    throw new ProductionStageModuleError("WSGS_GDPS_PROVIDER_RECIPE_LOCK_REQUIRED");
+  }
+  if (!gdps.consumerSnapshot?.capabilityKeys.includes("geo-product.check-current@1.0")) {
+    throw new ProductionStageModuleError("WSGS_GDPS_CURRENTNESS_CAPABILITY_NOT_CONSUMER_LOCKED");
+  }
+  const provider = loadProviderCurrentnessRecipe({
+    lockPath,
+    expectedSha256: expectedSha256 as `sha256:${string}`
+  });
+  const operation = [...operationalLock.lock.defaultOperations, ...operationalLock.lock.previewOperations]
+    .find((entry) => entry.operationId === "geo-product.check-current" && entry.operationVersion === "1.0");
+  if (!operation || operation.maturity !== "PREVIEW" || operation.snapshotSupport !== "CONSISTENT_AT_START") {
+    throw new ProductionStageModuleError("WSGS_GDPS_CONSISTENT_CURRENTNESS_OPERATION_UNAVAILABLE");
+  }
+  if (operation.inputSchemaHash !== provider.allowedOperation.inputSchemaHash ||
+      operation.outputSchemaHash !== provider.allowedOperation.outputSchemaHash ||
+      operation.semanticProfileHash !== provider.allowedOperation.semanticProfileHash) {
+    throw new ProductionStageModuleError("WSGS_GDPS_CURRENTNESS_OPERATION_LOCK_DRIFT");
+  }
+  return {
+    recipeId: "gdps-check-current-geo-product",
+    requirementKind: "CHECK_CURRENT_GEO_PRODUCT",
+    providerRecipeLockHash: provider.providerRecipeLockHash,
+    operationLockHash: operationalLock.lockHash,
+    allowedOperation: provider.allowedOperation
+  };
 }
 
 function configuredGdpsDescriptor(
@@ -478,7 +634,8 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const lock = operationalLock.lock;
   const gdps = configuredGdpsRecipes();
   const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded, gdps.recipes);
-  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes);
+  const gdpsCurrentnessAuthorization = configuredGdpsCurrentnessAuthorization(gdps, operationalLock);
+  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes, gdpsCurrentnessAuthorization);
   const trustedOperationKeys = allGatewayLocks(productionLock)
     .map((entry) => `${entry.operationId}@${entry.operationVersion}`);
   const modelPolicy = (process.env["WSGS_MODEL_POLICY"]?.trim() ?? "MODEL_REQUIRED") as SemanticModelPolicyMode;
@@ -515,6 +672,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     ...(gdps.consumerSnapshot ? { gdpsConsumerSnapshot: gdps.consumerSnapshot } : {}),
     ...(gdps.loaded ? { gdpsRecipeLock: gdps.loaded } : {}),
     gdpsRecipes: gdps.recipes,
+    ...(gdpsCurrentnessAuthorization ? { gdpsCurrentnessAuthorization } : {}),
     ...(gdpsDescriptor ? { gdpsDescriptor } : {}),
     parameterSchemaHash: loadWorldQueryParameterSchemaHash()
   };
@@ -561,7 +719,8 @@ async function liveAuthority(
   const lock = value.operationalLock.lock;
   const productionLock = selectProductionSouthboundLock(
     lock,
-    value.gdpsRecipes
+    value.gdpsRecipes,
+    value.gdpsCurrentnessAuthorization
   );
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
@@ -623,7 +782,10 @@ async function liveAuthority(
     semanticCatalog: semantics,
     availability,
     southboundLock: validatedLock(productionLock),
-    ...(value.gdpsConsumerSnapshot ? { gdpsConsumerSnapshot: value.gdpsConsumerSnapshot } : {})
+    ...(value.gdpsConsumerSnapshot ? { gdpsConsumerSnapshot: value.gdpsConsumerSnapshot } : {}),
+    ...(value.gdpsCurrentnessAuthorization
+      ? { gdpsCurrentnessAuthorization: structuredClone(value.gdpsCurrentnessAuthorization) }
+      : {})
   };
   const admission: ProductionAdmissionSnapshot = {
     immutableLocks: persisted as unknown as Readonly<Record<string, unknown>>,
@@ -699,6 +861,22 @@ function persistedAuthority(context: PipelineStageContext, gateway: GowmGatewayC
   if (authority.schemaVersion !== "1.0") throw new ProductionStageModuleError("IMMUTABLE_AUTHORITY_VERSION");
   verifyPersistedTrustedCapabilitySnapshot(authority.trustedCapabilitySnapshot);
   if (authority.gdpsConsumerSnapshot) verifyGdpsConsumerSnapshotExtension(authority.gdpsConsumerSnapshot);
+  if (authority.gdpsCurrentnessAuthorization) {
+    const authorization = authority.gdpsCurrentnessAuthorization;
+    const locked = [...authority.southboundLock.defaultOperations, ...authority.southboundLock.previewOperations]
+      .find((entry) => entry.operationId === "geo-product.check-current" && entry.operationVersion === "1.0");
+    if (!authority.gdpsConsumerSnapshot?.capabilityKeys.includes("geo-product.check-current@1.0") ||
+        authorization.recipeId !== "gdps-check-current-geo-product" ||
+        authorization.requirementKind !== "CHECK_CURRENT_GEO_PRODUCT" ||
+        authorization.operationLockHash !== authority.trustedCapabilitySnapshot.southboundLockHash ||
+        !sha256Pattern.test(authorization.providerRecipeLockHash) || !locked ||
+        locked.maturity !== "PREVIEW" || locked.snapshotSupport !== "CONSISTENT_AT_START" ||
+        locked.inputSchemaHash !== authorization.allowedOperation.inputSchemaHash ||
+        locked.outputSchemaHash !== authorization.allowedOperation.outputSchemaHash ||
+        locked.semanticProfileHash !== authorization.allowedOperation.semanticProfileHash) {
+      throw new ProductionStageModuleError("PERSISTED_GDPS_CURRENTNESS_AUTHORITY_INVALID");
+    }
+  }
   const validation = gateway.validateTrustedContracts({
     catalog: authority.capabilityCatalog,
     semantics: authority.semanticCatalog,
@@ -759,6 +937,321 @@ export function assertPriorGroundingReplaySupport(
       throw new ProductionStageModuleError("PINNED_VALIDATION_OPERATION_UNAVAILABLE");
     }
   }
+}
+
+function exactStringSet(left: readonly string[], right: readonly string[]): boolean {
+  const normalized = (values: readonly string[]): string[] => [...new Set(values)].sort();
+  return JSON.stringify(normalized(left)) === JSON.stringify(normalized(right));
+}
+
+function parsePersistedResultBytes(value: unknown): JsonObject {
+  if (!(value instanceof Uint8Array)) throw new ProductionStageModuleError("INVALID_STORED_PRIOR_RESULT");
+  try {
+    return object(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(value)), "INVALID_STORED_PRIOR_RESULT");
+  } catch (error) {
+    if (error instanceof ProductionStageModuleError) throw error;
+    throw new ProductionStageModuleError("INVALID_STORED_PRIOR_RESULT");
+  }
+}
+
+interface PriorExecutionRow {
+  execution_kind: string;
+  operation_id: string | null;
+  operation_version: string | null;
+  gateway_query_id: string | null;
+  request_hash: string;
+  data_snapshot: unknown;
+}
+
+interface PriorWorldQueryRow {
+  query_id: string;
+  gateway_query_id: string | null;
+  plan: unknown;
+  plan_hash: string;
+}
+
+function parsePersistedWorldQuerySubmission(
+  value: unknown,
+  expectedQueryId: string,
+  expectedPlanHash: string
+): WorldQuerySubmission {
+  const submission = object(value, "PRIOR_WORLD_QUERY_SUBMISSION_INVALID");
+  const allowedKeys = new Set([
+    "requestId", "idempotencyKey", "plan", "parameters", "parameterSchemaHash", "snapshotPolicy"
+  ]);
+  if (Object.keys(submission).some((key) => !allowedKeys.has(key)) ||
+      typeof submission["requestId"] !== "string" || !submission["requestId"] ||
+      typeof submission["idempotencyKey"] !== "string" || !submission["idempotencyKey"] ||
+      !submission["parameters"] || typeof submission["parameters"] !== "object" ||
+      Array.isArray(submission["parameters"]) ||
+      typeof submission["parameterSchemaHash"] !== "string" ||
+      !sha256Pattern.test(submission["parameterSchemaHash"])) {
+    throw new ProductionStageModuleError("PRIOR_WORLD_QUERY_SUBMISSION_INVALID");
+  }
+  const snapshotPolicy = object(submission["snapshotPolicy"], "PRIOR_WORLD_QUERY_SUBMISSION_INVALID");
+  if (!['LATEST_AT_START', 'BEST_EFFORT', 'PINNED'].includes(String(snapshotPolicy["mode"])) ||
+      snapshotPolicy["allowDowngrade"] !== false) {
+    throw new ProductionStageModuleError("PRIOR_WORLD_QUERY_SUBMISSION_INVALID");
+  }
+  const typed = submission as unknown as WorldQuerySubmission;
+  let actualPlanHash: string;
+  try {
+    actualPlanHash = canonicalPlanHash(typed.plan);
+  } catch {
+    throw new ProductionStageModuleError("PRIOR_WORLD_QUERY_PLAN_INVALID");
+  }
+  if (typed.plan.queryId !== expectedQueryId || actualPlanHash !== expectedPlanHash ||
+      !sha256Pattern.test(expectedPlanHash)) {
+    throw new ProductionStageModuleError("PRIOR_WORLD_QUERY_PLAN_HASH_MISMATCH");
+  }
+  return structuredClone(typed);
+}
+
+/**
+ * Recognizes only a selected, persisted GDPS Current Product evidence item.
+ * Any partial GDPS-shaped evidence is rejected rather than downgraded to the
+ * generic prior-reference path.
+ */
+export function recognizeGdpsPriorCurrentnessReplay(options: {
+  sourceGroundingId: string;
+  sourceResultHash: string;
+  selectedProductIds: readonly string[];
+  resultBytes: Uint8Array;
+  executions: readonly PriorExecutionRow[];
+  sourceOperationLockHash: string;
+}): GdpsPriorCurrentnessReplay | null {
+  if (!sha256Pattern.test(options.sourceResultHash) || options.selectedProductIds.length !== 1) return null;
+  const result = parsePersistedResultBytes(options.resultBytes);
+  if (result["groundingId"] !== options.sourceGroundingId || result["resultHash"] !== options.sourceResultHash) {
+    throw new ProductionStageModuleError("PRIOR_RESULT_HASH_MISMATCH");
+  }
+  const evidenceItems = Array.isArray(result["evidenceItems"]) ? result["evidenceItems"] : [];
+  const selected = evidenceItems.filter((raw) => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+    return (raw as JsonObject)["evidenceProductId"] === options.selectedProductIds[0];
+  });
+  if (selected.length === 0) return null;
+  if (selected.length !== 1) throw new ProductionStageModuleError("DUPLICATE_PRIOR_PRODUCT_ID");
+  const item = object(selected[0], "INVALID_PRIOR_PRODUCT");
+  const sourceOperation = typeof item["sourceOperation"] === "string" ? item["sourceOperation"] : "";
+  const payload = item["safePayload"];
+  const gdpsShaped = /^(?:geo-product|geo-raster|geo-vector|elevation|terrain|landcover|hydrology|surface-material|obstacle|traversability)\./u
+    .test(sourceOperation) || (payload && typeof payload === "object" && !Array.isArray(payload) &&
+      (Object.hasOwn(payload, "productId") || Object.hasOwn(payload, "contentHash")));
+  if (!gdpsShaped) return null;
+  if (item["productKind"] !== "CAPABILITY_RESULT" || !payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new ProductionStageModuleError("PRIOR_GDPS_EVIDENCE_NOT_REVALIDATABLE");
+  }
+  const safePayload = payload as JsonObject;
+  const productId = text(safePayload["productId"], "PRIOR_GDPS_PRODUCT_ID_MISSING");
+  const contentHash = text(safePayload["contentHash"], "PRIOR_GDPS_CONTENT_HASH_MISSING");
+  if (!gdpsProductIdPattern.test(productId) || !sha256Pattern.test(contentHash) ||
+      sourceOperation === "geo-product.check-current") {
+    throw new ProductionStageModuleError("PRIOR_GDPS_PRODUCT_IDENTITY_INVALID");
+  }
+  const matches = options.executions.flatMap((row) => {
+    if (row.execution_kind !== "WORLD_QUERY_NODE" ||
+        row.operation_id !== sourceOperation || row.operation_version !== "1.0" ||
+        !row.data_snapshot || typeof row.data_snapshot !== "object" || Array.isArray(row.data_snapshot)) return [];
+    const source = (row.data_snapshot as JsonObject)["gdpsSourceEvidence"];
+    if (!source || typeof source !== "object" || Array.isArray(source)) return [];
+    const evidence = source as JsonObject;
+    return evidence["productId"] === productId && evidence["contentHash"] === contentHash
+      ? [{ evidence, gatewayQueryId: row.gateway_query_id }]
+      : [];
+  });
+  if (matches.length !== 1) {
+    throw new ProductionStageModuleError("PRIOR_GDPS_EXECUTION_EVIDENCE_AMBIGUOUS");
+  }
+  const match = matches[0]!;
+  const evidence = match.evidence;
+  const sourceGatewayQueryId = text(match.gatewayQueryId, "PRIOR_GDPS_GATEWAY_QUERY_ID_MISSING");
+  const sourceRecipeLockHash = text(evidence["recipeLockHash"], "PRIOR_GDPS_RECIPE_LOCK_HASH_MISSING");
+  const descriptorHash = text(evidence["descriptorHash"], "PRIOR_GDPS_DESCRIPTOR_HASH_MISSING");
+  if (!sha256Pattern.test(sourceRecipeLockHash) || !sha256Pattern.test(descriptorHash) ||
+      !sha256Pattern.test(options.sourceOperationLockHash)) {
+    throw new ProductionStageModuleError("PRIOR_GDPS_EVIDENCE_HASH_INVALID");
+  }
+  return {
+    sourceGroundingId: options.sourceGroundingId,
+    sourceResultHash: options.sourceResultHash as `sha256:${string}`,
+    selectedEvidenceProductId: options.selectedProductIds[0]!,
+    productId,
+    contentHash: contentHash as `sha256:${string}`,
+    sourceOperation,
+    sourceOperationVersion: "1.0",
+    sourceRecipeId: text(evidence["recipeId"], "PRIOR_GDPS_RECIPE_ID_MISSING"),
+    sourceRecipeLockHash: sourceRecipeLockHash as `sha256:${string}`,
+    descriptorId: text(evidence["descriptorId"], "PRIOR_GDPS_DESCRIPTOR_ID_MISSING"),
+    descriptorHash: descriptorHash as `sha256:${string}`,
+    productType: text(evidence["productType"], "PRIOR_GDPS_PRODUCT_TYPE_MISSING"),
+    productProfile: text(evidence["productProfile"], "PRIOR_GDPS_PRODUCT_PROFILE_MISSING"),
+    queryProfile: text(evidence["queryProfile"], "PRIOR_GDPS_QUERY_PROFILE_MISSING"),
+    replayMode: "STRICT",
+    sourceGatewayQueryId,
+    sourceOperationLockHash: options.sourceOperationLockHash as `sha256:${string}`
+  };
+}
+
+export async function loadPriorCurrentnessContexts(
+  pool: Pool,
+  caller: GroundingIdentityV2 & { dataScope: string },
+  rawPointers: readonly unknown[]
+): Promise<PriorCurrentnessLoadResult> {
+  const gdpsCurrentnessReplays: GdpsPriorCurrentnessReplay[] = [];
+  const gdpsPersistedSourceQueries: GdpsPersistedSourceQuery[] = [];
+  let hasOtherPriorProducts = false;
+  for (const rawPointer of rawPointers) {
+    const pointer = object(rawPointer, "INVALID_PRIOR_POINTER");
+    if (Object.keys(pointer).some((key) => !["groundingId", "resultHash", "selectedProductIds"].includes(key))) {
+      throw new ProductionStageModuleError("PRIOR_CONTENT_SUBSTITUTION_FORBIDDEN");
+    }
+    const groundingId = text(pointer["groundingId"], "INVALID_PRIOR_GROUNDING_ID");
+    const resultHash = text(pointer["resultHash"], "INVALID_PRIOR_RESULT_HASH");
+    const selectedProductIds = stringArray(pointer["selectedProductIds"]);
+    if (!sha256Pattern.test(resultHash) || selectedProductIds.length > 64 ||
+        new Set(selectedProductIds).size !== selectedProductIds.length) {
+      throw new ProductionStageModuleError("INVALID_PRIOR_POINTER");
+    }
+    const stored = await pool.query<{
+      result_hash: string;
+      result_bytes: Buffer;
+      principal_id: string;
+      dataset_scopes: unknown;
+      authorization_context_hash: string;
+      gowm_operation_lock_hash: string | null;
+    }>(
+      `SELECT result.result_hash, result.result_bytes, request.principal_id,
+              request.dataset_scopes, request.authorization_context_hash,
+              request.gowm_operation_lock_hash
+         FROM wsgs.grounding_result AS result
+         JOIN wsgs.grounding_request AS request USING (grounding_id)
+        WHERE result.grounding_id = $1 AND result.data_scope = $2 AND result.actor_id = $3`,
+      [groundingId, caller.dataScope, caller.actorId]
+    );
+    const row = stored.rows[0];
+    if (!row) throw new ProductionStageModuleError("PRIOR_RESULT_NOT_FOUND_IN_SCOPE");
+    const storedDatasetScopes = Array.isArray(row.dataset_scopes) &&
+      row.dataset_scopes.every((entry) => typeof entry === "string") ? row.dataset_scopes as string[] : [];
+    if (row.result_hash !== resultHash || row.principal_id !== caller.servicePrincipalId ||
+        row.authorization_context_hash !== caller.authorizationContextHash ||
+        !exactStringSet(storedDatasetScopes, caller.datasetScopes) ||
+        typeof row.gowm_operation_lock_hash !== "string" || !sha256Pattern.test(row.gowm_operation_lock_hash)) {
+      throw new ProductionStageModuleError("PRIOR_RESULT_NOT_FOUND_IN_SCOPE");
+    }
+    const executions = await pool.query<PriorExecutionRow>(
+      `SELECT execution_kind, operation_id, operation_version, gateway_query_id, request_hash, data_snapshot
+         FROM wsgs.gowm_execution
+        WHERE grounding_id = $1 AND data_scope = $2 AND actor_id = $3`,
+      [groundingId, caller.dataScope, caller.actorId]
+    );
+    const replay = recognizeGdpsPriorCurrentnessReplay({
+      sourceGroundingId: groundingId,
+      sourceResultHash: resultHash,
+      selectedProductIds,
+      resultBytes: new Uint8Array(row.result_bytes),
+      executions: executions.rows,
+      sourceOperationLockHash: row.gowm_operation_lock_hash
+    });
+    if (replay) {
+      const persistedQueries = await pool.query<PriorWorldQueryRow>(
+        `SELECT query_id, gateway_query_id, plan, plan_hash
+           FROM wsgs.world_query
+          WHERE grounding_id = $1 AND data_scope = $2 AND query_id = $3`,
+        [groundingId, caller.dataScope, replay.sourceGatewayQueryId]
+      );
+      if (persistedQueries.rows.length !== 1) {
+        throw new ProductionStageModuleError("PRIOR_GDPS_SOURCE_QUERY_AMBIGUOUS");
+      }
+      const persistedQuery = persistedQueries.rows[0]!;
+      if (persistedQuery.gateway_query_id !== replay.sourceGatewayQueryId) {
+        throw new ProductionStageModuleError("PRIOR_GDPS_SOURCE_QUERY_ID_MISMATCH");
+      }
+      if (persistedQuery.query_id !== replay.sourceGatewayQueryId) {
+        throw new ProductionStageModuleError("PRIOR_GDPS_SOURCE_QUERY_ID_MISMATCH");
+      }
+      const submission = parsePersistedWorldQuerySubmission(
+        persistedQuery.plan,
+        persistedQuery.query_id,
+        persistedQuery.plan_hash
+      );
+      const sourceQueryExecutions = executions.rows.filter((entry) =>
+        entry.execution_kind === "WORLD_QUERY" && entry.gateway_query_id === replay.sourceGatewayQueryId
+      );
+      if (sourceQueryExecutions.length !== 1 ||
+          sourceQueryExecutions[0]!.request_hash !== canonicalSha256(submission)) {
+        throw new ProductionStageModuleError("PRIOR_GDPS_SOURCE_QUERY_REQUEST_HASH_MISMATCH");
+      }
+      gdpsCurrentnessReplays.push(replay);
+      gdpsPersistedSourceQueries.push({
+        sourceGroundingId: groundingId,
+        sourceGatewayQueryId: replay.sourceGatewayQueryId,
+        sourcePlanHash: persistedQuery.plan_hash as `sha256:${string}`,
+        submission
+      });
+    } else hasOtherPriorProducts = true;
+  }
+  if (gdpsCurrentnessReplays.length > 1 || (gdpsCurrentnessReplays.length > 0 && hasOtherPriorProducts)) {
+    throw new ProductionStageModuleError("MIXED_PRIOR_REPLAY_AUTHORITY_FORBIDDEN");
+  }
+  return { gdpsCurrentnessReplays, gdpsPersistedSourceQueries, hasOtherPriorProducts };
+}
+
+/**
+ * Adds an authority-bound prior-product marker to the public graph. The marker
+ * contains only immutable product identity and lock provenance; it is not an
+ * executable copy of the original query.
+ */
+export function augmentGroundingGraphWithCurrentness(
+  value: DegradedGroundingGraphResult,
+  replays: readonly GdpsPriorCurrentnessReplay[]
+): DegradedGroundingGraphResult {
+  if (replays.length === 0) return value;
+  const replayNodes = replays.map((replay) => ({
+    nodeId: `node-prior-currentness-${canonicalSha256(replay).slice("sha256:".length, "sha256:".length + 24)}`,
+    kind: "WORLD_QUERY" as const,
+    payload: {
+      sourceGroundingId: replay.sourceGroundingId,
+      sourceResultHash: replay.sourceResultHash,
+      priorGroundingId: replay.sourceGroundingId,
+      revalidationRequired: true,
+      replayMode: replay.replayMode,
+      gdpsCurrentProduct: {
+        selectedEvidenceProductId: replay.selectedEvidenceProductId,
+        productId: replay.productId,
+        contentHash: replay.contentHash,
+        sourceOperation: replay.sourceOperation,
+        sourceOperationVersion: replay.sourceOperationVersion,
+        sourceRecipeId: replay.sourceRecipeId,
+        sourceRecipeLockHash: replay.sourceRecipeLockHash,
+        descriptorId: replay.descriptorId,
+        descriptorHash: replay.descriptorHash,
+        productType: replay.productType,
+        productProfile: replay.productProfile,
+        queryProfile: replay.queryProfile
+      }
+    }
+  }));
+  const graph = validateGroundingGraph({
+    schemaVersion: "1.0",
+    nodes: [...value.graph.nodes, ...replayNodes].sort((left, right) => left.nodeId.localeCompare(right.nodeId)),
+    edges: [...value.graph.edges]
+  });
+  return { ...value, graph, graphHash: canonicalGraphHash(graph) };
+}
+
+function currentnessReplays(context: PipelineStageContext): GdpsPriorCurrentnessReplay[] {
+  const loaded = stageValue<PriorCurrentnessLoadResult & JsonObject>(context, "LOAD_CONTEXT");
+  return Array.isArray(loaded.gdpsCurrentnessReplays)
+    ? loaded.gdpsCurrentnessReplays as GdpsPriorCurrentnessReplay[]
+    : [];
+}
+
+function persistedCurrentnessSourceQueries(context: PipelineStageContext): GdpsPersistedSourceQuery[] {
+  const loaded = stageValue<PriorCurrentnessLoadResult & JsonObject>(context, "LOAD_CONTEXT");
+  return Array.isArray(loaded.gdpsPersistedSourceQueries)
+    ? loaded.gdpsPersistedSourceQueries as GdpsPersistedSourceQuery[]
+    : [];
 }
 
 export function mergeKnownReferenceProducts(
@@ -1246,7 +1739,58 @@ export function buildRecipeOperationInput(options: RecipeOperationInputOptions):
     };
   }
   if (options.recipeId === "PRIOR_RESULT_REVALIDATION") {
-    return recipeInputGap(options.recipeId, requiredForProduct, "PINNED_PRIOR_RESULT_INPUT_UNAVAILABLE");
+    const validation = chain.find((entry) => entry.requirementType === "VALIDATE_RESULT");
+    const resultNodeIds = stringArray(validation?.inputs["resultNodeIds"]);
+    if (resultNodeIds.length !== 1) {
+      return recipeInputGap(options.recipeId, requiredForProduct, "PINNED_PRIOR_RESULT_INPUT_UNAVAILABLE", {
+        resultNodeCount: resultNodeIds.length
+      });
+    }
+    const node = options.groundingGraph.graph.nodes.find((entry) => entry.nodeId === resultNodeIds[0]);
+    const payload = node?.kind === "WORLD_QUERY" ? node.payload as JsonObject : undefined;
+    const currentProduct = payload?.["gdpsCurrentProduct"];
+    if (!payload || !["STRICT", "BEST_EFFORT"].includes(String(payload["replayMode"])) ||
+        !currentProduct || typeof currentProduct !== "object" || Array.isArray(currentProduct)) {
+      return recipeInputGap(options.recipeId, requiredForProduct, "PINNED_PRIOR_RESULT_INPUT_UNAVAILABLE");
+    }
+    const product = currentProduct as JsonObject;
+    const productId = typeof product["productId"] === "string" ? product["productId"] : "";
+    const contentHash = typeof product["contentHash"] === "string" ? product["contentHash"] : "";
+    const sourceRecipeLockHash = typeof product["sourceRecipeLockHash"] === "string"
+      ? product["sourceRecipeLockHash"] : "";
+    const descriptorHash = typeof product["descriptorHash"] === "string" ? product["descriptorHash"] : "";
+    if (!gdpsProductIdPattern.test(productId) || !sha256Pattern.test(contentHash) ||
+        !sha256Pattern.test(sourceRecipeLockHash) || !sha256Pattern.test(descriptorHash) ||
+        product["sourceOperationVersion"] !== "1.0") {
+      return recipeInputGap(options.recipeId, requiredForProduct, "PINNED_PRIOR_RESULT_INPUT_INVALID");
+    }
+    for (const key of ["sourceOperation", "sourceRecipeId", "descriptorId", "productType", "productProfile", "queryProfile"] as const) {
+      if (typeof product[key] !== "string" || !(product[key] as string)) {
+        return recipeInputGap(options.recipeId, requiredForProduct, "PINNED_PRIOR_RESULT_INPUT_INVALID", { field: key });
+      }
+    }
+    return {
+      status: "READY",
+      requiredForProduct,
+      operationInput: { productId, contentHash },
+      parameterValues: {
+        productId,
+        contentHash,
+        replayMode: payload["replayMode"],
+        sourceGroundingId: payload["sourceGroundingId"],
+        sourceResultHash: payload["sourceResultHash"],
+        selectedEvidenceProductId: product["selectedEvidenceProductId"],
+        sourceOperation: product["sourceOperation"],
+        sourceOperationVersion: product["sourceOperationVersion"],
+        sourceRecipeId: product["sourceRecipeId"],
+        sourceRecipeLockHash,
+        descriptorId: product["descriptorId"],
+        descriptorHash,
+        productType: product["productType"],
+        productProfile: product["productProfile"],
+        queryProfile: product["queryProfile"]
+      }
+    };
   }
   const resolve = chain.find((entry) => entry.requirementType === "RESOLVE_REFERENCE");
   if (!resolve) return recipeInputGap(options.recipeId, requiredForProduct, "REFERENCE_RESOLUTION_INPUT_MISSING");
@@ -1365,8 +1909,16 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
   const references = context.state["REFERENCE_VALIDATE"] as ReferenceGroundingResult | undefined;
   const planning = context.state["REQUIREMENT_PLAN"] as RequirementPlanningResult | undefined;
   const compiled = context.state["WORLD_QUERY_COMPILE"] as { compiled: CompileResult[]; capabilityGaps: JsonObject[] } | undefined;
-  const executed = context.state["GOWM_EXECUTE"] as { outcomes: Array<{ submission: WorldQuerySubmission; status: string; resultHash: string }> } | undefined;
-  const normalized = context.state["EVIDENCE_NORMALIZE"] as { status: "COMPLETED" | "PARTIAL"; evidenceItems: GroundingEvidenceItem[]; capabilityGaps: JsonObject[] } | undefined;
+  const executed = context.state["GOWM_EXECUTE"] as {
+    outcomes: Array<{ submission: WorldQuerySubmission; status: string; resultHash: string }>;
+    sourceChangeAttempts?: Array<{ submission: WorldQuerySubmission; status: string; resultHash: string }>;
+  } | undefined;
+  const normalized = context.state["EVIDENCE_NORMALIZE"] as {
+    status: "COMPLETED" | "PARTIAL";
+    evidenceItems: GroundingEvidenceItem[];
+    capabilityGaps: JsonObject[];
+    warnings?: string[];
+  } | undefined;
   const gaps = [
     ...(planning?.capabilityGaps ?? []).map((entry) => mappedGap(entry as unknown as JsonObject)),
     ...(compiled?.capabilityGaps ?? []).map(mappedGap),
@@ -1376,15 +1928,23 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     ...(deterministic?.warnings ?? []),
     ...(semantic?.warnings ?? []),
     ...(graph?.warnings ?? []),
-    ...(references?.validationResults.flatMap((entry) => entry.warnings) ?? [])
+    ...(references?.validationResults.flatMap((entry) => entry.warnings) ?? []),
+    ...(normalized?.warnings ?? [])
   ];
   const ambiguities = references?.ambiguities ?? [];
   const unresolved = references?.unresolvedMentions ?? [];
+  const currentnessMismatch = gaps.some((gap) => {
+    const details = gap["details"];
+    return details && typeof details === "object" && !Array.isArray(details) &&
+      ["STALE", "SNAPSHOT_MISMATCHED", "DATA_GAP", "SOURCE_CHANGED"]
+        .includes(String((details as JsonObject)["code"]));
+  });
   const partial = semantic?.completionStatus === "PARTIAL" || graph?.completionStatus === "PARTIAL" ||
     normalized?.status === "PARTIAL" || gaps.some((gap) => gap["blocking"] === true);
   const status = ambiguities.length > 0 ? "AMBIGUOUS" : unresolved.length > 0 && (references?.referenceProducts.length ?? 0) === 0
-    ? "UNRESOLVED" : partial ? "PARTIAL" : "COMPLETED";
-  const queryRecords = executed?.outcomes.map((entry) => ({
+    ? "UNRESOLVED" : currentnessMismatch ? "UNRESOLVED" : partial ? "PARTIAL" : "COMPLETED";
+  const executedQueries = executed ? [...executed.outcomes, ...(executed.sourceChangeAttempts ?? [])] : undefined;
+  const queryRecords = executedQueries?.map((entry) => ({
     queryId: entry.submission.plan.queryId,
     status: ["COMPLETED", "PARTIAL", "FAILED", "CANCELLED"].includes(entry.status) ? entry.status : "FAILED",
     resultHash: entry.resultHash
@@ -1462,6 +2022,9 @@ interface PersistedWorldQueryOutcome extends JsonObject {
   submission: WorldQuerySubmission;
   status: string;
   resultHash: string;
+  delegatedIdentityHash: string;
+  startedAt: string;
+  finishedAt: string;
   encryptedCheckpointEvidenceMaterial: EncryptedCheckpointEvidenceMaterial;
 }
 
@@ -1524,6 +2087,375 @@ export function normalizeGdpsWorldQuerySources(
   });
 }
 
+export interface GdpsCurrentnessWorldQueryResult {
+  nodeId: string;
+  currentness: "CURRENT" | "CHANGED" | "NOT_AVAILABLE";
+  currentContentHash?: `sha256:${string}`;
+  decision: GdpsReplayDecision;
+}
+
+/**
+ * Verifies that a replay query is the single authorized currentness operation
+ * and evaluates the provider response under the explicitly selected replay
+ * mode. No producing operation from the historical query is accepted here;
+ * BEST_EFFORT source refresh is a separate, sequential Gateway query.
+ */
+export function normalizeGdpsCurrentnessWorldQuery(options: {
+  submission: WorldQuerySubmission;
+  worldValue: unknown;
+  replay: GdpsPriorCurrentnessReplay;
+  operation: OperationLock;
+  authorization: GdpsCurrentnessAuthorization;
+}): GdpsCurrentnessWorldQueryResult {
+  const { submission, replay, operation, authorization } = options;
+  const planned = submission.plan.nodes;
+  if (planned.length !== 1 || planned[0]?.operation.operationId !== "geo-product.check-current" ||
+      planned[0].operation.operationVersion !== "1.0" ||
+      planned[0].operation.inputSchemaHash !== authorization.allowedOperation.inputSchemaHash ||
+      planned[0].operation.outputSchemaHash !== authorization.allowedOperation.outputSchemaHash ||
+      operation.operationId !== "geo-product.check-current" || operation.operationVersion !== "1.0" ||
+      operation.inputSchemaHash !== authorization.allowedOperation.inputSchemaHash ||
+      operation.outputSchemaHash !== authorization.allowedOperation.outputSchemaHash ||
+      operation.semanticProfileHash !== authorization.allowedOperation.semanticProfileHash) {
+    throw new ProductionStageModuleError("GDPS_CURRENTNESS_OPERATION_CHAIN_INVALID");
+  }
+  const parameters = submission.parameters;
+  if (parameters["productId"] !== replay.productId || parameters["contentHash"] !== replay.contentHash ||
+      parameters["replayMode"] !== replay.replayMode || parameters["sourceGroundingId"] !== replay.sourceGroundingId ||
+      parameters["sourceResultHash"] !== replay.sourceResultHash ||
+      parameters["currentnessRecipeId"] !== authorization.recipeId ||
+      parameters["currentnessProviderRecipeLockHash"] !== authorization.providerRecipeLockHash ||
+      parameters["currentnessOperationLockHash"] !== authorization.operationLockHash) {
+    throw new ProductionStageModuleError("GDPS_CURRENTNESS_PLAN_AUTHORITY_MISMATCH");
+  }
+  const world = object(options.worldValue, "WORLD_QUERY_RESULT_INVALID");
+  const nodes = Array.isArray(world["nodes"]) ? world["nodes"] : [];
+  if (nodes.length !== 1) throw new ProductionStageModuleError("GDPS_CURRENTNESS_RESULT_CHAIN_INVALID");
+  const node = object(nodes[0], "WORLD_QUERY_NODE_INVALID");
+  if (node["nodeId"] !== planned[0].nodeId || node["status"] !== "COMPLETED") {
+    throw new ProductionStageModuleError("GDPS_CURRENTNESS_RESULT_CHAIN_INVALID");
+  }
+  const output = object(envelopeValue(object(node["result"], "GDPS_CURRENTNESS_RESULT_MISSING"), operation),
+    "GDPS_CURRENTNESS_OUTPUT_INVALID");
+  const productId = text(output["productId"], "GDPS_CURRENTNESS_PRODUCT_ID_MISSING");
+  const currentness = output["currentness"];
+  if (productId !== replay.productId || !["CURRENT", "CHANGED", "NOT_AVAILABLE"].includes(String(currentness))) {
+    throw new ProductionStageModuleError("GDPS_CURRENTNESS_OUTPUT_INVALID");
+  }
+  const currentContentHash = output["currentContentHash"];
+  if (currentness === "NOT_AVAILABLE") {
+    if (currentContentHash !== undefined && currentContentHash !== null) {
+      throw new ProductionStageModuleError("GDPS_CURRENTNESS_NOT_AVAILABLE_HASH_FORBIDDEN");
+    }
+  } else if (typeof currentContentHash !== "string" || !sha256Pattern.test(currentContentHash)) {
+    throw new ProductionStageModuleError("GDPS_CURRENTNESS_CURRENT_HASH_REQUIRED");
+  }
+  let decision: GdpsReplayDecision;
+  try {
+    decision = evaluateGdpsCurrentOnlyReplay(replay.replayMode, {
+      productId: replay.productId,
+      contentHash: replay.contentHash
+    }, {
+      productId,
+      currentness: currentness as "CURRENT" | "CHANGED" | "NOT_AVAILABLE",
+      ...(typeof currentContentHash === "string"
+        ? { currentContentHash: currentContentHash as `sha256:${string}` }
+        : {})
+    });
+  } catch (error) {
+    const code = error instanceof Error && /^GDPS_[A-Z0-9_]+$/u.test(error.message)
+      ? error.message : "GDPS_CURRENTNESS_DECISION_INVALID";
+    throw new ProductionStageModuleError(code);
+  }
+  return {
+    nodeId: planned[0].nodeId,
+    currentness: currentness as "CURRENT" | "CHANGED" | "NOT_AVAILABLE",
+    ...(typeof currentContentHash === "string"
+      ? { currentContentHash: currentContentHash as `sha256:${string}` }
+      : {}),
+    decision
+  };
+}
+
+function applyGdpsCurrentnessDecision(
+  evidence: ExecutionEvidenceProduct,
+  replay: GdpsPriorCurrentnessReplay,
+  normalized: GdpsCurrentnessWorldQueryResult,
+  authorization: GdpsCurrentnessAuthorization
+): ExecutionEvidenceProduct {
+  const decisionSnapshot = {
+    schemaVersion: "wsgs-gdps-currentness-decision/1.0",
+    status: normalized.decision.status,
+    currentness: normalized.currentness,
+    replayMode: replay.replayMode,
+    source: { productId: replay.productId, contentHash: replay.contentHash },
+    ...(normalized.currentContentHash ? { currentContentHash: normalized.currentContentHash } : {}),
+    executionBlocked: normalized.decision.status !== "REPLAY_ALLOWED",
+    sourceGroundingId: replay.sourceGroundingId,
+    sourceResultHash: replay.sourceResultHash,
+    selectedEvidenceProductId: replay.selectedEvidenceProductId,
+    sourceOperation: replay.sourceOperation,
+    sourceOperationVersion: replay.sourceOperationVersion,
+    sourceRecipeId: replay.sourceRecipeId,
+    sourceRecipeLockHash: replay.sourceRecipeLockHash,
+    descriptorId: replay.descriptorId,
+    descriptorHash: replay.descriptorHash,
+    productType: replay.productType,
+    productProfile: replay.productProfile,
+    queryProfile: replay.queryProfile,
+    currentnessRecipeId: authorization.recipeId,
+    providerRecipeLockHash: authorization.providerRecipeLockHash,
+    operationLockHash: authorization.operationLockHash,
+    historicalPayloadRead: false,
+    currentIdentityPolicy: normalized.currentness === "CURRENT"
+      ? "IDENTITY_CONFIRMED_NO_HISTORICAL_PAYLOAD"
+      : normalized.currentness === "CHANGED" && replay.replayMode === "BEST_EFFORT"
+        ? "NEW_CURRENT_SOURCE_QUERY_REQUIRED"
+        : "NO_SOURCE_QUERY_ALLOWED"
+  };
+  const blocked = normalized.decision.status !== "REPLAY_ALLOWED";
+  const blockedStatus = normalized.currentness === "NOT_AVAILABLE"
+    ? "NO_DATA" as const
+    : normalized.decision.mode === "BEST_EFFORT" ? "INDETERMINATE" as const : "STALE" as const;
+  const explicitWarnings = normalized.currentness === "CURRENT" && normalized.decision.status === "REPLAY_ALLOWED"
+    ? ["CURRENT_SOURCE_IDENTITY_CONFIRMED"]
+    : [...normalized.decision.warnings];
+  const nodeRecords = evidence.nodeRecords.map((record) => record.operationId === "geo-product.check-current" ? {
+    ...record,
+    normalizedStatus: blocked ? blockedStatus : record.normalizedStatus,
+    dataSnapshot: { ...(record.dataSnapshot ?? {}), gdpsCurrentnessDecision: decisionSnapshot }
+  } : record);
+  const body = {
+    ...evidence,
+    record: {
+      ...evidence.record,
+      normalizedStatus: blocked ? blockedStatus : evidence.record.normalizedStatus,
+      dataSnapshot: { ...(evidence.record.dataSnapshot ?? {}), gdpsCurrentnessDecision: decisionSnapshot }
+    },
+    nodeRecords,
+    evidenceItems: evidence.evidenceItems.map((item) => item.sourceOperation === "geo-product.check-current" ? {
+      ...item,
+      dataSnapshot: { ...(item.dataSnapshot ?? {}), gdpsCurrentnessDecision: decisionSnapshot },
+      warnings: [...new Set([...item.warnings, ...explicitWarnings])].sort()
+    } : item),
+    warnings: [...new Set([...evidence.warnings, ...explicitWarnings])].sort()
+  };
+  const { productHash: _priorProductHash, ...hashable } = body;
+  return { ...hashable, productHash: canonicalSha256(hashable) as Sha256Digest };
+}
+
+export interface GdpsCurrentSourceCompilationOptions {
+  replay: GdpsPriorCurrentnessReplay;
+  persistedSource: GdpsPersistedSourceQuery;
+  attempt: 1 | 2;
+  requestId: string;
+  idempotencyKey: string;
+  requiredForProduct: string;
+  parameterSchemaHash: `sha256:${string}`;
+  capabilities: CapabilityDescriptor[];
+  semanticProfiles: CapabilitySemanticCatalog["profiles"];
+  operationLocks: OperationLock[];
+  operationLockHash: `sha256:${string}`;
+  availability: OperationAvailabilityList["operations"];
+  allowPreview: boolean;
+  observedAt: string;
+  budgets: ExecutionBudgets;
+  recipeLock: LoadedGdpsRecipeLock;
+}
+
+function exactOperationIdentity(
+  left: { operationId: string; operationVersion: string; inputSchemaHash: string; outputSchemaHash: string },
+  right: { operationId: string; operationVersion: string; inputSchemaHash: string; outputSchemaHash: string }
+): boolean {
+  return left.operationId === right.operationId && left.operationVersion === right.operationVersion &&
+    left.inputSchemaHash === right.inputSchemaHash && left.outputSchemaHash === right.outputSchemaHash;
+}
+
+/**
+ * Recompiles the persisted source recipe against the current immutable
+ * authority. The prior product payload is neither accepted nor read: only the
+ * persisted operation input, recipe/descriptor identity, and exact hashes are
+ * carried forward into a genuinely new current-source query.
+ */
+export function compileGdpsBestEffortCurrentSource(
+  options: GdpsCurrentSourceCompilationOptions
+): Extract<CompileResult, { status: "COMPILED" }> {
+  const { replay, persistedSource, recipeLock } = options;
+  if (replay.replayMode !== "BEST_EFFORT" ||
+      persistedSource.sourceGroundingId !== replay.sourceGroundingId ||
+      persistedSource.sourceGatewayQueryId !== replay.sourceGatewayQueryId ||
+      canonicalPlanHash(persistedSource.submission.plan) !== persistedSource.sourcePlanHash ||
+      persistedSource.submission.parameterSchemaHash !== options.parameterSchemaHash ||
+      replay.sourceOperationLockHash !== options.operationLockHash ||
+      recipeLock.lockHash !== replay.sourceRecipeLockHash) {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_AUTHORITY_MISMATCH");
+  }
+  const matchingRecipes = recipeLock.lock.recipes.filter((entry) => entry.recipeId === replay.sourceRecipeId);
+  if (matchingRecipes.length !== 1) throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_RECIPE_AMBIGUOUS");
+  const recipe = matchingRecipes[0]!;
+  const rule = queryTemplateRules.find((entry) => entry.pattern === recipe.semanticPattern && entry.previewAuthorizationRequired);
+  if (!rule || recipe.previewAuthorizationRequired !== true || recipe.maturityPolicy.allowed !== "PREVIEW" ||
+      recipe.maturityPolicy.requiresExactHashes !== true ||
+      (recipe.descriptorConstraint !== null &&
+        (recipe.descriptorConstraint.descriptorId !== replay.descriptorId ||
+          recipe.descriptorConstraint.descriptorHash !== replay.descriptorHash)) ||
+      (recipe.queryProfile !== null && recipe.queryProfile !== replay.queryProfile)) {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_RECIPE_DRIFT");
+  }
+  const sourceParameters = object(
+    persistedSource.submission.parameters,
+    "GDPS_BEST_EFFORT_SOURCE_PARAMETERS_INVALID"
+  );
+  const allowedSourceParameterKeys = new Set([
+    "operationInput", "descriptorId", "descriptorHash", "productType", "productProfile", "queryProfile",
+    "explicitProductId", "classCodes", "ranges", "propertyFilters", "platformProfile", "spatialConstraint",
+    "distanceM", "distanceMetres"
+  ]);
+  if (Object.keys(sourceParameters).some((key) => !allowedSourceParameterKeys.has(key))) {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_PARAMETER_NOT_AUTHORIZED");
+  }
+  const operationInput = object(
+    sourceParameters["operationInput"],
+    "GDPS_BEST_EFFORT_SOURCE_OPERATION_INPUT_MISSING"
+  );
+  for (const [key, expected] of Object.entries({
+    descriptorId: replay.descriptorId,
+    descriptorHash: replay.descriptorHash,
+    productType: replay.productType,
+    productProfile: replay.productProfile,
+    queryProfile: replay.queryProfile
+  })) {
+    if (sourceParameters[key] !== expected) {
+      throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_DESCRIPTOR_DRIFT");
+    }
+  }
+  const sourcePlanNodes = persistedSource.submission.plan.nodes.filter((entry) =>
+    entry.operation.operationId === replay.sourceOperation &&
+    entry.operation.operationVersion === replay.sourceOperationVersion
+  );
+  const recipeOperations = recipe.allowedOperations.filter((entry) =>
+    entry.operationId === replay.sourceOperation && entry.operationVersion === replay.sourceOperationVersion
+  );
+  const lockedSourceOperation = options.operationLocks.find((entry) =>
+    entry.operationId === replay.sourceOperation && entry.operationVersion === replay.sourceOperationVersion
+  );
+  if (sourcePlanNodes.length !== 1 || recipeOperations.length !== 1 || !lockedSourceOperation ||
+      !exactOperationIdentity(sourcePlanNodes[0]!.operation, recipeOperations[0]!) ||
+      lockedSourceOperation.semanticProfileHash !== recipeOperations[0]!.semanticProfileHash) {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_OPERATION_DRIFT");
+  }
+  for (const node of persistedSource.submission.plan.nodes) {
+    const locked = options.operationLocks.find((entry) =>
+      entry.operationId === node.operation.operationId && entry.operationVersion === node.operation.operationVersion
+    );
+    if (!locked || !exactOperationIdentity(node.operation, locked)) {
+      throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_OPERATION_LOCK_DRIFT");
+    }
+  }
+  const parameterValues = Object.fromEntries(Object.entries(sourceParameters)
+    .filter(([key]) => key !== "operationInput")
+    .map(([key, value]) => [key, structuredClone(value)]));
+  const compiler = new TypedWorldQueryCompiler();
+  const refreshRequestId = `wsgs-refresh-${canonicalSha256({
+    requestId: options.requestId,
+    sourcePlanHash: persistedSource.sourcePlanHash,
+    attempt: options.attempt
+  }).slice("sha256:".length, "sha256:".length + 32)}`;
+  const compiled = compiler.compile({
+    requestId: refreshRequestId,
+    idempotencyKey: `${options.idempotencyKey}:gdps-current-source:${options.attempt}`,
+    pattern: recipe.semanticPattern as QuerySemanticPattern,
+    requiredForProduct: options.requiredForProduct,
+    operationInput: structuredClone(operationInput),
+    parameterValues,
+    capabilities: options.capabilities,
+    semanticProfiles: options.semanticProfiles,
+    operationLocks: options.operationLocks,
+    availability: options.availability,
+    maturityPolicy: { allowPreview: options.allowPreview },
+    trustedGdpsRecipeLockHash: recipeLock.lockHash,
+    gdpsRecipeAuthorization: {
+      recipeId: recipe.recipeId,
+      semanticPattern: recipe.semanticPattern as QuerySemanticPattern,
+      recipeLockHash: recipeLock.lockHash,
+      descriptorId: replay.descriptorId,
+      descriptorHash: replay.descriptorHash,
+      previewAuthorizationRequired: true,
+      allowedOperations: recipe.allowedOperations
+    },
+    parameterSchemaHash: options.parameterSchemaHash,
+    observedAt: options.observedAt,
+    snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false },
+    budgets: options.budgets
+  });
+  if (compiled.status !== "COMPILED") {
+    throw new ProductionStageModuleError(`GDPS_BEST_EFFORT_SOURCE_COMPILE_${compiled.gap.reason}`);
+  }
+  const oldOperationChain = persistedSource.submission.plan.nodes.map((entry) =>
+    `${entry.operation.operationId}@${entry.operation.operationVersion}`);
+  const newOperationChain = compiled.submission.plan.nodes.map((entry) =>
+    `${entry.operation.operationId}@${entry.operation.operationVersion}`);
+  if (JSON.stringify(oldOperationChain) !== JSON.stringify(newOperationChain) ||
+      compiled.submission.plan.nodes.filter((entry) => entry.operation.operationId === replay.sourceOperation).length !== 1 ||
+      compiled.submission.plan.nodes.some((entry) => entry.operation.operationId === "geo-product.check-current")) {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_CHAIN_DRIFT");
+  }
+  const plan = {
+    ...compiled.submission.plan,
+    queryId: `query-${canonicalSha256({
+      requestId: refreshRequestId,
+      sourcePlanHash: persistedSource.sourcePlanHash,
+      currentRecipeLockHash: recipeLock.lockHash,
+      attempt: options.attempt
+    }).slice("sha256:".length, "sha256:".length + 24)}`
+  };
+  if (plan.queryId === persistedSource.submission.plan.queryId) {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_QUERY_NOT_NEW");
+  }
+  const submission: WorldQuerySubmission = {
+    ...compiled.submission,
+    plan,
+    idempotencyKey: `${options.idempotencyKey}:gdps-current-source:${options.attempt}`
+  };
+  return {
+    ...compiled,
+    submission,
+    planHash: canonicalPlanHash(plan)
+  };
+}
+
+export type GdpsSequentialCurrentSourceResult<T> =
+  | { status: "NOT_RUN_STRICT" | "CURRENT_CONFIRMED" | "DATA_GAP"; attempts: readonly [] }
+  | { status: "COMPLETED"; attempts: readonly [T] | readonly [T, T] }
+  | {
+    status: "INDETERMINATE";
+    attempts: readonly [T, T];
+    reasonCode: "SOURCE_CHANGED";
+    upstreamCondition: "SOURCE_CHANGED_DURING_QUERY";
+  };
+
+/** Internal bounded state machine: a current-source query is allowed only for BEST_EFFORT+CHANGED. */
+export async function executeGdpsSequentialCurrentSource<T>(options: {
+  replayMode: "STRICT" | "BEST_EFFORT";
+  currentness: "CURRENT" | "CHANGED" | "NOT_AVAILABLE";
+  executeAttempt: (attempt: 1 | 2) => Promise<{ value: T; sourceChangedDuringQuery: boolean }>;
+}): Promise<GdpsSequentialCurrentSourceResult<T>> {
+  if (options.replayMode === "STRICT") return { status: "NOT_RUN_STRICT", attempts: [] };
+  if (options.currentness === "CURRENT") return { status: "CURRENT_CONFIRMED", attempts: [] };
+  if (options.currentness === "NOT_AVAILABLE") return { status: "DATA_GAP", attempts: [] };
+  const first = await options.executeAttempt(1);
+  if (!first.sourceChangedDuringQuery) return { status: "COMPLETED", attempts: [first.value] };
+  const second = await options.executeAttempt(2);
+  return second.sourceChangedDuringQuery
+    ? {
+      status: "INDETERMINATE",
+      attempts: [first.value, second.value],
+      reasonCode: "SOURCE_CHANGED",
+      upstreamCondition: "SOURCE_CHANGED_DURING_QUERY"
+    }
+    : { status: "COMPLETED", attempts: [first.value, second.value] };
+}
+
 export async function persistAcceptedWorldQueryJob(
   context: PipelineStageContext,
   pool: Pool,
@@ -1545,6 +2477,113 @@ export async function persistAcceptedWorldQueryJob(
     );
     if (updated.rowCount !== 1) throw new PipelineFenceRejectedError();
   });
+}
+
+async function persistCompiledWorldQuery(
+  context: PipelineStageContext,
+  pool: Pool,
+  item: Extract<CompileResult, { status: "COMPILED" }>
+): Promise<void> {
+  await withFence(context, pool, async (client) => {
+    const inserted = await client.query(
+      `INSERT INTO wsgs.world_query(query_id, grounding_id, data_scope, plan, plan_hash)
+       VALUES ($1,$2,$3,$4::jsonb,$5)
+       ON CONFLICT (query_id) DO UPDATE SET plan = EXCLUDED.plan, plan_hash = EXCLUDED.plan_hash
+       WHERE wsgs.world_query.grounding_id = EXCLUDED.grounding_id
+         AND wsgs.world_query.data_scope = EXCLUDED.data_scope
+         AND wsgs.world_query.plan_hash = EXCLUDED.plan_hash`,
+      [item.submission.plan.queryId, context.groundingId, identity(context).dataScope,
+        JSON.stringify(item.submission), item.planHash]
+    );
+    if (inserted.rowCount !== 1) throw new PipelineFenceRejectedError();
+  });
+}
+
+async function executeWorldQuerySubmission(
+  value: Runtime,
+  context: PipelineStageContext,
+  submission: WorldQuerySubmission
+): Promise<PersistedWorldQueryOutcome> {
+  const caller = identity(context);
+  const requestId = text(submission.requestId, "REQUEST_ID_MISSING");
+  const signed = await value.signer.sign({
+    kind: "WORLD_QUERY", identity: caller, requestId,
+    plan: submission.plan,
+    dataScopes: [caller.dataScope], datasetScopes: caller.datasetScopes
+  });
+  const gatewayContext: GatewayRequestContext = {
+    signal: context.signal, deadlineAt: context.deadlineAt,
+    requestId, delegationToken: signed.token, preferAsync: true
+  };
+  const startedAt = new Date().toISOString();
+  const response = await value.gateway.submitWorldQuery(submission as unknown as JsonObject, gatewayContext)
+    .catch(gatewayFailure);
+  const accepted = response.status === 202 ? object(response.value, "WORLD_QUERY_ACCEPTANCE_INVALID") : undefined;
+  if (accepted) await persistAcceptedWorldQueryJob(context, value.pool, submission, accepted);
+  let terminal: JsonObject | undefined;
+  try {
+    terminal = accepted
+      ? await value.gateway.pollJob(text(accepted["jobId"], "WORLD_QUERY_JOB_ID_MISSING"), gatewayContext)
+      : undefined;
+  } catch (error) {
+    if (accepted) {
+      try {
+        const cancelRequestId = `wsgs-cancel-${createHash("sha256")
+          .update(`${submission.plan.queryId}:${randomUUID()}`)
+          .digest("hex").slice(0, 32)}`;
+        const cancelDelegation = await value.signer.sign({
+          kind: "WORLD_QUERY", identity: caller, requestId: cancelRequestId,
+          plan: submission.plan, dataScopes: [caller.dataScope], datasetScopes: caller.datasetScopes
+        });
+        await value.gateway.cancelWorldQuery(submission.plan.queryId, {
+          deadlineAt: new Date(Date.now() + environmentInteger("GOWM_CANCEL_TIMEOUT_MS", 2_000, 100, 10_000)),
+          requestId: cancelRequestId,
+          delegationToken: cancelDelegation.token
+        });
+      } catch {
+        // Best effort only: the local PostgreSQL generation fence still
+        // prevents any late upstream value from becoming authoritative.
+      }
+    }
+    throw error;
+  }
+  const world = response.status === 200
+    ? object(response.value, "WORLD_QUERY_RESULT_INVALID")
+    : object(object(terminal, "WORLD_QUERY_JOB_INVALID")["result"], "WORLD_QUERY_JOB_RESULT_MISSING");
+  const status = text(world["status"], "WORLD_QUERY_STATUS_MISSING");
+  const resultHash = text(world["outputHash"], "WORLD_QUERY_RESULT_HASH_MISSING");
+  const finishedAt = new Date().toISOString();
+  const outcome: PersistedWorldQueryOutcome = {
+    submission,
+    status,
+    resultHash,
+    delegatedIdentityHash: signed.jtiHash,
+    startedAt,
+    finishedAt,
+    encryptedCheckpointEvidenceMaterial: {
+      checkpointProtection: "AES_256_GCM_INTERNAL_ONLY",
+      responseStatus: response.status,
+      response: response.value,
+      ...(terminal ? { terminal } : {})
+    }
+  };
+  await withFence(context, value.pool, async (client) => {
+    const updated = await client.query(
+      `UPDATE wsgs.world_query
+          SET gateway_query_id = $2, gateway_job_id = $3,
+              upstream_job_id = COALESCE($3, upstream_job_id),
+              query_snapshot_manifest = $4::jsonb,
+              snapshot_adherence = $5::jsonb,
+              upstream_status = $6, upstream_result_hash = $7
+        WHERE query_id = $1 AND grounding_id = $8 AND data_scope = $9`,
+      [submission.plan.queryId, world["queryId"] ?? submission.plan.queryId,
+        accepted?.["jobId"] ?? null, JSON.stringify(world["snapshotManifest"] ?? null),
+        JSON.stringify(world["snapshotAdherence"] ?? null), status, resultHash,
+        context.groundingId, caller.dataScope]
+    );
+    if (updated.rowCount !== 1) throw new PipelineFenceRejectedError();
+  });
+  return outcome;
 }
 
 function pointer(value: unknown, path: string, code: string): unknown {
@@ -1731,6 +2770,102 @@ function worldQueryFailureCode(world: JsonObject, submission: WorldQuerySubmissi
   return `WQ_NODE_${operation}_${code}_${stage}_${hashState}_${keyword}_${path}`.slice(0, 180);
 }
 
+function nestedProtocolErrorCode(value: unknown): string | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const envelope = value as JsonObject;
+  if (typeof envelope["code"] === "string") return envelope["code"];
+  const nested = envelope["error"];
+  return nested && typeof nested === "object" && !Array.isArray(nested) &&
+    typeof (nested as JsonObject)["code"] === "string"
+    ? (nested as JsonObject)["code"] as string
+    : undefined;
+}
+
+/** Recognizes both GDPS INDETERMINATE envelopes and Gateway PlatformError wrappers. */
+export function isGdpsSourceChangedDuringQuery(
+  submission: WorldQuerySubmission,
+  worldValue: unknown,
+  sourceOperation: string
+): boolean {
+  const planned = submission.plan.nodes.filter((entry) =>
+    entry.operation.operationId === sourceOperation && entry.operation.operationVersion === "1.0"
+  );
+  if (planned.length !== 1) throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_NODE_AMBIGUOUS");
+  const world = object(worldValue, "WORLD_QUERY_RESULT_INVALID");
+  const nodes = (Array.isArray(world["nodes"]) ? world["nodes"] : [])
+    .map((entry) => object(entry, "WORLD_QUERY_NODE_INVALID"));
+  const sourceNodes = nodes.filter((entry) => entry["nodeId"] === planned[0]!.nodeId);
+  if (sourceNodes.length !== 1) throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_RESULT_NODE_MISSING");
+  const node = sourceNodes[0]!;
+  const returnedOperation = object(node["operation"], "WORLD_QUERY_NODE_OPERATION_MISSING");
+  if (returnedOperation["operationId"] !== sourceOperation || returnedOperation["operationVersion"] !== "1.0") {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_RESULT_OPERATION_MISMATCH");
+  }
+  const directErrorCode = nestedProtocolErrorCode(node["error"]);
+  let resultCode: string | undefined;
+  if (node["result"] && typeof node["result"] === "object" && !Array.isArray(node["result"])) {
+    const result = node["result"] as JsonObject;
+    resultCode = nestedProtocolErrorCode(result["error"]);
+    const output = result["output"];
+    if (!resultCode && output && typeof output === "object" && !Array.isArray(output)) {
+      const outputValue = (output as JsonObject)["value"];
+      if (outputValue && typeof outputValue === "object" && !Array.isArray(outputValue) &&
+          typeof (outputValue as JsonObject)["code"] === "string") {
+        resultCode = (outputValue as JsonObject)["code"] as string;
+      }
+    }
+  }
+  return directErrorCode === "SOURCE_CHANGED_DURING_QUERY" || resultCode === "SOURCE_CHANGED_DURING_QUERY";
+}
+
+export function gdpsSourceChangedAttemptRecord(
+  context: PipelineStageContext,
+  outcome: PersistedWorldQueryOutcome,
+  replay: GdpsPriorCurrentnessReplay,
+  attempt: number,
+  currentSourceExecution: JsonObject
+): GowmExecutionRecord {
+  const world = finalWorldResult(outcome);
+  if (!isGdpsSourceChangedDuringQuery(outcome.submission, world, replay.sourceOperation)) {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_ATTEMPT_REASON_MISMATCH");
+  }
+  const gatewayQueryId = text(world["queryId"], "WORLD_QUERY_ID_MISSING");
+  if (gatewayQueryId !== outcome.submission.plan.queryId || !sha256Pattern.test(outcome.resultHash)) {
+    throw new ProductionStageModuleError("GDPS_BEST_EFFORT_ATTEMPT_IDENTITY_MISMATCH");
+  }
+  const gatewayJobId = typeof world["jobId"] === "string" && world["jobId"] ? world["jobId"] : undefined;
+  return {
+    executionId: `execution-${canonicalSha256({
+      groundingId: context.groundingId,
+      queryId: gatewayQueryId,
+      reasonCode: "SOURCE_CHANGED_DURING_QUERY"
+    }).slice("sha256:".length, "sha256:".length + 32)}`,
+    groundingId: context.groundingId,
+    executionKind: "WORLD_QUERY",
+    operationId: replay.sourceOperation,
+    operationVersion: replay.sourceOperationVersion,
+    gatewayQueryId,
+    ...(gatewayJobId ? { gatewayJobId } : {}),
+    requestHash: canonicalSha256(outcome.submission) as Sha256Digest,
+    resultHash: outcome.resultHash as Sha256Digest,
+    normalizedStatus: "INDETERMINATE",
+    upstreamStatus: outcome.status,
+    dataSnapshot: {
+      gdpsBestEffortCurrentSource: {
+        ...structuredClone(currentSourceExecution),
+        attempt,
+        attemptQueryId: gatewayQueryId,
+        reasonCode: "SOURCE_CHANGED",
+        upstreamCondition: "SOURCE_CHANGED_DURING_QUERY"
+      }
+    },
+    receiptIds: [],
+    evidenceIds: [],
+    startedAt: outcome.startedAt,
+    finishedAt: outcome.finishedAt
+  };
+}
+
 function jsonByteLength(value: unknown): number {
   const encoded = JSON.stringify(value);
   if (encoded === undefined) throw new ProductionStageModuleError("EVIDENCE_PAYLOAD_NOT_JSON");
@@ -1827,10 +2962,21 @@ export async function createPipelineStageExecutor(
       const priorGroundings = Array.isArray(parts.capsule["priorGroundings"])
         ? parts.capsule["priorGroundings"]
         : [];
+      const prior = await loadPriorCurrentnessContexts(value.pool, identity(context), priorGroundings);
+      const replayMode = parts.policy["allowApproximation"] === true ? "BEST_EFFORT" as const : "STRICT" as const;
+      const gdpsCurrentnessReplays = prior.gdpsCurrentnessReplays.map((entry) => ({ ...entry, replayMode }));
+      if (prior.gdpsCurrentnessReplays.length > 0 && !authority.gdpsCurrentnessAuthorization) {
+        throw new ProductionStageModuleError("GDPS_CURRENTNESS_AUTHORITY_UNAVAILABLE");
+      }
       // W11 requires replay of the exact historical snapshot. The current
       // frozen 0.6.3 locks expose CONSISTENT_AT_START only, so accepting a
-      // prior result here would silently weaken its authority boundary.
-      assertPriorGroundingReplaySupport(allGatewayLocks(authority.southboundLock), priorGroundings.length);
+      // generic prior result here would silently weaken its authority boundary.
+      // A recognized GDPS current-product replay is different: its immutable
+      // source identity stays hash-pinned and its only executable operation is
+      // the independently locked currentness check.
+      if (prior.hasOtherPriorProducts) {
+        assertPriorGroundingReplaySupport(allGatewayLocks(authority.southboundLock), priorGroundings.length);
+      }
       const snapshot = authority.trustedCapabilitySnapshot;
       const snapshotId = `capability-snapshot-${canonicalSha256({
         groundingId: context.groundingId,
@@ -1871,6 +3017,9 @@ export async function createPipelineStageExecutor(
         capabilitySnapshotId: snapshotId,
         knownWorldReferences: parts.capsule["knownWorldReferences"],
         priorGroundings,
+        gdpsCurrentnessReplays,
+        gdpsPersistedSourceQueries: prior.gdpsPersistedSourceQueries,
+        hasOtherPriorProducts: prior.hasOtherPriorProducts,
         mapSelections: parts.capsule["mapSelections"],
         externalCorrelationHints: parts.capsule["externalCorrelationHints"],
         externalPredicates: parts.capsule["externalPredicates"]
@@ -1925,11 +3074,12 @@ export async function createPipelineStageExecutor(
       const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_FRAME_VALIDATE");
       try {
-        return buildGroundingGraphWithDegradation(
+        const built = buildGroundingGraphWithDegradation(
           text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
           deterministic,
           model.status === "AVAILABLE" ? { status: "AVAILABLE", frame: model.frame } : { status: "UNAVAILABLE", failureCode: model.failureCode }
         );
+        return augmentGroundingGraphWithCurrentness(built, currentnessReplays(context));
       } catch (error) {
         const message = error instanceof Error ? error.message : "";
         const code = /^GROUNDING_GRAPH_[A-Z0-9_]+(?::.*)?$/u.test(message)
@@ -1942,6 +3092,7 @@ export async function createPipelineStageExecutor(
     REFERENCE_RESOLVE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
+      if (currentnessReplays(context).length > 0) return normalizeReferenceResolution(null, []);
       const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
       // A KnownWorldReference is already an immutable caller-supplied key. It
       // must be validated, but resolving its original ambiguous alias again
@@ -1965,6 +3116,7 @@ export async function createPipelineStageExecutor(
     REFERENCE_VALIDATE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
       const resolved = context.state["REFERENCE_RESOLVE"] as ReferenceGroundingResult | undefined;
+      if (currentnessReplays(context).length > 0) return normalizeReferenceResolution(null, []);
       const parts = requestParts(context);
       const known = Array.isArray(parts.capsule["knownWorldReferences"])
         ? parts.capsule["knownWorldReferences"].map((entry) => object(entry, "INVALID_KNOWN_REFERENCE")) : [];
@@ -1995,14 +3147,21 @@ export async function createPipelineStageExecutor(
       const parts = requestParts(context);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_FRAME_VALIDATE");
-      const projected = value.gdpsDescriptor ? projectGeospatialProductIntent({
+      const replays = currentnessReplays(context);
+      const planningGraph = replays.length > 0 ? validateGroundingGraph({
+        schemaVersion: "1.0",
+        nodes: graph.graph.nodes.filter((node) => node.kind === "WORLD_QUERY" &&
+          node.payload && typeof node.payload === "object" && "gdpsCurrentProduct" in node.payload),
+        edges: []
+      }) : graph.graph;
+      const projected = replays.length === 0 && value.gdpsDescriptor ? projectGeospatialProductIntent({
         frame: model.frame,
         originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
         conceptMap: value.gdpsDescriptor.conceptMap
       }) : null;
       const descriptorResolution = projected ? value.gdpsDescriptor!.consumer.resolve(projected) : undefined;
       const planned = planner.plan({
-        groundingGraph: graph.graph,
+        groundingGraph: planningGraph,
         ...(descriptorResolution?.status === "MATCHED" && descriptorResolution.intent
           ? { groundedProductIntents: [descriptorResolution.intent] }
           : {}),
@@ -2016,6 +3175,13 @@ export async function createPipelineStageExecutor(
           allowApproximation: parts.policy["allowApproximation"] === true
         }
       });
+      if (replays.length > 0) {
+        if (planned.status !== "PLANNED" || planned.capabilityGaps.length > 0 ||
+            JSON.stringify(planned.selectedRecipeIds) !== JSON.stringify(["PRIOR_RESULT_REVALIDATION"])) {
+          throw new ProductionStageModuleError("GDPS_CURRENTNESS_REPLAY_PLAN_INVALID");
+        }
+        return planned;
+      }
       if (descriptorResolution?.status === "MATCHED" && descriptorResolution.intent) {
         const selectedGdpsPatterns = planned.selectedRecipeIds.filter((recipeId) =>
           queryTemplateRules.some((rule) => rule.pattern === recipeId && rule.previewAuthorizationRequired));
@@ -2117,6 +3283,7 @@ export async function createPipelineStageExecutor(
       const gaps = [...matched.capabilityGaps];
       for (const recipeId of planning.selectedRecipeIds) {
         const gdpsRecipe = value.gdpsRecipes.find((entry) => entry.semanticPattern === recipeId);
+        const isGdpsCurrentness = recipeId === "PRIOR_RESULT_REVALIDATION";
         const recipeInput = buildRecipeOperationInput({
           recipeId,
           planning,
@@ -2138,17 +3305,24 @@ export async function createPipelineStageExecutor(
         const descriptorHash = typeof recipeInput.parameterValues?.["descriptorHash"] === "string"
           ? recipeInput.parameterValues["descriptorHash"]
           : gdpsRecipe?.descriptorConstraint?.descriptorHash;
+        const currentnessAuthorization = isGdpsCurrentness ? authority.gdpsCurrentnessAuthorization : undefined;
+        const parameterValues = currentnessAuthorization ? {
+          ...recipeInput.parameterValues,
+          currentnessRecipeId: currentnessAuthorization.recipeId,
+          currentnessProviderRecipeLockHash: currentnessAuthorization.providerRecipeLockHash,
+          currentnessOperationLockHash: currentnessAuthorization.operationLockHash
+        } : gdpsRecipe && descriptorId && descriptorHash ? {
+          ...recipeInput.parameterValues,
+          descriptorId,
+          descriptorHash
+        } : recipeInput.parameterValues;
         const result = compiler.compile({
           requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
           idempotencyKey: `${idempotencyKey(context)}:${recipeId}`,
           pattern: recipeId as QuerySemanticPattern,
           requiredForProduct: recipeInput.requiredForProduct,
           operationInput: recipeInput.operationInput,
-          parameterValues: gdpsRecipe && descriptorId && descriptorHash ? {
-            ...recipeInput.parameterValues,
-            descriptorId,
-            descriptorHash
-          } : recipeInput.parameterValues,
+          parameterValues,
           capabilities: authority.capabilityCatalog.capabilities,
           semanticProfiles: authority.semanticCatalog.profiles,
           operationLocks: allGatewayLocks(authority.southboundLock),
@@ -2166,9 +3340,16 @@ export async function createPipelineStageExecutor(
               allowedOperations: gdpsRecipe.allowedOperations
             }
           } : {}),
+          ...(currentnessAuthorization ? {
+            gdpsCurrentnessAuthorization: currentnessAuthorization,
+            trustedGdpsProviderRecipeLockHash: currentnessAuthorization.providerRecipeLockHash,
+            trustedGdpsOperationLockHash: authority.trustedCapabilitySnapshot.southboundLockHash
+          } : {}),
           parameterSchemaHash: value.parameterSchemaHash,
           observedAt: authority.availability.checkedAt,
-          snapshotPolicy: PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
+          snapshotPolicy: isGdpsCurrentness
+            ? { mode: "LATEST_AT_START", allowDowngrade: false }
+            : PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
           budgets: {
             maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
             maximumDepth: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
@@ -2202,103 +3383,145 @@ export async function createPipelineStageExecutor(
 
     GOWM_EXECUTE: async (context) => {
       const compilation = stageValue<{ compiled: CompileResult[] }>(context, "WORLD_QUERY_COMPILE");
-      const caller = identity(context);
+      const authority = persistedAuthority(context, value.gateway);
+      const parts = requestParts(context);
+      const planning = stageValue<RequirementPlanningResult>(context, "REQUIREMENT_PLAN");
       const outcomes: PersistedWorldQueryOutcome[] = [];
+      const sourceChangeAttempts: PersistedWorldQueryOutcome[] = [];
+      let currentSourceExecution: GdpsSequentialCurrentSourceResult<PersistedWorldQueryOutcome> | undefined;
+      let currentSourceExecutionSummary: JsonObject | undefined;
       for (const item of compilation.compiled) {
         if (item.status !== "COMPILED") continue;
-        const signed = await value.signer.sign({
-          kind: "WORLD_QUERY", identity: caller,
-          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
-          plan: item.submission.plan,
-          dataScopes: [caller.dataScope], datasetScopes: caller.datasetScopes
-        });
-        const gatewayContext: GatewayRequestContext = {
-          signal: context.signal, deadlineAt: context.deadlineAt,
-          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
-          delegationToken: signed.token,
-          preferAsync: true
-        };
-        const startedAt = new Date().toISOString();
-        const response = await value.gateway.submitWorldQuery(item.submission as unknown as JsonObject, gatewayContext)
-          .catch(gatewayFailure);
-        const accepted = response.status === 202 ? object(response.value, "WORLD_QUERY_ACCEPTANCE_INVALID") : undefined;
-        if (accepted) {
-          // This fenced write is deliberately before the first poll. A crash can
-          // recover the authoritative upstream job id and idempotently resume.
-          await persistAcceptedWorldQueryJob(context, value.pool, item.submission, accepted);
-        }
-        let terminal: JsonObject | undefined;
-        try {
-          terminal = accepted
-            ? await value.gateway.pollJob(text(accepted["jobId"], "WORLD_QUERY_JOB_ID_MISSING"), gatewayContext)
-            : undefined;
-        } catch (error) {
-          if (accepted) {
-            // The v0.6.3 cancellation authority is the world-query id, not the
-            // generic job id. Never reuse the submit request binding, JTI, or
-            // the already-aborted caller signal.
-            try {
-              const cancelRequestId = `wsgs-cancel-${createHash("sha256")
-                .update(`${item.submission.plan.queryId}:${randomUUID()}`)
-                .digest("hex").slice(0, 32)}`;
-              const cancelDelegation = await value.signer.sign({
-                kind: "WORLD_QUERY",
-                identity: caller,
-                requestId: cancelRequestId,
-                plan: item.submission.plan,
-                dataScopes: [caller.dataScope],
-                datasetScopes: caller.datasetScopes
-              });
-              await value.gateway.cancelWorldQuery(item.submission.plan.queryId, {
-                deadlineAt: new Date(Date.now() + environmentInteger("GOWM_CANCEL_TIMEOUT_MS", 2_000, 100, 10_000)),
-                requestId: cancelRequestId,
-                delegationToken: cancelDelegation.token
-              });
-            } catch {
-              // Best effort only: the local PostgreSQL generation fence still
-              // prevents any late upstream value from becoming authoritative.
-            }
+        const outcome = await executeWorldQuerySubmission(value, context, item.submission);
+        const currentnessPlan = item.submission.plan.nodes.length === 1 &&
+          item.submission.plan.nodes[0]?.operation.operationId === "geo-product.check-current";
+        if (!currentnessPlan) {
+          const world = finalWorldResult(outcome);
+          if (outcome.status === "FAILED") {
+            throw new ProductionStageModuleError(worldQueryFailureCode(world, item.submission));
           }
-          throw error;
+          outcomes.push(outcome);
+          continue;
         }
-        const world = response.status === 200
-          ? object(response.value, "WORLD_QUERY_RESULT_INVALID")
-          : object(object(terminal, "WORLD_QUERY_JOB_INVALID")["result"], "WORLD_QUERY_JOB_RESULT_MISSING");
-        const status = text(world["status"], "WORLD_QUERY_STATUS_MISSING");
-        const resultHash = text(world["outputHash"], "WORLD_QUERY_RESULT_HASH_MISSING");
-        outcomes.push({
+        const replay = currentnessReplays(context)[0];
+        const authorization = authority.gdpsCurrentnessAuthorization;
+        if (!replay || !authorization) throw new ProductionStageModuleError("GDPS_CURRENTNESS_AUTHORITY_UNAVAILABLE");
+        const checkWorld = finalWorldResult(outcome);
+        if (outcome.status === "FAILED") {
+          throw new ProductionStageModuleError(worldQueryFailureCode(checkWorld, item.submission));
+        }
+        const currentness = normalizeGdpsCurrentnessWorldQuery({
           submission: item.submission,
-          status, resultHash, delegatedIdentityHash: signed.jtiHash,
-          startedAt, finishedAt: new Date().toISOString(),
-          encryptedCheckpointEvidenceMaterial: {
-            checkpointProtection: "AES_256_GCM_INTERNAL_ONLY",
-            responseStatus: response.status,
-            response: response.value,
-            ...(terminal ? { terminal } : {})
+          worldValue: checkWorld,
+          replay,
+          operation: operationLock(authority, "geo-product.check-current"),
+          authorization
+        });
+        outcomes.push(outcome);
+        const persistedSources = persistedCurrentnessSourceQueries(context).filter((entry) =>
+          entry.sourceGroundingId === replay.sourceGroundingId &&
+          entry.sourceGatewayQueryId === replay.sourceGatewayQueryId
+        );
+        if (persistedSources.length !== 1 || !value.gdpsRecipeLock) {
+          throw new ProductionStageModuleError("GDPS_BEST_EFFORT_SOURCE_AUTHORITY_UNAVAILABLE");
+        }
+        const changedAttemptIds = new Set<string>();
+        currentSourceExecution = await executeGdpsSequentialCurrentSource({
+          replayMode: replay.replayMode,
+          currentness: currentness.currentness,
+          executeAttempt: async (attempt) => {
+            const compiledSource = compileGdpsBestEffortCurrentSource({
+              replay,
+              persistedSource: persistedSources[0]!,
+              attempt,
+              requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
+              idempotencyKey: idempotencyKey(context),
+              requiredForProduct: planning.graph?.requirements.find((entry) => entry.required)?.requiredForProduct ??
+                parts.requestedProducts[0] ?? "WORLD_EVIDENCE",
+              parameterSchemaHash: value.parameterSchemaHash,
+              capabilities: authority.capabilityCatalog.capabilities,
+              semanticProfiles: authority.semanticCatalog.profiles,
+              operationLocks: allGatewayLocks(authority.southboundLock),
+              operationLockHash: authority.trustedCapabilitySnapshot.southboundLockHash,
+              availability: authority.availability.operations,
+              allowPreview: value.allowPreview,
+              observedAt: authority.availability.checkedAt,
+              budgets: {
+                maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
+                maximumDepth: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
+                maximumRows: Math.max(1, integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID") * 32),
+                maximumCandidates: Math.max(1, integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID") * 32),
+                maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+                maximumExecutionMs: integer(parts.policy["deadlineMs"], "DEADLINE_INVALID")
+              },
+              recipeLock: value.gdpsRecipeLock!
+            });
+            await persistCompiledWorldQuery(context, value.pool, compiledSource);
+            const sourceOutcome = await executeWorldQuerySubmission(value, context, compiledSource.submission);
+            const sourceWorld = finalWorldResult(sourceOutcome);
+            let sourceChangedDuringQuery = isGdpsSourceChangedDuringQuery(
+              compiledSource.submission,
+              sourceWorld,
+              replay.sourceOperation
+            );
+            if (!sourceChangedDuringQuery && sourceOutcome.status === "FAILED") {
+              throw new ProductionStageModuleError(worldQueryFailureCode(sourceWorld, compiledSource.submission));
+            }
+            if (!sourceChangedDuringQuery) {
+              const sources = normalizeGdpsWorldQuerySources(
+                compiledSource.submission,
+                sourceWorld,
+                value.gdpsRecipeLock
+              ).filter((entry) => entry.evidence.operationId === replay.sourceOperation);
+              if (sources.length !== 1 || sources[0]!.evidence.productId !== replay.productId) {
+                throw new ProductionStageModuleError("GDPS_BEST_EFFORT_CURRENT_SOURCE_IDENTITY_MISMATCH");
+              }
+              if (currentness.currentContentHash && sources[0]!.evidence.contentHash !== currentness.currentContentHash) {
+                throw new ProductionStageModuleError("GDPS_BEST_EFFORT_CURRENT_SOURCE_HASH_MISMATCH");
+              }
+            }
+            if (sourceChangedDuringQuery) changedAttemptIds.add(compiledSource.submission.plan.queryId);
+            return { value: sourceOutcome, sourceChangedDuringQuery };
           }
         });
-        await withFence(context, value.pool, async (client) => {
-          await client.query(
-            `UPDATE wsgs.world_query
-                SET gateway_query_id = $2, gateway_job_id = $3,
-                    upstream_job_id = COALESCE($3, upstream_job_id),
-                    query_snapshot_manifest = $4::jsonb,
-                    snapshot_adherence = $5::jsonb,
-                    upstream_status = $6, upstream_result_hash = $7
-              WHERE query_id = $1 AND grounding_id = $8`,
-            [item.submission.plan.queryId, world["queryId"] ?? item.submission.plan.queryId,
-              accepted?.["jobId"] ?? null, JSON.stringify(world["snapshotManifest"] ?? null),
-              JSON.stringify(world["snapshotAdherence"] ?? null), status, resultHash, context.groundingId]
-          );
-        });
-        if (status === "FAILED") throw new ProductionStageModuleError(worldQueryFailureCode(world, item.submission));
+        for (const attempted of currentSourceExecution.attempts) {
+          if (changedAttemptIds.has(attempted.submission.plan.queryId)) sourceChangeAttempts.push(attempted);
+          else outcomes.push(attempted);
+        }
+        currentSourceExecutionSummary = {
+          schemaVersion: "wsgs-gdps-best-effort-current-source/1.0",
+          replayMode: replay.replayMode,
+          currentness: currentness.currentness,
+          status: currentSourceExecution.status,
+          productId: replay.productId,
+          priorContentHash: replay.contentHash,
+          ...(currentness.currentContentHash ? { currentContentHash: currentness.currentContentHash } : {}),
+          sourceAdvanced: currentness.decision.warnings.some((warning) => warning === "SOURCE_ADVANCED"),
+          sourceQueryExecuted: currentSourceExecution.attempts.length > 0,
+          historicalPayloadRead: false,
+          attemptQueryIds: currentSourceExecution.attempts.map((entry) => entry.submission.plan.queryId),
+          ...(currentSourceExecution.status === "INDETERMINATE"
+            ? {
+              reasonCode: "SOURCE_CHANGED",
+              upstreamCondition: "SOURCE_CHANGED_DURING_QUERY"
+            }
+            : {})
+        };
       }
-      return { outcomes };
+      return {
+        outcomes,
+        sourceChangeAttempts,
+        ...(currentSourceExecutionSummary ? { currentSourceExecution: currentSourceExecutionSummary } : {})
+      };
     },
 
     EVIDENCE_NORMALIZE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
-      const execution = stageValue<{ outcomes: PersistedWorldQueryOutcome[] }>(context, "GOWM_EXECUTE");
+      const execution = stageValue<{
+        outcomes: PersistedWorldQueryOutcome[];
+        sourceChangeAttempts: PersistedWorldQueryOutcome[];
+        currentSourceExecution?: JsonObject;
+      }>(context, "GOWM_EXECUTE");
       const evidenceItems: GroundingEvidenceItem[] = [];
       const warnings: string[] = [];
       const evidenceProductsForPersistence: ExecutionEvidenceProduct[] = [];
@@ -2309,6 +3532,50 @@ export async function createPipelineStageExecutor(
       );
       const normalizationProducts: EvidenceRequestedProduct[] = requested.length > 0 ? requested : ["WORLD_EVIDENCE"];
       const semantic = context.state["SEMANTIC_MODEL_PARSE"] as PersistedSemanticModelResult | undefined;
+      const replay = currentnessReplays(context)[0];
+      const sourceChangeRecords = execution.sourceChangeAttempts.map((outcome, index) => {
+        if (!replay || !execution.currentSourceExecution) {
+          throw new ProductionStageModuleError("GDPS_BEST_EFFORT_ATTEMPT_AUTHORITY_MISSING");
+        }
+        return gdpsSourceChangedAttemptRecord(
+          context,
+          outcome,
+          replay,
+          index + 1,
+          execution.currentSourceExecution
+        );
+      });
+      if (sourceChangeRecords.length > 0) {
+        warnings.push("SOURCE_CHANGED", "CURRENT_SOURCE_QUERY_RETRIED");
+      }
+      if (execution.currentSourceExecution?.["status"] === "INDETERMINATE") {
+        normalizationGaps.push({
+          gapId: `gap-${canonicalSha256({
+            groundingId: context.groundingId,
+            code: "SOURCE_CHANGED",
+            priorContentHash: execution.currentSourceExecution["priorContentHash"],
+            currentContentHash: execution.currentSourceExecution["currentContentHash"]
+          }).slice("sha256:".length, "sha256:".length + 24)}`,
+          semanticCapability: "PRIOR_RESULT_REVALIDATION",
+          reason: "UNSUPPORTED_EXPRESSION",
+          requiredForProduct: normalizationProducts[0] ?? "WORLD_EVIDENCE",
+          blocking: true,
+          details: {
+            code: "SOURCE_CHANGED",
+            upstreamCondition: "SOURCE_CHANGED_DURING_QUERY",
+            normalizedStatus: "INDETERMINATE",
+            replayMode: "BEST_EFFORT",
+            productId: execution.currentSourceExecution["productId"],
+            priorContentHash: execution.currentSourceExecution["priorContentHash"],
+            currentContentHash: execution.currentSourceExecution["currentContentHash"],
+            sourceAdvanced: true,
+            currentSourceQueryAttempts: 2,
+            historicalPayloadRead: false,
+            historicalQueryReplayed: false
+          }
+        });
+        warnings.push("SOURCE_CHANGED", "INDETERMINATE", "SOURCE_ADVANCED");
+      }
       for (const outcome of execution.outcomes) {
         const world = finalWorldResult(outcome);
         const maximumInlinePayloadBytes = Math.min(
@@ -2379,7 +3646,7 @@ export async function createPipelineStageExecutor(
         const material = outcome.encryptedCheckpointEvidenceMaterial;
         const responseStatus = material.responseStatus;
         if (responseStatus !== 200 && responseStatus !== 202) throw new ProductionStageModuleError("WORLD_QUERY_RESPONSE_STATUS_INVALID");
-        const evidence = evidenceNormalizer.normalizeWorldQuery({
+        let evidence = evidenceNormalizer.normalizeWorldQuery({
           context: {
             executionId: `execution-${createHash("sha256").update(`${context.groundingId}:${outcome.submission.plan.queryId}`).digest("hex").slice(0, 32)}`,
             groundingId: context.groundingId,
@@ -2408,6 +3675,58 @@ export async function createPipelineStageExecutor(
                 terminalJob: material.terminal
               }
         });
+        const currentnessPlan = outcome.submission.plan.nodes.length === 1 &&
+          outcome.submission.plan.nodes[0]?.operation.operationId === "geo-product.check-current";
+        if (currentnessPlan) {
+          const replay = currentnessReplays(context)[0];
+          const authorization = authority.gdpsCurrentnessAuthorization;
+          if (!replay || !authorization) throw new ProductionStageModuleError("GDPS_CURRENTNESS_AUTHORITY_UNAVAILABLE");
+          const currentness = normalizeGdpsCurrentnessWorldQuery({
+            submission: outcome.submission,
+            worldValue: world,
+            replay,
+            operation: operationLock(authority, "geo-product.check-current"),
+            authorization
+          });
+          evidence = applyGdpsCurrentnessDecision(evidence, replay, currentness, authorization);
+          warnings.push(...currentness.decision.warnings);
+          if (currentness.decision.status !== "REPLAY_ALLOWED") {
+            const decisionCode = "gapKind" in currentness.decision
+              ? currentness.decision.gapKind
+              : currentness.decision.status;
+            normalizationGaps.push({
+              gapId: `gap-${canonicalSha256({
+                queryId: outcome.submission.plan.queryId,
+                code: decisionCode,
+                productId: replay.productId,
+                contentHash: replay.contentHash,
+                currentContentHash: currentness.currentContentHash ?? null
+              }).slice("sha256:".length, "sha256:".length + 24)}`,
+              semanticCapability: "PRIOR_RESULT_REVALIDATION",
+              reason: decisionCode === "DATA_GAP" ? "OPERATION_UNAVAILABLE" : "UNSUPPORTED_EXPRESSION",
+              requiredForProduct: normalizationProducts[0] ?? "WORLD_EVIDENCE",
+              blocking: true,
+              details: {
+                code: decisionCode,
+                currentness: currentness.currentness,
+                replayMode: replay.replayMode,
+                executionBlocked: true,
+                productId: replay.productId,
+                contentHash: replay.contentHash,
+                ...(currentness.currentContentHash ? { currentContentHash: currentness.currentContentHash } : {}),
+                descriptorId: replay.descriptorId,
+                descriptorHash: replay.descriptorHash,
+                sourceRecipeId: replay.sourceRecipeId,
+                sourceRecipeLockHash: replay.sourceRecipeLockHash,
+                currentnessRecipeId: authorization.recipeId,
+                providerRecipeLockHash: authorization.providerRecipeLockHash,
+                operationLockHash: authorization.operationLockHash,
+                originalQueryExecuted: false,
+                historicalPayloadRead: false
+              }
+            });
+          }
+        }
         const gdpsSources = normalizeGdpsWorldQuerySources(outcome.submission, world, value.gdpsRecipeLock);
         const gdpsByNode = new Map(gdpsSources.map((entry) => [entry.nodeId, entry.evidence]));
         for (const record of evidence.nodeRecords) {
@@ -2418,7 +3737,11 @@ export async function createPipelineStageExecutor(
             ...record,
             dataSnapshot: {
               ...(record.dataSnapshot ?? {}),
-              gdpsSourceEvidence: structuredClone(gdpsSource)
+              gdpsSourceEvidence: structuredClone(gdpsSource),
+              ...(execution.currentSourceExecution?.["status"] === "COMPLETED" &&
+                execution.currentSourceExecution["sourceAdvanced"] === true
+                ? { gdpsBestEffortCurrentSource: structuredClone(execution.currentSourceExecution) }
+                : {})
             }
           });
           warnings.push(...gdpsSource.warnings);
@@ -2435,7 +3758,7 @@ export async function createPipelineStageExecutor(
         value.pool,
         evidenceProductsForPersistence.flatMap((entry) => [entry.record, ...entry.nodeRecords.filter((record) =>
           !gdpsExecutionRecordsForPersistence.some((gdpsRecord) => gdpsRecord.executionId === record.executionId))])
-          .concat(gdpsExecutionRecordsForPersistence)
+          .concat(gdpsExecutionRecordsForPersistence, sourceChangeRecords)
       );
       const operationalRequested = requested as OperationalRequestedProduct[];
       const assembled = requested.length === 0

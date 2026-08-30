@@ -1,4 +1,4 @@
-import { cpSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +24,22 @@ function copyIntake(): string {
   const intakeRoot = join(temporaryRoot, "gowm-0.6.3");
   cpSync(source, intakeRoot, { recursive: true });
   return intakeRoot;
+}
+
+function rewriteExtractedPackageLineEndings(intakeRoot: string, eol: "\n" | "\r\n"): void {
+  const packageRoot = join(intakeRoot, "extracted", "package");
+  const visit = (directory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const entryPath = join(directory, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+        continue;
+      }
+      const content = readFileSync(entryPath, "utf8").replace(/\r\n|\r|\n/gu, "\n");
+      writeFileSync(entryPath, content.replace(/\n/gu, eol), "utf8");
+    }
+  };
+  visit(packageRoot);
 }
 
 afterEach(() => {
@@ -54,6 +70,28 @@ describe("GOWM 0.6.3 authoritative contract intake", () => {
     );
   });
 
+  it("accepts LF and CRLF checkouts while retaining the byte-locked archive materialization", () => {
+    const lfIntakeRoot = copyIntake();
+    rewriteExtractedPackageLineEndings(lfIntakeRoot, "\n");
+    const lfSummary = verifyGowmContractIntake({ intakeRoot: lfIntakeRoot, verifyRecordedEvidence: false });
+
+    const crlfIntakeRoot = copyIntake();
+    rewriteExtractedPackageLineEndings(crlfIntakeRoot, "\r\n");
+    const crlfSummary = verifyGowmContractIntake({ intakeRoot: crlfIntakeRoot, verifyRecordedEvidence: false });
+
+    for (const summary of [lfSummary, crlfSummary]) {
+      expect(summary.status).toBe("PASS");
+      expect(summary.rawCrlfPackageFileCount).toBe(64);
+      expect(summary.materializationTreeSha256).toBe(
+        "sha256:d6a0f4ad900134ab06f00d2cbbf11f591d55e620d313b784741dd0e92808d8a7"
+      );
+      expect(summary.checks).toContainEqual(expect.objectContaining({
+        id: "archive-checkout-canonical-lf-materialization",
+        status: "PASS"
+      }));
+    }
+  });
+
   it("records the task-package Z2m value as logical integrity, not as the tgz digest", () => {
     const evidence = expectedGowmPackageIntegrityEvidence();
 
@@ -66,6 +104,25 @@ describe("GOWM 0.6.3 authoritative contract intake", () => {
 
   it("fails closed when a materialized contract byte changes", () => {
     const intakeRoot = copyIntake();
+    const target = join(
+      intakeRoot,
+      "extracted",
+      "package",
+      "bundle",
+      "schemas",
+      "gowm-v0.6.3",
+      "operation-availability-list.schema.json"
+    );
+    writeFileSync(target, Buffer.concat([readFileSync(target), Buffer.from(" ")]));
+
+    expect(() => verifyGowmContractIntake({ intakeRoot, verifyRecordedEvidence: false })).toThrow(
+      /LF byte count mismatch/
+    );
+  });
+
+  it("fails closed when canonical content changes in an LF checkout", () => {
+    const intakeRoot = copyIntake();
+    rewriteExtractedPackageLineEndings(intakeRoot, "\n");
     const target = join(
       intakeRoot,
       "extracted",

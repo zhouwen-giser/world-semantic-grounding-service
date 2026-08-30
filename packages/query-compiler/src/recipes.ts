@@ -52,6 +52,7 @@ export interface QueryTemplateRule {
   maturity: "STABLE" | "PREVIEW";
   allowDegraded: boolean;
   previewAuthorizationRequired?: boolean;
+  currentnessAuthorizationRequired?: boolean;
   defaultSnapshotMode?: SnapshotMode;
   steps: readonly QueryTemplateStep[];
 }
@@ -452,42 +453,38 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
   {
     templateId: "prior-result-revalidation",
     pattern: "PRIOR_RESULT_REVALIDATION",
-    maturity: "STABLE",
+    maturity: "PREVIEW",
     allowDegraded: false,
-    defaultSnapshotMode: "PINNED",
+    currentnessAuthorizationRequired: true,
+    // The previously persisted evidence remains immutable and hash-pinned.
+    // This one current-source validation is captured consistently at start;
+    // it never reads or silently recreates historical product content.
+    defaultSnapshotMode: "LATEST_AT_START",
     steps: [{
-      stepId: "validate-reference",
+      stepId: "check-current-product",
       costWeight: 1,
       failurePolicy: "FAIL_FAST",
       links: [],
-      requirement: contract("reference.validate@1.0", {
+      requestBindings: [{
+        inputName: "productId",
+        path: "/productId",
+        targetPath: "/productId",
+        port: stringLiteralPort,
+        literalFromParameter: true
+      }, {
+        inputName: "contentHash",
+        path: "/contentHash",
+        targetPath: "/contentHash",
+        port: stringLiteralPort,
+        literalFromParameter: true
+      }],
+      requirement: contract("geo-product.check-current@1.0", {
         domain: "PLATFORM",
         relationSemantics: ["VALIDATES"],
-        acceptedReferenceKinds: ["WORLD_OBJECT"],
-        producedReferenceKinds: [],
-        spatialSemantics: "NONE",
-        timeSemantics: "SNAPSHOT",
-        resultNature: "VALIDATION",
-        inputPorts: [requestPort()],
-        outputPorts: [resultPort("ROW_SET")]
-      })
-    }, {
-      stepId: "validate-snapshot",
-      costWeight: 1,
-      failurePolicy: "FAIL_FAST",
-      links: [{
-        sourceStepId: "validate-reference",
-        outputPort: "result",
-        inputName: "validationResult",
-        targetPath: "/validationResult"
-      }],
-      requirement: contract("snapshot.validate@1.0", {
-        domain: "PLATFORM",
-        relationSemantics: ["VALIDATES_SNAPSHOT"],
         acceptedReferenceKinds: [],
         producedReferenceKinds: [],
         spatialSemantics: "NONE",
-        timeSemantics: "SNAPSHOT",
+        timeSemantics: "CURRENT",
         resultNature: "VALIDATION",
         inputPorts: [requestPort()],
         outputPorts: [resultPort()]

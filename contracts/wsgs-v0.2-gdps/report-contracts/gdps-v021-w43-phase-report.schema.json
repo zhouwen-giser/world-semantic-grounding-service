@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-v021-w43-phase-report:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "candidateSha",
+    "target",
+    "phase",
+    "status",
+    "evidenceLedger"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "wsgs-gdps-v021-w43-phase-report/1.0" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "candidateSha": { "$ref": "#/$defs/sha" },
+    "target": { "$ref": "#/$defs/target" },
+    "phase": { "const": "W43" },
+    "status": { "enum": ["PASS", "FAIL", "NOT_RUN", "BLOCKED"] },
+    "evidenceLedger": { "$ref": "#/$defs/ledger" }
+  },
+  "$defs": {
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release",
+        "providerId",
+        "providerVersion",
+        "capabilityCount",
+        "productTypeCount",
+        "descriptorProfileCount"
+      ],
+      "properties": {
+        "release": { "const": "GDPS v0.2.1" },
+        "providerId": { "const": "gdps.geospatial-products" },
+        "providerVersion": { "const": "0.2.1" },
+        "capabilityCount": { "const": 30 },
+        "productTypeCount": { "const": 34 },
+        "descriptorProfileCount": { "const": 35 }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptanceId",
+        "evidenceType",
+        "assertionId",
+        "artifactPath",
+        "artifactHash",
+        "byteLength"
+      ],
+      "properties": {
+        "acceptanceId": { "type": "string", "pattern": "^W43-[0-9]{3}$" },
+        "evidenceType": { "enum": ["CURRENTNESS", "UNIT", "REAL_POSTGRES"] },
+        "assertionId": { "type": "string", "pattern": "^W43-[0-9]{3}\\.(?:CURRENTNESS|UNIT|REAL_POSTGRES)$" },
+        "artifactPath": {
+          "type": "string",
+          "pattern": "^reports/wsgs-v0\\.2-gdps-v0\\.2\\.1/w43-evidence/w43-[0-9]{3}\\.(?:currentness|unit|real_postgres)\\.json$"
+        },
+        "artifactHash": { "$ref": "#/$defs/digest" },
+        "byteLength": { "type": "integer", "minimum": 2 }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "candidateSha", "phase", "artifacts"],
+      "properties": {
+        "schemaVersion": { "const": "wsgs-gdps-v021-w43-evidence-ledger/1.0" },
+        "candidateSha": { "$ref": "#/$defs/sha" },
+        "phase": { "const": "W43" },
+        "artifacts": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 54,
+          "items": { "$ref": "#/$defs/artifact" }
+        }
+      }
+    }
+  }
+}
