@@ -9,7 +9,7 @@ try {
       `package=${summary.packageName}@${summary.packageVersion}`,
       `manifest=${summary.manifestFileCount}/${summary.manifestFileCount}`,
       `lock=default:${summary.defaultOperationCount},preview:${summary.previewOperationCount}`,
-      `archive=${summary.archiveFileCount}/${summary.extractedFileCount} byte-identical`,
+      `archive=${summary.archiveFileCount}/${summary.extractedFileCount} canonical-LF-identical`,
       `checks=${summary.checks.length} PASS`
     ].join("; ")
   );

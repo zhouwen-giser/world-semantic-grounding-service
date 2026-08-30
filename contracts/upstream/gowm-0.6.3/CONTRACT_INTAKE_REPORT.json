@@ -118,13 +118,13 @@
       "expected": "64"
     },
     {
-      "id": "raw-crlf-materialization-count",
+      "id": "archive-raw-crlf-materialization-count",
       "status": "PASS",
       "actual": "64",
       "expected": "64"
     },
     {
-      "id": "materialization-tree-sha256",
+      "id": "archive-materialization-tree-sha256",
       "status": "PASS",
       "actual": "sha256:d6a0f4ad900134ab06f00d2cbbf11f591d55e620d313b784741dd0e92808d8a7",
       "expected": "sha256:d6a0f4ad900134ab06f00d2cbbf11f591d55e620d313b784741dd0e92808d8a7"
@@ -136,10 +136,10 @@
       "expected": "64"
     },
     {
-      "id": "archive-extracted-materialization",
+      "id": "archive-checkout-canonical-lf-materialization",
       "status": "PASS",
-      "actual": "64 byte-identical files",
-      "expected": "64 byte-identical files"
+      "actual": "64 canonical-LF-identical files",
+      "expected": "64 canonical-LF-identical files"
     },
     {
       "id": "provider-url-token-db-topology-secrets",

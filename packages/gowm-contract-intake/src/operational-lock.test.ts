@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,14 +9,16 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   GOWM_SOUTHBOUND_LOCK_LF_SHA256,
   loadOperationalGowmLock,
+  loadWorldQueryParameterSchemaHash,
   OperationalGowmLockError
 } from "./index.js";
 
 const temporaryDirectories: string[] = [];
-const bundledLockPath = fileURLToPath(new URL(
-  "../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json",
+const bundledBundleRoot = fileURLToPath(new URL(
+  "../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/",
   import.meta.url
 ));
+const bundledLockPath = join(bundledBundleRoot, "locks", "wsgs-southbound-operation-lock-v2.json");
 
 function sha256(bytes: Uint8Array): `sha256:${string}` {
   return `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
@@ -31,6 +33,16 @@ function temporaryLock(value: unknown): { path: string; hash: `sha256:${string}`
   return { path, hash: sha256(bytes) };
 }
 
+function temporaryBundle(eol: "\n" | "\r\n"): string {
+  const directory = mkdtempSync(join(tmpdir(), "wsgs-operational-bundle-"));
+  temporaryDirectories.push(directory);
+  cpSync(bundledBundleRoot, directory, { recursive: true });
+  const schemaPath = join(directory, "schemas", "platform", "world-query-parameters.schema.json");
+  const canonicalLf = readFileSync(schemaPath, "utf8").replace(/\r\n|\r|\n/gu, "\n");
+  writeFileSync(schemaPath, canonicalLf.replace(/\n/gu, eol), "utf8");
+  return directory;
+}
+
 afterEach(() => {
   for (const directory of temporaryDirectories.splice(0)) {
     rmSync(directory, { recursive: true, force: true });
@@ -38,6 +50,26 @@ afterEach(() => {
 });
 
 describe("operational GOWM lock intake", () => {
+  it("verifies the world-query parameter manifest digest for LF and CRLF materializations", () => {
+    const lfHash = loadWorldQueryParameterSchemaHash(temporaryBundle("\n"));
+    const crlfHash = loadWorldQueryParameterSchemaHash(temporaryBundle("\r\n"));
+
+    expect(lfHash).toMatch(/^sha256:[0-9a-f]{64}$/u);
+    expect(crlfHash).toBe(lfHash);
+  });
+
+  it("rejects a canonical world-query parameter schema content change", () => {
+    const bundleRoot = temporaryBundle("\n");
+    const schemaPath = join(bundleRoot, "schemas", "platform", "world-query-parameters.schema.json");
+    writeFileSync(schemaPath, Buffer.concat([readFileSync(schemaPath), Buffer.from(" ")]));
+
+    expect(() => loadWorldQueryParameterSchemaHash(bundleRoot)).toThrowError(
+      expect.objectContaining<Partial<OperationalGowmLockError>>({
+        code: "WORLD_QUERY_PARAMETER_SCHEMA_LOCK_DRIFT"
+      })
+    );
+  });
+
   it("loads the bundled lock using its canonical LF hash", () => {
     const loaded = loadOperationalGowmLock({
       lockPath: bundledLockPath,

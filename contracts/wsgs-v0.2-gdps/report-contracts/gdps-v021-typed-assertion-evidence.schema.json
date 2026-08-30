@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-v021-typed-assertion-evidence:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "candidateSha",
+    "acceptanceId",
+    "evidenceType",
+    "assertionId",
+    "status",
+    "facts"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "wsgs-gdps-v021-typed-assertion-evidence/1.0" },
+    "candidateSha": { "$ref": "#/$defs/sha" },
+    "acceptanceId": {
+      "type": "string",
+      "pattern": "^W(?:3[3-9]|4[0-5])-(?:[0-9]{3}|E2E-[0-9]{2}|X[0-9]{2})$"
+    },
+    "evidenceType": { "$ref": "#/$defs/evidenceType" },
+    "assertionId": { "type": "string", "minLength": 3 },
+    "status": { "const": "PASS" },
+    "facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceReceipt", "verification"],
+      "properties": {
+        "sourceReceipt": { "$ref": "#/$defs/receiptReference" },
+        "verification": { "$ref": "#/$defs/verification" }
+      }
+    }
+  },
+  "$defs": {
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "evidenceType": {
+      "enum": [
+        "CI",
+        "CURRENTNESS",
+        "GIT",
+        "GOWM_GATEWAY",
+        "REAL_NATURAL_LANGUAGE_E2E",
+        "REAL_POSTGRES",
+        "REPORT",
+        "RUNNING_GOWM_GATEWAY",
+        "SCHEMA",
+        "SOURCE",
+        "STATIC_GUARD",
+        "UNIT"
+      ]
+    },
+    "receiptReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "hash", "byteLength"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^reports/wsgs-v0\\.2-gdps-v0\\.2\\.1/typed-receipts/[a-z0-9][a-z0-9._-]*\\.json$"
+        },
+        "hash": { "$ref": "#/$defs/digest" },
+        "byteLength": { "type": "integer", "minimum": 2 }
+      }
+    },
+    "baseVerification": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string" }
+      }
+    },
+    "verification": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "conclusion", "checksPassed"],
+          "properties": {
+            "kind": { "const": "CI" },
+            "conclusion": { "const": "SUCCESS" },
+            "checksPassed": { "type": "integer", "minimum": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "currentness", "historicalPayloadRead", "productVersionPresent"],
+          "properties": {
+            "kind": { "const": "CURRENTNESS" },
+            "currentness": { "const": "CURRENT" },
+            "historicalPayloadRead": { "const": false },
+            "productVersionPresent": { "const": false }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "head", "clean"],
+          "properties": {
+            "kind": { "const": "GIT" },
+            "head": { "$ref": "#/$defs/sha" },
+            "clean": { "const": true }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "httpStatus", "readiness", "directProviderCalls"],
+          "properties": {
+            "kind": { "const": "GOWM_GATEWAY" },
+            "httpStatus": { "const": 200 },
+            "readiness": { "const": "ok" },
+            "directProviderCalls": { "const": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "terminalStatus", "gatewayOnly", "directProviderCalls", "mockTransportUsed"],
+          "properties": {
+            "kind": { "const": "REAL_NATURAL_LANGUAGE_E2E" },
+            "terminalStatus": { "const": "COMPLETED" },
+            "gatewayOnly": { "const": true },
+            "directProviderCalls": { "const": 0 },
+            "mockTransportUsed": { "const": false }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "databaseClass", "transactionMode", "assertionsPassed", "mockUsed"],
+          "properties": {
+            "kind": { "const": "REAL_POSTGRES" },
+            "databaseClass": { "const": "REAL_ISOLATED_POSTGRESQL" },
+            "transactionMode": { "const": "READ_ONLY" },
+            "assertionsPassed": { "type": "integer", "minimum": 1 },
+            "mockUsed": { "const": false }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "reportStatus", "evaluatedAssertions"],
+          "properties": {
+            "kind": { "const": "REPORT" },
+            "reportStatus": { "const": "PASS" },
+            "evaluatedAssertions": { "type": "integer", "minimum": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "httpStatus", "readiness", "operationAvailability"],
+          "properties": {
+            "kind": { "const": "RUNNING_GOWM_GATEWAY" },
+            "httpStatus": { "const": 200 },
+            "readiness": { "const": "ok" },
+            "operationAvailability": { "const": "AVAILABLE" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "compiled", "errors"],
+          "properties": {
+            "kind": { "const": "SCHEMA" },
+            "compiled": { "const": true },
+            "errors": { "type": "array", "maxItems": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "sourceHash", "sourceBytes"],
+          "properties": {
+            "kind": { "const": "SOURCE" },
+            "sourceHash": { "$ref": "#/$defs/digest" },
+            "sourceBytes": { "type": "integer", "minimum": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "exitCode", "violations"],
+          "properties": {
+            "kind": { "const": "STATIC_GUARD" },
+            "exitCode": { "const": 0 },
+            "violations": { "type": "array", "maxItems": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "exitCode", "passedTests", "failedTests"],
+          "properties": {
+            "kind": { "const": "UNIT" },
+            "exitCode": { "const": 0 },
+            "passedTests": { "type": "integer", "minimum": 1 },
+            "failedTests": { "const": 0 }
+          }
+        }
+      ]
+    }
+  }
+}

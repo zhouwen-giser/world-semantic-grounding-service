@@ -10,3 +10,6 @@ secrets/
 .task-shims/
 .intake/
 WSGS_v0.1_Grounding_Core_Codex_Goal/
+
+# Local read-only WSGS -> GOWM qualification evidence is preserved out of source provenance.
+reports/wsgs-v0.2-gowm-v0.6.4/

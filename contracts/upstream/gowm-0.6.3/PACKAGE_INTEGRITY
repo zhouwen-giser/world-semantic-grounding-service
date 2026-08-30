@@ -13,7 +13,7 @@
     "extractedFileCount": 64,
     "rawCrlfPackageFileCount": 64,
     "treeSha256": "sha256:d6a0f4ad900134ab06f00d2cbbf11f591d55e620d313b784741dd0e92808d8a7",
-    "status": "BYTE_IDENTICAL"
+    "status": "ARCHIVE_EXACT_CHECKOUT_CANONICAL_LF_IDENTICAL"
   },
   "discrepancy": {
     "taskPackageLockedValueInterpretation": "UPSTREAM_LOGICAL_PRE_LOCK_FILE_RECORD_INTEGRITY",

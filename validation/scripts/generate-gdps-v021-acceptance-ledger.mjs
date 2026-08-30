@@ -222,9 +222,15 @@ if (evidenceMap.candidate.gitHead !== actualCandidateSha) {
   "GDPS acceptance evidence candidate is stale relative to implementation changes");
 }
 invariant(sameTarget(evidenceMap.target, policy.target), "GDPS acceptance evidence map target identity mismatch");
-invariant(evidenceMap.overall?.status === "BLOCKED" && Array.isArray(evidenceMap.overall.blockers) &&
-  evidenceMap.overall.blockers.length > 0,
-"GDPS v0.2.1 candidate must remain explicitly BLOCKED while handoff/runtime gates are unresolved");
+invariant(statuses.has(evidenceMap.overall?.status) && Array.isArray(evidenceMap.overall.blockers),
+  "GDPS v0.2.1 candidate status is invalid");
+if (evidenceMap.overall.status === "PASS") {
+  invariant(evidenceMap.overall.blockers.length === 0,
+    "GDPS v0.2.1 PASS candidate cannot retain blockers");
+} else {
+  invariant(evidenceMap.overall.blockers.length > 0,
+    "Incomplete GDPS v0.2.1 candidate must retain explicit blockers");
+}
 invariant(evidenceMap.entries.length === matrix.length,
   `GDPS acceptance evidence map must explicitly map all 327 rows: mapped=${evidenceMap.entries.length}`);
 

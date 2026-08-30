@@ -68,12 +68,12 @@ export type GdpsReplayDecision =
       readonly warnings: readonly [];
     }
   | {
-      readonly status: "STALE" | "SNAPSHOT_MISMATCHED";
+      readonly status: "SNAPSHOT_MISMATCHED";
       readonly mode: "PINNED" | "STRICT";
       readonly source: GdpsCurrentProductIdentity;
-      readonly actualContentHash?: `sha256:${string}`;
+      readonly actualContentHash: `sha256:${string}`;
       readonly executionBlocked: true;
-      readonly warnings: readonly ["SOURCE_CHANGED"] | readonly ["SOURCE_NOT_AVAILABLE"];
+      readonly warnings: readonly ["SOURCE_CHANGED"];
     }
   | {
       readonly status: "REPLAY_ALLOWED";
@@ -84,7 +84,7 @@ export type GdpsReplayDecision =
     }
   | {
       readonly status: "UNRESOLVED";
-      readonly mode: "BEST_EFFORT";
+      readonly mode: GdpsReplayMode;
       readonly source: GdpsCurrentProductIdentity;
       readonly gapKind: "DATA_GAP";
       readonly executionBlocked: true;
@@ -259,24 +259,6 @@ export function evaluateGdpsCurrentOnlyReplay(
     if (check.currentContentHash !== prior.contentHash) throw new Error("GDPS_REPLAY_CURRENTNESS_CONTRADICTION");
     return { status: "REPLAY_ALLOWED", mode, source: structuredClone(prior), warnings: [] };
   }
-  if (mode !== "BEST_EFFORT") {
-    return check.currentness === "NOT_AVAILABLE"
-      ? {
-          status: "STALE",
-          mode,
-          source: structuredClone(prior),
-          executionBlocked: true,
-          warnings: ["SOURCE_NOT_AVAILABLE"]
-        }
-      : {
-          status: "SNAPSHOT_MISMATCHED",
-          mode,
-          source: structuredClone(prior),
-          actualContentHash: check.currentContentHash!,
-          executionBlocked: true,
-          warnings: ["SOURCE_CHANGED"]
-        };
-  }
   if (check.currentness === "NOT_AVAILABLE") {
     return {
       status: "UNRESOLVED",
@@ -285,6 +267,16 @@ export function evaluateGdpsCurrentOnlyReplay(
       gapKind: "DATA_GAP",
       executionBlocked: true,
       warnings: ["SOURCE_NOT_AVAILABLE"]
+    };
+  }
+  if (mode !== "BEST_EFFORT") {
+    return {
+      status: "SNAPSHOT_MISMATCHED",
+      mode,
+      source: structuredClone(prior),
+      actualContentHash: check.currentContentHash!,
+      executionBlocked: true,
+      warnings: ["SOURCE_CHANGED"]
     };
   }
   return {

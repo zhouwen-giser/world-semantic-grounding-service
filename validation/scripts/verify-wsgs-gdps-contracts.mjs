@@ -8,6 +8,7 @@ import addFormats from "ajv-formats";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const contractRoot = join(root, "contracts", "wsgs-v0.2-gdps");
 const schemaRoot = join(contractRoot, "contracts");
+const reportSchemaRoot = join(contractRoot, "report-contracts");
 const expectedSchemas = [
   "acceptance-evidence-map.schema.json",
   "descriptor-resolution.schema.json",
@@ -18,6 +19,14 @@ const expectedSchemas = [
   "geospatial-product-intent.schema.json",
   "grounded-geospatial-product-intent.schema.json",
   "locked-gdps-recipe.schema.json"
+];
+const expectedReportSchemas = [
+  "gdps-v021-acceptance-evidence-map.schema.json",
+  "gdps-v021-driver-attestation.schema.json",
+  "gdps-v021-real-e2e-report.schema.json",
+  "gdps-v021-typed-assertion-evidence.schema.json",
+  "gdps-v021-w43-assertion-evidence.schema.json",
+  "gdps-v021-w43-phase-report.schema.json"
 ];
 
 function fail(message) {
@@ -36,22 +45,34 @@ function json(path) {
   }
 }
 
-const actualSchemas = readdirSync(schemaRoot, { withFileTypes: true })
-  .filter((entry) => entry.isFile())
-  .map((entry) => entry.name)
-  .sort();
-assert(JSON.stringify(actualSchemas) === JSON.stringify(expectedSchemas),
-  `schema inventory mismatch expected=${expectedSchemas.join("|")} actual=${actualSchemas.join("|")}`);
+function assertSchemaInventory(directory, expected, label) {
+  const entries = readdirSync(directory, { withFileTypes: true });
+  const actual = entries.map((entry) => entry.name).sort();
+  assert(entries.every((entry) => entry.isFile()), `${label} inventory contains a non-file entry`);
+  assert(JSON.stringify(actual) === JSON.stringify(expected),
+    `${label} inventory mismatch expected=${expected.join("|")} actual=${actual.join("|")}`);
+}
+
+assertSchemaInventory(schemaRoot, expectedSchemas, "contract schema");
+assertSchemaInventory(reportSchemaRoot, expectedReportSchemas, "report schema");
 
 const ajv = new Ajv2020({ allErrors: true, strict: true, strictRequired: false });
 addFormats(ajv);
 const schemas = new Map();
-for (const name of expectedSchemas) {
-  const schema = json(join(schemaRoot, name));
-  assert(ajv.validateSchema(schema), `${name} is not a valid schema: ${ajv.errorsText(ajv.errors)}`);
-  assert(typeof schema.$id === "string" && schema.$id.startsWith("urn:wsgs:"), `${name} has no locked WSGS URN`);
-  ajv.addSchema(schema);
-  schemas.set(name, schema);
+for (const [directory, names] of [
+  [schemaRoot, expectedSchemas],
+  [reportSchemaRoot, expectedReportSchemas]
+]) {
+  for (const name of names) {
+    const schema = json(join(directory, name));
+    assert(ajv.validateSchema(schema), `${name} is not a valid schema: ${ajv.errorsText(ajv.errors)}`);
+    assert(typeof schema.$id === "string" && schema.$id.startsWith("urn:wsgs:"), `${name} has no locked WSGS URN`);
+    ajv.addSchema(schema);
+    schemas.set(name, schema);
+  }
+}
+for (const [name, schema] of schemas) {
+  assert(ajv.getSchema(schema.$id), `${name} did not compile under strict AJV`);
 }
 
 function validate(schemaName, value, label) {
@@ -145,6 +166,7 @@ assert(architecture.forbiddenDataProductHistoryIdentifiers.includes("productVers
 "architecture fail-closed policy drift");
 
 console.log(
-  `WSGS_V02_GDPS_CONTRACT_PASS schemas=${expectedSchemas.length} productTypes=34 profiles=35 ` +
+  `WSGS_V02_GDPS_CONTRACT_PASS schemas=${expectedSchemas.length + expectedReportSchemas.length} ` +
+  `reportSchemas=${expectedReportSchemas.length} productTypes=34 profiles=35 ` +
   `capabilities=30 recipes=14 concepts=${conceptMap.concepts.length} e2e=${corpus.cases.length}`
 );

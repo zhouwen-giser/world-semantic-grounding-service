@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-v021-e2e-driver-attestation:2.0",
+  "title": "WSGS GDPS v0.2.1 verified isolated E2E driver attestation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "caseId",
+    "driverKind",
+    "sourceCommit",
+    "handoffBundleHash",
+    "operationLockHash",
+    "provenanceHash",
+    "runtimeIdentityHash",
+    "sharedRuntimeBeforeHash",
+    "sharedRuntimeAfterHash",
+    "executionEnvironment",
+    "requiredExecutionPath",
+    "realExternalDependencies",
+    "mockTransportUsed",
+    "sharedRuntimeMutated",
+    "precondition",
+    "preconditionHash",
+    "driverImplementationHash",
+    "evidenceHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "wsgs-gdps-e2e-driver-attestation/2.0" },
+    "caseId": { "$ref": "#/$defs/driverCaseId" },
+    "driverKind": { "$ref": "#/$defs/driverKind" },
+    "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "handoffBundleHash": { "$ref": "#/$defs/digest" },
+    "operationLockHash": { "$ref": "#/$defs/digest" },
+    "provenanceHash": { "$ref": "#/$defs/digest" },
+    "runtimeIdentityHash": { "$ref": "#/$defs/digest" },
+    "sharedRuntimeBeforeHash": { "$ref": "#/$defs/digest" },
+    "sharedRuntimeAfterHash": { "$ref": "#/$defs/digest" },
+    "executionEnvironment": { "const": "ISOLATED_REAL_RUNTIME" },
+    "requiredExecutionPath": { "const": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY" },
+    "realExternalDependencies": { "const": true },
+    "mockTransportUsed": { "const": false },
+    "sharedRuntimeMutated": { "const": false },
+    "precondition": {
+      "type": "object",
+      "minProperties": 3,
+      "required": ["caseId", "driverKind"],
+      "properties": {
+        "caseId": { "$ref": "#/$defs/driverCaseId" },
+        "driverKind": { "$ref": "#/$defs/driverKind" }
+      }
+    },
+    "preconditionHash": { "$ref": "#/$defs/digest" },
+    "driverImplementationHash": { "$ref": "#/$defs/digest" },
+    "evidenceHash": { "$ref": "#/$defs/digest" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "caseId": { "const": "NEG-DATA-GAP" } }, "required": ["caseId"] },
+      "then": {
+        "properties": {
+          "driverKind": { "const": "CURRENT_PRODUCT_ABSENT" },
+          "precondition": { "type": "object", "properties": {
+            "caseId": { "const": "NEG-DATA-GAP" },
+            "driverKind": { "const": "CURRENT_PRODUCT_ABSENT" }
+          } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "caseId": { "const": "NEG-RECIPE-DRIFT" } }, "required": ["caseId"] },
+      "then": {
+        "properties": {
+          "driverKind": { "const": "RECIPE_SEMANTIC_HASH_ALTERED" },
+          "precondition": { "type": "object", "properties": {
+            "caseId": { "const": "NEG-RECIPE-DRIFT" },
+            "driverKind": { "const": "RECIPE_SEMANTIC_HASH_ALTERED" }
+          } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "caseId": { "const": "NEG-TRUNCATED" } }, "required": ["caseId"] },
+      "then": {
+        "properties": {
+          "driverKind": { "const": "UPSTREAM_TRUNCATED_TRUE" },
+          "precondition": { "type": "object", "properties": {
+            "caseId": { "const": "NEG-TRUNCATED" },
+            "driverKind": { "const": "UPSTREAM_TRUNCATED_TRUE" }
+          } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "caseId": { "const": "NEG-CURRENTNESS" } }, "required": ["caseId"] },
+      "then": {
+        "properties": {
+          "driverKind": { "const": "STORED_HASH_DIFFERS_FROM_CURRENT" },
+          "precondition": { "type": "object", "properties": {
+            "caseId": { "const": "NEG-CURRENTNESS" },
+            "driverKind": { "const": "STORED_HASH_DIFFERS_FROM_CURRENT" }
+          } }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "driverCaseId": {
+      "enum": ["NEG-DATA-GAP", "NEG-RECIPE-DRIFT", "NEG-TRUNCATED", "NEG-CURRENTNESS"]
+    },
+    "driverKind": {
+      "enum": [
+        "CURRENT_PRODUCT_ABSENT",
+        "RECIPE_SEMANTIC_HASH_ALTERED",
+        "UPSTREAM_TRUNCATED_TRUE",
+        "STORED_HASH_DIFFERS_FROM_CURRENT"
+      ]
+    },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

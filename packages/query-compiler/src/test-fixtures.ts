@@ -47,7 +47,7 @@ function descriptorMaturity(operationId: string): "STABLE" | "PREVIEW" {
     operationId === "spatial.find-containing-area" ||
     operationId === "correlation.resolve" ||
     operationId === "predicate.evaluate" ||
-    ["landcover.", "hydrology.", "obstacle.", "traversability.", "terrain.", "elevation.", "geo-raster.", "geo-vector."]
+    ["landcover.", "hydrology.", "obstacle.", "traversability.", "terrain.", "elevation.", "geo-product.", "geo-raster.", "geo-vector."]
       .some((prefix) => operationId.startsWith(prefix))
   ) ? "PREVIEW" : "STABLE";
 }
@@ -276,6 +276,40 @@ export function authorizeGdps(input: CompileInput, values: {
     ...(values.productType ? { productType: values.productType } : {}),
     ...(values.productProfile ? { productProfile: values.productProfile } : {})
   };
+  return input;
+}
+
+export function authorizeGdpsCurrentness(input: CompileInput): CompileInput {
+  if (input.pattern !== "PRIOR_RESULT_REVALIDATION") throw new Error(`NOT_GDPS_CURRENTNESS:${input.pattern}`);
+  const lock = input.operationLocks.find((entry) =>
+    entry.operationId === "geo-product.check-current" && entry.operationVersion === "1.0")!;
+  lock.snapshotSupport = "CONSISTENT_AT_START";
+  input.maturityPolicy.allowPreview = true;
+  input.gdpsCurrentnessAuthorization = {
+    recipeId: "gdps-check-current-geo-product",
+    requirementKind: "CHECK_CURRENT_GEO_PRODUCT",
+    providerRecipeLockHash: digest("provider-currentness-recipe-lock"),
+    operationLockHash: digest("gdps-operation-lock"),
+    allowedOperation: {
+      operationId: "geo-product.check-current",
+      operationVersion: "1.0",
+      inputSchemaHash: lock.inputSchemaHash,
+      outputSchemaHash: lock.outputSchemaHash,
+      semanticProfileHash: lock.semanticProfileHash
+    }
+  };
+  input.trustedGdpsProviderRecipeLockHash = input.gdpsCurrentnessAuthorization.providerRecipeLockHash;
+  input.trustedGdpsOperationLockHash = input.gdpsCurrentnessAuthorization.operationLockHash;
+  input.operationInput = { productId: "gdps-slope-prior", contentHash: digest("prior-content") };
+  input.parameterValues = {
+    productId: "gdps-slope-prior",
+    contentHash: digest("prior-content"),
+    replayMode: "STRICT",
+    currentnessRecipeId: "gdps-check-current-geo-product",
+    currentnessProviderRecipeLockHash: input.gdpsCurrentnessAuthorization.providerRecipeLockHash,
+    currentnessOperationLockHash: input.gdpsCurrentnessAuthorization.operationLockHash
+  };
+  input.snapshotPolicy = { mode: "LATEST_AT_START", allowDowngrade: false };
   return input;
 }
 

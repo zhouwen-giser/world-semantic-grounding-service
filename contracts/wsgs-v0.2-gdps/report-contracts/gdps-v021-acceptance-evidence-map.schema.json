@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-v021-acceptance-evidence-map:2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "candidate",
+    "target",
+    "overall",
+    "provenance",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-gdps-acceptance-evidence-map/2.0"
+    },
+    "candidate": {
+      "$ref": "#/$defs/candidate"
+    },
+    "target": {
+      "$ref": "#/$defs/target"
+    },
+    "overall": {
+      "$ref": "#/$defs/overall"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 327,
+      "maxItems": 327,
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "status": {
+      "enum": ["PASS", "FAIL", "NOT_RUN", "BLOCKED"]
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release",
+        "providerId",
+        "providerVersion",
+        "capabilityCount",
+        "productTypeCount",
+        "descriptorProfileCount"
+      ],
+      "properties": {
+        "release": { "const": "GDPS v0.2.1" },
+        "providerId": { "const": "gdps.geospatial-products" },
+        "providerVersion": { "const": "0.2.1" },
+        "capabilityCount": { "const": 30 },
+        "productTypeCount": { "const": 34 },
+        "descriptorProfileCount": { "const": 35 }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "gitHead"],
+      "properties": {
+        "repository": { "const": "world-semantic-grounding-service" },
+        "gitHead": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["PASS", "FAIL", "NOT_RUN", "BLOCKED"],
+      "properties": {
+        "PASS": { "type": "integer", "minimum": 0, "maximum": 327 },
+        "FAIL": { "type": "integer", "minimum": 0, "maximum": 327 },
+        "NOT_RUN": { "type": "integer", "minimum": 0, "maximum": 327 },
+        "BLOCKED": { "type": "integer", "minimum": 0, "maximum": 327 }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "detail"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string", "minLength": 1 }
+      }
+    },
+    "overall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reasonCode", "blockers", "counts"],
+      "properties": {
+        "status": { "$ref": "#/$defs/status" },
+        "reasonCode": { "type": "string", "minLength": 1 },
+        "blockers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/blocker" }
+        },
+        "counts": { "$ref": "#/$defs/counts" }
+      }
+    },
+    "artifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactPath", "artifactHash"],
+      "properties": {
+        "artifactPath": { "$ref": "#/$defs/repositoryPath" },
+        "artifactHash": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "w44Reference": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reportId", "artifactPath", "artifactHash"],
+          "properties": {
+            "reportId": { "type": "string", "minLength": 1 },
+            "artifactPath": { "$ref": "#/$defs/repositoryPath" },
+            "artifactHash": { "$ref": "#/$defs/digest" }
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reportManifest", "matrix", "policy", "w44Report"],
+      "properties": {
+        "reportManifest": { "$ref": "#/$defs/artifactReference" },
+        "matrix": { "$ref": "#/$defs/artifactReference" },
+        "policy": { "$ref": "#/$defs/artifactReference" },
+        "w44Report": { "$ref": "#/$defs/w44Reference" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "artifact",
+        "sha256",
+        "candidateSha",
+        "assertionId",
+        "polarity",
+        "target"
+      ],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "artifact": { "$ref": "#/$defs/repositoryPath" },
+        "sha256": { "$ref": "#/$defs/digest" },
+        "candidateSha": { "$ref": "#/$defs/sha" },
+        "assertionId": { "type": "string", "minLength": 1 },
+        "polarity": { "enum": ["POSITIVE", "NEGATIVE"] },
+        "target": { "$ref": "#/$defs/target" }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acceptanceId", "status", "evidence"],
+      "properties": {
+        "acceptanceId": {
+          "type": "string",
+          "pattern": "^W(?:3[3-9]|4[0-5])-(?:[0-9]{3}|E2E-[0-9]{2}|X[0-9]{2})$"
+        },
+        "status": { "$ref": "#/$defs/status" },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence" }
+        },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-v021-w43-assertion-evidence:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "candidateSha", "acceptanceId", "evidenceType", "assertionId", "status", "facts"],
+  "properties": {
+    "schemaVersion": { "const": "wsgs-gdps-v021-w43-assertion-evidence/1.0" },
+    "candidateSha": { "$ref": "#/$defs/sha" },
+    "acceptanceId": { "type": "string", "pattern": "^W43-[0-9]{3}$" },
+    "evidenceType": { "enum": ["CURRENTNESS", "UNIT", "REAL_POSTGRES"] },
+    "assertionId": { "type": "string", "pattern": "^W43-[0-9]{3}\\.(?:CURRENTNESS|UNIT|REAL_POSTGRES)$" },
+    "status": { "const": "PASS" },
+    "facts": {
+      "oneOf": [
+        { "$ref": "#/$defs/currentnessFacts" },
+        { "$ref": "#/$defs/unitFacts" },
+        { "$ref": "#/$defs/postgresFacts" }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "evidenceType": { "const": "CURRENTNESS" } }, "required": ["evidenceType"] },
+      "then": { "properties": { "facts": { "$ref": "#/$defs/currentnessFacts" } } }
+    },
+    {
+      "if": { "properties": { "evidenceType": { "const": "UNIT" } }, "required": ["evidenceType"] },
+      "then": { "properties": { "facts": { "$ref": "#/$defs/unitFacts" } } }
+    },
+    {
+      "if": { "properties": { "evidenceType": { "const": "REAL_POSTGRES" } }, "required": ["evidenceType"] },
+      "then": { "properties": { "facts": { "$ref": "#/$defs/postgresFacts" } } }
+    }
+  ],
+  "$defs": {
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "receiptReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "hash", "byteLength"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^reports/wsgs-v0\\.2-gdps-v0\\.2\\.1/w43-receipts/[a-z0-9][a-z0-9._-]*\\.json$" },
+        "hash": { "$ref": "#/$defs/digest" },
+        "byteLength": { "type": "integer", "minimum": 2 }
+      }
+    },
+    "scenarioId": {
+      "enum": ["CURRENT_STRICT", "CHANGED_STRICT", "NOT_AVAILABLE_STRICT", "CHANGED_BEST_EFFORT", "SOURCE_CHANGED_ONCE", "SOURCE_CHANGED_TWICE"]
+    },
+    "policyFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarioId", "replayMode", "groundingStatus", "terminalStatus", "normalizedStatus", "currentness",
+        "semanticCode", "warnings", "priorContentHash", "currentContentHash", "checkCurrentExecutionCount",
+        "originalSourceExecutionCount", "newCurrentSourceExecutionCount", "sourceChangedDuringQueryCount",
+        "retryCount", "historicalPayloadRead", "productVersionPresent", "currentnessEvidencePersisted",
+        "authorityTupleHash", "currentnessDecisionHash", "sourceRequestEvidenceHash",
+        "replayRequestEvidenceHash", "sourcePlanHash", "sourceBarrierTransitionHash",
+        "replayBarrierTransitionHash", "replayBarrierArm", "barrierTransitionHashes", "causalBindingHash"
+      ],
+      "properties": {
+        "scenarioId": { "$ref": "#/$defs/scenarioId" },
+        "replayMode": { "enum": ["STRICT", "BEST_EFFORT"] },
+        "groundingStatus": { "enum": ["COMPLETED", "UNRESOLVED"] },
+        "terminalStatus": { "enum": ["COMPLETED", "UNRESOLVED", "INDETERMINATE"] },
+        "normalizedStatus": { "enum": ["CURRENT", "STALE", "DATA_GAP", "INDETERMINATE"] },
+        "currentness": { "enum": ["CURRENT", "CHANGED", "NOT_AVAILABLE"] },
+        "semanticCode": { "enum": ["OK", "SNAPSHOT_MISMATCHED", "DATA_GAP", "SOURCE_ADVANCED", "SOURCE_CHANGED"] },
+        "warnings": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "priorContentHash": { "$ref": "#/$defs/digest" },
+        "currentContentHash": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/digest" }] },
+        "checkCurrentExecutionCount": { "const": 1 },
+        "originalSourceExecutionCount": { "const": 0 },
+        "newCurrentSourceExecutionCount": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "sourceChangedDuringQueryCount": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "retryCount": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "historicalPayloadRead": { "const": false },
+        "productVersionPresent": { "const": false },
+        "currentnessEvidencePersisted": { "const": true },
+        "authorityTupleHash": { "$ref": "#/$defs/digest" },
+        "currentnessDecisionHash": { "$ref": "#/$defs/digest" },
+        "sourceRequestEvidenceHash": { "$ref": "#/$defs/digest" },
+        "replayRequestEvidenceHash": { "$ref": "#/$defs/digest" },
+        "sourcePlanHash": { "$ref": "#/$defs/digest" },
+        "sourceBarrierTransitionHash": { "$ref": "#/$defs/digest" },
+        "replayBarrierTransitionHash": { "$ref": "#/$defs/digest" },
+        "replayBarrierArm": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/receiptReference" }]
+        },
+        "barrierTransitionHashes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/digest" }
+        },
+        "causalBindingHash": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "unitTest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["filePath", "fullName", "status"],
+      "properties": {
+        "filePath": {
+          "enum": [
+            "packages/gowm-execution-evidence/src/gdps.test.ts",
+            "packages/gowm-execution-evidence/src/gdps-v021-e2e-policy.test.ts",
+            "services/grounding-worker/src/production-module.test.ts"
+          ]
+        },
+        "fullName": { "type": "string", "minLength": 1 },
+        "status": { "const": "passed" }
+      }
+    },
+    "postgresFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenarioId", "groundingStatus", "transactionMode", "sourceGroundingRows", "replayGroundingRows",
+        "resultRows", "stageRows", "executionRows", "currentnessEvidenceRows", "selectedProductRows",
+        "priorGroundingLinkRows", "checkCurrentExecutionRows", "originalSourceExecutionRows",
+        "newCurrentSourceExecutionRows", "sourceChangedDuringQueryRows", "currentnessDecisionHash",
+        "sourceRequestEvidenceHash", "replayRequestEvidenceHash", "sourcePlanHash",
+        "sourceBarrierTransitionHash", "replayBarrierTransitionHash", "replayBarrierArm",
+        "barrierTransitionHashes", "causalBindingHash"
+      ],
+      "properties": {
+        "scenarioId": { "$ref": "#/$defs/scenarioId" },
+        "groundingStatus": { "enum": ["COMPLETED", "UNRESOLVED"] },
+        "transactionMode": { "const": "READ_ONLY" },
+        "sourceGroundingRows": { "const": 1 },
+        "replayGroundingRows": { "const": 1 },
+        "resultRows": { "const": 1 },
+        "stageRows": { "type": "integer", "minimum": 1 },
+        "executionRows": { "type": "integer", "minimum": 1 },
+        "currentnessEvidenceRows": { "const": 1 },
+        "selectedProductRows": { "const": 1 },
+        "priorGroundingLinkRows": { "const": 1 },
+        "checkCurrentExecutionRows": { "const": 1 },
+        "originalSourceExecutionRows": { "const": 0 },
+        "newCurrentSourceExecutionRows": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "sourceChangedDuringQueryRows": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "currentnessDecisionHash": { "$ref": "#/$defs/digest" },
+        "sourceRequestEvidenceHash": { "$ref": "#/$defs/digest" },
+        "replayRequestEvidenceHash": { "$ref": "#/$defs/digest" },
+        "sourcePlanHash": { "$ref": "#/$defs/digest" },
+        "sourceBarrierTransitionHash": { "$ref": "#/$defs/digest" },
+        "replayBarrierTransitionHash": { "$ref": "#/$defs/digest" },
+        "replayBarrierArm": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/receiptReference" }]
+        },
+        "barrierTransitionHashes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/digest" }
+        },
+        "causalBindingHash": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "deniedAssertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "matchingRows"],
+      "properties": { "status": { "const": "DENIED" }, "matchingRows": { "const": 0 } }
+    },
+    "negativeAssertions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["foreignScope", "foreignPrincipal", "priorResultHashMismatch"],
+      "properties": {
+        "foreignScope": { "$ref": "#/$defs/deniedAssertion" },
+        "foreignPrincipal": { "$ref": "#/$defs/deniedAssertion" },
+        "priorResultHashMismatch": { "$ref": "#/$defs/deniedAssertion" }
+      }
+    },
+    "currentnessFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateRunId", "runtimeIdentityHash", "matrixScenario", "matrixExpected", "sourceReceipt", "barrierAttestation", "policyFacts"],
+      "properties": {
+        "gateRunId": { "type": "string", "pattern": "^wsgs-gdps-v021-[a-z0-9][a-z0-9-]{7,95}$" },
+        "runtimeIdentityHash": { "$ref": "#/$defs/digest" },
+        "matrixScenario": { "type": "string", "minLength": 1 },
+        "matrixExpected": { "type": "string", "minLength": 1 },
+        "sourceReceipt": { "$ref": "#/$defs/receiptReference" },
+        "barrierAttestation": { "$ref": "#/$defs/receiptReference" },
+        "policyFacts": { "type": "array", "minItems": 1, "maxItems": 6, "items": { "$ref": "#/$defs/policyFact" } }
+      }
+    },
+    "unitFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateRunId", "runtimeIdentityHash", "matrixScenario", "matrixExpected", "sourceReceipt", "rawVitestReport", "independentlyPassedTests"],
+      "properties": {
+        "gateRunId": { "type": "string", "pattern": "^wsgs-gdps-v021-[a-z0-9][a-z0-9-]{7,95}$" },
+        "runtimeIdentityHash": { "$ref": "#/$defs/digest" },
+        "matrixScenario": { "type": "string", "minLength": 1 },
+        "matrixExpected": { "type": "string", "minLength": 1 },
+        "sourceReceipt": { "$ref": "#/$defs/receiptReference" },
+        "rawVitestReport": { "$ref": "#/$defs/receiptReference" },
+        "independentlyPassedTests": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/unitTest" } }
+      }
+    },
+    "postgresFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateRunId", "runtimeIdentityHash", "matrixScenario", "matrixExpected", "sourceReceipt", "barrierAttestation", "databaseIdentityHash", "authorityTupleHash", "persistedFacts", "negativeAssertions"],
+      "properties": {
+        "gateRunId": { "type": "string", "pattern": "^wsgs-gdps-v021-[a-z0-9][a-z0-9-]{7,95}$" },
+        "runtimeIdentityHash": { "$ref": "#/$defs/digest" },
+        "matrixScenario": { "type": "string", "minLength": 1 },
+        "matrixExpected": { "type": "string", "minLength": 1 },
+        "sourceReceipt": { "$ref": "#/$defs/receiptReference" },
+        "barrierAttestation": { "$ref": "#/$defs/receiptReference" },
+        "databaseIdentityHash": { "$ref": "#/$defs/digest" },
+        "authorityTupleHash": { "$ref": "#/$defs/digest" },
+        "persistedFacts": { "type": "array", "minItems": 1, "maxItems": 6, "items": { "$ref": "#/$defs/postgresFact" } },
+        "negativeAssertions": { "$ref": "#/$defs/negativeAssertions" }
+      }
+    }
+  }
+}

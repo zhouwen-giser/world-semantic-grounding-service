@@ -1,0 +1,871 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-v021-real-e2e-report:2.1",
+  "title": "WSGS GDPS v0.2.1 real E2E report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "sourceIdentity",
+    "execution",
+    "evidenceLedger",
+    "corpus",
+    "cases",
+    "qualifications",
+    "policyErrors",
+    "summary",
+    "overallStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-gdps-real-e2e-report/2.1"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourceIdentity": {
+      "$ref": "#/$defs/sourceIdentity"
+    },
+    "execution": {
+      "$ref": "#/$defs/execution"
+    },
+    "evidenceLedger": {
+      "$ref": "#/$defs/evidenceLedger"
+    },
+    "corpus": {
+      "$ref": "#/$defs/corpus"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "prefixItems": [
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-SLOPE-POINT" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-SLOPE-RANGE" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-FLOOD-HIGH" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-DRAINAGE-NEARBY" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-HIGH-GROUND" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-WETLAND" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-LAND-COVER" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-TRAVERSABILITY-EXPLAIN" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "E2E-EXPLICIT-PRODUCT" }, "caseType": { "const": "POSITIVE" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "NEG-DESCRIPTOR-GAP" }, "caseType": { "const": "DESCRIPTOR_GAP" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "NEG-DATA-GAP" }, "caseType": { "const": "DATA_GAP" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "NEG-REFERENCE-AMBIGUITY" }, "caseType": { "const": "REFERENCE_AMBIGUITY" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "NEG-UNIT-MISMATCH" }, "caseType": { "const": "UNIT_MISMATCH" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "NEG-RECIPE-DRIFT" }, "caseType": { "const": "RECIPE_DRIFT" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "NEG-TRUNCATED" }, "caseType": { "const": "TRUNCATED" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/caseEvaluation" }, { "type": "object", "properties": { "caseId": { "const": "NEG-CURRENTNESS" }, "caseType": { "const": "CURRENTNESS" } } }] }
+      ],
+      "items": false
+    },
+    "qualifications": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "prefixItems": [
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X01" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X02" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X03" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X04" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X05" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X06" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X07" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X08" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X09" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X10" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X11" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/qualification" }, { "type": "object", "properties": { "qualificationId": { "const": "W44-X12" } } }] }
+      ],
+      "items": false
+    },
+    "policyErrors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    },
+    "overallStatus": {
+      "enum": ["PASS", "FAIL", "BLOCKED"]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "overallStatus": { "const": "PASS" } },
+        "required": ["overallStatus"]
+      },
+      "then": {
+        "properties": {
+          "execution": {
+            "type": "object",
+            "properties": {
+              "gatewayOnly": { "const": true },
+              "directProviderCalls": { "const": 0 },
+              "mockTransportUsed": { "const": false }
+            }
+          },
+          "cases": {
+            "type": "array",
+            "not": {
+              "contains": {
+                "type": "object",
+                "properties": { "status": { "not": { "const": "PASS" } } },
+                "required": ["status"]
+              }
+            }
+          },
+          "qualifications": {
+            "type": "array",
+            "not": {
+              "contains": {
+                "type": "object",
+                "properties": { "status": { "not": { "const": "PASS" } } },
+                "required": ["status"]
+              }
+            }
+          },
+          "policyErrors": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "passedCases": { "const": 16 },
+              "failedCases": { "const": 0 },
+              "blockedCases": { "const": 0 },
+              "notRunCases": { "const": 0 },
+              "passedQualifications": { "const": 12 }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "nullableDigest": {
+      "anyOf": [
+        { "$ref": "#/$defs/digest" },
+        { "type": "null" }
+      ]
+    },
+    "nullableString": {
+      "type": ["string", "null"]
+    },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wsgsCommit",
+        "gdpsCommit",
+        "gowmIdentityHash",
+        "runtimeIdentityHash",
+        "handoffBundleHash",
+        "operationLockProvenanceHash",
+        "providerId",
+        "providerVersion",
+        "capabilityCount"
+      ],
+      "properties": {
+        "wsgsCommit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "gdpsCommit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "gowmIdentityHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "runtimeIdentityHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "handoffBundleHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "operationLockProvenanceHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "providerId": {
+          "const": "gdps.geospatial-products"
+        },
+        "providerVersion": {
+          "const": "0.2.1"
+        },
+        "capabilityCount": {
+          "const": 30
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requiredExecutionPath",
+        "gatewayOnly",
+        "directProviderCalls",
+        "mockTransportUsed"
+      ],
+      "properties": {
+        "requiredExecutionPath": {
+          "const": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY"
+        },
+        "gatewayOnly": {
+          "type": "boolean"
+        },
+        "directProviderCalls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mockTransportUsed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "evidenceLedger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "operationLockHash", "artifacts"],
+      "properties": {
+        "schemaVersion": {
+          "const": "wsgs-gdps-byte-evidence-ledger/1.0"
+        },
+        "operationLockHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceArtifact"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "evidenceArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "subject",
+        "repoRelativePath",
+        "hash",
+        "byteLength",
+        "byteVerified",
+        "sourceBinding",
+        "runtimeBinding",
+        "operationLockHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/artifactId"
+        },
+        "kind": {
+          "enum": [
+            "CASE_EVIDENCE",
+            "DRIVER_ATTESTATION",
+            "DRIVER_IMPLEMENTATION",
+            "DRIVER_EVIDENCE",
+            "QUALIFICATION_EVIDENCE"
+          ]
+        },
+        "subject": {
+          "enum": [
+            "E2E-SLOPE-POINT",
+            "E2E-SLOPE-RANGE",
+            "E2E-FLOOD-HIGH",
+            "E2E-DRAINAGE-NEARBY",
+            "E2E-HIGH-GROUND",
+            "E2E-WETLAND",
+            "E2E-LAND-COVER",
+            "E2E-TRAVERSABILITY-EXPLAIN",
+            "E2E-EXPLICIT-PRODUCT",
+            "NEG-DESCRIPTOR-GAP",
+            "NEG-DATA-GAP",
+            "NEG-REFERENCE-AMBIGUITY",
+            "NEG-UNIT-MISMATCH",
+            "NEG-RECIPE-DRIFT",
+            "NEG-TRUNCATED",
+            "NEG-CURRENTNESS",
+            "W44-X01",
+            "W44-X02",
+            "W44-X03",
+            "W44-X04",
+            "W44-X05",
+            "W44-X06",
+            "W44-X07",
+            "W44-X08",
+            "W44-X09",
+            "W44-X10",
+            "W44-X11",
+            "W44-X12"
+          ]
+        },
+        "repoRelativePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hash": {
+          "$ref": "#/$defs/digest"
+        },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "byteVerified": {
+          "const": true
+        },
+        "sourceBinding": {
+          "$ref": "#/$defs/artifactSourceBinding"
+        },
+        "runtimeBinding": {
+          "$ref": "#/$defs/artifactRuntimeBinding"
+        },
+        "operationLockHash": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "QUALIFICATION_EVIDENCE" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "type": "string",
+                "pattern": "^W44-X(?:0[1-9]|1[0-2])$"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "subject": {
+                "type": "string",
+                "not": { "type": "string", "pattern": "^W44-X" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": ["DRIVER_ATTESTATION", "DRIVER_IMPLEMENTATION", "DRIVER_EVIDENCE"]
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "subject": {
+                "enum": ["NEG-DATA-GAP", "NEG-RECIPE-DRIFT", "NEG-TRUNCATED", "NEG-CURRENTNESS"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "DRIVER_IMPLEMENTATION" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "repoRelativePath": {
+                "type": "string",
+                "pattern": "^validation/drivers/(?:[A-Za-z0-9][A-Za-z0-9._-]*/)*[A-Za-z0-9][A-Za-z0-9._-]*\\.(?:ts|mts|js|mjs)$"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "repoRelativePath": {
+                "type": "string",
+                "pattern": "^reports/wsgs-v0\\.2-gdps-v0\\.2\\.1/(?:[A-Za-z0-9][A-Za-z0-9._-]*/)*[A-Za-z0-9][A-Za-z0-9._-]*\\.json$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "artifactSourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wsgsCommit", "gdpsCommit", "gowmIdentityHash", "handoffBundleHash", "operationLockProvenanceHash"],
+      "properties": {
+        "wsgsCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "gdpsCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "gowmIdentityHash": { "$ref": "#/$defs/digest" },
+        "handoffBundleHash": { "$ref": "#/$defs/digest" },
+        "operationLockProvenanceHash": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "artifactRuntimeBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtimeIdentityHash",
+        "requiredExecutionPath",
+        "providerId",
+        "providerVersion",
+        "capabilityCount",
+        "gatewayOnly",
+        "directProviderCalls",
+        "mockTransportUsed"
+      ],
+      "properties": {
+        "runtimeIdentityHash": { "$ref": "#/$defs/digest" },
+        "requiredExecutionPath": { "const": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY" },
+        "providerId": { "const": "gdps.geospatial-products" },
+        "providerVersion": { "const": "0.2.1" },
+        "capabilityCount": { "const": 30 },
+        "gatewayOnly": { "const": true },
+        "directProviderCalls": { "const": 0 },
+        "mockTransportUsed": { "const": false }
+      }
+    },
+    "corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "hash", "caseIds"],
+      "properties": {
+        "schemaVersion": {
+          "const": "wsgs-gdps-e2e-corpus/2.0"
+        },
+        "hash": {
+          "const": "sha256:b9717b9af929fbd82bf0509f9648379aae601a8a0f567ce1d520ad970a8f6525"
+        },
+        "caseIds": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "E2E-SLOPE-POINT" },
+            { "const": "E2E-SLOPE-RANGE" },
+            { "const": "E2E-FLOOD-HIGH" },
+            { "const": "E2E-DRAINAGE-NEARBY" },
+            { "const": "E2E-HIGH-GROUND" },
+            { "const": "E2E-WETLAND" },
+            { "const": "E2E-LAND-COVER" },
+            { "const": "E2E-TRAVERSABILITY-EXPLAIN" },
+            { "const": "E2E-EXPLICIT-PRODUCT" },
+            { "const": "NEG-DESCRIPTOR-GAP" },
+            { "const": "NEG-DATA-GAP" },
+            { "const": "NEG-REFERENCE-AMBIGUITY" },
+            { "const": "NEG-UNIT-MISMATCH" },
+            { "const": "NEG-RECIPE-DRIFT" },
+            { "const": "NEG-TRUNCATED" },
+            { "const": "NEG-CURRENTNESS" }
+          ],
+          "items": false,
+          "minItems": 16,
+          "maxItems": 16
+        }
+      }
+    },
+    "caseEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caseId", "caseType", "status", "reasons", "observation"],
+      "properties": {
+        "caseId": {
+          "enum": [
+            "E2E-SLOPE-POINT",
+            "E2E-SLOPE-RANGE",
+            "E2E-FLOOD-HIGH",
+            "E2E-DRAINAGE-NEARBY",
+            "E2E-HIGH-GROUND",
+            "E2E-WETLAND",
+            "E2E-LAND-COVER",
+            "E2E-TRAVERSABILITY-EXPLAIN",
+            "E2E-EXPLICIT-PRODUCT",
+            "NEG-DESCRIPTOR-GAP",
+            "NEG-DATA-GAP",
+            "NEG-REFERENCE-AMBIGUITY",
+            "NEG-UNIT-MISMATCH",
+            "NEG-RECIPE-DRIFT",
+            "NEG-TRUNCATED",
+            "NEG-CURRENTNESS"
+          ]
+        },
+        "caseType": {
+          "enum": [
+            "POSITIVE",
+            "DESCRIPTOR_GAP",
+            "DATA_GAP",
+            "REFERENCE_AMBIGUITY",
+            "UNIT_MISMATCH",
+            "RECIPE_DRIFT",
+            "TRUNCATED",
+            "CURRENTNESS"
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/evidenceStatus"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "observation": {
+          "anyOf": [
+            { "$ref": "#/$defs/caseObservation" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "NOT_RUN" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": { "observation": { "type": "null" } }
+          },
+          "else": {
+            "properties": { "observation": { "$ref": "#/$defs/caseObservation" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "PASS" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "observation": {
+                "type": "object",
+                "properties": {
+                  "evidenceArtifactIds": { "type": "array", "minItems": 1 },
+                  "evidenceHashes": { "type": "array", "minItems": 1 }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "caseObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "caseId",
+        "terminalStatus",
+        "normalizedStatus",
+        "sourceCondition",
+        "semanticPattern",
+        "descriptorId",
+        "operationKeys",
+        "gdpsOperationKeys",
+        "semanticCode",
+        "recipeId",
+        "recipeLockHash",
+        "descriptorHash",
+        "planHash",
+        "operationLockHash",
+        "productEvidence",
+        "currentness",
+        "truncated",
+        "falseFactInferred",
+        "originalQueryExecuted",
+        "evidenceArtifactIds",
+        "evidenceHashes",
+        "driverAttestation"
+      ],
+      "properties": {
+        "caseId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "terminalStatus": {
+          "enum": ["COMPLETED", "UNRESOLVED", "AMBIGUOUS", "PARTIAL", "INDETERMINATE", "FAILED"]
+        },
+        "normalizedStatus": {
+          "enum": ["CURRENT", "STALE", "DATA_GAP", "CAPABILITY_GAP", "COVERAGE_GAP", "AMBIGUOUS", "PARTIAL", "INDETERMINATE", "FAILED"]
+        },
+        "sourceCondition": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "semanticPattern": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "descriptorId": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "operationKeys": {
+          "$ref": "#/$defs/operationKeys"
+        },
+        "gdpsOperationKeys": {
+          "$ref": "#/$defs/operationKeys"
+        },
+        "semanticCode": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "recipeId": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "recipeLockHash": {
+          "$ref": "#/$defs/nullableDigest"
+        },
+        "descriptorHash": {
+          "$ref": "#/$defs/nullableDigest"
+        },
+        "planHash": {
+          "$ref": "#/$defs/nullableDigest"
+        },
+        "operationLockHash": {
+          "$ref": "#/$defs/nullableDigest"
+        },
+        "productEvidence": {
+          "anyOf": [
+            { "$ref": "#/$defs/productEvidence" },
+            { "type": "null" }
+          ]
+        },
+        "currentness": {
+          "type": ["string", "null"],
+          "enum": ["CURRENT", "CHANGED", "NOT_AVAILABLE", null]
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "falseFactInferred": {
+          "type": "boolean"
+        },
+        "originalQueryExecuted": {
+          "type": "boolean"
+        },
+        "evidenceArtifactIds": {
+          "$ref": "#/$defs/artifactIds"
+        },
+        "evidenceHashes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/digest"
+          },
+          "uniqueItems": true
+        },
+        "driverAttestation": {
+          "anyOf": [
+            { "$ref": "urn:wsgs:gdps-v021-e2e-driver-attestation:2.0" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "operationKeys": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*(?:\\.[a-z][a-z0-9-]*)+@[0-9]+\\.[0-9]+$"
+      },
+      "uniqueItems": true
+    },
+    "productEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "productId",
+        "contentHash",
+        "currentContentHash",
+        "descriptorId",
+        "descriptorHash",
+        "productType",
+        "productProfile",
+        "queryProfile",
+        "sourceOperationKey",
+        "dataSnapshot",
+        "dataSnapshotHash",
+        "computeSnapshot",
+        "computeSnapshotHash",
+        "receiptIds",
+        "evidenceIds",
+        "quality",
+        "qualityHash",
+        "truncated"
+      ],
+      "properties": {
+        "productId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{2,127}$"
+        },
+        "contentHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "descriptorId": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}/[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "descriptorHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "currentContentHash": {
+          "$ref": "#/$defs/nullableDigest"
+        },
+        "productType": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "productProfile": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "queryProfile": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,127}$"
+        },
+        "sourceOperationKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*(?:\\.[a-z][a-z0-9-]*)+@[0-9]+\\.[0-9]+$"
+        },
+        "dataSnapshot": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "dataSnapshotHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "computeSnapshot": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "computeSnapshotHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "receiptIds": {
+          "$ref": "#/$defs/nonEmptyEvidenceIds"
+        },
+        "evidenceIds": {
+          "$ref": "#/$defs/nonEmptyEvidenceIds"
+        },
+        "quality": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "qualityHash": {
+          "$ref": "#/$defs/digest"
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["qualificationId", "status", "evidenceArtifactIds", "evidenceHashes", "detail"],
+      "properties": {
+        "qualificationId": {
+          "enum": [
+            "W44-X01",
+            "W44-X02",
+            "W44-X03",
+            "W44-X04",
+            "W44-X05",
+            "W44-X06",
+            "W44-X07",
+            "W44-X08",
+            "W44-X09",
+            "W44-X10",
+            "W44-X11",
+            "W44-X12"
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/evidenceStatus"
+        },
+        "evidenceArtifactIds": {
+          "$ref": "#/$defs/artifactIds"
+        },
+        "evidenceHashes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/digest"
+          },
+          "uniqueItems": true
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "PASS" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "evidenceArtifactIds": { "type": "array", "minItems": 1 },
+              "evidenceHashes": { "type": "array", "minItems": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "artifactId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"
+    },
+    "artifactIds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifactId"
+      },
+      "uniqueItems": true
+    },
+    "nonEmptyEvidenceIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{1,255}$"
+      },
+      "uniqueItems": true
+    },
+    "evidenceStatus": {
+      "enum": ["PASS", "FAIL", "NOT_RUN", "BLOCKED"]
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalCases",
+        "passedCases",
+        "failedCases",
+        "blockedCases",
+        "notRunCases",
+        "requiredQualifications",
+        "passedQualifications"
+      ],
+      "properties": {
+        "totalCases": { "const": 16 },
+        "passedCases": { "type": "integer", "minimum": 0, "maximum": 16 },
+        "failedCases": { "type": "integer", "minimum": 0, "maximum": 16 },
+        "blockedCases": { "type": "integer", "minimum": 0, "maximum": 16 },
+        "notRunCases": { "type": "integer", "minimum": 0, "maximum": 16 },
+        "requiredQualifications": { "const": 12 },
+        "passedQualifications": { "type": "integer", "minimum": 0, "maximum": 12 }
+      }
+    }
+  }
+}

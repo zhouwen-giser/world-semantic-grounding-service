@@ -202,6 +202,54 @@ function gdpsAuthorizationGap(input: CompileInput, rule: QueryTemplateRule): Com
   return undefined;
 }
 
+function gdpsCurrentnessAuthorizationGap(input: CompileInput, rule: QueryTemplateRule): CompileResult | undefined {
+  if (!rule.currentnessAuthorizationRequired) return undefined;
+  const authorization = input.gdpsCurrentnessAuthorization;
+  const operationKey = "geo-product.check-current@1.0";
+  if (!authorization || authorization.recipeId !== "gdps-check-current-geo-product" ||
+      authorization.requirementKind !== "CHECK_CURRENT_GEO_PRODUCT" ||
+      !input.trustedGdpsProviderRecipeLockHash ||
+      authorization.providerRecipeLockHash !== input.trustedGdpsProviderRecipeLockHash ||
+      !input.trustedGdpsOperationLockHash ||
+      authorization.operationLockHash !== input.trustedGdpsOperationLockHash ||
+      ![authorization.providerRecipeLockHash, authorization.operationLockHash].every((value) => digestPattern.test(value))) {
+    return gap(input, "RECIPE_LOCK_DRIFT", {
+      pattern: rule.pattern,
+      expectedRecipeId: "gdps-check-current-geo-product",
+      exactRecipeAuthorized: false,
+      providerRecipeLockMatched:
+        authorization?.providerRecipeLockHash === input.trustedGdpsProviderRecipeLockHash,
+      operationLockMatched: authorization?.operationLockHash === input.trustedGdpsOperationLockHash
+    });
+  }
+  const expected = authorization.allowedOperation;
+  const locked = input.operationLocks.find((entry) =>
+    entry.operationId === "geo-product.check-current" && entry.operationVersion === "1.0");
+  if (expected.operationId !== "geo-product.check-current" || expected.operationVersion !== "1.0" ||
+      !locked || locked.maturity !== "PREVIEW" ||
+      locked.inputSchemaHash !== expected.inputSchemaHash ||
+      locked.outputSchemaHash !== expected.outputSchemaHash ||
+      locked.semanticProfileHash !== expected.semanticProfileHash) {
+    return gap(input, "RECIPE_LOCK_DRIFT", {
+      pattern: rule.pattern,
+      operationKey,
+      exactOperationHashes: false
+    });
+  }
+  const parameters = input.parameterValues ?? {};
+  if (typeof parameters["productId"] !== "string" ||
+      !/^[a-z][a-z0-9-]{2,127}$/u.test(parameters["productId"]) ||
+      typeof parameters["contentHash"] !== "string" ||
+      !digestPattern.test(parameters["contentHash"])) {
+    return gap(input, "SCHEMA_MISMATCH", {
+      pattern: rule.pattern,
+      operationKey,
+      exactPriorProductIdentity: false
+    });
+  }
+  return undefined;
+}
+
 function sourceOutput(
   source: { matched: MatchedCapability },
   outputPort: string
@@ -232,6 +280,8 @@ export class TypedWorldQueryCompiler {
     }
     const authorizationGap = gdpsAuthorizationGap(input, rule);
     if (authorizationGap) return authorizationGap;
+    const currentnessAuthorizationGap = gdpsCurrentnessAuthorizationGap(input, rule);
+    if (currentnessAuthorizationGap) return currentnessAuthorizationGap;
     if (!digestPattern.test(input.parameterSchemaHash)) {
       return gap(input, "SCHEMA_MISMATCH", { reason: "WORLD_QUERY_PARAMETER_SCHEMA_HASH_INVALID" });
     }
@@ -342,7 +392,7 @@ export class TypedWorldQueryCompiler {
         });
       }
       const nodeInputs: WorldQueryNode["inputs"] = {};
-      if (unit.links.length === 0) {
+      if (unit.links.length === 0 && !(rule.currentnessAuthorizationRequired && unit.requestBindings.length > 0)) {
         nodeInputs["request"] = {
           kind: "REQUEST_PATH",
           port: schemaPort(requestPort),
