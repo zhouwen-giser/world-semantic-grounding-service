@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "wsgs-source-currentness-request/1.0",
+  "sourceProductId": "source.slope.current",
+  "productId": "product.slope.current",
+  "previousContentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

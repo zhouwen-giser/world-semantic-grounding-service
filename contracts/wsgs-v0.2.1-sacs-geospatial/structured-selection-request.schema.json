@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2.1:sacs-geospatial:structured-selection-request:1.0",
+  "title": "Resolve World Selection Request 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "priorGroundingId",
+    "priorResultHash",
+    "findingId",
+    "featureId",
+    "selectionRevision",
+    "sourceHash"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-structured-selection-request/1.0"
+    },
+    "priorGroundingId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "priorResultHash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "findingId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "featureId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "selectionRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sourceHash": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

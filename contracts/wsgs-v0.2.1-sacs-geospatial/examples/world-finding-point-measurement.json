@@ -1,0 +1,22 @@
+{
+  "findingId": "finding.slope.point",
+  "findingKind": "POINT_MEASUREMENT",
+  "semanticConcept": "terrain.slope",
+  "querySemantics": "POINT_VALUE",
+  "status": "COMPLETED",
+  "evidenceItemIds": [
+    "evidence.slope.current"
+  ],
+  "sourceProductIds": [
+    "source.slope.current"
+  ],
+  "point": {
+    "type": "Point",
+    "coordinates": [
+      116.391,
+      39.907
+    ]
+  },
+  "value": 12.5,
+  "unit": "degree"
+}

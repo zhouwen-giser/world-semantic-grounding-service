@@ -74,7 +74,7 @@ N01 will align mutable surfaces to `0.2.1`: `VERSION`, root/workspace package ma
 | Phase | Prerequisite | Objective | Marker | State |
 |---|---|---|---|---|
 | N00 | current online sources | reconcile sources, plan, matrix, consumer baseline | `WSGS_V021_BASELINE_LOCKED` | COMPLETE |
-| N01 | N00 pushed | additive 1.1 and geospatial profile contracts | `WSGS_V021_GEOSPATIAL_CONTRACT_READY` | NOT_RUN |
+| N01 | N00 pushed | additive 1.1 and geospatial profile contracts | `WSGS_V021_GEOSPATIAL_CONTRACT_READY` | COMPLETE |
 | N02 | N01 pushed | descriptor/profile-driven six-kind decoder registry | `WSGS_V021_FINDING_DECODER_READY` | NOT_RUN |
 | N03 | N02 pushed | SourceProduct, typed gaps, provenance | `WSGS_V021_GEOSPATIAL_PROVENANCE_READY` | NOT_RUN |
 | N04 | N03 pushed | API, capabilities, result-extension runtime | `WSGS_V021_RESULT_EXTENSION_READY` | NOT_RUN |

@@ -5,12 +5,14 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/.tsbuildinfo",
     "paths": {
-      "@wsgs/grounding-pipeline": ["./../../packages/grounding-pipeline/dist/index.d.ts"]
+      "@wsgs/grounding-pipeline": ["./../../packages/grounding-pipeline/dist/index.d.ts"],
+      "@wsgs/runtime": ["./../../packages/runtime/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts"],
   "references": [
     { "path": "../../packages/delegated-identity" },
-    { "path": "../../packages/grounding-pipeline" }
+    { "path": "../../packages/grounding-pipeline" },
+    { "path": "../../packages/runtime" }
   ]
 }

@@ -1,0 +1,34 @@
+{
+  "findingId": "finding.vehicles.area",
+  "findingKind": "SPATIAL_FEATURE_COLLECTION",
+  "semanticConcept": "world.vehicle",
+  "querySemantics": "FEATURES_IN_AREA",
+  "status": "PARTIAL",
+  "subjectReferenceProductIds": [
+    "reference.area.a"
+  ],
+  "evidenceItemIds": [
+    "evidence.vehicles.area"
+  ],
+  "sourceProductIds": [
+    "source.vehicles.current"
+  ],
+  "returnedCount": 1,
+  "truncated": true,
+  "features": [
+    {
+      "featureId": "feature.vehicle.2",
+      "displayName": "Vehicle 2",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "WORLD_OBJECT",
+        "id": "wrf_0123456789abcdef0123456789abcdef",
+        "version": "1.0.0"
+      },
+      "distanceM": 18.25,
+      "publishedAttributes": {
+        "objectClass": "VEHICLE"
+      }
+    }
+  ]
+}

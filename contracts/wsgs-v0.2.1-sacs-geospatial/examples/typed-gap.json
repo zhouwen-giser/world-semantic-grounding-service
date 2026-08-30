@@ -1,0 +1,14 @@
+{
+  "gapId": "gap.vehicles.truncated",
+  "gapKind": "TRUNCATED",
+  "severity": "WARNING",
+  "messageCode": "WSGS_RESULT_TRUNCATED",
+  "semanticConcept": "world.vehicle",
+  "findingIds": [
+    "finding.vehicles.area"
+  ],
+  "evidenceItemIds": [
+    "evidence.vehicles.area"
+  ],
+  "safeDetail": "The published feature list reached the configured result limit."
+}

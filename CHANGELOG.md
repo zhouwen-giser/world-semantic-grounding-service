@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 candidate - 2026-08-30
+
+- Unified mutable WSGS release surfaces at `0.2.1`, including `VERSION`, root and private workspace manifests, the workspace lockfile, the OCI image label, and the default `wsgs:0.2.1` image tag.
+- Preserved the byte-locked `sacs-wsgs-grounding/1.0` contract and its hash while introducing the additive `sacs-wsgs-grounding/1.1` geospatial result-extension profile; the public wire envelope remains `schemaVersion: "1.0"`.
+- Kept historical reports, vendored upstream package versions, and prior release records immutable. v0.2.1 remains a development candidate with `productionQualified=false` until its authoritative handoff and real consumer/runtime gates pass.
+
 ## 0.2.0 candidate - 2026-08-27
 
 - Locked the internal southbound integration to the exact GOWM+ 0.6.3 consumer artifact while retaining the frozen `sacs-wsgs-grounding/1.0` northbound response constants.

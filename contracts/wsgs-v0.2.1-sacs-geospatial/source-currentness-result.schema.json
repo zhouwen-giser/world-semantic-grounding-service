@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2.1:sacs-geospatial:source-currentness-result:1.0",
+  "title": "SACS Source Currentness Result 1.0",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "productId",
+        "previousContentHash",
+        "currentContentHash",
+        "status",
+        "checkedAt",
+        "validationGroundingId",
+        "validationResultHash"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "sacs-source-currentness/1.0" },
+        "productId": { "$ref": "#/$defs/identifier" },
+        "previousContentHash": { "$ref": "#/$defs/sha256" },
+        "currentContentHash": { "$ref": "#/$defs/sha256" },
+        "status": { "const": "CURRENT" },
+        "checkedAt": { "type": "string", "format": "date-time" },
+        "validationGroundingId": { "$ref": "#/$defs/identifier" },
+        "validationResultHash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "productId",
+        "previousContentHash",
+        "currentContentHash",
+        "status",
+        "checkedAt",
+        "validationGroundingId",
+        "validationResultHash"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "sacs-source-currentness/1.0" },
+        "productId": { "$ref": "#/$defs/identifier" },
+        "previousContentHash": { "$ref": "#/$defs/sha256" },
+        "currentContentHash": { "$ref": "#/$defs/sha256" },
+        "status": { "const": "CHANGED" },
+        "checkedAt": { "type": "string", "format": "date-time" },
+        "validationGroundingId": { "$ref": "#/$defs/identifier" },
+        "validationResultHash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "productId",
+        "previousContentHash",
+        "status",
+        "checkedAt",
+        "validationGroundingId",
+        "validationResultHash"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "sacs-source-currentness/1.0" },
+        "productId": { "$ref": "#/$defs/identifier" },
+        "previousContentHash": { "$ref": "#/$defs/sha256" },
+        "status": { "const": "NOT_AVAILABLE" },
+        "checkedAt": { "type": "string", "format": "date-time" },
+        "validationGroundingId": { "$ref": "#/$defs/identifier" },
+        "validationResultHash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "productId",
+        "previousContentHash",
+        "status",
+        "checkedAt",
+        "validationGroundingId",
+        "validationResultHash"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "sacs-source-currentness/1.0" },
+        "productId": { "$ref": "#/$defs/identifier" },
+        "previousContentHash": { "$ref": "#/$defs/sha256" },
+        "status": { "const": "UNKNOWN" },
+        "checkedAt": { "type": "string", "format": "date-time" },
+        "validationGroundingId": { "$ref": "#/$defs/identifier" },
+        "validationResultHash": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "findingId": "finding.landcover.point",
+  "findingKind": "POINT_CLASSIFICATION",
+  "semanticConcept": "landcover.class",
+  "querySemantics": "POINT_CLASSIFICATION",
+  "status": "COMPLETED",
+  "evidenceItemIds": [
+    "evidence.landcover.current"
+  ],
+  "sourceProductIds": [
+    "source.landcover.current"
+  ],
+  "point": {
+    "type": "Point",
+    "coordinates": [
+      116.391,
+      39.907
+    ]
+  },
+  "classCode": "BUILT_UP",
+  "classLabel": "Built-up area"
+}

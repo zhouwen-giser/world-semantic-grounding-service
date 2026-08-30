@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "wsgs-v021-n01-schema-validation/1.0",
+  "phase": "N01",
+  "generator": {
+    "name": "generate-sacs-geospatial-contract-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:09bc79ea3eecfe734bb98908671ec99e22ccdbf9ad02a0b1422827b346677b71",
+  "command": {
+    "write": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
+    "check": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
+    "exitCode": 0,
+    "stdoutSummary": "WSGS_V021_GEOSPATIAL_CONTRACT_READY"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "consumerRuntimeQualification": "BLOCKED_UPSTREAM",
+  "productionQualified": false,
+  "versionSurfaces": {
+    "version": "0.2.1",
+    "workspaceManifestCount": 19,
+    "surfaceHash": "sha256:22b0a90a9368d08c98c00c996591c90790700994839de611021c2d8c529a7c29",
+    "status": "PASS"
+  },
+  "status": "PASS",
+  "authoritativeSchemaCount": 10,
+  "authoritativeSchemas": {
+    "capabilities-response-v1.1.schema.json": "sha256:de51ed3b35adeed5a26816e1c36445778b702ba4f4cf98f3a77564e24f70cbd3",
+    "geospatial-findings.schema.json": "sha256:0590ba82c33d0fe54de8f7aaec936e95614186e9033433e564a4dd81691907e1",
+    "grounding-result-extension.schema.json": "sha256:793d3106b2ba6b0abf0a928c910a538cff72f9ad8bb263c26a3f4831e23894d7",
+    "source-currentness-request.schema.json": "sha256:78e74b77a4ced0c336db0c4fe9c169fb717dd19adf21cd72dc885d5e18e9b8e7",
+    "source-currentness-result.schema.json": "sha256:0b9f0ec6f33bea4177d71c56ebb712d83875bb7d27dce91b281933ea3fe2cd8e",
+    "source-product.schema.json": "sha256:f44839fad6b6bc4ad9fc2ff54957a3ef012e603bb0dd3a2d034f3112b394a5cd",
+    "structured-selection-request.schema.json": "sha256:062575d20fe96a78df3e1ce9a1105b4d40a5fc6b60e5e62ab38d943eeeb4b6e4",
+    "structured-selection-result.schema.json": "sha256:36263725923f7c045cc89bc142e32cc71bef8742386497253dbf1d89bd017ee3",
+    "typed-gap.schema.json": "sha256:07a7fe050b83fd5df13161bf69538ee05151fec180a3211e0bab4f5c978da02c",
+    "world-finding.schema.json": "sha256:90d12a8b7810e66960d71745dff4bf0a94bb0bd4aa70f69862c34de6f6d524a0"
+  },
+  "positiveExampleCount": 19,
+  "positiveExamples": {
+    "examples/capabilities-response-v1.1.json": "sha256:10ffc0e5e3a0113ed2fce3688b73cdd10ec6a7da1a5d4effd7cb59927c1ef544",
+    "examples/geospatial-findings-point-measurement.json": "sha256:cd464e0dde151e7a76af1277f5ad3baea7818684945f956de936679453b4fe41",
+    "examples/grounding-result-with-geospatial-findings.json": "sha256:cd8e2f975f51ac6c4afdb773d5d259b86551da3af2aa6b9704782ad6b1767624",
+    "examples/source-currentness-request.json": "sha256:b7ea9f8055db16808058e566c4642dd5e4a553b886cee659a9646a919836b95a",
+    "examples/source-currentness-result-changed.json": "sha256:6bfdf54811057bf71c655357aed049453970950ab818ca7904111dd2f8ae0447",
+    "examples/source-currentness-result-current.json": "sha256:dc8c97163bcdaf969db7b41a06dd0d17f98e45d8b80e2f9a3655fb48cba5c667",
+    "examples/source-currentness-result-not-available.json": "sha256:4462486b6964a081cbf06f45b56e452f5078fe15bdc1546990b7cd979b4df9d1",
+    "examples/source-currentness-result-unknown.json": "sha256:5fff341ff46dcad781501d07bf2ac13a3e6bec4a67e2b07e2cbe1b6b3c5daa9c",
+    "examples/source-product.json": "sha256:22b0230a523377c5c673284f095a9f4649e6950b6329388161cc37cfcf425912",
+    "examples/structured-selection-request.json": "sha256:ec4a09053878e738ce665e5015fe3dea153847bcc31d0c6763cca9231736c8db",
+    "examples/structured-selection-result-reference-key.json": "sha256:e5f7e44dbc30eeb91bd94363ab0d5a7973f04cd66ebf6887b14ff60d40358130",
+    "examples/structured-selection-result-token.json": "sha256:70946445a6911577d1cfed0efd526b1436944850b16d1efc882a71806900707d",
+    "examples/typed-gap.json": "sha256:298447df59df1492bd67f86a21bc807e748ade3549a3963844ca17bbb8ed779f",
+    "examples/world-finding-catalog.json": "sha256:88285dbca78e3c15764a4b5a3e8c386bb3ebbaeb488b04a3c09c89f3b56b5c58",
+    "examples/world-finding-point-classification.json": "sha256:6dda4d16d10619a2e2c81f0653d09e257c81e792f7c80e0cd53e86446776088a",
+    "examples/world-finding-point-measurement.json": "sha256:09ff478fefdd93eb32950e56c7a804afee9d5d3d254cb32eb467b58388e08a30",
+    "examples/world-finding-profile.json": "sha256:06662185e59d46945dfe7b9955711871ed99ce685ee6565ded39f4cfcdf10ed4",
+    "examples/world-finding-qualified-explanation.json": "sha256:7bd3474ff5e5a3ab5e4ff6a42dea057418b2c8da327941c23d0112313897faef",
+    "examples/world-finding-spatial-feature-collection.json": "sha256:2beadcf2deefcbab17bd10d2558b0dcc18cafd5022b0c0b4867532fb06ffbed0"
+  },
+  "negativeCaseCount": 11,
+  "negativeCases": [
+    {
+      "caseId": "NEG_UNKNOWN_FINDING_KIND",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_UNKNOWN_FINDING_FIELD",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_EMPTY_EVIDENCE_IDS",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_SOURCE_PRODUCT_MISSING_CONTENT_HASH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_INVALID_REFERENCE_KEY",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_REFERENCE_KEY_AND_TOKEN",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_UNKNOWN_GAP_KIND",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_INVALID_HASH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_EXTENSION_WRONG_LOCATION",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_REQUEST_BODY_PRINCIPAL",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "NEG_LEGACY_RESULT_REWRITTEN_WITH_EXTENSION",
+      "status": "PASS_FAIL_CLOSED"
+    }
+  ],
+  "semanticHashChecks": {
+    "profileSchemaHash": "PASS",
+    "findingSetHash": "PASS",
+    "sourceProductSetHash": "PASS"
+  },
+  "additionalPropertiesPolicy": "FAIL_CLOSED_AT_ALL_PUBLISHED_OBJECT_BOUNDARIES",
+  "bodyAuthorityPolicy": "PRINCIPAL_SCOPE_AUTHORIZATION_TOKEN_AUTHORITY_REJECTED"
+}

@@ -1,13 +1,13 @@
 {
   "name": "@wsgs/query-compiler",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": "./dist/index.js",
   "dependencies": {
-    "@wsgs/gowm-contract-intake": "0.1.0",
-    "@wsgs/gowm-gateway-client": "0.1.0"
+    "@wsgs/gowm-contract-intake": "0.2.1",
+    "@wsgs/gowm-gateway-client": "0.2.1"
   }
 }
