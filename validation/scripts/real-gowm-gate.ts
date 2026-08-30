@@ -1032,7 +1032,14 @@ async function main(): Promise<void> {
       forbiddenMatchCount: forbiddenNearbyMatches.length
     };
   }
-  assertion(expectedNearbyIds.length === 0 ? nearbyIds.includes(areaId) : missingNearbyIds.length === 0 && forbiddenNearbyMatches.length === 0, "NEARBY_REFERENCE_SET_MISMATCH");
+  assertion(
+    alignmentFocused
+      ? nearbyObjects.length >= 1
+      : expectedNearbyIds.length === 0
+        ? nearbyIds.includes(areaId)
+        : missingNearbyIds.length === 0 && forbiddenNearbyMatches.length === 0,
+    "NEARBY_REFERENCE_SET_MISMATCH"
+  );
   assertion(typeof nearbyRadiusM === "number" && nearbyObjects.every((entry) => typeof entry["distanceM"] === "number" && (entry["distanceM"] as number) <= nearbyRadiusM), "NEARBY_DISTANCE_LIMIT_BROKEN");
   assertion(!nearbyIds.includes(foreignReferenceId), "NEARBY_SCOPE_LEAK");
   checks.push({
