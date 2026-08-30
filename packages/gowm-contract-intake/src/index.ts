@@ -9,43 +9,49 @@ import addFormatsModule from "ajv-formats";
 
 export const GOWM_INTAKE_VERSION = "gowm-contract-intake/2.0" as const;
 export const GOWM_SOURCE_REPOSITORY = "zhouwen-giser/geospatial-operational-world-model" as const;
-export const GOWM_SOURCE_COMMIT = "17dd221330d9af540ec815a39eca96550690299a" as const;
-export const GOWM_SOURCE_VERSION = "0.6.3" as const;
+export const GOWM_RUNTIME_SOURCE_COMMIT = "f2894d86eeca121f9cea76c70797ece3b091d51f" as const;
+export const GOWM_RUNTIME_VERSION = "0.6.4" as const;
+export const GOWM_GATEWAY_CONTRACT_VERSION = "0.6.3" as const;
 export const GOWM_CONSUMER_PACKAGE_NAME = "@gowm/world-gateway-contracts" as const;
 export const GOWM_CONSUMER_PACKAGE_VERSION = "0.6.3" as const;
 export const GOWM_CONSUMER_LOGICAL_INTEGRITY =
-  "sha512-Z2mLu+us4NM8hqthMSo48H33cFpzxK9zxyx8UeB04F7LdWN0e6Vz5q++fB7ohyRikbXdgYCrT8+SMqwcuWEBLA==" as const;
-export const GOWM_CONSUMER_TARBALL_BYTES = 52_931 as const;
+  "sha512-KekpsVw943+iWwWcKepSxl408uBqH6oQ/ZzHcsrQrq2EjP+r2zYtljOfFekP6Vksxx1oSbE66rqaHE2rUGv6xw==" as const;
+export const GOWM_CONSUMER_TARBALL_BYTES = 52_872 as const;
 export const GOWM_CONSUMER_TARBALL_SHA256 =
-  "da86ab50c2cf4a925f958003a132902770bb2e6d2082cd0aaffb44d70e226501" as const;
+  "866b310ae5d28a49d59683975c858c0da1d46c0565168a8faba7e0c200d9c887" as const;
 export const GOWM_CONSUMER_TARBALL_SHA512 =
-  "sha512-UP91UrKaxuwDwN31zzh452f4iQYfiuXEukfcJ/Ken0+JSKyVnCTWemWs+6ELErb+xR3oInEly1oigzFRxbwLpg==" as const;
+  "sha512-5RvJ9EK3jvTXR/Gzr27E5tqB60+WJbD/WwTUtcPtBBH/c0Cq9ggWArTeFz7515MP+SagE418zXs/FUPS/gcdAA==" as const;
 export const GOWM_CONTRACT_CATALOG_REVISION =
-  "sha256:1f49cdec6b5568c9ad57967f0b111e437c873e90b1213f17cc4006824a04c5d0" as const;
+  "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a" as const;
 export const GOWM_BINDING_REVISION =
-  "sha256:898fd2a69ff0b84dadf88ddf6cc2dc3b52838e1344888b65fb93d1869008e094" as const;
+  "sha256:1d59337bcbd8cb8dd76d0241d08b8c7618f61daa6e9c43d25db45c11994f1394" as const;
 export const GOWM_SEMANTIC_CATALOG_HASH =
-  "sha256:540e9b169cfefa5707e7ba7bd59d304c7671d8d0f2f1f0f4f16d5c5210b08b3e" as const;
+  "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61" as const;
 export const GOWM_AVAILABILITY_CONTRACT_HASH =
   "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036" as const;
 export const GOWM_SNAPSHOT_CONTRACT_HASH =
   "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0" as const;
 export const GOWM_DELEGATION_CONTRACT_HASH =
   "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b" as const;
-export const GOWM_SOUTHBOUND_LOCK_LF_SHA256 =
-  "51c189f2a4359b245b652eeb196410c742231db69dc0232d3f7057bb4368cdf0" as const;
+export const GOWM_SOUTHBOUND_LOCK_RAW_SHA256 =
+  "765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686" as const;
+/** @deprecated The exact Kek materialization is raw-byte pinned; use GOWM_SOUTHBOUND_LOCK_RAW_SHA256. */
+export const GOWM_SOUTHBOUND_LOCK_LF_SHA256 = GOWM_SOUTHBOUND_LOCK_RAW_SHA256;
 export const GOWM_MATERIALIZATION_TREE_SHA256 =
-  "sha256:d6a0f4ad900134ab06f00d2cbbf11f591d55e620d313b784741dd0e92808d8a7" as const;
+  "sha256:0c6b4e70a8d345135657b20e4d5ed22e81b364bcdb7774ba9238de091cdcd680" as const;
 
 const WSGS_SOURCE_REPOSITORY = "zhouwen-giser/world-semantic-grounding-service" as const;
-const WSGS_SOURCE_COMMIT = "2fdefe3769189fa8e8be4302a9e98ca55cf686d4" as const;
-const WSGS_SOURCE_VERSION = "0.1.0" as const;
+const WSGS_SOURCE_COMMIT = "c2a71a0f455c728ae45d70067f223e1450cfa427" as const;
+const WSGS_SOURCE_VERSION = "0.2.0" as const;
 const NORTHBOUND_CONTRACT_VERSION = "sacs-wsgs-grounding/1.0" as const;
-const TARGET_VERSION = "0.2.0" as const;
+const TARGET_VERSION = "0.2.1" as const;
+const ALIGNMENT_LOCK_FILE_NAME = "gowm-runtime-contract-alignment-lock-v1.json" as const;
+const ALIGNMENT_LOCK_SCHEMA_FILE_NAME = "gowm-runtime-contract-alignment-lock-v1.schema.json" as const;
 const TARBALL_FILE_NAME = "gowm-world-gateway-contracts-0.6.3.tgz" as const;
 const LOCK_RELATIVE_PATH = "locks/wsgs-southbound-operation-lock-v2.json" as const;
 const MANIFEST_FILE_COUNT = 62 as const;
 const PACKAGE_FILE_COUNT = 64 as const;
+const RAW_CRLF_PACKAGE_FILE_COUNT = 58 as const;
 const DEFAULT_OPERATION_COUNT = 31 as const;
 const PREVIEW_OPERATION_COUNT = 89 as const;
 const DEFAULT_REPOSITORY_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
@@ -59,7 +65,7 @@ export interface IntakeCheck {
 
 export interface ContractIntakeReport {
   schemaVersion: "1.0";
-  sourceCommit: typeof GOWM_SOURCE_COMMIT;
+  sourceCommit: typeof GOWM_RUNTIME_SOURCE_COMMIT;
   packageIntegrity: typeof GOWM_CONSUMER_LOGICAL_INTEGRITY;
   checks: IntakeCheck[];
   status: "PASS";
@@ -67,7 +73,9 @@ export interface ContractIntakeReport {
 
 export interface GowmContractIntakeSummary {
   status: "PASS";
-  sourceCommit: typeof GOWM_SOURCE_COMMIT;
+  sourceCommit: typeof GOWM_RUNTIME_SOURCE_COMMIT;
+  runtimeVersion: typeof GOWM_RUNTIME_VERSION;
+  gatewayContractVersion: typeof GOWM_GATEWAY_CONTRACT_VERSION;
   packageName: typeof GOWM_CONSUMER_PACKAGE_NAME;
   packageVersion: typeof GOWM_CONSUMER_PACKAGE_VERSION;
   packageIntegrity: typeof GOWM_CONSUMER_LOGICAL_INTEGRITY;
@@ -75,8 +83,8 @@ export interface GowmContractIntakeSummary {
   tarballSha256: typeof GOWM_CONSUMER_TARBALL_SHA256;
   tarballSha512: typeof GOWM_CONSUMER_TARBALL_SHA512;
   manifestFileCount: typeof MANIFEST_FILE_COUNT;
-  canonicalLfFileCount: typeof MANIFEST_FILE_COUNT;
-  rawCrlfPackageFileCount: typeof PACKAGE_FILE_COUNT;
+  manifestRawByteFileCount: typeof MANIFEST_FILE_COUNT;
+  rawCrlfPackageFileCount: typeof RAW_CRLF_PACKAGE_FILE_COUNT;
   archiveFileCount: typeof PACKAGE_FILE_COUNT;
   extractedFileCount: typeof PACKAGE_FILE_COUNT;
   materializationTreeSha256: typeof GOWM_MATERIALIZATION_TREE_SHA256;
@@ -115,7 +123,8 @@ interface SouthboundOperation {
 
 interface SouthboundOperationLock {
   schemaVersion: string;
-  consumerContractPackage: { integrity: string };
+  gatewayContractVersion: string;
+  consumerContractPackage: { name: string; version: string; integrity: string };
   contractCatalogRevision: string;
   semanticCatalogHash: string;
   availabilityContractHash: string;
@@ -123,6 +132,42 @@ interface SouthboundOperationLock {
   delegationContractHash: string;
   defaultOperations: SouthboundOperation[];
   previewOperations: SouthboundOperation[];
+}
+
+interface GowmRuntimeContractAlignmentLock {
+  schemaVersion: "1.0";
+  status: "LOCKED";
+  taskGeneratedAgainst: {
+    wsgsRepository: string;
+    wsgsCommit: string;
+    wsgsVersion: string;
+    targetWsgsVersion: string;
+    northboundContractVersion: string;
+  };
+  requiredTuple: {
+    gowmRuntimeVersion: string;
+    gatewayContractVersion: string;
+    gatewayConsumerPackageVersion: string;
+    runtimeAndContractVersionsMustRemainIndependent: boolean;
+    runtimeVersionMustNotBeCopiedIntoContractVersion: boolean;
+  };
+  gowmRuntime: {
+    repository: string;
+    sourceCommit: string;
+    softwareVersion: string;
+  };
+  gatewayContract: {
+    packageName: string;
+    packageVersion: string;
+    gatewayContractVersion: string;
+    consumerLogicalIntegrity: string;
+    contractCatalogRevision: string;
+    semanticCatalogHash: string;
+    availabilityContractHash: string;
+    snapshotContractHash: string;
+    delegationContractHash: string;
+    southboundLockFileSha256: string;
+  };
 }
 
 interface PackageFileRecord {
@@ -144,7 +189,7 @@ interface PackageIntegrityEvidence {
   materialization: {
     archiveFileCount: typeof PACKAGE_FILE_COUNT;
     extractedFileCount: typeof PACKAGE_FILE_COUNT;
-    rawCrlfPackageFileCount: typeof PACKAGE_FILE_COUNT;
+    rawCrlfPackageFileCount: typeof RAW_CRLF_PACKAGE_FILE_COUNT;
     treeSha256: typeof GOWM_MATERIALIZATION_TREE_SHA256;
     status: "BYTE_IDENTICAL";
   };
@@ -321,24 +366,99 @@ function parseTarballFiles(tarball: Buffer): Map<string, Buffer> {
   return files;
 }
 
-function expectedSourceLock(): unknown {
+function loadAlignmentLock(repositoryRoot: string): GowmRuntimeContractAlignmentLock {
+  const upstreamRoot = join(repositoryRoot, "contracts", "upstream");
+  const lock = parseJson<GowmRuntimeContractAlignmentLock>(join(upstreamRoot, ALIGNMENT_LOCK_FILE_NAME));
+  const schema = parseJson<Record<string, unknown>>(join(upstreamRoot, ALIGNMENT_LOCK_SCHEMA_FILE_NAME));
+  const ajv = new Ajv2020Module.default({ allErrors: true, strict: true });
+  const validate = ajv.compile(schema);
+  invariant(
+    validate(lock),
+    `GOWM runtime/contract alignment lock validation failed: ${ajv.errorsText(validate.errors, { separator: "; " })}`
+  );
+  invariant(lock.status === "LOCKED", "GOWM runtime/contract alignment authority is not LOCKED");
+  invariant(lock.taskGeneratedAgainst.wsgsRepository === WSGS_SOURCE_REPOSITORY, "Alignment WSGS repository mismatch");
+  invariant(lock.taskGeneratedAgainst.wsgsCommit === WSGS_SOURCE_COMMIT, "Alignment WSGS base commit mismatch");
+  invariant(lock.taskGeneratedAgainst.wsgsVersion === WSGS_SOURCE_VERSION, "Alignment WSGS base version mismatch");
+  invariant(lock.taskGeneratedAgainst.targetWsgsVersion === TARGET_VERSION, "Alignment WSGS target version mismatch");
+  invariant(
+    lock.taskGeneratedAgainst.northboundContractVersion === NORTHBOUND_CONTRACT_VERSION,
+    "Alignment northbound contract version mismatch"
+  );
+  invariant(lock.gowmRuntime.repository === GOWM_SOURCE_REPOSITORY, "Alignment GOWM repository mismatch");
+  invariant(lock.gowmRuntime.sourceCommit === GOWM_RUNTIME_SOURCE_COMMIT, "Alignment GOWM source commit mismatch");
+  invariant(lock.gowmRuntime.softwareVersion === GOWM_RUNTIME_VERSION, "Alignment GOWM runtime version mismatch");
+  invariant(
+    lock.requiredTuple.gowmRuntimeVersion === GOWM_RUNTIME_VERSION,
+    "Alignment required runtime version mismatch"
+  );
+  invariant(
+    lock.requiredTuple.gatewayContractVersion === GOWM_GATEWAY_CONTRACT_VERSION &&
+      lock.gatewayContract.gatewayContractVersion === GOWM_GATEWAY_CONTRACT_VERSION,
+    "Alignment Gateway contract version mismatch"
+  );
+  invariant(
+    lock.requiredTuple.gatewayConsumerPackageVersion === GOWM_CONSUMER_PACKAGE_VERSION &&
+      lock.gatewayContract.packageVersion === GOWM_CONSUMER_PACKAGE_VERSION,
+    "Alignment Gateway consumer package version mismatch"
+  );
+  invariant(lock.gatewayContract.packageName === GOWM_CONSUMER_PACKAGE_NAME, "Alignment package name mismatch");
+  invariant(
+    lock.requiredTuple.runtimeAndContractVersionsMustRemainIndependent === true &&
+      lock.requiredTuple.runtimeVersionMustNotBeCopiedIntoContractVersion === true &&
+      !Object.is(lock.requiredTuple.gowmRuntimeVersion, lock.requiredTuple.gatewayContractVersion),
+    "Alignment runtime and Gateway contract versions are not independently pinned"
+  );
+  invariant(
+    lock.gatewayContract.consumerLogicalIntegrity === GOWM_CONSUMER_LOGICAL_INTEGRITY,
+    "Alignment consumer logical integrity mismatch"
+  );
+  invariant(
+    lock.gatewayContract.contractCatalogRevision === GOWM_CONTRACT_CATALOG_REVISION &&
+      lock.gatewayContract.semanticCatalogHash === GOWM_SEMANTIC_CATALOG_HASH &&
+      lock.gatewayContract.availabilityContractHash === GOWM_AVAILABILITY_CONTRACT_HASH &&
+      lock.gatewayContract.snapshotContractHash === GOWM_SNAPSHOT_CONTRACT_HASH &&
+      lock.gatewayContract.delegationContractHash === GOWM_DELEGATION_CONTRACT_HASH,
+    "Alignment Gateway contract hash tuple mismatch"
+  );
+  invariant(
+    lock.gatewayContract.southboundLockFileSha256 === `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+    "Alignment southbound raw-byte hash mismatch"
+  );
+  return lock;
+}
+
+function expectedSourceLock(alignmentLock: GowmRuntimeContractAlignmentLock): unknown {
+  const { taskGeneratedAgainst, gowmRuntime, gatewayContract } = alignmentLock;
+  invariant(
+    gatewayContract.southboundLockFileSha256.startsWith("sha256:"),
+    "Alignment southbound lock hash must use the sha256: prefix"
+  );
   return {
     schemaVersion: "1.0",
-    wsgsSource: { repository: WSGS_SOURCE_REPOSITORY, commit: WSGS_SOURCE_COMMIT, version: WSGS_SOURCE_VERSION },
-    gowmSource: { repository: GOWM_SOURCE_REPOSITORY, commit: GOWM_SOURCE_COMMIT, version: GOWM_SOURCE_VERSION },
-    consumerPackage: {
-      name: GOWM_CONSUMER_PACKAGE_NAME,
-      version: GOWM_CONSUMER_PACKAGE_VERSION,
-      integrity: GOWM_CONSUMER_LOGICAL_INTEGRITY,
-      contractCatalogRevision: GOWM_CONTRACT_CATALOG_REVISION,
-      semanticCatalogHash: GOWM_SEMANTIC_CATALOG_HASH,
-      availabilityContractHash: GOWM_AVAILABILITY_CONTRACT_HASH,
-      snapshotContractHash: GOWM_SNAPSHOT_CONTRACT_HASH,
-      delegationContractHash: GOWM_DELEGATION_CONTRACT_HASH,
-      southboundLockSha256: GOWM_SOUTHBOUND_LOCK_LF_SHA256
+    wsgsSource: {
+      repository: taskGeneratedAgainst.wsgsRepository,
+      commit: taskGeneratedAgainst.wsgsCommit,
+      version: taskGeneratedAgainst.wsgsVersion
     },
-    northboundContractVersion: NORTHBOUND_CONTRACT_VERSION,
-    targetVersion: TARGET_VERSION
+    gowmSource: {
+      repository: gowmRuntime.repository,
+      commit: gowmRuntime.sourceCommit,
+      version: gowmRuntime.softwareVersion
+    },
+    consumerPackage: {
+      name: gatewayContract.packageName,
+      version: gatewayContract.packageVersion,
+      integrity: gatewayContract.consumerLogicalIntegrity,
+      contractCatalogRevision: gatewayContract.contractCatalogRevision,
+      semanticCatalogHash: gatewayContract.semanticCatalogHash,
+      availabilityContractHash: gatewayContract.availabilityContractHash,
+      snapshotContractHash: gatewayContract.snapshotContractHash,
+      delegationContractHash: gatewayContract.delegationContractHash,
+      southboundLockSha256: gatewayContract.southboundLockFileSha256.slice("sha256:".length)
+    },
+    northboundContractVersion: taskGeneratedAgainst.northboundContractVersion,
+    targetVersion: taskGeneratedAgainst.targetWsgsVersion
   };
 }
 
@@ -356,7 +476,7 @@ function expectedPackageIntegrityEvidence(): PackageIntegrityEvidence {
     materialization: {
       archiveFileCount: PACKAGE_FILE_COUNT,
       extractedFileCount: PACKAGE_FILE_COUNT,
-      rawCrlfPackageFileCount: PACKAGE_FILE_COUNT,
+      rawCrlfPackageFileCount: RAW_CRLF_PACKAGE_FILE_COUNT,
       treeSha256: GOWM_MATERIALIZATION_TREE_SHA256,
       status: "BYTE_IDENTICAL"
     },
@@ -365,7 +485,7 @@ function expectedPackageIntegrityEvidence(): PackageIntegrityEvidence {
       tarballDigestInterpretation: "INDEPENDENT_ARCHIVE_BYTE_INTEGRITY",
       valuesEqual: false,
       statement:
-        "The task-package sha512-Z2m... value is the upstream logical integrity over canonical pre-lock file records; it is intentionally not the SHA-512 digest of the .tgz bytes."
+        "The task-locked Kek value is the upstream logical integrity over canonical pre-lock file records; it is intentionally not the SHA-512 digest of the .tgz bytes."
     }
   };
 }
@@ -390,7 +510,7 @@ function scanForRuntimeMaterial(files: Map<string, Buffer>): void {
 function buildReport(checks: IntakeCheck[]): ContractIntakeReport {
   return {
     schemaVersion: "1.0",
-    sourceCommit: GOWM_SOURCE_COMMIT,
+    sourceCommit: GOWM_RUNTIME_SOURCE_COMMIT,
     packageIntegrity: GOWM_CONSUMER_LOGICAL_INTEGRITY,
     checks,
     status: "PASS"
@@ -410,12 +530,13 @@ export function verifyGowmContractIntake(
     checks.push({ id, status: "PASS", actual, expected });
   };
 
+  const alignmentLock = loadAlignmentLock(repositoryRoot);
   const sourceLock = parseJson<unknown>(join(intakeRoot, "SOURCE_LOCK.json"));
   invariant(
-    canonicalJson(sourceLock) === canonicalJson(expectedSourceLock()),
-    "SOURCE_LOCK.json does not exactly match the authorized WSGS/GOWM/package pins"
+    canonicalJson(sourceLock) === canonicalJson(expectedSourceLock(alignmentLock)),
+    "SOURCE_LOCK.json is not the exact deterministic projection of the authorized alignment lock"
   );
-  pass("source-lock", `${GOWM_SOURCE_COMMIT}/${GOWM_CONSUMER_PACKAGE_NAME}@${GOWM_CONSUMER_PACKAGE_VERSION}`);
+  pass("source-lock", `${GOWM_RUNTIME_SOURCE_COMMIT}/${GOWM_CONSUMER_PACKAGE_NAME}@${GOWM_CONSUMER_PACKAGE_VERSION}`);
 
   const tarball = readFileSync(join(intakeRoot, TARBALL_FILE_NAME));
   pass("tarball-bytes", String(tarball.length), String(GOWM_CONSUMER_TARBALL_BYTES));
@@ -451,19 +572,16 @@ export function verifyGowmContractIntake(
     .filter((filePath) => filePath !== "MANIFEST.json");
   invariant(canonicalJson(bundleFiles) === canonicalJson(manifestPaths), "Consumer MANIFEST file set mismatch");
 
-  let canonicalLfFileCount = 0;
+  let manifestRawByteFileCount = 0;
   for (const record of manifest.files) {
-    const canonicalLf = normalizeCanonicalLf(
-      readFileSync(join(bundleRoot, ...record.path.split("/"))),
-      record.path
-    );
-    invariant(canonicalLf.length === record.bytes, `LF byte count mismatch for ${record.path}`);
-    invariant(sha256Hex(canonicalLf) === record.sha256, `LF SHA-256 mismatch for ${record.path}`);
-    canonicalLfFileCount += 1;
+    const rawBytes = readFileSync(join(bundleRoot, ...record.path.split("/")));
+    invariant(rawBytes.length === record.bytes, `Raw byte count mismatch for ${record.path}`);
+    invariant(sha256Hex(rawBytes) === record.sha256, `Raw SHA-256 mismatch for ${record.path}`);
+    manifestRawByteFileCount += 1;
   }
   pass(
-    "manifest-lf-bytes-sha256",
-    `${canonicalLfFileCount}/${manifest.files.length}`,
+    "manifest-raw-bytes-sha256",
+    `${manifestRawByteFileCount}/${manifest.files.length}`,
     `${MANIFEST_FILE_COUNT}/${MANIFEST_FILE_COUNT}`
   );
 
@@ -503,9 +621,9 @@ export function verifyGowmContractIntake(
   pass("delegation-contract-hash", canonicalSha256(delegationSchema), GOWM_DELEGATION_CONTRACT_HASH);
 
   const lockPath = join(bundleRoot, ...LOCK_RELATIVE_PATH.split("/"));
-  const lockLf = normalizeCanonicalLf(readFileSync(lockPath), LOCK_RELATIVE_PATH);
-  pass("southbound-lock-lf-sha256", sha256Hex(lockLf), GOWM_SOUTHBOUND_LOCK_LF_SHA256);
-  const lock = JSON.parse(lockLf.toString("utf8")) as SouthboundOperationLock;
+  const lockRawBytes = readFileSync(lockPath);
+  pass("southbound-lock-sha256", sha256Hex(lockRawBytes), GOWM_SOUTHBOUND_LOCK_RAW_SHA256);
+  const lock = JSON.parse(lockRawBytes.toString("utf8")) as SouthboundOperationLock;
   const lockSchema = parseJson<Record<string, unknown>>(
     join(bundleRoot, "schemas", "gowm-v0.6.3", "wsgs-southbound-operation-lock-v2.schema.json")
   );
@@ -516,6 +634,9 @@ export function verifyGowmContractIntake(
     validateLock(lock),
     `Southbound lock v2 schema validation failed: ${ajv.errorsText(validateLock.errors, { separator: "; " })}`
   );
+  invariant(lock.gatewayContractVersion === GOWM_GATEWAY_CONTRACT_VERSION, "Southbound lock Gateway contract version mismatch");
+  invariant(lock.consumerContractPackage.name === GOWM_CONSUMER_PACKAGE_NAME, "Southbound lock package name mismatch");
+  invariant(lock.consumerContractPackage.version === GOWM_CONSUMER_PACKAGE_VERSION, "Southbound lock package version mismatch");
   invariant(lock.consumerContractPackage.integrity === logicalIntegrity, "Southbound lock logical integrity mismatch");
   invariant(lock.contractCatalogRevision === GOWM_CONTRACT_CATALOG_REVISION, "Southbound lock catalog revision mismatch");
   invariant(lock.semanticCatalogHash === GOWM_SEMANTIC_CATALOG_HASH, "Southbound lock semantic hash mismatch");
@@ -554,7 +675,7 @@ export function verifyGowmContractIntake(
   const rawCrlfPackageFileCount = extractedFiles.filter((filePath) =>
     readFileSync(filePath).includes(Buffer.from("\r\n", "ascii"))
   ).length;
-  pass("raw-crlf-materialization-count", String(rawCrlfPackageFileCount), String(PACKAGE_FILE_COUNT));
+  pass("raw-crlf-materialization-count", String(rawCrlfPackageFileCount), String(RAW_CRLF_PACKAGE_FILE_COUNT));
   pass(
     "materialization-tree-sha256",
     `sha256:${sha256Hex(canonicalJson(extractedRecords))}`,
@@ -595,7 +716,9 @@ export function verifyGowmContractIntake(
 
   return {
     status: "PASS",
-    sourceCommit: GOWM_SOURCE_COMMIT,
+    sourceCommit: GOWM_RUNTIME_SOURCE_COMMIT,
+    runtimeVersion: GOWM_RUNTIME_VERSION,
+    gatewayContractVersion: GOWM_GATEWAY_CONTRACT_VERSION,
     packageName: GOWM_CONSUMER_PACKAGE_NAME,
     packageVersion: GOWM_CONSUMER_PACKAGE_VERSION,
     packageIntegrity: GOWM_CONSUMER_LOGICAL_INTEGRITY,
@@ -603,8 +726,8 @@ export function verifyGowmContractIntake(
     tarballSha256: GOWM_CONSUMER_TARBALL_SHA256,
     tarballSha512: GOWM_CONSUMER_TARBALL_SHA512,
     manifestFileCount: MANIFEST_FILE_COUNT,
-    canonicalLfFileCount: MANIFEST_FILE_COUNT,
-    rawCrlfPackageFileCount: PACKAGE_FILE_COUNT,
+    manifestRawByteFileCount: MANIFEST_FILE_COUNT,
+    rawCrlfPackageFileCount: RAW_CRLF_PACKAGE_FILE_COUNT,
     archiveFileCount: PACKAGE_FILE_COUNT,
     extractedFileCount: PACKAGE_FILE_COUNT,
     materializationTreeSha256: GOWM_MATERIALIZATION_TREE_SHA256,

@@ -14,7 +14,7 @@ import {
   type OperationalRequestedProduct
 } from "@wsgs/evidence-normalizer";
 import {
-  GOWM_SOUTHBOUND_LOCK_LF_SHA256,
+  GOWM_SOUTHBOUND_LOCK_RAW_SHA256,
   loadOperationalGowmLock,
   type LoadedOperationalGowmLock,
   type OperationalGowmLock,
@@ -255,8 +255,8 @@ function readOperationalLock(): LoadedOperationalGowmLock {
   }
   return loadOperationalGowmLock({
     lockPath,
-    expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_LF_SHA256}`,
-    hashMode: "CANONICAL_LF"
+    expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+    hashMode: "EXACT_BYTES"
   });
 }
 

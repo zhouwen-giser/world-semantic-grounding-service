@@ -65,7 +65,7 @@ function runInput(overrides: Partial<PipelineRunInput> = {}): PipelineRunInput {
     deadlineAt: new Date(Date.now() + 30_000),
     initialState: { request: { text: "查询2号车" } },
     immutableLocks: {
-      gowmCommit: "17dd221330d9af540ec815a39eca96550690299a",
+      gowmCommit: "f2894d86eeca121f9cea76c70797ece3b091d51f",
       contractRevision: "gowm-world-gateway/0.6.3"
     },
     maxResultBytes: 1_048_576,

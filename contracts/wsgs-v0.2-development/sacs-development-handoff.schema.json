@@ -11,6 +11,7 @@
     "gowm",
     "developmentLedgerHash",
     "stableRecipes",
+    "alignmentValidatedRecipes",
     "knownDeferredCapabilities",
     "productionQualified"
   ],
@@ -34,7 +35,7 @@
           "pattern": "^[0-9a-f]{40}$"
         },
         "version": {
-          "const": "0.2.0"
+          "const": "0.2.1"
         }
       }
     },
@@ -59,18 +60,32 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "version",
+        "runtimeVersion",
         "sourceCommit",
+        "gatewayContractVersion",
+        "consumerPackage",
         "contractCatalogRevision",
         "semanticCatalogHash"
       ],
       "properties": {
-        "version": {
-          "const": "0.6.3"
+        "runtimeVersion": {
+          "const": "0.6.4"
         },
         "sourceCommit": {
           "type": "string",
           "pattern": "^[0-9a-f]{40}$"
+        },
+        "gatewayContractVersion": {
+          "const": "0.6.3"
+        },
+        "consumerPackage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "const": "@gowm/world-gateway-contracts" },
+            "version": { "const": "0.6.3" }
+          }
         },
         "contractCatalogRevision": {
           "type": "string",
@@ -92,6 +107,15 @@
       "uniqueItems": true,
       "items": {
         "type": "string"
+      }
+    },
+    "alignmentValidatedRecipes": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["R1", "R2", "R3", "R4", "R5"]
       }
     },
     "knownDeferredCapabilities": {

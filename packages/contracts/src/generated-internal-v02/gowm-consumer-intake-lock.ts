@@ -10,7 +10,7 @@ export interface GowmConsumerIntakeLock {
   gowmSource: {
     repository: string;
     commit: string;
-    version: "0.6.3";
+    version: "0.6.4";
   };
   consumerPackage: {
     name: "@gowm/world-gateway-contracts";
@@ -24,5 +24,5 @@ export interface GowmConsumerIntakeLock {
     southboundLockSha256: string;
   };
   northboundContractVersion: "sacs-wsgs-grounding/1.0";
-  targetVersion: "0.2.0";
+  targetVersion: "0.2.1";
 }

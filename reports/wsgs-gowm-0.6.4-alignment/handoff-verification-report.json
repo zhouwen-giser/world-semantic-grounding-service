@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "wsgs-gowm-handoff-verification/1.0",
+  "status": "BLOCKED",
+  "handoffPath": "contracts/consumers/sacs-development-handoff-v1.json",
+  "handoffFileHash": "sha256:31376fb2b06a3aaa06821b97a22f519260b16c3145aa21e9cabf111afd1d218b",
+  "handoffCanonicalPayloadHash": "sha256:1b4d8ac3bcad927d3c73c893a263cebdcbf7e7cdf1c5f40d63a8aa660cf99d2a",
+  "schemaValidationStatus": "PASS",
+  "handoffStatus": "DEVELOPMENT_READY",
+  "wsgsSourceBinding": {
+    "status": "PASS",
+    "sourceCommit": "8f77bb296707d933aba85aced3a9fa2311b6cb8f",
+    "verification": "DECLARED_HANDOFF_SOURCE_COMMIT_FOR_CLOSURE_CROSS_VALIDATION"
+  },
+  "exactTuple": {
+    "sourceCommit": "f2894d86eeca121f9cea76c70797ece3b091d51f",
+    "runtimeVersion": "0.6.4",
+    "gatewayContractVersion": "0.6.3",
+    "consumerPackage": {
+      "name": "@gowm/world-gateway-contracts",
+      "version": "0.6.3"
+    },
+    "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
+    "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61"
+  },
+  "alignmentValidatedRecipes": [],
+  "productionQualified": false,
+  "checks": {
+    "schema": "PASS",
+    "exactTuple": "PASS",
+    "alignmentRecipes": "BLOCKED",
+    "productionBoundary": "PASS",
+    "wsgsSourceBinding": "PASS"
+  },
+  "marker": "WSGS_GOWM_HANDOFF_ALIGNMENT_NOT_VERIFIED",
+  "evidenceHash": "sha256:300937981c28735fb00f04799a0bfb6df3de430aeed2bd967fc6498ffda89032"
+}

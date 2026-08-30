@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  GOWM_SOUTHBOUND_LOCK_LF_SHA256,
+  GOWM_SOUTHBOUND_LOCK_RAW_SHA256,
   loadOperationalGowmLock,
   OperationalGowmLockError
 } from "./index.js";
@@ -38,16 +38,16 @@ afterEach(() => {
 });
 
 describe("operational GOWM lock intake", () => {
-  it("loads the bundled lock using its canonical LF hash", () => {
+  it("loads the bundled lock using its exact raw-byte hash", () => {
     const loaded = loadOperationalGowmLock({
       lockPath: bundledLockPath,
-      expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_LF_SHA256}`,
-      hashMode: "CANONICAL_LF"
+      expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+      hashMode: "EXACT_BYTES"
     });
 
     expect(loaded.lock.defaultOperations).toHaveLength(31);
     expect(loaded.lock.previewOperations).toHaveLength(89);
-    expect(loaded.hashMode).toBe("CANONICAL_LF");
+    expect(loaded.hashMode).toBe("EXACT_BYTES");
   });
 
   it("accepts a separately pinned exact-byte candidate without changing the bundled lock", () => {

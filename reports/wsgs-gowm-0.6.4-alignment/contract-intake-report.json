@@ -154,5 +154,6 @@
       "expected": "CURRENT"
     }
   ],
-  "status": "PASS"
+  "status": "PASS",
+  "evidenceHash": "sha256:c8fb3d76b37561fb9f4b955bd75b9a5de7edb5909ec6b6f107f8aebfe07c21ed"
 }

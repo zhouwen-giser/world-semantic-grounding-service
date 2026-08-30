@@ -2,16 +2,21 @@
   "schemaVersion": "1.0",
   "status": "DEVELOPMENT_READY",
   "wsgs": {
-    "commit": "75c6d2731094087efd0c203814fcb8fa8b6fefe3",
-    "version": "0.2.0"
+    "commit": "8f77bb296707d933aba85aced3a9fa2311b6cb8f",
+    "version": "0.2.1"
   },
   "northboundContract": {
     "id": "sacs-wsgs-grounding/1.0",
     "hash": "sha256:25d70b9b85b356f116a5ee2a881bae2b07ad41aa73a0e4786b77fba24876bc40"
   },
   "gowm": {
-    "version": "0.6.3",
-    "sourceCommit": "17dd221330d9af540ec815a39eca96550690299a",
+    "runtimeVersion": "0.6.4",
+    "sourceCommit": "f2894d86eeca121f9cea76c70797ece3b091d51f",
+    "gatewayContractVersion": "0.6.3",
+    "consumerPackage": {
+      "name": "@gowm/world-gateway-contracts",
+      "version": "0.6.3"
+    },
     "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
     "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61"
   },
@@ -24,6 +29,7 @@
     "R5",
     "R6"
   ],
+  "alignmentValidatedRecipes": [],
   "knownDeferredCapabilities": [
     "EXACT_HISTORICAL_PINNED_REPLAY",
     "FULL_REAL_DELEGATION_NEGATIVE_MATRIX",

@@ -10,7 +10,9 @@ import {
   expectedGowmPackageIntegrityEvidence,
   GOWM_CONSUMER_LOGICAL_INTEGRITY,
   GOWM_CONSUMER_TARBALL_SHA512,
-  GOWM_SOURCE_COMMIT,
+  GOWM_GATEWAY_CONTRACT_VERSION,
+  GOWM_RUNTIME_VERSION,
+  GOWM_RUNTIME_SOURCE_COMMIT,
   verifyGowmContractIntake
 } from "./index.js";
 
@@ -37,10 +39,14 @@ describe("GOWM 0.6.3 authoritative contract intake", () => {
     const summary = verifyGowmContractIntake();
 
     expect(summary.status).toBe("PASS");
-    expect(summary.sourceCommit).toBe(GOWM_SOURCE_COMMIT);
+    expect(summary.sourceCommit).toBe(GOWM_RUNTIME_SOURCE_COMMIT);
+    expect(summary.runtimeVersion).toBe(GOWM_RUNTIME_VERSION);
+    expect(summary.gatewayContractVersion).toBe(GOWM_GATEWAY_CONTRACT_VERSION);
+    expect(summary.runtimeVersion).not.toBe(summary.gatewayContractVersion);
     expect(summary.packageIntegrity).toBe(GOWM_CONSUMER_LOGICAL_INTEGRITY);
     expect(summary.manifestFileCount).toBe(62);
-    expect(summary.canonicalLfFileCount).toBe(62);
+    expect(summary.manifestRawByteFileCount).toBe(62);
+    expect(summary.rawCrlfPackageFileCount).toBe(58);
     expect(summary.archiveFileCount).toBe(64);
     expect(summary.extractedFileCount).toBe(64);
     expect(summary.defaultOperationCount).toBe(31);
@@ -54,7 +60,7 @@ describe("GOWM 0.6.3 authoritative contract intake", () => {
     );
   });
 
-  it("records the task-package Z2m value as logical integrity, not as the tgz digest", () => {
+  it("records the task-locked Kek value as logical integrity, not as the tgz digest", () => {
     const evidence = expectedGowmPackageIntegrityEvidence();
 
     expect(GOWM_CONSUMER_LOGICAL_INTEGRITY).not.toBe(GOWM_CONSUMER_TARBALL_SHA512);
@@ -78,8 +84,69 @@ describe("GOWM 0.6.3 authoritative contract intake", () => {
     writeFileSync(target, Buffer.concat([readFileSync(target), Buffer.from(" ")]));
 
     expect(() => verifyGowmContractIntake({ intakeRoot, verifyRecordedEvidence: false })).toThrow(
-      /LF byte count mismatch/
+      /Raw byte count mismatch/
     );
+  });
+
+  it("fails closed when CRLF bytes are normalized without changing JSON semantics", () => {
+    const intakeRoot = copyIntake();
+    const target = join(
+      intakeRoot,
+      "extracted",
+      "package",
+      "bundle",
+      "schemas",
+      "gowm-v0.6.3",
+      "operation-availability-list.schema.json"
+    );
+    const raw = readFileSync(target);
+    expect(raw.includes(Buffer.from("\r\n", "ascii"))).toBe(true);
+    writeFileSync(target, Buffer.from(raw.toString("utf8").replace(/\r\n/gu, "\n"), "utf8"));
+
+    expect(() => verifyGowmContractIntake({ intakeRoot, verifyRecordedEvidence: false })).toThrow(
+      /Raw byte count mismatch/
+    );
+  });
+
+  it("fails closed when materialized bytes change without changing their length", () => {
+    const intakeRoot = copyIntake();
+    const target = join(
+      intakeRoot,
+      "extracted",
+      "package",
+      "bundle",
+      "schemas",
+      "gowm-v0.6.3",
+      "operation-availability-list.schema.json"
+    );
+    const raw = readFileSync(target);
+    const mutated = Buffer.from(raw);
+    const titleOffset = mutated.indexOf(Buffer.from('"title"', "ascii"));
+    expect(titleOffset).toBeGreaterThanOrEqual(0);
+    mutated[titleOffset + 2] = "I".charCodeAt(0);
+    expect(mutated.length).toBe(raw.length);
+    writeFileSync(target, mutated);
+
+    expect(() => verifyGowmContractIntake({ intakeRoot, verifyRecordedEvidence: false })).toThrow(
+      /Raw SHA-256 mismatch/
+    );
+  });
+
+  it("pins SOURCE_LOCK to the WSGS base and target from the alignment authority", () => {
+    const repositoryRoot = fileURLToPath(new URL("../../..", import.meta.url));
+    const sourceLock = JSON.parse(
+      readFileSync(join(repositoryRoot, "contracts", "upstream", "gowm-0.6.3", "SOURCE_LOCK.json"), "utf8")
+    ) as {
+      wsgsSource: { commit: string; version: string };
+      targetVersion: string;
+    };
+
+    expect(sourceLock.wsgsSource).toEqual({
+      repository: "zhouwen-giser/world-semantic-grounding-service",
+      commit: "c2a71a0f455c728ae45d70067f223e1450cfa427",
+      version: "0.2.0"
+    });
+    expect(sourceLock.targetVersion).toBe("0.2.1");
   });
 
   it("rejects an unpinned source commit", () => {

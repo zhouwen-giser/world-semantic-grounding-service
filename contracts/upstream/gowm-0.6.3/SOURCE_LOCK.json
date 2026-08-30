@@ -2,25 +2,25 @@
   "schemaVersion": "1.0",
   "wsgsSource": {
     "repository": "zhouwen-giser/world-semantic-grounding-service",
-    "commit": "2fdefe3769189fa8e8be4302a9e98ca55cf686d4",
-    "version": "0.1.0"
+    "commit": "c2a71a0f455c728ae45d70067f223e1450cfa427",
+    "version": "0.2.0"
   },
   "gowmSource": {
     "repository": "zhouwen-giser/geospatial-operational-world-model",
-    "commit": "17dd221330d9af540ec815a39eca96550690299a",
-    "version": "0.6.3"
+    "commit": "f2894d86eeca121f9cea76c70797ece3b091d51f",
+    "version": "0.6.4"
   },
   "consumerPackage": {
     "name": "@gowm/world-gateway-contracts",
     "version": "0.6.3",
-    "integrity": "sha512-Z2mLu+us4NM8hqthMSo48H33cFpzxK9zxyx8UeB04F7LdWN0e6Vz5q++fB7ohyRikbXdgYCrT8+SMqwcuWEBLA==",
-    "contractCatalogRevision": "sha256:1f49cdec6b5568c9ad57967f0b111e437c873e90b1213f17cc4006824a04c5d0",
-    "semanticCatalogHash": "sha256:540e9b169cfefa5707e7ba7bd59d304c7671d8d0f2f1f0f4f16d5c5210b08b3e",
+    "integrity": "sha512-KekpsVw943+iWwWcKepSxl408uBqH6oQ/ZzHcsrQrq2EjP+r2zYtljOfFekP6Vksxx1oSbE66rqaHE2rUGv6xw==",
+    "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
+    "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
     "availabilityContractHash": "sha256:66d6cfe2679d6bdd0cf6f22cb7153d1f5f4c934ebc286f6bac33ab6bd7eb4036",
     "snapshotContractHash": "sha256:350044225667ce00c2850e9a9d7c86762fc2e042793b6a8666c724c763135ca0",
     "delegationContractHash": "sha256:6edf49002dc75e6701c9c56b8795539b3512884d31b66f7f12f122abdee9344b",
-    "southboundLockSha256": "51c189f2a4359b245b652eeb196410c742231db69dc0232d3f7057bb4368cdf0"
+    "southboundLockSha256": "765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686"
   },
   "northboundContractVersion": "sacs-wsgs-grounding/1.0",
-  "targetVersion": "0.2.0"
+  "targetVersion": "0.2.1"
 }

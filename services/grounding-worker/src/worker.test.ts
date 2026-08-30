@@ -23,7 +23,7 @@ function claim(overrides: Partial<WorkerClaim> = {}): WorkerClaim {
     deadlineAt: new Date(Date.now() + 30_000),
     maxResultBytes: 1_048_576,
     initialState: { request: "sealed-and-loaded" },
-    immutableLocks: { gowmCommit: "17dd221330d9af540ec815a39eca96550690299a" },
+    immutableLocks: { gowmCommit: "f2894d86eeca121f9cea76c70797ece3b091d51f" },
     ...overrides
   };
 }

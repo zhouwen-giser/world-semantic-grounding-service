@@ -4,7 +4,7 @@ try {
   const summary = verifyGowmContractIntake();
   console.log(
     [
-      "GOWM 0.6.3 contract intake verified",
+      "GOWM runtime 0.6.4 / Gateway contract 0.6.3 intake verified",
       `source=${summary.sourceCommit}`,
       `package=${summary.packageName}@${summary.packageVersion}`,
       `manifest=${summary.manifestFileCount}/${summary.manifestFileCount}`,

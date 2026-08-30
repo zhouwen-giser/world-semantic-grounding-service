@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  GOWM_COMMIT,
-  GOWM_VERSION,
+  GOWM_CONSUMER_PACKAGE_VERSION,
+  GOWM_GATEWAY_CONTRACT_VERSION,
+  GOWM_RUNTIME_CONTRACT_ALIGNMENT_LOCK,
+  GOWM_RUNTIME_SOURCE_COMMIT,
+  GOWM_RUNTIME_VERSION,
   WSGS_CONTRACT_VERSION,
   WSGS_VERSION
 } from "../packages/contracts/src/index.js";
@@ -11,8 +14,20 @@ describe("workspace baseline", () => {
   it("pins the service and contract versions", () => {
     expect(WSGS_VERSION).toBe("0.1.0");
     expect(WSGS_CONTRACT_VERSION).toBe("sacs-wsgs-grounding/1.0");
-    expect(GOWM_VERSION).toBe("0.6.3");
-    expect(GOWM_COMMIT).toBe("17dd221330d9af540ec815a39eca96550690299a");
+    expect(GOWM_RUNTIME_SOURCE_COMMIT).toBe("f2894d86eeca121f9cea76c70797ece3b091d51f");
+    expect(GOWM_RUNTIME_VERSION).toBe("0.6.4");
+    expect(GOWM_GATEWAY_CONTRACT_VERSION).toBe("0.6.3");
+    expect(GOWM_CONSUMER_PACKAGE_VERSION).toBe("0.6.3");
+    expect(GOWM_RUNTIME_VERSION).not.toBe(GOWM_GATEWAY_CONTRACT_VERSION);
+    expect(GOWM_RUNTIME_CONTRACT_ALIGNMENT_LOCK.requiredTuple).toEqual({
+      gowmRuntimeVersion: GOWM_RUNTIME_VERSION,
+      gatewayContractVersion: GOWM_GATEWAY_CONTRACT_VERSION,
+      gatewayConsumerPackageVersion: GOWM_CONSUMER_PACKAGE_VERSION,
+      runtimeAndContractVersionsMustRemainIndependent: true,
+      runtimeVersionMustNotBeCopiedIntoContractVersion: true
+    });
+    expect(Object.isFrozen(GOWM_RUNTIME_CONTRACT_ALIGNMENT_LOCK)).toBe(true);
+    expect(Object.isFrozen(GOWM_RUNTIME_CONTRACT_ALIGNMENT_LOCK.gowmRuntime)).toBe(true);
   });
 });
 
