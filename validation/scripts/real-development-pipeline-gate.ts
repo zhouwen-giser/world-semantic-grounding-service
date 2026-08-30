@@ -59,6 +59,24 @@ function sha256(value: string | Uint8Array): `sha256:${string}` {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
 
+function evidenceCanonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(evidenceCanonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    const record = value as JsonObject;
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${evidenceCanonicalJson(record[key])}`)
+      .join(",")}}`;
+  }
+  const encoded = JSON.stringify(value);
+  if (encoded === undefined) throw new Error("EVIDENCE_CANONICAL_JSON_UNDEFINED");
+  return encoded;
+}
+
+function evidenceCanonicalSha256(value: unknown): `sha256:${string}` {
+  return sha256(evidenceCanonicalJson(value));
+}
+
 function safeId(value: string): `sha256:${string}` {
   return sha256(value);
 }
@@ -606,7 +624,7 @@ async function observeExternalWsgsProcessBinding(
       localPathsIncluded: false as const
     }
   };
-  return { baseUrl: apiUrl.origin, binding: { ...payload, bindingHash: canonicalSha256(payload) } };
+  return { baseUrl: apiUrl.origin, binding: { ...payload, bindingHash: evidenceCanonicalSha256(payload) } };
 }
 
 interface CaseEvidence {
@@ -1638,17 +1656,17 @@ function identityLayers(evidence: CaseEvidence): JsonObject {
 
 function writeFormalReport(name: string, payload: JsonObject): `sha256:${string}` {
   repositoryRelativePath(resolve(formalReportDirectory, name), "WSGS_FORMAL_REPORT_OUTSIDE_REPOSITORY");
-  const evidenceHash = canonicalSha256(payload) as `sha256:${string}`;
+  const evidenceHash = evidenceCanonicalSha256(payload);
   writeFileSync(resolve(formalReportDirectory, name), `${JSON.stringify({ ...payload, evidenceHash }, null, 2)}\n`, "utf8");
   return evidenceHash;
 }
 
 function writeWsgsProcessBinding(binding: VerifiedWsgsProcessBinding): ReportedWsgsProcessBinding {
   const { bindingHash, ...bindingPayload } = binding;
-  if (canonicalSha256(bindingPayload) !== bindingHash) throw new Error("WSGS_PROCESS_BINDING_HASH_MISMATCH");
+  if (evidenceCanonicalSha256(bindingPayload) !== bindingHash) throw new Error("WSGS_PROCESS_BINDING_HASH_MISMATCH");
   const reportPath = resolve(formalReportDirectory, "wsgs-process-binding.json");
   const relativeReportPath = repositoryRelativePath(reportPath, "WSGS_PROCESS_BINDING_REPORT_OUTSIDE_REPOSITORY");
-  const reportEvidenceHash = canonicalSha256(binding) as `sha256:${string}`;
+  const reportEvidenceHash = evidenceCanonicalSha256(binding);
   const bytes = `${JSON.stringify({ ...binding, evidenceHash: reportEvidenceHash }, null, 2)}\n`;
   writeFileSync(reportPath, bytes, "utf8");
   return {
