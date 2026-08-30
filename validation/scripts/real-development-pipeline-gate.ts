@@ -3165,6 +3165,7 @@ try {
   }, null, 2)}\n`);
   exitCode = 0;
   }
+  }
 } catch (error) {
   const code = error instanceof Error ? error.message.replace(/[^A-Za-z0-9_:-]/gu, "_").slice(0, 240) : "UNKNOWN_ERROR";
   process.stderr.write(`${JSON.stringify({ marker: "WSGS_REAL_DEVELOPMENT_PIPELINE_BLOCKED", code })}\n`);
