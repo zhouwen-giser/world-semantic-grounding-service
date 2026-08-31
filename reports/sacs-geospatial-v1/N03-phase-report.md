@@ -1,8 +1,8 @@
 # N03 Phase Report — SourceProduct, TypedGap, and Provenance
 
-Decision: **PARTIAL for N03 only**
+Decision: **PASS for N03 only**
 
-Marker: `NOT_EMITTED`
+Marker: `WSGS_V021_GEOSPATIAL_PROVENANCE_READY`
 
 G1: `NOT_RUN`
 
@@ -25,7 +25,7 @@ productionQualified: `false`
 | Focused source/gap/result/registry tests | PASS; 120/120 across 4 suites |
 | Focused execution evidence bound to current input set | PASS; `sha256:60d186987e5c5972899ffaed5d1fcf591a4e0abdb9b42a0c5184b6487b4f6cc9` |
 | Deterministic N03 materialization guard | PASS |
-| Real signed Gateway upstream gate | NOT_RUN |
+| Real signed Gateway upstream gate | PASS |
 | Direct Provider / database calls | 0 / 0 |
 
 The focused count is parsed from the actual Vitest JSON result and bound to the current N03 input-set hash; it is not a hard-coded estimate. Check mode validates the stored execution evidence without rerunning unchanged tests.
@@ -38,14 +38,15 @@ The focused count is parsed from the actual Vitest JSON result and bound to the 
 | `GAP_NORMALIZATION` | `sha256:7a070a49d9007074175d064ce206b118ba368decc472328f749508f9c2e6f64e` |
 | `SCOPE_NEGATIVE_CASES` | `sha256:8c462e6530cf7916ae65beea1601a3ff8c1dbc5b532cddce8a298089ef55e246` |
 | `FOCUSED_TEST_EXECUTION` | `sha256:60d186987e5c5972899ffaed5d1fcf591a4e0abdb9b42a0c5184b6487b4f6cc9` |
-| `PROVENANCE_REPORT` | `sha256:e5427cc4ced1f8e32b59637dbbafe3942ec91f2ab80a36c9fd32548d0cb5007b` |
+| `PROVENANCE_REPORT` | `sha256:81093017814def18100c95035029268c5f1eb51851ff166a205099a215ac8307` |
+| `REAL_SIGNED_GATEWAY_UPSTREAM` | `sha256:e30ad4cb76d1abc074d71606362bb820aca6af77739218c8c2892200624b7b76` |
 
 Input-set hash: `sha256:20cc0d065abd1c5177d68b0dbaf8305b29b8749e3257b1d3366e1134deaee8d5`.
 
 ## Qualification boundary
 
-- V21-G06: NOT_RUN.
-- Runtime qualification: NOT_RUN.
+- V21-G06: PASS.
+- Runtime qualification: PASS for N03 real upstream only.
 - Real SACS v0.4 cases: 0/18.
 - Consumer compatible: false.
 - G1: NOT_RUN.
