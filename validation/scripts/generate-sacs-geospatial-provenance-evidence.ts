@@ -30,6 +30,7 @@ const paths = {
   packageManifest: "package.json",
   generator: "validation/scripts/generate-sacs-geospatial-provenance-evidence.ts",
   realGate: "validation/scripts/real-sacs-geospatial-provenance-gate.ts",
+  findingContractClosure: "contracts/generated/gdps-v0.2.1/gdps-finding-contract-closure.json",
   validatedEnvelope: "packages/gowm-execution-evidence/src/validated-envelope.ts",
   source: "packages/northbound-geospatial-findings/src/source-normalizer.ts",
   sourceTest: "packages/northbound-geospatial-findings/src/source-normalizer.test.ts",
@@ -245,6 +246,7 @@ const inputHashes = Object.fromEntries([
   ["PACKAGE_MANIFEST", paths.packageManifest],
   ["N03_EVIDENCE_GENERATOR", paths.generator],
   ["N03_REAL_GATE", paths.realGate],
+  ["GDPS_FINDING_CONTRACT_CLOSURE", paths.findingContractClosure],
   ["VALIDATED_GOWM_ENVELOPE", paths.validatedEnvelope],
   ["SOURCE_NORMALIZER", paths.source],
   ["SOURCE_NORMALIZER_TEST", paths.sourceTest],
@@ -417,6 +419,20 @@ function requireSha256(value: unknown, code: string): void {
   if (typeof value !== "string" || !/^sha256:[0-9a-f]{64}$/u.test(value)) throw new Error(code);
 }
 
+const currentFindingContractClosure = object(
+  JSON.parse(raw(paths.findingContractClosure)),
+  "N03_CURRENT_FINDING_CONTRACT_CLOSURE_INVALID"
+);
+const currentAuthorityClosureHash = currentFindingContractClosure["closureHash"];
+const currentGatewayAuthority = object(
+  currentFindingContractClosure["gateway"],
+  "N03_CURRENT_GATEWAY_AUTHORITY_INVALID"
+);
+requireSha256(currentAuthorityClosureHash, "N03_CURRENT_AUTHORITY_CLOSURE_HASH_INVALID");
+for (const key of ["contractCatalogRevision", "semanticCatalogHash", "bindingRevision"] as const) {
+  requireSha256(currentGatewayAuthority[key], `N03_CURRENT_GATEWAY_AUTHORITY_LOCK_INVALID:${key}`);
+}
+
 function assertSafeRealEvidence(value: unknown, key = "ROOT"): void {
   if (value === null || typeof value === "boolean" || typeof value === "number") return;
   if (typeof value === "string") {
@@ -472,7 +488,16 @@ function validateRealUpstreamEvidence(value: unknown): JsonObject {
     || integer(counts["gapCount"], "N03_REAL_UPSTREAM_GAP_COUNT_INVALID") !== 0) {
     throw new Error("N03_REAL_UPSTREAM_EVIDENCE_INVALID");
   }
-  for (const key of ["resultHash", "sourceProductSetHash", "evidenceItemSetHash", "findingSetHash", "assemblyHash"]) {
+  for (const key of [
+    "resultHash",
+    "sourceProductSetHash",
+    "evidenceItemSetHash",
+    "findingSetHash",
+    "assemblyHash",
+    "authorityClosureHash",
+    "baselineHash",
+    "baselineCaseHash"
+  ]) {
     requireSha256(hashes[key], `N03_REAL_UPSTREAM_HASH_INVALID:${key}`);
   }
   for (const key of ["runtimeIdentityHash", "contractCatalogRevision", "semanticCatalogHash", "bindingRevision"]) {
@@ -481,9 +506,24 @@ function validateRealUpstreamEvidence(value: unknown): JsonObject {
   return report;
 }
 
+function isRealUpstreamEvidenceStale(value: unknown): boolean {
+  const report = object(value, "N03_REAL_UPSTREAM_EVIDENCE_INVALID");
+  assertSafeRealEvidence(report);
+  const hashes = object(report["hashes"], "N03_REAL_UPSTREAM_HASHES_INVALID");
+  requireSha256(hashes["authorityClosureHash"], "N03_REAL_UPSTREAM_HASH_INVALID:authorityClosureHash");
+  return report["inputSetHash"] !== inputSetHash
+    || hashes["authorityClosureHash"] !== currentAuthorityClosureHash
+    || report["contractCatalogRevision"] !== currentGatewayAuthority["contractCatalogRevision"]
+    || report["semanticCatalogHash"] !== currentGatewayAuthority["semanticCatalogHash"]
+    || report["bindingRevision"] !== currentGatewayAuthority["bindingRevision"];
+}
+
 if (existsSync(realAbsolute)) {
-  realEvidence = validateRealUpstreamEvidence(JSON.parse(readFileSync(realAbsolute, "utf8")));
-  realEvidenceHash = sha256(readFileSync(realAbsolute));
+  const candidate = JSON.parse(readFileSync(realAbsolute, "utf8")) as unknown;
+  if (!isRealUpstreamEvidenceStale(candidate)) {
+    realEvidence = validateRealUpstreamEvidence(candidate);
+    realEvidenceHash = sha256(readFileSync(realAbsolute));
+  }
 }
 const runtimeQualified = realEvidence !== undefined;
 const aggregate = {
