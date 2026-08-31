@@ -235,9 +235,23 @@ function loadAlignmentRuntimeOperationLock(
     JSON.stringify(Object.keys(document).sort()) === JSON.stringify(expectedKeys),
     "ALIGNMENT_RUNTIME_OPERATION_LOCK_KEYS_INVALID"
   );
+  const consumerContractPackage = object(
+    document["consumerContractPackage"],
+    "ALIGNMENT_RUNTIME_OPERATION_LOCK_PACKAGE_INVALID"
+  );
+  assertion(
+    JSON.stringify(Object.keys(consumerContractPackage).sort()) ===
+      JSON.stringify(["integrity", "name", "version"]),
+    "ALIGNMENT_RUNTIME_OPERATION_LOCK_PACKAGE_KEYS_INVALID"
+  );
   assertion(document["schemaVersion"] === "2.0" &&
     document["gatewayContractVersion"] === "0.6.3" &&
-    document["consumerContractPackage"] === "@gowm/world-gateway-contracts@0.6.3",
+    consumerContractPackage["name"] === "@gowm/world-gateway-contracts" &&
+    consumerContractPackage["version"] === "0.6.3" &&
+    /^sha512-[A-Za-z0-9+/]+={0,2}$/u.test(text(
+      consumerContractPackage["integrity"],
+      "ALIGNMENT_RUNTIME_OPERATION_LOCK_PACKAGE_INTEGRITY_MISSING"
+    )),
   "ALIGNMENT_RUNTIME_OPERATION_LOCK_IDENTITY_INVALID");
   for (const key of [
     "availabilityContractHash",

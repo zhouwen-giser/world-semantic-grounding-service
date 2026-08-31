@@ -1,7 +1,7 @@
 {
   "schemaVersion": "wsgs-gowm-runtime-binding/1.0",
   "bindingStatus": "PASS",
-  "observedAt": "2026-08-31T06:36:53.890Z",
+  "observedAt": "2026-08-31T06:42:16.689Z",
   "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
   "runtimeVersion": "0.6.4",
   "gatewayContractVersion": "0.6.3",
@@ -27,5 +27,5 @@
     "rawContainerIdsIncluded": false,
     "internalTopologyIncluded": false
   },
-  "evidenceHash": "sha256:cdf7581933f3f5882d690ff87c394a982df9f82f4390ba22c3635d6357615872"
+  "evidenceHash": "sha256:7aae01f0e83879ee556e32029f6cf6cd9be85f9e7dbc5c7d8ce879222195b4bc"
 }
