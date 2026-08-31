@@ -77,7 +77,7 @@
     {
       "path": "contracts/wsgs-v0.2-internal/dependencies/source-lock.json",
       "lfBytes": 1292,
-      "lfSha256": "ef01e63c327bb9ae5e1e35aff35098c6c5828790f91f1b84458339cd80a27869"
+      "lfSha256": "e34069fa7470e547460a8a56f9bbd2c8c7ffb57b14069f2c88521ef8c328cac4"
     },
     {
       "path": "contracts/wsgs-v0.2-internal/examples/01-unique-reference-current-state.json",
