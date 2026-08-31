@@ -192,6 +192,89 @@ function operationRef(descriptor: CapabilityDescriptor): JsonObject {
   };
 }
 
+function alignmentOperationProjection(value: OperationLock): JsonObject {
+  return {
+    operationId: value.operationId,
+    operationVersion: value.operationVersion,
+    inputSchemaHash: value.inputSchemaHash,
+    outputSchemaHash: value.outputSchemaHash,
+    semanticProfileHash: value.semanticProfileHash,
+    maturity: value.maturity
+  };
+}
+
+function loadAlignmentRuntimeOperationLock(
+  path: string,
+  expectedSha256: string,
+  bundledLockPath: string
+): ConsumerLock {
+  const repositoryRoot = resolve(import.meta.dirname, "..", "..");
+  const absolute = resolve(path);
+  const safePath = relative(repositoryRoot, absolute).split(sep).join("/");
+  assertion(
+    safePath === "contracts/generated/gdps-v0.2.1/wsgs-southbound-operation-lock-v2.json",
+    "ALIGNMENT_RUNTIME_OPERATION_LOCK_PATH_INVALID"
+  );
+  assertion(/^sha256:[0-9a-f]{64}$/u.test(expectedSha256), "ALIGNMENT_RUNTIME_OPERATION_LOCK_HASH_INVALID");
+  const bytes = readFileSync(absolute);
+  assertion(sha256(bytes) === expectedSha256, "ALIGNMENT_RUNTIME_OPERATION_LOCK_HASH_MISMATCH");
+  const document = object(JSON.parse(bytes.toString("utf8")) as unknown, "ALIGNMENT_RUNTIME_OPERATION_LOCK_INVALID");
+  const expectedKeys = [
+    "availabilityContractHash",
+    "consumerContractPackage",
+    "contractCatalogRevision",
+    "defaultOperations",
+    "delegationContractHash",
+    "gatewayContractVersion",
+    "previewOperations",
+    "schemaVersion",
+    "semanticCatalogHash",
+    "snapshotContractHash"
+  ];
+  assertion(
+    JSON.stringify(Object.keys(document).sort()) === JSON.stringify(expectedKeys),
+    "ALIGNMENT_RUNTIME_OPERATION_LOCK_KEYS_INVALID"
+  );
+  assertion(document["schemaVersion"] === "2.0" &&
+    document["gatewayContractVersion"] === "0.6.3" &&
+    document["consumerContractPackage"] === "@gowm/world-gateway-contracts@0.6.3",
+  "ALIGNMENT_RUNTIME_OPERATION_LOCK_IDENTITY_INVALID");
+  for (const key of [
+    "availabilityContractHash",
+    "contractCatalogRevision",
+    "delegationContractHash",
+    "semanticCatalogHash",
+    "snapshotContractHash"
+  ]) {
+    assertion(/^sha256:[0-9a-f]{64}$/u.test(text(document[key], `ALIGNMENT_RUNTIME_OPERATION_LOCK_${key}_MISSING`)),
+      `ALIGNMENT_RUNTIME_OPERATION_LOCK_${key}_INVALID`);
+  }
+  const defaults = array(document["defaultOperations"], "ALIGNMENT_RUNTIME_DEFAULT_OPERATIONS_INVALID");
+  const previews = array(document["previewOperations"], "ALIGNMENT_RUNTIME_PREVIEW_OPERATIONS_INVALID");
+  assertion(defaults.length === 12 && previews.length === 30, "ALIGNMENT_RUNTIME_OPERATION_COUNT_MISMATCH");
+  const lock = document as unknown as ConsumerLock;
+  const allOperations = [...lock.defaultOperations, ...lock.previewOperations];
+  const operationKeys = allOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`);
+  assertion(new Set(operationKeys).size === 42, "ALIGNMENT_RUNTIME_OPERATION_DUPLICATE");
+
+  const bundled = loadOperationalGowmLock({
+    lockPath: bundledLockPath,
+    expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+    hashMode: "EXACT_BYTES"
+  }).lock as ConsumerLock;
+  const bundledOperations = [...bundled.defaultOperations, ...bundled.previewOperations];
+  for (const expectedKey of expectedOperationKeys) {
+    const live = allOperations.find((entry) => `${entry.operationId}@${entry.operationVersion}` === expectedKey);
+    const baseline = bundledOperations.find((entry) => `${entry.operationId}@${entry.operationVersion}` === expectedKey);
+    assertion(live !== undefined && baseline !== undefined, `ALIGNMENT_RUNTIME_OPERATION_MISSING_${expectedKey}`);
+    assertion(
+      canonical(alignmentOperationProjection(live)) === canonical(alignmentOperationProjection(baseline)),
+      `ALIGNMENT_RUNTIME_OPERATION_DRIFT_${expectedKey}`
+    );
+  }
+  return lock;
+}
+
 function nodeBudget(descriptor: CapabilityDescriptor): JsonObject {
   return {
     maximumRows: descriptor.limits.maximumRows ?? 100_000,
@@ -483,18 +566,24 @@ async function main(): Promise<void> {
     import.meta.url
   );
   const externalLockPath = process.env["GOWM_SOUTHBOUND_LOCK_FILE"]?.trim();
-  const lockAuthority = externalLockPath
-    ? loadOperationalGowmLock({
-        lockPath: externalLockPath,
-        expectedSha256: required("GOWM_SOUTHBOUND_LOCK_SHA256") as `sha256:${string}`,
-        hashMode: "EXACT_BYTES"
-      })
-    : loadOperationalGowmLock({
-        lockPath: fileURLToPath(bundledLockPath),
-        expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
-        hashMode: "EXACT_BYTES"
-      });
-  const lock = lockAuthority.lock as ConsumerLock;
+  assertion(!alignmentFocused || externalLockPath !== undefined, "ALIGNMENT_RUNTIME_OPERATION_LOCK_REQUIRED");
+  const lock = alignmentFocused
+    ? loadAlignmentRuntimeOperationLock(
+        externalLockPath!,
+        required("GOWM_SOUTHBOUND_LOCK_SHA256"),
+        fileURLToPath(bundledLockPath)
+      )
+    : (externalLockPath
+        ? loadOperationalGowmLock({
+            lockPath: externalLockPath,
+            expectedSha256: required("GOWM_SOUTHBOUND_LOCK_SHA256") as `sha256:${string}`,
+            hashMode: "EXACT_BYTES"
+          })
+        : loadOperationalGowmLock({
+            lockPath: fileURLToPath(bundledLockPath),
+            expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+            hashMode: "EXACT_BYTES"
+          })).lock as ConsumerLock;
   const allLocks = [...lock.defaultOperations, ...lock.previewOperations];
   const requiredLocks = expectedOperationIds.map((operationId) => {
     const operation = allLocks.find((entry) => entry.operationId === operationId && entry.operationVersion === "1.0");

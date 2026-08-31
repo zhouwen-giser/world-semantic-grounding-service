@@ -1,29 +1,31 @@
 {
   "schemaVersion": "wsgs-gowm-runtime-binding/1.0",
   "bindingStatus": "PASS",
-  "observedAt": "2026-08-30T08:29:51.958Z",
-  "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+  "observedAt": "2026-08-31T06:36:53.890Z",
+  "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
   "runtimeVersion": "0.6.4",
   "gatewayContractVersion": "0.6.3",
-  "imageDigest": "sha256:5ada61bbebc1bc808e9db14a9ca2aabe9d23211799393f8012e2e63d49eabe18",
+  "imageDigest": "sha256:5beba90084959786421b23539feffa45c1898e36cdd7749c42428202ffd2ce3e",
   "appContainerCount": 6,
-  "composeProjectHash": "sha256:84c1d963c5edf99a7eaa661b1ea6c115ee38e71ec99f9622b51289c986c78578",
+  "composeProjectHash": "sha256:a87db969442e119f761f5d9692bef45d2fdead0a6cc629ba74bff0d0150ff929",
   "serviceSetHash": "sha256:fd8b544ec64f31aff2eb623fe63449f64a810d91e6cf7127cbbe63a39834ae0e",
   "gatewayPortBindingVerified": true,
   "allAppContainersHealthy": true,
   "sourceBindingMethod": "OCI_LABEL_AND_RUNNING_CONTAINER_IMAGE_ID",
   "imageBuildEvidence": {
     "status": "PASS",
-    "sourceTree": "0b48090f0491226817c672e998b633200aaa43ce",
+    "sourceTree": "e6d0747d6a8edaf86a54cc5163cb26a36f98fa16",
     "reportPath": "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
-    "reportFileHash": "sha256:79920f5e8652e3b1f2a1864a2457fb82ef84158a8d6633d834e4008fc8975f94",
-    "reportPayloadHash": "sha256:384c19f07ed8be88ee0692d2515c698bdacd227f0544bd2daead9f58df6cf046",
-    "generatedAt": "2026-08-30T05:59:50.682Z"
+    "reportFileHash": "sha256:d64f6e8344581b7ca8016f1a23388742d1aba2c8a5b7c7400cd194d7d6c324de",
+    "reportPayloadHash": "sha256:f1da2285134b10976fa57d4a0a1fc38d45870f2b4469f1ed827b2667c5e0a5ae",
+    "independentBuildImageDigest": "sha256:4eafb8711b8e4f3182678450f9c657e6b0cbc2153553c692da9b8a857d6cfc86",
+    "tagIndependentContentHash": "sha256:866bc7a81bf5324bf98fc4daa2a4d65b2253ff1d1a4d610e641bba5025a12dd5",
+    "generatedAt": "2026-08-31T06:29:59.146Z"
   },
   "redaction": {
     "credentialsIncluded": false,
     "rawContainerIdsIncluded": false,
     "internalTopologyIncluded": false
   },
-  "evidenceHash": "sha256:cf4a3caaa1b501eee6d1aba2d25138ed5b02c3e8cac2dac70844231930583404"
+  "evidenceHash": "sha256:cdf7581933f3f5882d690ff87c394a982df9f82f4390ba22c3635d6357615872"
 }

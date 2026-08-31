@@ -1,12 +1,12 @@
 {
   "schemaVersion": "wsgs-runtime-image-build/1.0",
   "status": "PASS",
-  "generatedAt": "2026-08-31T06:16:31.599Z",
-  "sourceCommit": "b489d4e9382a9256280ec70b1d7cfb4bf43159aa",
-  "sourceTree": "fad7fc730bad688ffaa86c05fff2ecab8299d9c4",
+  "generatedAt": "2026-08-31T06:32:26.569Z",
+  "sourceCommit": "71e29e752465c4a723aeece42b980e8d5fe28882",
+  "sourceTree": "09f7c505e959dc0dadcbc16d8a5dda32470cfc5e",
   "runtimeVersion": "0.2.1",
-  "imageDigest": "sha256:9bf69b3388a69b47b874aebc8f29820ae22a149e9f6282a60c2180b56d46bd6d",
-  "imageTagHash": "sha256:dd9d1220b126f56900f3e22d581bb1b269c86e4a9bd85a6eb394d454afdf3708",
+  "imageDigest": "sha256:50dcf3ccba37ad4c967a9ed7798ff80700366e0a2786fdb47be3a505a61611ed",
+  "imageTagHash": "sha256:2047ab51d76c9253cd3856451832ba08ffeded33bb27845aa128e71eeec4acb3",
   "dockerServerVersion": "29.6.1",
   "buildMethod": "DOCKER_BUILD_FROM_CLEAN_EXACT_GIT_TREE_WITH_OCI_LABELS",
   "sourceDirectoryIncluded": false,
@@ -16,5 +16,5 @@
     "localPathsIncluded": false,
     "internalTopologyIncluded": false
   },
-  "evidenceHash": "sha256:bc06b25a445be77bd68341b25c36d6a1c1af760eb211f9973c29dfebdfe934c6"
+  "evidenceHash": "sha256:17112830a9c0ad5bbe55d2b191f04d9578dd3e2348d06b3f28d07a94012a8fbc"
 }
