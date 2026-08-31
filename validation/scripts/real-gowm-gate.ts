@@ -580,6 +580,9 @@ async function main(): Promise<void> {
     import.meta.url
   );
   const externalLockPath = process.env["GOWM_SOUTHBOUND_LOCK_FILE"]?.trim();
+  const operationalLockHash = externalLockPath
+    ? required("GOWM_SOUTHBOUND_LOCK_SHA256")
+    : `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`;
   assertion(!alignmentFocused || externalLockPath !== undefined, "ALIGNMENT_RUNTIME_OPERATION_LOCK_REQUIRED");
   const lock = alignmentFocused
     ? loadAlignmentRuntimeOperationLock(
@@ -1450,7 +1453,7 @@ async function main(): Promise<void> {
       consumerPackage: "@gowm/world-gateway-contracts@0.6.3",
       contractCatalogRevision: lock.contractCatalogRevision,
       semanticCatalogHash: lock.semanticCatalogHash,
-      operationalLockHash: lockAuthority.lockHash,
+      operationalLockHash,
       runtimeBinding
     },
     summary: {
@@ -1494,7 +1497,7 @@ async function main(): Promise<void> {
       gatewayContractVersion: "0.6.3",
       transport: baseUrl.protocol,
       exactConsumerRevision: lock.contractCatalogRevision,
-      exactOperationalLockHash: lockAuthority.lockHash,
+      exactOperationalLockHash: operationalLockHash,
       operationalLockSource: externalLockPath ? "PINNED_EXTERNAL" : "BUNDLED_SOURCE_LOCK",
       privateKeyPathHash: sha256(privateKeyPath),
       executionClassification: trustedReady ? "TRUSTED" : "DIAGNOSTIC_ONLY_AFTER_FAIL_CLOSED_CONTRACT_DRIFT"
