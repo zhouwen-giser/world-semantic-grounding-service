@@ -68,8 +68,11 @@ const paths = {
   liveGdpsOperationLockGenerator: "validation/scripts/generate-live-gdps-operation-lock.ts",
   gowmBaseOperationLock:
     "contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json",
+  gdpsChecksums: "contracts/upstream/gdps-v0.2.1/CHECKSUMS.json",
+  gdpsConsumerLock: "contracts/upstream/gdps-v0.2.1/GDPS_CONSUMER_LOCK.json",
   gdpsCapabilityLock: "contracts/upstream/gdps-v0.2.1/GDPS_CAPABILITY_LOCK.json",
   gdpsGatewayBindingLock: "contracts/upstream/gdps-v0.2.1/GOWM_GATEWAY_BINDING_LOCK.json",
+  gdpsTestBaseline: "contracts/upstream/gdps-v0.2.1/WSGS_TEST_BASELINE.json",
   generatedGdpsOperationLock: "contracts/generated/gdps-v0.2.1/wsgs-southbound-operation-lock-v2.json",
   realGowmGate: "validation/scripts/real-gowm-gate.ts",
   realDevelopmentGate: "validation/scripts/real-development-pipeline-gate.ts",
@@ -77,6 +80,21 @@ const paths = {
 } as const;
 
 const realRuntimeReportPath = "reports/sacs-geospatial-v1/N04-real-runtime.json";
+const expectedIsolatedFoundationSourceCommit = "fceed92398a0b86c0a0121aa2188a7f1d328e577";
+const expectedSharedExecutionGowmSourceLock = "7a3600cfeede1e1eda711a59bdb76caa68c05f64";
+const expectedGdpsImplementationSourceCommit = "42e06e7341250aa230ac01d201effafe92ce4af5";
+const expectedGdpsFinalBBundleHash =
+  "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19";
+const expectedGdpsInventory = [
+  "GDPS_CAPABILITY_LOCK.json",
+  "GDPS_CONSUMER_LOCK.json",
+  "GDPS_PRODUCT_DESCRIPTOR_LOCK.json",
+  "GDPS_RECIPE_LOCK.json",
+  "GDPS_SAMPLE_DATASET_LOCK.json",
+  "GOWM_GATEWAY_BINDING_LOCK.json",
+  "WSGS_QUERY_CORPUS.json",
+  "WSGS_TEST_BASELINE.json"
+] as const;
 const excludedRuntimeEvidenceOutputs = [
   "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
   "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
@@ -294,7 +312,8 @@ exactKeys(realRuntimeReport, [
   "qualifiedSourceSha",
   "sourceTree",
   "sourceBinding",
-  "upstreamRuntime",
+  "isolatedFoundationQualification",
+  "sharedExecutionGatewayBinding",
   "negotiation",
   "capabilities",
   "realExecution",
@@ -306,7 +325,7 @@ exactKeys(realRuntimeReport, [
   "status",
   "reportHash"
 ], "N04_REAL_RUNTIME_TOP_LEVEL_KEYS_INVALID");
-exact(realRuntimeReport["schemaVersion"], "wsgs-v021-result-extension-real-runtime/1.0", "N04_REAL_RUNTIME_SCHEMA_VERSION_INVALID");
+exact(realRuntimeReport["schemaVersion"], "wsgs-v021-result-extension-real-runtime/1.1", "N04_REAL_RUNTIME_SCHEMA_VERSION_INVALID");
 exact(realRuntimeReport["status"], "PASS", "N04_REAL_RUNTIME_STATUS_NOT_PASS");
 const qualifiedRuntimeSourceSha = commit(realRuntimeReport["sourceCommit"], "N04_REAL_RUNTIME_SOURCE_SHA_INVALID");
 exact(realRuntimeReport["qualifiedSourceSha"], qualifiedRuntimeSourceSha, "N04_QUALIFIED_SOURCE_SHA_MISMATCH");
@@ -353,26 +372,341 @@ exact(
   "N04_SOURCE_BINDING_VERIFICATION_INVALID"
 );
 
-const upstreamRuntime = record(realRuntimeReport["upstreamRuntime"], "N04_UPSTREAM_RUNTIME_INVALID");
-exactKeys(upstreamRuntime, [
+const isolatedFoundationQualification = record(
+  realRuntimeReport["isolatedFoundationQualification"],
+  "N04_ISOLATED_FOUNDATION_QUALIFICATION_INVALID"
+);
+exactKeys(isolatedFoundationQualification, [
   "sourceCommit",
   "runtimeBindingHash",
   "gatewayContractVersion",
-  "operationLockHash",
-  "operationLockPathHash"
-], "N04_UPSTREAM_RUNTIME_KEYS_INVALID");
-commit(upstreamRuntime["sourceCommit"], "N04_UPSTREAM_SOURCE_SHA_INVALID");
-digest(upstreamRuntime["runtimeBindingHash"], "N04_UPSTREAM_RUNTIME_BINDING_HASH_INVALID");
-nonEmptyString(upstreamRuntime["gatewayContractVersion"], "N04_UPSTREAM_GATEWAY_CONTRACT_VERSION_INVALID");
+  "evidenceLayer",
+  "usedByN04Execution"
+], "N04_ISOLATED_FOUNDATION_QUALIFICATION_KEYS_INVALID");
 exact(
-  digest(upstreamRuntime["operationLockHash"], "N04_UPSTREAM_OPERATION_LOCK_HASH_INVALID"),
-  sourceHash(paths.generatedGdpsOperationLock),
-  "N04_UPSTREAM_OPERATION_LOCK_HASH_MISMATCH"
+  commit(isolatedFoundationQualification["sourceCommit"], "N04_ISOLATED_FOUNDATION_SOURCE_SHA_INVALID"),
+  expectedIsolatedFoundationSourceCommit,
+  "N04_ISOLATED_FOUNDATION_SOURCE_SHA_MISMATCH"
+);
+digest(isolatedFoundationQualification["runtimeBindingHash"], "N04_ISOLATED_FOUNDATION_BINDING_HASH_INVALID");
+exact(
+  isolatedFoundationQualification["gatewayContractVersion"],
+  "0.6.3",
+  "N04_ISOLATED_FOUNDATION_CONTRACT_VERSION_INVALID"
 );
 exact(
-  digest(upstreamRuntime["operationLockPathHash"], "N04_UPSTREAM_OPERATION_LOCK_PATH_HASH_INVALID"),
+  isolatedFoundationQualification["evidenceLayer"],
+  "DIRECT_WSGS_CONSUMER_TO_ISOLATED_GOWM_GATEWAY",
+  "N04_ISOLATED_FOUNDATION_EVIDENCE_LAYER_INVALID"
+);
+exact(
+  isolatedFoundationQualification["usedByN04Execution"],
+  false,
+  "N04_ISOLATED_FOUNDATION_EXECUTION_MISATTRIBUTED"
+);
+
+const gdpsChecksums = json(paths.gdpsChecksums);
+exact(gdpsChecksums["schemaVersion"], "wsgs-gdps-v021-checksums/1.0", "N04_GDPS_CHECKSUMS_SCHEMA_INVALID");
+exact(gdpsChecksums["algorithm"], "SHA-256", "N04_GDPS_CHECKSUMS_ALGORITHM_INVALID");
+exact(gdpsChecksums["bundleHash"], expectedGdpsFinalBBundleHash, "N04_GDPS_BUNDLE_HASH_INVALID");
+if (!Array.isArray(gdpsChecksums["files"])) throw new Error("N04_GDPS_CHECKSUMS_FILES_INVALID");
+const gdpsChecksumEntries = new Map<string, Sha256Digest>();
+for (const raw of gdpsChecksums["files"]) {
+  const entry = record(raw, "N04_GDPS_CHECKSUM_ENTRY_INVALID");
+  const path = nonEmptyString(entry["path"], "N04_GDPS_CHECKSUM_PATH_INVALID");
+  if (path.includes("/") || path.includes("\\") || gdpsChecksumEntries.has(path)) {
+    throw new Error("N04_GDPS_CHECKSUM_INVENTORY_INVALID");
+  }
+  gdpsChecksumEntries.set(path, digest(entry["sha256"], "N04_GDPS_CHECKSUM_HASH_INVALID"));
+}
+if (JSON.stringify([...gdpsChecksumEntries.keys()].sort()) !== JSON.stringify([...expectedGdpsInventory].sort())) {
+  throw new Error("N04_GDPS_CHECKSUM_INVENTORY_INVALID");
+}
+for (const path of expectedGdpsInventory) {
+  const relativePath = `contracts/upstream/gdps-v0.2.1/${path}`;
+  exact(
+    sha256(readFileSync(resolve(repoRoot, relativePath))),
+    gdpsChecksumEntries.get(path),
+    `N04_GDPS_CHECKSUM_DRIFT:${path}`
+  );
+}
+exact(
+  canonicalHash(Object.fromEntries(gdpsChecksumEntries)),
+  expectedGdpsFinalBBundleHash,
+  "N04_GDPS_BUNDLE_PREIMAGE_MISMATCH"
+);
+
+const gdpsConsumerLock = json(paths.gdpsConsumerLock);
+const gdpsConsumerSources = record(gdpsConsumerLock["sources"], "N04_GDPS_CONSUMER_SOURCES_INVALID");
+exact(gdpsConsumerSources["gowmSha"], expectedSharedExecutionGowmSourceLock, "N04_GDPS_GOWM_SOURCE_LOCK_MISMATCH");
+exact(gdpsConsumerSources["gdpsSha"], expectedGdpsImplementationSourceCommit, "N04_GDPS_SOURCE_LOCK_MISMATCH");
+const gdpsConsumerGateway = record(gdpsConsumerLock["gateway"], "N04_GDPS_CONSUMER_GATEWAY_INVALID");
+const gdpsGatewayBindingLock = json(paths.gdpsGatewayBindingLock);
+const gdpsGatewayBinding = record(gdpsGatewayBindingLock["gateway"], "N04_GDPS_GATEWAY_BINDING_INVALID");
+const gdpsTestBaseline = json(paths.gdpsTestBaseline);
+const gdpsCanaryAttestation = record(
+  gdpsTestBaseline["gatewayCanaryAttestation"],
+  "N04_GDPS_GATEWAY_ATTESTATION_INVALID"
+);
+const lockedGatewayTuple = {
+  contractCatalogRevision: digest(gdpsGatewayBinding["contractCatalogRevision"], "N04_GDPS_CATALOG_LOCK_INVALID"),
+  semanticCatalogHash: digest(gdpsGatewayBinding["semanticCatalogHash"], "N04_GDPS_SEMANTIC_LOCK_INVALID"),
+  bindingRevision: digest(gdpsGatewayBinding["bindingRevision"], "N04_GDPS_BINDING_LOCK_INVALID"),
+  instanceFingerprint: digest(gdpsGatewayBinding["instanceFingerprint"], "N04_GDPS_INSTANCE_LOCK_INVALID"),
+  runningConfigFingerprint: digest(gdpsGatewayBinding["runningConfigFingerprint"], "N04_GDPS_CONFIG_LOCK_INVALID")
+};
+for (const key of ["contractCatalogRevision", "semanticCatalogHash", "bindingRevision"] as const) {
+  exact(gdpsConsumerGateway[key], lockedGatewayTuple[key], `N04_GDPS_CONSUMER_GATEWAY_DRIFT:${key}`);
+  exact(gdpsCanaryAttestation[key], lockedGatewayTuple[key], `N04_GDPS_ATTESTATION_GATEWAY_DRIFT:${key}`);
+}
+exact(gdpsTestBaseline["schemaVersion"], "wsgs-gdps-test-baseline/1.0", "N04_GDPS_BASELINE_SCHEMA_INVALID");
+exact(gdpsCanaryAttestation["status"], "PASS", "N04_GDPS_FINAL_B_STATUS_INVALID");
+exact(gdpsCanaryAttestation["datasetState"], "FINAL_B", "N04_GDPS_FINAL_B_STATE_INVALID");
+exact(gdpsCanaryAttestation["requiredCapabilityCount"], 30, "N04_GDPS_REQUIRED_CAPABILITY_COUNT_INVALID");
+exact(gdpsCanaryAttestation["availableCapabilityCount"], 30, "N04_GDPS_AVAILABLE_CAPABILITY_COUNT_INVALID");
+exact(gdpsCanaryAttestation["passedCaseCount"], 30, "N04_GDPS_PASSED_CASE_COUNT_INVALID");
+exact(gdpsCanaryAttestation["directProviderCalls"], 0, "N04_GDPS_DIRECT_PROVIDER_CALLS_INVALID");
+exact(
+  gdpsCanaryAttestation["gatewayInstanceFingerprint"],
+  lockedGatewayTuple.instanceFingerprint,
+  "N04_GDPS_ATTESTATION_INSTANCE_DRIFT"
+);
+exact(
+  gdpsCanaryAttestation["runningConfigFingerprint"],
+  lockedGatewayTuple.runningConfigFingerprint,
+  "N04_GDPS_ATTESTATION_CONFIG_DRIFT"
+);
+
+const sharedExecutionGatewayBinding = record(
+  realRuntimeReport["sharedExecutionGatewayBinding"],
+  "N04_SHARED_EXECUTION_GATEWAY_BINDING_INVALID"
+);
+exactKeys(sharedExecutionGatewayBinding, [
+  "executionSourceLockSha",
+  "sourceBindingMethod",
+  "gdpsSourceCommit",
+  "handoffBundleHash",
+  "checksumsFileHash",
+  "consumerLockHash",
+  "gatewayBindingLockHash",
+  "capabilityLockHash",
+  "foundationInstanceBindingHash",
+  "foundationOperationLockHash",
+  "foundationDataScopeHash",
+  "selectedDatasetDataScopeHash",
+  "endpointHash",
+  "lockedGatewayTuple",
+  "gatewayContractVersion",
+  "operationLockHash",
+  "operationLockPathHash",
+  "liveGatewayTuple",
+  "admissionSegmentedScopeAuthorityBinding",
+  "segmentAuthorityHashes",
+  "segmentSourceLockHashes",
+  "segmentBindings",
+  "segmentBindingsHash",
+  "segmentDelegationBindingCount",
+  "segmentDelegationBindingsHash"
+], "N04_SHARED_EXECUTION_GATEWAY_BINDING_KEYS_INVALID");
+exact(
+  sharedExecutionGatewayBinding["executionSourceLockSha"],
+  expectedSharedExecutionGowmSourceLock,
+  "N04_SHARED_EXECUTION_SOURCE_LOCK_INVALID"
+);
+exact(
+  sharedExecutionGatewayBinding["sourceBindingMethod"],
+  "CHECKSUMMED_FINAL_B_SOURCE_LOCK_PLUS_LIVE_GATEWAY_LOCK_MATCH",
+  "N04_SHARED_EXECUTION_SOURCE_BINDING_METHOD_INVALID"
+);
+exact(
+  sharedExecutionGatewayBinding["gdpsSourceCommit"],
+  expectedGdpsImplementationSourceCommit,
+  "N04_SHARED_EXECUTION_GDPS_SOURCE_INVALID"
+);
+exact(
+  sharedExecutionGatewayBinding["handoffBundleHash"],
+  expectedGdpsFinalBBundleHash,
+  "N04_SHARED_EXECUTION_BUNDLE_HASH_INVALID"
+);
+const expectedGdpsChecksumsFileHash = sha256(readFileSync(resolve(repoRoot, paths.gdpsChecksums)));
+exact(
+  sharedExecutionGatewayBinding["checksumsFileHash"],
+  expectedGdpsChecksumsFileHash,
+  "N04_SHARED_EXECUTION_CHECKSUMS_FILE_HASH_INVALID"
+);
+exact(
+  sharedExecutionGatewayBinding["consumerLockHash"],
+  sha256(readFileSync(resolve(repoRoot, paths.gdpsConsumerLock))),
+  "N04_SHARED_EXECUTION_CONSUMER_LOCK_HASH_INVALID"
+);
+exact(
+  sharedExecutionGatewayBinding["gatewayBindingLockHash"],
+  sha256(readFileSync(resolve(repoRoot, paths.gdpsGatewayBindingLock))),
+  "N04_SHARED_EXECUTION_GATEWAY_LOCK_HASH_INVALID"
+);
+const expectedGdpsCapabilityLockHash = sha256(readFileSync(resolve(repoRoot, paths.gdpsCapabilityLock)));
+const expectedFoundationOperationLockHash = sha256(readFileSync(resolve(repoRoot, paths.gowmBaseOperationLock)));
+const expectedN04OperationLockHash = sha256(readFileSync(resolve(repoRoot, paths.generatedGdpsOperationLock)));
+exact(
+  sharedExecutionGatewayBinding["capabilityLockHash"],
+  expectedGdpsCapabilityLockHash,
+  "N04_SHARED_EXECUTION_CAPABILITY_LOCK_HASH_INVALID"
+);
+const expectedFoundationInstanceBindingHash = digest(
+  sharedExecutionGatewayBinding["foundationInstanceBindingHash"],
+  "N04_FOUNDATION_INSTANCE_BINDING_HASH_INVALID"
+);
+exact(
+  sharedExecutionGatewayBinding["foundationOperationLockHash"],
+  expectedFoundationOperationLockHash,
+  "N04_FOUNDATION_OPERATION_LOCK_HASH_INVALID"
+);
+digest(sharedExecutionGatewayBinding["foundationDataScopeHash"], "N04_FOUNDATION_DATA_SCOPE_HASH_INVALID");
+const gdpsDatasetLock = json("contracts/upstream/gdps-v0.2.1/GDPS_SAMPLE_DATASET_LOCK.json");
+exact(
+  sharedExecutionGatewayBinding["selectedDatasetDataScopeHash"],
+  sha256(nonEmptyString(gdpsDatasetLock["scope"], "N04_GDPS_DATA_SCOPE_INVALID")),
+  "N04_GDPS_DATA_SCOPE_HASH_INVALID"
+);
+exact(
+  sharedExecutionGatewayBinding["endpointHash"],
+  digest(gdpsCanaryAttestation["gatewayBaseUrlHash"], "N04_GDPS_ENDPOINT_HASH_INVALID"),
+  "N04_SHARED_EXECUTION_ENDPOINT_HASH_INVALID"
+);
+exact(
+  sharedExecutionGatewayBinding["gatewayContractVersion"],
+  "0.6.3",
+  "N04_SHARED_EXECUTION_GATEWAY_CONTRACT_VERSION_INVALID"
+);
+exact(
+  digest(sharedExecutionGatewayBinding["operationLockHash"], "N04_SHARED_OPERATION_LOCK_HASH_INVALID"),
+  expectedN04OperationLockHash,
+  "N04_SHARED_OPERATION_LOCK_HASH_MISMATCH"
+);
+exact(
+  digest(sharedExecutionGatewayBinding["operationLockPathHash"], "N04_SHARED_OPERATION_LOCK_PATH_HASH_INVALID"),
   sha256(paths.generatedGdpsOperationLock),
-  "N04_UPSTREAM_OPERATION_LOCK_PATH_HASH_MISMATCH"
+  "N04_SHARED_OPERATION_LOCK_PATH_HASH_MISMATCH"
+);
+const reportedLockedGatewayTuple = record(
+  sharedExecutionGatewayBinding["lockedGatewayTuple"],
+  "N04_REPORTED_LOCKED_GATEWAY_TUPLE_INVALID"
+);
+exactKeys(reportedLockedGatewayTuple, Object.keys(lockedGatewayTuple), "N04_REPORTED_LOCKED_GATEWAY_TUPLE_KEYS_INVALID");
+if (canonicalHash(reportedLockedGatewayTuple) !== canonicalHash(lockedGatewayTuple)) {
+  throw new Error("N04_REPORTED_LOCKED_GATEWAY_TUPLE_MISMATCH");
+}
+const liveGatewayTuple = record(sharedExecutionGatewayBinding["liveGatewayTuple"], "N04_LIVE_GATEWAY_TUPLE_INVALID");
+const expectedLiveGatewayTuple = {
+  contractCatalogRevision: lockedGatewayTuple.contractCatalogRevision,
+  semanticCatalogHash: lockedGatewayTuple.semanticCatalogHash,
+  bindingRevision: lockedGatewayTuple.bindingRevision,
+  operationLockHash: expectedN04OperationLockHash
+};
+exactKeys(liveGatewayTuple, Object.keys(expectedLiveGatewayTuple), "N04_LIVE_GATEWAY_TUPLE_KEYS_INVALID");
+if (canonicalHash(liveGatewayTuple) !== canonicalHash(expectedLiveGatewayTuple)) {
+  throw new Error("N04_LIVE_GATEWAY_TUPLE_MISMATCH");
+}
+const admissionSegmentedScopeAuthorityBinding = record(
+  sharedExecutionGatewayBinding["admissionSegmentedScopeAuthorityBinding"],
+  "N04_ADMISSION_SEGMENTED_SCOPE_AUTHORITY_BINDING_INVALID"
+);
+exactKeys(admissionSegmentedScopeAuthorityBinding, [
+  "schemaVersion",
+  "authorityHash",
+  "foundationInstanceBindingHash",
+  "gdpsChecksumsHash"
+], "N04_ADMISSION_SEGMENTED_SCOPE_AUTHORITY_BINDING_KEYS_INVALID");
+exact(
+  admissionSegmentedScopeAuthorityBinding["schemaVersion"],
+  "1.0",
+  "N04_ADMISSION_SEGMENTED_SCOPE_AUTHORITY_BINDING_VERSION_INVALID"
+);
+exact(
+  digest(
+    admissionSegmentedScopeAuthorityBinding["foundationInstanceBindingHash"],
+    "N04_ADMISSION_SEGMENTED_FOUNDATION_BINDING_HASH_INVALID"
+  ),
+  expectedFoundationInstanceBindingHash,
+  "N04_ADMISSION_SEGMENTED_FOUNDATION_BINDING_HASH_MISMATCH"
+);
+exact(
+  digest(
+    admissionSegmentedScopeAuthorityBinding["gdpsChecksumsHash"],
+    "N04_ADMISSION_SEGMENTED_GDPS_CHECKSUMS_HASH_INVALID"
+  ),
+  expectedGdpsChecksumsFileHash,
+  "N04_ADMISSION_SEGMENTED_GDPS_CHECKSUMS_HASH_MISMATCH"
+);
+const segmentAuthorityHashes = sharedExecutionGatewayBinding["segmentAuthorityHashes"];
+if (!Array.isArray(segmentAuthorityHashes) || segmentAuthorityHashes.length !== 1) {
+  throw new Error("N04_SEGMENT_AUTHORITY_HASHES_INVALID");
+}
+const segmentAuthorityHash = digest(segmentAuthorityHashes[0], "N04_SEGMENT_AUTHORITY_HASH_INVALID");
+exact(
+  digest(
+    admissionSegmentedScopeAuthorityBinding["authorityHash"],
+    "N04_ADMISSION_SEGMENTED_SCOPE_AUTHORITY_HASH_INVALID"
+  ),
+  segmentAuthorityHash,
+  "N04_ADMISSION_SEGMENTED_SCOPE_AUTHORITY_HASH_MISMATCH"
+);
+const segmentSourceLockHashes = sharedExecutionGatewayBinding["segmentSourceLockHashes"];
+const expectedSegmentSourceLockHashes = [expectedGdpsCapabilityLockHash, expectedFoundationOperationLockHash].sort();
+if (!Array.isArray(segmentSourceLockHashes) ||
+    JSON.stringify(segmentSourceLockHashes) !== JSON.stringify(expectedSegmentSourceLockHashes)) {
+  throw new Error("N04_SEGMENT_SOURCE_LOCK_HASHES_INVALID");
+}
+const rawSegmentBindings = sharedExecutionGatewayBinding["segmentBindings"];
+if (!Array.isArray(rawSegmentBindings) || rawSegmentBindings.length !== 3) {
+  throw new Error("N04_SEGMENT_BINDINGS_INVALID");
+}
+const segmentBindings = rawSegmentBindings.map((raw, index) => {
+  const binding = record(raw, `N04_SEGMENT_BINDING_INVALID:${index}`);
+  exactKeys(binding, [
+    "operationKey",
+    "dataScopeHash",
+    "sourceLockHash",
+    "scopeAuthorityHash",
+    "upstreamResultHash",
+    "worldResultHash"
+  ], `N04_SEGMENT_BINDING_KEYS_INVALID:${index}`);
+  return {
+    operationKey: nonEmptyString(binding["operationKey"], `N04_SEGMENT_OPERATION_INVALID:${index}`),
+    dataScopeHash: digest(binding["dataScopeHash"], `N04_SEGMENT_DATA_SCOPE_HASH_INVALID:${index}`),
+    sourceLockHash: digest(binding["sourceLockHash"], `N04_SEGMENT_SOURCE_LOCK_HASH_INVALID:${index}`),
+    scopeAuthorityHash: digest(binding["scopeAuthorityHash"], `N04_SEGMENT_AUTHORITY_HASH_INVALID:${index}`),
+    upstreamResultHash: digest(binding["upstreamResultHash"], `N04_SEGMENT_RESULT_HASH_INVALID:${index}`),
+    worldResultHash: digest(binding["worldResultHash"], `N04_SEGMENT_WORLD_RESULT_HASH_INVALID:${index}`)
+  };
+});
+const expectedSegmentOperations = [
+  "reference.resolve@1.0",
+  "world.get-current-state@1.0",
+  "geo-raster.sample@1.0"
+];
+if (JSON.stringify(segmentBindings.map((entry) => entry.operationKey)) !== JSON.stringify(expectedSegmentOperations) ||
+    segmentBindings[0]?.dataScopeHash !== segmentBindings[1]?.dataScopeHash ||
+    segmentBindings[0]?.dataScopeHash === segmentBindings[2]?.dataScopeHash ||
+    segmentBindings[0]?.sourceLockHash !== expectedFoundationOperationLockHash ||
+    segmentBindings[1]?.sourceLockHash !== expectedFoundationOperationLockHash ||
+    segmentBindings[2]?.sourceLockHash !== expectedGdpsCapabilityLockHash ||
+    segmentBindings.some((entry) => entry.scopeAuthorityHash !== segmentAuthorityHashes[0])) {
+  throw new Error("N04_SEGMENT_OPERATION_SOURCE_AUTHORITY_MISMATCH");
+}
+exact(
+  sharedExecutionGatewayBinding["segmentBindingsHash"],
+  canonicalHash(segmentBindings),
+  "N04_SEGMENT_BINDINGS_HASH_MISMATCH"
+);
+exact(
+  sharedExecutionGatewayBinding["segmentDelegationBindingCount"],
+  3,
+  "N04_SEGMENT_DELEGATION_BINDING_COUNT_INVALID"
+);
+digest(
+  sharedExecutionGatewayBinding["segmentDelegationBindingsHash"],
+  "N04_SEGMENT_DELEGATION_BINDINGS_HASH_INVALID"
 );
 
 const negotiation = record(realRuntimeReport["negotiation"], "N04_NEGOTIATION_INVALID");
@@ -428,6 +762,14 @@ exactKeys(realExecution, [
   "terminalStatus",
   "pipelineStageCount",
   "gatewayExecutionCount",
+  "segmentedWorldQueryCount",
+  "gatewaySegmentCount",
+  "segmentManifestHashes",
+  "segmentPlanHashes",
+  "segmentDelegationBindingCount",
+  "segmentDelegationBindingsHash",
+  "exactSegmentedGatewayOperationChainVerified",
+  "exactTrustedDataScopeCount",
   "resultHash",
   "persistedResultBytesHash",
   "persistedBytesAndHashMatchGet",
@@ -453,6 +795,30 @@ exact(realExecution["syncReplayHttpStatus"], 200, "N04_SYNC_REPLAY_FAILED");
 exact(realExecution["terminalStatus"], "COMPLETED", "N04_REAL_EXECUTION_NOT_COMPLETED");
 positiveInteger(realExecution["pipelineStageCount"], "N04_PIPELINE_STAGE_COUNT_INVALID");
 positiveInteger(realExecution["gatewayExecutionCount"], "N04_GATEWAY_EXECUTION_COUNT_INVALID");
+exact(realExecution["segmentedWorldQueryCount"], 1, "N04_SEGMENTED_WORLD_QUERY_COUNT_INVALID");
+exact(realExecution["gatewaySegmentCount"], 3, "N04_GATEWAY_SEGMENT_COUNT_INVALID");
+const realSegmentManifestHashes = realExecution["segmentManifestHashes"];
+if (!Array.isArray(realSegmentManifestHashes) || realSegmentManifestHashes.length !== 1) {
+  throw new Error("N04_SEGMENT_MANIFEST_HASHES_INVALID");
+}
+digest(realSegmentManifestHashes[0], "N04_SEGMENT_MANIFEST_HASH_INVALID");
+const realSegmentPlanHashes = realExecution["segmentPlanHashes"];
+if (!Array.isArray(realSegmentPlanHashes) || realSegmentPlanHashes.length !== 3 ||
+    new Set(realSegmentPlanHashes.map((value) => digest(value, "N04_SEGMENT_PLAN_HASH_INVALID"))).size !== 3) {
+  throw new Error("N04_SEGMENT_PLAN_HASHES_INVALID");
+}
+exact(realExecution["segmentDelegationBindingCount"], 3, "N04_REAL_SEGMENT_DELEGATION_COUNT_INVALID");
+exact(
+  digest(realExecution["segmentDelegationBindingsHash"], "N04_REAL_SEGMENT_DELEGATION_HASH_INVALID"),
+  sharedExecutionGatewayBinding["segmentDelegationBindingsHash"],
+  "N04_REAL_SEGMENT_DELEGATION_HASH_MISMATCH"
+);
+exact(
+  realExecution["exactSegmentedGatewayOperationChainVerified"],
+  true,
+  "N04_SEGMENTED_GATEWAY_OPERATION_CHAIN_NOT_VERIFIED"
+);
+exact(realExecution["exactTrustedDataScopeCount"], 2, "N04_TRUSTED_DATA_SCOPE_COUNT_INVALID");
 digest(realExecution["resultHash"], "N04_RESULT_HASH_INVALID");
 digest(realExecution["persistedResultBytesHash"], "N04_PERSISTED_RESULT_BYTES_HASH_INVALID");
 exact(realExecution["persistedBytesAndHashMatchGet"], true, "N04_PERSISTED_RESULT_MISMATCH");
@@ -610,8 +976,11 @@ const verificationEvidence = {
       inputLogicalIds: [
         "liveGdpsOperationLockGenerator",
         "gowmBaseOperationLock",
+        "gdpsChecksums",
+        "gdpsConsumerLock",
         "gdpsCapabilityLock",
         "gdpsGatewayBindingLock",
+        "gdpsTestBaseline",
         "generatedGdpsOperationLock",
         "realGowmGate",
         "realDevelopmentGate",

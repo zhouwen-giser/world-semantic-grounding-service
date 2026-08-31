@@ -77,6 +77,7 @@ import {
   QUERY_COMPILER_VERSION,
   CapabilityMatcher,
   TypedWorldQueryCompiler,
+  canonicalPlanHash,
   queryTemplateRules,
   recipeSnapshotMode,
   type CapabilityGap,
@@ -118,6 +119,20 @@ import {
   type TrustedCapabilitySnapshot
 } from "@wsgs/trusted-capability-snapshot";
 import { Pool, type PoolClient } from "pg";
+
+import {
+  SegmentedWorldQueryError,
+  executeSegmentedWorldQuery,
+  type AcceptedSegmentCheckpoint,
+  type CompletedSegmentCheckpoint,
+  type SegmentedWorldQueryExecution,
+  type SegmentedWorldQuerySegment
+} from "./segmented-world-query-executor.js";
+import {
+  assertLoadedSegmentedScopeAuthority,
+  loadSegmentedScopeAuthority,
+  type LoadedSegmentedScopeAuthority
+} from "./segmented-scope-authority.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -190,6 +205,12 @@ interface PersistedAuthority {
   availability: OperationAvailabilityList;
   southboundLock: SchemaValidatedSouthboundLock;
   gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
+  segmentedScopeAuthorityBinding?: {
+    schemaVersion: "1.0";
+    authorityHash: `sha256:${string}`;
+    foundationInstanceBindingHash: `sha256:${string}`;
+    gdpsChecksumsHash: `sha256:${string}`;
+  };
 }
 
 interface LiveAuthority {
@@ -209,6 +230,7 @@ interface Runtime {
   gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
   gdpsRecipeLock?: LoadedGdpsRecipeLock;
   gdpsRecipes: GdpsLockedRecipe[];
+  segmentedScopeAuthority?: LoadedSegmentedScopeAuthority;
   gdpsDescriptor?: {
     consumer: GdpsDescriptorConsumer;
     conceptMap: SemanticConceptMap;
@@ -486,6 +508,18 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const gdps = configuredGdpsRecipes();
   const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded, gdps.recipes);
   const productionLock = selectProductionSouthboundLock(lock, gdps.recipes);
+  const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
+  if (segmentedMode && segmentedMode !== "GOWM_GDPS_V021") {
+    throw new ProductionStageModuleError("INVALID_WSGS_CROSS_SCOPE_GATEWAY_ROUTING");
+  }
+  const segmentedScopeAuthority = segmentedMode === "GOWM_GDPS_V021"
+    ? loadSegmentedScopeAuthority({
+        foundationHandoffDirectory: environmentText("GOWM_SAMPLE_HANDOFF_DIR"),
+        gdpsHandoffDirectory: fileURLToPath(new URL("../../../contracts/upstream/gdps-v0.2.1/", import.meta.url)),
+        foundationOperations: productionLock.defaultOperations.map(gatewayLock),
+        selectedDatasetOperations: productionLock.previewOperations.map(gatewayLock)
+      })
+    : undefined;
   const trustedOperationKeys = allGatewayLocks(productionLock)
     .map((entry) => `${entry.operationId}@${entry.operationVersion}`);
   const modelPolicy = (process.env["WSGS_MODEL_POLICY"]?.trim() ?? "MODEL_REQUIRED") as SemanticModelPolicyMode;
@@ -522,6 +556,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     ...(gdps.consumerSnapshot ? { gdpsConsumerSnapshot: gdps.consumerSnapshot } : {}),
     ...(gdps.loaded ? { gdpsRecipeLock: gdps.loaded } : {}),
     gdpsRecipes: gdps.recipes,
+    ...(segmentedScopeAuthority ? { segmentedScopeAuthority } : {}),
     ...(gdpsDescriptor ? { gdpsDescriptor } : {}),
     parameterSchemaHash: loadWorldQueryParameterSchemaHash()
   };
@@ -542,10 +577,13 @@ function environmentList(name: string): string[] {
 
 function readinessIdentity(): GroundingIdentityV2 {
   const servicePrincipalId = environmentText("GOWM_DELEGATION_SERVICE_PRINCIPAL_ID");
+  const configuredDataScopes = environmentList("WSGS_READINESS_DATA_SCOPES");
   return createGroundingIdentity({
     servicePrincipalId,
     actorId: process.env["WSGS_READINESS_ACTOR_ID"]?.trim() || servicePrincipalId,
-    dataScopes: [environmentText("WSGS_READINESS_DATA_SCOPE")],
+    dataScopes: configuredDataScopes.length > 0
+      ? configuredDataScopes
+      : [environmentText("WSGS_READINESS_DATA_SCOPE")],
     datasetScopes: environmentList("WSGS_READINESS_DATASET_SCOPES"),
     permissions: environmentList("WSGS_READINESS_PERMISSIONS").length > 0
       ? environmentList("WSGS_READINESS_PERMISSIONS")
@@ -630,7 +668,15 @@ async function liveAuthority(
     semanticCatalog: semantics,
     availability,
     southboundLock: validatedLock(productionLock),
-    ...(value.gdpsConsumerSnapshot ? { gdpsConsumerSnapshot: value.gdpsConsumerSnapshot } : {})
+    ...(value.gdpsConsumerSnapshot ? { gdpsConsumerSnapshot: value.gdpsConsumerSnapshot } : {}),
+    ...(value.segmentedScopeAuthority ? {
+      segmentedScopeAuthorityBinding: {
+        schemaVersion: "1.0",
+        authorityHash: value.segmentedScopeAuthority.authority.authorityHash,
+        foundationInstanceBindingHash: value.segmentedScopeAuthority.foundationInstanceBindingHash,
+        gdpsChecksumsHash: value.segmentedScopeAuthority.gdpsChecksumsHash
+      }
+    } : {})
   };
   const admission: ProductionAdmissionSnapshot = {
     immutableLocks: persisted as unknown as Readonly<Record<string, unknown>>,
@@ -720,6 +766,34 @@ function persistedAuthority(context: PipelineStageContext, gateway: GowmGatewayC
   });
   if (!validation.requiredReady) throw new ProductionStageModuleError("PERSISTED_AUTHORITY_INVALID");
   return authority;
+}
+
+function segmentedScopeAuthorityForPersisted(
+  value: Runtime,
+  authority: PersistedAuthority
+): LoadedSegmentedScopeAuthority | undefined {
+  const expected = authority.segmentedScopeAuthorityBinding;
+  const current = value.segmentedScopeAuthority;
+  if (!expected && !current) return undefined;
+  if (!expected || !current || expected.schemaVersion !== "1.0") {
+    throw new ProductionStageModuleError("SEGMENTED_SCOPE_AUTHORITY_ADMISSION_MISMATCH");
+  }
+  for (const hash of [
+    expected.authorityHash,
+    expected.foundationInstanceBindingHash,
+    expected.gdpsChecksumsHash
+  ]) {
+    if (!/^sha256:[0-9a-f]{64}$/u.test(hash)) {
+      throw new ProductionStageModuleError("SEGMENTED_SCOPE_AUTHORITY_ADMISSION_INVALID");
+    }
+  }
+  assertLoadedSegmentedScopeAuthority(current.authority);
+  if (current.authority.authorityHash !== expected.authorityHash ||
+      current.foundationInstanceBindingHash !== expected.foundationInstanceBindingHash ||
+      current.gdpsChecksumsHash !== expected.gdpsChecksumsHash) {
+    throw new ProductionStageModuleError("SEGMENTED_SCOPE_AUTHORITY_ADMISSION_DRIFT");
+  }
+  return current;
 }
 
 function request(context: PipelineStageContext): JsonObject {
@@ -817,6 +891,7 @@ async function executeOperation(
 ): Promise<JsonObject> {
   const caller = identity(context);
   const authority = persistedAuthority(context, value.gateway);
+  const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, authority);
   const descriptor = authority.capabilityCatalog.capabilities.find((candidate) =>
     candidate.operationId === lock.operationId && candidate.operationVersion === lock.operationVersion);
   if (!descriptor) throw new ProductionStageModuleError("GATEWAY_CAPABILITY_DESCRIPTOR_MISSING");
@@ -825,7 +900,7 @@ async function executeOperation(
     identity: caller,
     requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
     operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
-    dataScopes: [caller.dataScope],
+    dataScopes: [trustedOperationDataScope(segmentedScopeAuthority, caller, lock)],
     datasetScopes: caller.datasetScopes
   });
   const callerPolicy = object(request(context)["executionPolicy"], "EXECUTION_POLICY_MISSING");
@@ -1483,18 +1558,106 @@ interface EncryptedCheckpointEvidenceMaterial {
   terminal?: unknown;
 }
 
-interface PersistedWorldQueryOutcome extends JsonObject {
+interface PersistedSingleWorldQueryOutcome extends JsonObject {
+  executionMode: "SINGLE_GATEWAY_QUERY";
   submission: WorldQuerySubmission;
   status: string;
   resultHash: string;
   encryptedCheckpointEvidenceMaterial: EncryptedCheckpointEvidenceMaterial;
 }
 
-function finalWorldResult(outcome: PersistedWorldQueryOutcome): JsonObject {
+function trustedOperationDataScope(
+  segmentedScopeAuthority: LoadedSegmentedScopeAuthority | undefined,
+  caller: GroundingIdentityV2 & { dataScope: string },
+  operation: { operationId: string; operationVersion: string }
+): string {
+  if (!segmentedScopeAuthority) return caller.dataScope;
+  const binding = segmentedScopeAuthority.authority.bindings[
+    `${operation.operationId}@${operation.operationVersion}`
+  ];
+  if (!binding) throw new ProductionStageModuleError("OPERATION_SCOPE_AUTHORITY_MISSING");
+  if (!caller.dataScopes.includes(binding.dataScope)) {
+    throw new ProductionStageModuleError("IDENTITY_MISSING_REQUIRED_DATA_SCOPE");
+  }
+  return binding.dataScope;
+}
+
+function trustedPlanDataScopes(
+  segmentedScopeAuthority: LoadedSegmentedScopeAuthority | undefined,
+  caller: GroundingIdentityV2 & { dataScope: string },
+  submission: WorldQuerySubmission
+): string[] {
+  const scopes = new Set(submission.plan.nodes.map(({ operation }) =>
+    trustedOperationDataScope(segmentedScopeAuthority, caller, operation)));
+  return [...scopes].sort();
+}
+
+interface PersistedSegmentedWorldQueryOutcome extends JsonObject {
+  executionMode: "SEGMENTED_GATEWAY_QUERIES";
+  submission: WorldQuerySubmission;
+  status: "COMPLETED" | "PARTIAL";
+  resultHash: string;
+  delegatedIdentityHash: string;
+  startedAt: string;
+  finishedAt: string;
+  segmentedExecution: SegmentedWorldQueryExecution;
+}
+
+type PersistedWorldQueryOutcome = PersistedSingleWorldQueryOutcome | PersistedSegmentedWorldQueryOutcome;
+
+interface NormalizationUnit {
+  submission: WorldQuerySubmission;
+  world: JsonObject;
+  delegatedIdentityHash: string;
+  startedAt: string;
+  finishedAt: string;
+  encryptedCheckpointEvidenceMaterial: EncryptedCheckpointEvidenceMaterial;
+}
+
+function finalSingleWorldResult(outcome: PersistedSingleWorldQueryOutcome): JsonObject {
   const material = outcome.encryptedCheckpointEvidenceMaterial;
   if (material.responseStatus === 200) return object(material.response, "WORLD_QUERY_RESULT_INVALID");
   const terminal = object(material.terminal, "WORLD_QUERY_JOB_INVALID");
   return object(terminal["result"], "WORLD_QUERY_JOB_RESULT_MISSING");
+}
+
+function segmentedFindingWorld(execution: SegmentedWorldQueryExecution): JsonObject {
+  return {
+    schemaVersion: "wsgs-local-segmented-world-query-composition/1.0",
+    executionMode: execution.executionMode,
+    queryPlanVersion: "2.0",
+    queryId: execution.sourceQueryId,
+    status: execution.status,
+    nodes: structuredClone(execution.nodeResults),
+    outputs: structuredClone(execution.outputs),
+    segmentedExecutionHash: execution.segmentedExecutionHash
+  };
+}
+
+function normalizationUnits(outcome: PersistedWorldQueryOutcome): NormalizationUnit[] {
+  if (outcome.executionMode === "SINGLE_GATEWAY_QUERY") {
+    return [{
+      submission: outcome.submission,
+      world: finalSingleWorldResult(outcome),
+      delegatedIdentityHash: text(outcome["delegatedIdentityHash"], "DELEGATED_IDENTITY_HASH_MISSING"),
+      startedAt: text(outcome["startedAt"], "WORLD_QUERY_START_TIME_MISSING"),
+      finishedAt: text(outcome["finishedAt"], "WORLD_QUERY_FINISH_TIME_MISSING"),
+      encryptedCheckpointEvidenceMaterial: outcome.encryptedCheckpointEvidenceMaterial
+    }];
+  }
+  return outcome.segmentedExecution.segments.map((segment) => ({
+    submission: segment.submission,
+    world: segment.worldResult as JsonObject,
+    delegatedIdentityHash: segment.delegatedIdentityHash,
+    startedAt: segment.startedAt,
+    finishedAt: segment.finishedAt,
+    encryptedCheckpointEvidenceMaterial: {
+      checkpointProtection: "AES_256_GCM_INTERNAL_ONLY",
+      responseStatus: segment.responseStatus,
+      response: segment.response,
+      ...(segment.terminal === undefined ? {} : { terminal: segment.terminal })
+    }
+  }));
 }
 
 function runtimeFindingInputs(
@@ -1733,6 +1896,180 @@ export async function persistAcceptedWorldQueryJob(
   });
 }
 
+function worldQuerySegmentId(queryId: string, nodeId: string): string {
+  return `segment-${createHash("sha256").update(`${queryId}\u0000${nodeId}`).digest("hex").slice(0, 32)}`;
+}
+
+async function persistAcceptedWorldQuerySegment(
+  context: PipelineStageContext,
+  pool: Pool,
+  sourceSubmission: WorldQuerySubmission,
+  scopeAuthority: LoadedSegmentedScopeAuthority,
+  accepted: AcceptedSegmentCheckpoint
+): Promise<void> {
+  const acceptance = object(accepted.acceptance, "WORLD_QUERY_ACCEPTANCE_INVALID");
+  const gatewayJobId = text(acceptance["jobId"], "WORLD_QUERY_JOB_ID_MISSING");
+  const gatewayQueryId = typeof acceptance["queryId"] === "string"
+    ? acceptance["queryId"] : accepted.submission.plan.queryId;
+  const upstreamStatus = typeof acceptance["status"] === "string" ? acceptance["status"] : "QUEUED";
+  const binding = scopeAuthority.authority.bindings[accepted.operationKey];
+  if (!binding || binding.dataScope !== accepted.dataScope) {
+    throw new ProductionStageModuleError("SEGMENT_SCOPE_AUTHORITY_MISMATCH");
+  }
+  const sourceNodeIndex = sourceSubmission.plan.nodes.findIndex(({ nodeId }) => nodeId === accepted.nodeId);
+  if (sourceNodeIndex < 0) throw new ProductionStageModuleError("SEGMENT_SOURCE_NODE_MISSING");
+  const planHash = canonicalPlanHash(accepted.submission.plan);
+  await withFence(context, pool, async (client) => {
+    const inserted = await client.query(
+      `INSERT INTO wsgs.world_query_segment(
+         segment_id, query_id, grounding_id, segment_index, node_id, operation_key,
+         data_scope, source_lock_hash, scope_authority_hash, plan, plan_hash,
+         delegated_identity_hash, gateway_query_id, gateway_job_id, upstream_status,
+         response_status, started_at
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13,$14,$15,202,clock_timestamp())
+       ON CONFLICT (query_id, node_id) DO UPDATE SET
+         gateway_query_id = COALESCE(wsgs.world_query_segment.gateway_query_id, EXCLUDED.gateway_query_id),
+         gateway_job_id = COALESCE(wsgs.world_query_segment.gateway_job_id, EXCLUDED.gateway_job_id),
+         upstream_status = CASE WHEN wsgs.world_query_segment.finished_at IS NULL
+           THEN EXCLUDED.upstream_status ELSE wsgs.world_query_segment.upstream_status END,
+         response_status = CASE WHEN wsgs.world_query_segment.finished_at IS NULL
+           THEN EXCLUDED.response_status ELSE wsgs.world_query_segment.response_status END
+       WHERE wsgs.world_query_segment.grounding_id = EXCLUDED.grounding_id
+         AND wsgs.world_query_segment.segment_index = EXCLUDED.segment_index
+         AND wsgs.world_query_segment.operation_key = EXCLUDED.operation_key
+         AND wsgs.world_query_segment.data_scope = EXCLUDED.data_scope
+         AND wsgs.world_query_segment.source_lock_hash = EXCLUDED.source_lock_hash
+         AND wsgs.world_query_segment.scope_authority_hash = EXCLUDED.scope_authority_hash
+         AND wsgs.world_query_segment.plan_hash = EXCLUDED.plan_hash
+         AND (wsgs.world_query_segment.gateway_query_id IS NULL OR
+              wsgs.world_query_segment.gateway_query_id = EXCLUDED.gateway_query_id)
+         AND (wsgs.world_query_segment.gateway_job_id IS NULL OR
+              wsgs.world_query_segment.gateway_job_id = EXCLUDED.gateway_job_id)`,
+      [worldQuerySegmentId(sourceSubmission.plan.queryId, accepted.nodeId), sourceSubmission.plan.queryId,
+        context.groundingId, sourceNodeIndex, accepted.nodeId, accepted.operationKey,
+        accepted.dataScope, binding.sourceLockHash, scopeAuthority.authority.authorityHash,
+        JSON.stringify(accepted.submission), planHash, accepted.delegatedIdentityHash,
+        gatewayQueryId, gatewayJobId, upstreamStatus]
+    );
+    if (inserted.rowCount !== 1) throw new PipelineFenceRejectedError();
+  });
+}
+
+async function upsertCompletedWorldQuerySegment(
+  client: PoolClient,
+  context: PipelineStageContext,
+  sourceSubmission: WorldQuerySubmission,
+  scopeAuthorityHash: `sha256:${string}`,
+  segment: SegmentedWorldQuerySegment | CompletedSegmentCheckpoint
+): Promise<void> {
+  const sourceNodeIndex = sourceSubmission.plan.nodes.findIndex(({ nodeId }) => nodeId === segment.nodeId);
+  if (sourceNodeIndex < 0) throw new ProductionStageModuleError("SEGMENT_SOURCE_NODE_MISSING");
+  const updated = await client.query(
+    `INSERT INTO wsgs.world_query_segment(
+       segment_id, query_id, grounding_id, segment_index, node_id, operation_key,
+       data_scope, source_lock_hash, scope_authority_hash, plan, plan_hash,
+       delegated_identity_hash, completion_delegated_identity_hash,
+       gateway_query_id, gateway_job_id, upstream_status,
+       upstream_result_hash, world_result_hash, response_status, started_at, finished_at
+     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::timestamptz,$21::timestamptz)
+     ON CONFLICT (query_id, node_id) DO UPDATE SET
+       completion_delegated_identity_hash = EXCLUDED.completion_delegated_identity_hash,
+       gateway_query_id = COALESCE(wsgs.world_query_segment.gateway_query_id, EXCLUDED.gateway_query_id),
+       gateway_job_id = COALESCE(wsgs.world_query_segment.gateway_job_id, EXCLUDED.gateway_job_id),
+       upstream_status = EXCLUDED.upstream_status,
+       upstream_result_hash = EXCLUDED.upstream_result_hash,
+       world_result_hash = EXCLUDED.world_result_hash,
+       response_status = EXCLUDED.response_status,
+       started_at = LEAST(wsgs.world_query_segment.started_at, EXCLUDED.started_at),
+       finished_at = EXCLUDED.finished_at
+     WHERE wsgs.world_query_segment.grounding_id = EXCLUDED.grounding_id
+       AND wsgs.world_query_segment.segment_index = EXCLUDED.segment_index
+       AND wsgs.world_query_segment.operation_key = EXCLUDED.operation_key
+       AND wsgs.world_query_segment.data_scope = EXCLUDED.data_scope
+       AND wsgs.world_query_segment.source_lock_hash = EXCLUDED.source_lock_hash
+       AND wsgs.world_query_segment.scope_authority_hash = EXCLUDED.scope_authority_hash
+       AND wsgs.world_query_segment.plan_hash = EXCLUDED.plan_hash
+       AND (wsgs.world_query_segment.gateway_query_id IS NULL OR EXCLUDED.gateway_query_id IS NULL OR
+            wsgs.world_query_segment.gateway_query_id = EXCLUDED.gateway_query_id)
+       AND (wsgs.world_query_segment.gateway_job_id IS NULL OR EXCLUDED.gateway_job_id IS NULL OR
+            wsgs.world_query_segment.gateway_job_id = EXCLUDED.gateway_job_id)
+       AND (wsgs.world_query_segment.upstream_result_hash IS NULL OR
+            wsgs.world_query_segment.upstream_result_hash = EXCLUDED.upstream_result_hash)
+       AND (wsgs.world_query_segment.world_result_hash IS NULL OR
+            wsgs.world_query_segment.world_result_hash = EXCLUDED.world_result_hash)`,
+    [worldQuerySegmentId(sourceSubmission.plan.queryId, segment.nodeId),
+      sourceSubmission.plan.queryId, context.groundingId, sourceNodeIndex, segment.nodeId,
+      segment.operationKey, segment.dataScope, segment.sourceLockHash, scopeAuthorityHash,
+      JSON.stringify(segment.submission), canonicalPlanHash(segment.submission.plan),
+      segment.delegatedIdentityHash, segment.delegatedIdentityHash,
+      segment.worldResult["queryId"] ?? segment.submission.plan.queryId,
+      segment.terminal?.["jobId"] ?? segment.response["jobId"] ?? null,
+      segment.worldResult["status"], segment.worldResult["outputHash"],
+      canonicalSha256(segment.worldResult), segment.responseStatus,
+      segment.startedAt, segment.finishedAt]
+  );
+  if (updated.rowCount !== 1) throw new PipelineFenceRejectedError();
+}
+
+async function persistCompletedWorldQuerySegment(
+  context: PipelineStageContext,
+  pool: Pool,
+  sourceSubmission: WorldQuerySubmission,
+  scopeAuthorityHash: `sha256:${string}`,
+  segment: CompletedSegmentCheckpoint
+): Promise<void> {
+  await withFence(context, pool, (client) =>
+    upsertCompletedWorldQuerySegment(client, context, sourceSubmission, scopeAuthorityHash, segment));
+}
+
+async function persistCompletedSegmentedWorldQuery(
+  context: PipelineStageContext,
+  pool: Pool,
+  sourceSubmission: WorldQuerySubmission,
+  execution: SegmentedWorldQueryExecution
+): Promise<void> {
+  const segmentManifestHash = canonicalSha256({
+    schemaVersion: "wsgs-segmented-world-query-manifest/1.0",
+    sourceQueryId: execution.sourceQueryId,
+    sourcePlanHash: execution.sourcePlanHash,
+    scopeAuthorityHash: execution.scopeAuthorityHash,
+    segments: execution.segments.map((segment) => ({
+      nodeId: segment.nodeId,
+      operationKey: segment.operationKey,
+      dataScope: segment.dataScope,
+      sourceLockHash: segment.sourceLockHash,
+      planHash: canonicalPlanHash(segment.submission.plan)
+    }))
+  });
+  await withFence(context, pool, async (client) => {
+    for (const segment of execution.segments) {
+      await upsertCompletedWorldQuerySegment(
+        client,
+        context,
+        sourceSubmission,
+        execution.scopeAuthorityHash,
+        segment
+      );
+    }
+    const parent = await client.query(
+      `UPDATE wsgs.world_query
+          SET execution_mode = 'SEGMENTED_GATEWAY_QUERIES',
+              segment_manifest_hash = $3,
+              gateway_query_id = NULL,
+              gateway_job_id = NULL,
+              upstream_job_id = NULL,
+              query_snapshot_manifest = NULL,
+              snapshot_adherence = NULL,
+              upstream_status = $4,
+              upstream_result_hash = $5
+        WHERE query_id = $1 AND grounding_id = $2`,
+      [sourceSubmission.plan.queryId, context.groundingId, segmentManifestHash,
+        execution.status, execution.segmentedExecutionHash]
+    );
+    if (parent.rowCount !== 1) throw new PipelineFenceRejectedError();
+  });
+}
+
 function pointer(value: unknown, path: string, code: string): unknown {
   if (!path.startsWith("/")) throw new ProductionStageModuleError(code);
   let current = value;
@@ -1966,10 +2303,15 @@ function publicEvidenceItem(item: NormalizedExecutionEvidenceItem): GroundingEvi
 async function persistExecutionRecords(
   context: PipelineStageContext,
   pool: Pool,
-  records: readonly GowmExecutionRecord[]
+  records: readonly GowmExecutionRecord[],
+  dataScopesByExecutionId: ReadonlyMap<string, string> = new Map()
 ): Promise<void> {
   await withFence(context, pool, async (client) => {
     for (const record of records) {
+      const selectedDataScope = dataScopesByExecutionId.get(record.executionId) ?? identity(context).dataScope;
+      if (!identity(context).dataScopes.includes(selectedDataScope)) {
+        throw new ProductionStageModuleError("EXECUTION_RECORD_DATA_SCOPE_UNAUTHORIZED");
+      }
       await client.query(
         `INSERT INTO wsgs.gowm_execution(
            execution_id, grounding_id, data_scope, actor_id, execution_kind,
@@ -1981,7 +2323,7 @@ async function persistExecutionRecords(
            $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
            $14::jsonb,$15::jsonb,$16::jsonb,$17::jsonb,$18::jsonb,$19,$20
          ) ON CONFLICT (execution_id) DO NOTHING`,
-        [record.executionId, context.groundingId, identity(context).dataScope,
+        [record.executionId, context.groundingId, selectedDataScope,
           identity(context).actorId, record.executionKind,
           record.operationId ?? null, record.operationVersion ?? null,
           record.gatewayQueryId ?? null, record.gatewayJobId ?? null,
@@ -2370,7 +2712,7 @@ export async function createPipelineStageExecutor(
       const successful = compiled.filter((entry): entry is Extract<CompileResult, { status: "COMPILED" }> => entry.status === "COMPILED");
       await withFence(context, value.pool, async (client) => {
         for (const item of successful) {
-          await client.query(
+          const persisted = await client.query(
             `INSERT INTO wsgs.world_query(query_id, grounding_id, data_scope, plan, plan_hash)
              VALUES ($1,$2,$3,$4::jsonb,$5)
              ON CONFLICT (query_id) DO UPDATE SET plan = EXCLUDED.plan, plan_hash = EXCLUDED.plan_hash
@@ -2378,6 +2720,7 @@ export async function createPipelineStageExecutor(
                AND wsgs.world_query.plan_hash = EXCLUDED.plan_hash`,
             [item.submission.plan.queryId, context.groundingId, identity(context).dataScope, JSON.stringify(item.submission), item.planHash]
           );
+          if (persisted.rowCount !== 1) throw new PipelineFenceRejectedError();
         }
       });
       const output = { compiled, capabilityGaps: gaps };
@@ -2389,14 +2732,80 @@ export async function createPipelineStageExecutor(
     GOWM_EXECUTE: async (context) => {
       const compilation = stageValue<{ compiled: CompileResult[] }>(context, "WORLD_QUERY_COMPILE");
       const caller = identity(context);
+      const persisted = persistedAuthority(context, value.gateway);
+      const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, persisted);
       const outcomes: PersistedWorldQueryOutcome[] = [];
       for (const item of compilation.compiled) {
         if (item.status !== "COMPILED") continue;
+        const planDataScopes = trustedPlanDataScopes(segmentedScopeAuthority, caller, item.submission);
+        if (planDataScopes.length > 1) {
+          const scopeAuthority = segmentedScopeAuthority;
+          if (!scopeAuthority) throw new ProductionStageModuleError("SEGMENTED_SCOPE_AUTHORITY_REQUIRED");
+          let segmented: SegmentedWorldQueryExecution;
+          try {
+            segmented = await executeSegmentedWorldQuery({
+              submission: item.submission,
+              authority: scopeAuthority.authority,
+              capabilities: persisted.capabilityCatalog.capabilities,
+              identity: caller,
+              deadlineAt: context.deadlineAt,
+              signal: context.signal,
+              runtime: {
+                gateway: {
+                  submitWorldQuery: async (submission, gatewayContext) =>
+                    value.gateway.submitWorldQuery(submission, gatewayContext).catch(gatewayFailure),
+                  pollJob: async (jobId, gatewayContext, intervalMs) =>
+                    value.gateway.pollJob(jobId, gatewayContext, intervalMs).catch(gatewayFailure),
+                  cancelWorldQuery: async (queryId, gatewayContext) =>
+                    value.gateway.cancelWorldQuery(queryId, gatewayContext).catch(gatewayFailure)
+                },
+                signer: value.signer,
+                onAccepted: async (accepted) => {
+                  await persistAcceptedWorldQuerySegment(
+                    context,
+                    value.pool,
+                    item.submission,
+                    scopeAuthority,
+                    accepted
+                  );
+                },
+                onCompleted: async (completed) => {
+                  await persistCompletedWorldQuerySegment(
+                    context,
+                    value.pool,
+                    item.submission,
+                    scopeAuthority.authority.authorityHash,
+                    completed
+                  );
+                }
+              }
+            });
+          } catch (error) {
+            if (error instanceof ProductionStageModuleError) throw error;
+            if (error instanceof SegmentedWorldQueryError) {
+              throw new ProductionStageModuleError(error.code, false, error.code, "GOWM_EXECUTE");
+            }
+            throw error;
+          }
+          await persistCompletedSegmentedWorldQuery(context, value.pool, item.submission, segmented);
+          outcomes.push({
+            executionMode: "SEGMENTED_GATEWAY_QUERIES",
+            submission: item.submission,
+            status: segmented.status,
+            resultHash: segmented.segmentedExecutionHash,
+            delegatedIdentityHash: segmented.scopeAuthorityHash,
+            startedAt: segmented.segments[0]?.startedAt ?? new Date().toISOString(),
+            finishedAt: segmented.segments.at(-1)?.finishedAt ?? new Date().toISOString(),
+            segmentedExecution: segmented
+          });
+          continue;
+        }
+        const executionDataScope = planDataScopes[0] ?? caller.dataScope;
         const signed = await value.signer.sign({
           kind: "WORLD_QUERY", identity: caller,
           requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
           plan: item.submission.plan,
-          dataScopes: [caller.dataScope], datasetScopes: caller.datasetScopes
+          dataScopes: [executionDataScope], datasetScopes: caller.datasetScopes
         });
         const gatewayContext: GatewayRequestContext = {
           signal: context.signal, deadlineAt: context.deadlineAt,
@@ -2432,7 +2841,7 @@ export async function createPipelineStageExecutor(
                 identity: caller,
                 requestId: cancelRequestId,
                 plan: item.submission.plan,
-                dataScopes: [caller.dataScope],
+                dataScopes: [executionDataScope],
                 datasetScopes: caller.datasetScopes
               });
               await value.gateway.cancelWorldQuery(item.submission.plan.queryId, {
@@ -2453,6 +2862,7 @@ export async function createPipelineStageExecutor(
         const status = text(world["status"], "WORLD_QUERY_STATUS_MISSING");
         const resultHash = text(world["outputHash"], "WORLD_QUERY_RESULT_HASH_MISSING");
         outcomes.push({
+          executionMode: "SINGLE_GATEWAY_QUERY",
           submission: item.submission,
           status, resultHash, delegatedIdentityHash: signed.jtiHash,
           startedAt, finishedAt: new Date().toISOString(),
@@ -2484,11 +2894,13 @@ export async function createPipelineStageExecutor(
 
     EVIDENCE_NORMALIZE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
+      const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, authority);
       const execution = stageValue<{ outcomes: PersistedWorldQueryOutcome[] }>(context, "GOWM_EXECUTE");
       const evidenceItems: GroundingEvidenceItem[] = [];
       const warnings: string[] = [];
       const evidenceProductsForPersistence: ExecutionEvidenceProduct[] = [];
       const gdpsExecutionRecordsForPersistence: GowmExecutionRecord[] = [];
+      const executionDataScopes = new Map<string, string>();
       const normalizationGaps: JsonObject[] = [];
       const findingEnvelopes: RuntimeFindingEnvelopeInput[] = [];
       const geospatialNegotiated = geospatialResultNegotiated(context);
@@ -2499,12 +2911,13 @@ export async function createPipelineStageExecutor(
       const normalizationProducts: EvidenceRequestedProduct[] = requested.length > 0 ? requested : ["WORLD_EVIDENCE"];
       const semantic = context.state["SEMANTIC_MODEL_PARSE"] as PersistedSemanticModelResult | undefined;
       for (const outcome of execution.outcomes) {
-        const world = finalWorldResult(outcome);
         const maximumInlinePayloadBytes = Math.min(
           1_048_576,
           integer(requestParts(context).policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID")
         );
-        const oversized = oversizedEvidencePayload(world, maximumInlinePayloadBytes);
+        const units = normalizationUnits(outcome);
+        const oversized = units.map(({ world }) => oversizedEvidencePayload(world, maximumInlinePayloadBytes))
+          .find((entry) => entry !== null);
         if (oversized) {
           normalizationGaps.push({
             gapId: `gap-${canonicalSha256({
@@ -2530,112 +2943,127 @@ export async function createPipelineStageExecutor(
         }
         // Oversized payloads are quarantined above and must never be decoded
         // into a Finding/SourceProduct without an authoritative payloadRef.
+        const findingWorld = outcome.executionMode === "SEGMENTED_GATEWAY_QUERIES"
+          ? segmentedFindingWorld(outcome.segmentedExecution)
+          : finalSingleWorldResult(outcome);
         if (geospatialNegotiated) {
           findingEnvelopes.push(...runtimeFindingInputs(
             outcome.submission,
-            world,
+            findingWorld,
             authority.capabilityCatalog.capabilities,
             value.gdpsRecipeLock,
             references
           ));
         }
-        const nodes = Array.isArray(world["nodes"]) ? world["nodes"] : [];
-        const planByNode = new Map(outcome.submission.plan.nodes.map((node) => [node.nodeId, node]));
-        const operationsByNode: Record<string, OperationExecutionContractTrace> = {};
-        const nodeRequestHashes = computeWorldQueryNodeRequestHashes(
-          outcome.submission,
-          world,
-          authority.capabilityCatalog.capabilities
-        );
-        for (const rawNode of nodes) {
-          const node = object(rawNode, "WORLD_QUERY_NODE_INVALID");
-          const nodeId = text(node["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
-          const planned = planByNode.get(nodeId);
-          if (!planned) throw new ProductionStageModuleError("WORLD_QUERY_NODE_NOT_IN_PLAN");
-          const descriptor = authority.capabilityCatalog.capabilities.find((entry) =>
-            entry.operationId === planned.operation.operationId && entry.operationVersion === planned.operation.operationVersion);
-          if (!descriptor) throw new ProductionStageModuleError("WORLD_QUERY_CAPABILITY_MISSING");
-          const profile = authority.semanticCatalog.profiles.find((entry) =>
-            entry.operationId === descriptor.operationId && entry.operationVersion === descriptor.operationVersion);
-          const observed = authority.availability.operations.find((entry) =>
-            entry.operationId === descriptor.operationId && entry.operationVersion === descriptor.operationVersion);
-          if (!profile || !observed) throw new ProductionStageModuleError("WORLD_QUERY_CONTRACT_TRACE_MISSING");
-          operationsByNode[nodeId] = {
-            nodeId,
-            operationId: descriptor.operationId,
-            operationVersion: descriptor.operationVersion,
-            inputSchemaHash: descriptor.inputSchemaHash,
-            outputSchemaUri: descriptor.outputSchemaUri,
-            outputSchemaHash: descriptor.outputSchemaHash,
-            semanticProfileHash: profile.semanticProfileHash,
-            negativeEvidencePolicy: text(profile.semanticProfile["negativeEvidencePolicy"], "NEGATIVE_EVIDENCE_POLICY_MISSING"),
-            availability: {
-              availability: observed.availability,
-              checkedAt: observed.checkedAt,
-              reasonCodes: [...observed.reasonCodes]
-            }
-          };
-        }
-        const material = outcome.encryptedCheckpointEvidenceMaterial;
-        const responseStatus = material.responseStatus;
-        if (responseStatus !== 200 && responseStatus !== 202) throw new ProductionStageModuleError("WORLD_QUERY_RESPONSE_STATUS_INVALID");
-        const evidence = evidenceNormalizer.normalizeWorldQuery({
-          context: {
-            executionId: `execution-${createHash("sha256").update(`${context.groundingId}:${outcome.submission.plan.queryId}`).digest("hex").slice(0, 32)}`,
-            groundingId: context.groundingId,
-            requestPayload: outcome.submission,
-            startedAt: text(outcome["startedAt"], "WORLD_QUERY_START_TIME_MISSING"),
-            finishedAt: text(outcome["finishedAt"], "WORLD_QUERY_FINISH_TIME_MISSING"),
-            contractCatalogRevision: authority.trustedCapabilitySnapshot.contractCatalogRevision,
-            bindingRevision: authority.trustedCapabilitySnapshot.bindingRevision,
-            authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest,
-            delegatedIdentityHash: text(outcome["delegatedIdentityHash"], "DELEGATED_IDENTITY_HASH_MISSING") as Sha256Digest,
-            ...(semantic?.receiptId ? { modelReceiptIds: [semantic.receiptId] } : {}),
-            requestedProducts: normalizationProducts,
-            maximumInlinePayloadBytes
-          },
-          operationsByNode,
-          nodeRequestHashes,
-          snapshotExpectation: {
-            mode: outcome.submission.snapshotPolicy.mode,
-            allowDowngrade: false
-          },
-          outcome: responseStatus === 200
-            ? { mode: "SYNC", status: 200, result: material.response }
-            : {
-                mode: "ASYNC", status: 202,
-                acceptedJob: material.response,
-                terminalJob: material.terminal
-              }
-        });
-        const gdpsSources = normalizeGdpsWorldQuerySources(outcome.submission, world, value.gdpsRecipeLock);
+        const gdpsSources = normalizeGdpsWorldQuerySources(outcome.submission, findingWorld, value.gdpsRecipeLock);
         const gdpsByNode = new Map(gdpsSources.map((entry) => [entry.nodeId, entry.evidence]));
-        for (const record of evidence.nodeRecords) {
-          const nodeId = record.executionId.split(":node:").at(-1);
-          const gdpsSource = nodeId ? gdpsByNode.get(nodeId) : undefined;
-          if (!gdpsSource) continue;
-          gdpsExecutionRecordsForPersistence.push({
-            ...record,
-            dataSnapshot: {
-              ...(record.dataSnapshot ?? {}),
-              gdpsSourceEvidence: structuredClone(gdpsSource)
-            }
-          });
-          warnings.push(...gdpsSource.warnings);
-          if (gdpsSource.normalizedStatus !== "COMPLETED") {
-            warnings.push(`GDPS_${gdpsSource.normalizedStatus}${gdpsSource.gapKind ? `:${gdpsSource.gapKind}` : ""}`);
+        for (const unit of units) {
+          const nodes = Array.isArray(unit.world["nodes"]) ? unit.world["nodes"] : [];
+          const planByNode = new Map(unit.submission.plan.nodes.map((node) => [node.nodeId, node]));
+          const operationsByNode: Record<string, OperationExecutionContractTrace> = {};
+          const nodeRequestHashes = computeWorldQueryNodeRequestHashes(
+            unit.submission,
+            unit.world,
+            authority.capabilityCatalog.capabilities
+          );
+          for (const rawNode of nodes) {
+            const node = object(rawNode, "WORLD_QUERY_NODE_INVALID");
+            const nodeId = text(node["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
+            const planned = planByNode.get(nodeId);
+            if (!planned) throw new ProductionStageModuleError("WORLD_QUERY_NODE_NOT_IN_PLAN");
+            const descriptor = authority.capabilityCatalog.capabilities.find((entry) =>
+              entry.operationId === planned.operation.operationId && entry.operationVersion === planned.operation.operationVersion);
+            if (!descriptor) throw new ProductionStageModuleError("WORLD_QUERY_CAPABILITY_MISSING");
+            const profile = authority.semanticCatalog.profiles.find((entry) =>
+              entry.operationId === descriptor.operationId && entry.operationVersion === descriptor.operationVersion);
+            const observed = authority.availability.operations.find((entry) =>
+              entry.operationId === descriptor.operationId && entry.operationVersion === descriptor.operationVersion);
+            if (!profile || !observed) throw new ProductionStageModuleError("WORLD_QUERY_CONTRACT_TRACE_MISSING");
+            operationsByNode[nodeId] = {
+              nodeId,
+              operationId: descriptor.operationId,
+              operationVersion: descriptor.operationVersion,
+              inputSchemaHash: descriptor.inputSchemaHash,
+              outputSchemaUri: descriptor.outputSchemaUri,
+              outputSchemaHash: descriptor.outputSchemaHash,
+              semanticProfileHash: profile.semanticProfileHash,
+              negativeEvidencePolicy: text(profile.semanticProfile["negativeEvidencePolicy"], "NEGATIVE_EVIDENCE_POLICY_MISSING"),
+              availability: {
+                availability: observed.availability,
+                checkedAt: observed.checkedAt,
+                reasonCodes: [...observed.reasonCodes]
+              }
+            };
           }
+          const material = unit.encryptedCheckpointEvidenceMaterial;
+          const responseStatus = material.responseStatus;
+          if (responseStatus !== 200 && responseStatus !== 202) {
+            throw new ProductionStageModuleError("WORLD_QUERY_RESPONSE_STATUS_INVALID");
+          }
+          const evidence = evidenceNormalizer.normalizeWorldQuery({
+            context: {
+              executionId: `execution-${createHash("sha256").update(`${context.groundingId}:${unit.submission.plan.queryId}`).digest("hex").slice(0, 32)}`,
+              groundingId: context.groundingId,
+              requestPayload: unit.submission,
+              startedAt: unit.startedAt,
+              finishedAt: unit.finishedAt,
+              contractCatalogRevision: authority.trustedCapabilitySnapshot.contractCatalogRevision,
+              bindingRevision: authority.trustedCapabilitySnapshot.bindingRevision,
+              authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest,
+              delegatedIdentityHash: unit.delegatedIdentityHash as Sha256Digest,
+              ...(semantic?.receiptId ? { modelReceiptIds: [semantic.receiptId] } : {}),
+              requestedProducts: normalizationProducts,
+              maximumInlinePayloadBytes
+            },
+            operationsByNode,
+            nodeRequestHashes,
+            snapshotExpectation: {
+              mode: unit.submission.snapshotPolicy.mode,
+              allowDowngrade: false
+            },
+            outcome: responseStatus === 200
+              ? { mode: "SYNC", status: 200, result: material.response }
+              : {
+                  mode: "ASYNC", status: 202,
+                  acceptedJob: material.response,
+                  terminalJob: material.terminal
+                }
+          });
+          const unitDataScopes = trustedPlanDataScopes(segmentedScopeAuthority, identity(context), unit.submission);
+          if (unitDataScopes.length !== 1) {
+            throw new ProductionStageModuleError("NORMALIZED_SEGMENT_DATA_SCOPE_AMBIGUOUS");
+          }
+          for (const record of [evidence.record, ...evidence.nodeRecords]) {
+            executionDataScopes.set(record.executionId, unitDataScopes[0]!);
+          }
+          for (const record of evidence.nodeRecords) {
+            const nodeId = record.executionId.split(":node:").at(-1);
+            const gdpsSource = nodeId ? gdpsByNode.get(nodeId) : undefined;
+            if (!gdpsSource) continue;
+            gdpsExecutionRecordsForPersistence.push({
+              ...record,
+              dataSnapshot: {
+                ...(record.dataSnapshot ?? {}),
+                gdpsSourceEvidence: structuredClone(gdpsSource)
+              }
+            });
+            warnings.push(...gdpsSource.warnings);
+            if (gdpsSource.normalizedStatus !== "COMPLETED") {
+              warnings.push(`GDPS_${gdpsSource.normalizedStatus}${gdpsSource.gapKind ? `:${gdpsSource.gapKind}` : ""}`);
+            }
+          }
+          evidenceProductsForPersistence.push(evidence);
+          evidenceItems.push(...evidence.evidenceItems.map(publicEvidenceItem));
+          warnings.push(...evidence.warnings, ...evidence.unknowns);
         }
-        evidenceProductsForPersistence.push(evidence);
-        evidenceItems.push(...evidence.evidenceItems.map(publicEvidenceItem));
-        warnings.push(...evidence.warnings, ...evidence.unknowns);
       }
       await persistExecutionRecords(
         context,
         value.pool,
         evidenceProductsForPersistence.flatMap((entry) => [entry.record, ...entry.nodeRecords.filter((record) =>
           !gdpsExecutionRecordsForPersistence.some((gdpsRecord) => gdpsRecord.executionId === record.executionId))])
-          .concat(gdpsExecutionRecordsForPersistence)
+          .concat(gdpsExecutionRecordsForPersistence),
+        executionDataScopes
       );
       const operationalRequested = requested as OperationalRequestedProduct[];
       const assembled = requested.length === 0

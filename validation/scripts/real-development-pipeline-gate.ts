@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
+import { URL } from "node:url";
 
 import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import {
@@ -123,16 +124,24 @@ if (formalR1R5Only) {
   }
 }
 const expectedGowmRuntimeSourceCommit = "fceed92398a0b86c0a0121aa2188a7f1d328e577";
+const expectedSharedExecutionGowmSourceLock = "7a3600cfeede1e1eda711a59bdb76caa68c05f64";
+const expectedGdpsImplementationSourceCommit = "42e06e7341250aa230ac01d201effafe92ce4af5";
+const expectedGdpsFinalBBundleHash =
+  "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19" as const;
 const expectedGowmRuntimeVersion = "0.6.4";
 const expectedGatewayContractVersion = "0.6.3";
 const expectedWsgsRuntimeVersion = "0.2.1";
 const apiBearerToken = process.env["WSGS_FORMAL_API_BEARER_TOKEN"]?.trim();
 const encryptionKey = required("WSGS_REQUEST_ENCRYPTION_KEY_BASE64");
 const payloadCodec = Aes256GcmPayloadCodec.fromBase64(encryptionKey);
+const configuredIdentityDataScopes = process.env["WSGS_READINESS_DATA_SCOPES"]
+  ?.split(/[ ,]+/u).map((entry) => entry.trim()).filter(Boolean) ?? [];
 const identity = createGroundingIdentity({
   servicePrincipalId: required("GOWM_DELEGATION_SERVICE_PRINCIPAL_ID"),
   actorId: required("WSGS_READINESS_ACTOR_ID"),
-  dataScopes: [required("WSGS_READINESS_DATA_SCOPE")],
+  dataScopes: configuredIdentityDataScopes.length > 0
+    ? configuredIdentityDataScopes
+    : [required("WSGS_READINESS_DATA_SCOPE")],
   datasetScopes: list("WSGS_READINESS_DATASET_SCOPES"),
   permissions: [...new Set([...list("WSGS_READINESS_PERMISSIONS"), "grounding.read"])]
 });
@@ -236,6 +245,219 @@ function repositoryRelativePath(path: string, code: string): string {
   const candidate = relative(repositoryRoot, path);
   if (candidate === ".." || candidate.startsWith(`..${sep}`) || isAbsolute(candidate)) throw new Error(code);
   return candidate.split(sep).join("/");
+}
+
+interface N04GatewayTuple {
+  contractCatalogRevision: `sha256:${string}`;
+  semanticCatalogHash: `sha256:${string}`;
+  bindingRevision: `sha256:${string}`;
+}
+
+interface VerifiedN04SharedExecutionGatewayBinding {
+  executionSourceLockSha: string;
+  sourceBindingMethod: "CHECKSUMMED_FINAL_B_SOURCE_LOCK_PLUS_LIVE_GATEWAY_LOCK_MATCH";
+  gdpsSourceCommit: string;
+  handoffBundleHash: `sha256:${string}`;
+  checksumsFileHash: `sha256:${string}`;
+  consumerLockHash: `sha256:${string}`;
+  gatewayBindingLockHash: `sha256:${string}`;
+  capabilityLockHash: `sha256:${string}`;
+  foundationInstanceBindingHash: `sha256:${string}`;
+  foundationOperationLockHash: `sha256:${string}`;
+  foundationDataScopeHash: `sha256:${string}`;
+  selectedDatasetDataScopeHash: `sha256:${string}`;
+  endpointHash: `sha256:${string}`;
+  lockedGatewayTuple: N04GatewayTuple & {
+    instanceFingerprint: `sha256:${string}`;
+    runningConfigFingerprint: `sha256:${string}`;
+  };
+}
+
+const n04GdpsHandoffInventory = [
+  "GDPS_CAPABILITY_LOCK.json",
+  "GDPS_CONSUMER_LOCK.json",
+  "GDPS_PRODUCT_DESCRIPTOR_LOCK.json",
+  "GDPS_RECIPE_LOCK.json",
+  "GDPS_SAMPLE_DATASET_LOCK.json",
+  "GOWM_GATEWAY_BINDING_LOCK.json",
+  "WSGS_QUERY_CORPUS.json",
+  "WSGS_TEST_BASELINE.json"
+] as const;
+
+function n04JsonFile(path: string, code: string): { bytes: Buffer; value: JsonObject } {
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(path);
+  } catch {
+    throw new Error(`${code}_MISSING`);
+  }
+  try {
+    return { bytes, value: object(JSON.parse(bytes.toString("utf8")) as unknown, `${code}_INVALID`) };
+  } catch (error) {
+    if (error instanceof Error && error.message === `${code}_INVALID`) throw error;
+    throw new Error(`${code}_INVALID`);
+  }
+}
+
+function n04GatewayTuple(value: JsonObject, code: string): N04GatewayTuple {
+  return {
+    contractCatalogRevision: digest(value["contractCatalogRevision"], `${code}_CATALOG_REVISION_INVALID`),
+    semanticCatalogHash: digest(value["semanticCatalogHash"], `${code}_SEMANTIC_HASH_INVALID`),
+    bindingRevision: digest(value["bindingRevision"], `${code}_BINDING_REVISION_INVALID`)
+  };
+}
+
+function n04GatewayOrigin(value: string, code: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(code);
+  }
+  if ((parsed.protocol !== "http:" && parsed.protocol !== "https:") || parsed.username || parsed.password ||
+      parsed.search || parsed.hash || (parsed.pathname !== "" && parsed.pathname !== "/")) {
+    throw new Error(code);
+  }
+  return parsed.origin;
+}
+
+function loadVerifiedN04SharedExecutionGatewayBinding(): VerifiedN04SharedExecutionGatewayBinding {
+  const handoffDirectory = resolve(repositoryRoot, "contracts", "upstream", "gdps-v0.2.1");
+  const checksumsFile = n04JsonFile(resolve(handoffDirectory, "CHECKSUMS.json"), "N04_GDPS_CHECKSUMS");
+  const checksums = checksumsFile.value;
+  if (checksums["schemaVersion"] !== "wsgs-gdps-v021-checksums/1.0" || checksums["algorithm"] !== "SHA-256" ||
+      checksums["bundleHash"] !== expectedGdpsFinalBBundleHash || !Array.isArray(checksums["files"])) {
+    throw new Error("N04_GDPS_CHECKSUMS_CONTRACT_MISMATCH");
+  }
+  const entries = new Map<string, `sha256:${string}`>();
+  for (const raw of checksums["files"]) {
+    const entry = object(raw, "N04_GDPS_CHECKSUM_ENTRY_INVALID");
+    const path = string(entry["path"], "N04_GDPS_CHECKSUM_PATH_INVALID");
+    if (path.includes("/") || path.includes("\\") || entries.has(path)) {
+      throw new Error("N04_GDPS_CHECKSUM_INVENTORY_INVALID");
+    }
+    entries.set(path, digest(entry["sha256"], "N04_GDPS_CHECKSUM_HASH_INVALID"));
+  }
+  const actualInventory = [...entries.keys()].sort();
+  const expectedInventory = [...n04GdpsHandoffInventory].sort();
+  if (evidenceCanonicalJson(actualInventory) !== evidenceCanonicalJson(expectedInventory)) {
+    throw new Error("N04_GDPS_CHECKSUM_INVENTORY_INVALID");
+  }
+  const files = new Map<string, { bytes: Buffer; value: JsonObject }>();
+  for (const path of n04GdpsHandoffInventory) {
+    const file = n04JsonFile(resolve(handoffDirectory, path), `N04_GDPS_${path.replace(/[^A-Za-z0-9]/gu, "_")}`);
+    if (sha256(file.bytes) !== entries.get(path)) throw new Error(`N04_GDPS_CHECKSUM_DRIFT_${path}`);
+    files.set(path, file);
+  }
+  if (evidenceCanonicalSha256(Object.fromEntries(entries)) !== expectedGdpsFinalBBundleHash) {
+    throw new Error("N04_GDPS_BUNDLE_HASH_MISMATCH");
+  }
+
+  const consumerFile = files.get("GDPS_CONSUMER_LOCK.json")!;
+  const capabilityFile = files.get("GDPS_CAPABILITY_LOCK.json")!;
+  const datasetFile = files.get("GDPS_SAMPLE_DATASET_LOCK.json")!;
+  const gatewayFile = files.get("GOWM_GATEWAY_BINDING_LOCK.json")!;
+  const baselineFile = files.get("WSGS_TEST_BASELINE.json")!;
+  const consumer = consumerFile.value;
+  const sources = object(consumer["sources"], "N04_GDPS_CONSUMER_SOURCES_INVALID");
+  if (sources["gowmSha"] !== expectedSharedExecutionGowmSourceLock ||
+      sources["gdpsSha"] !== expectedGdpsImplementationSourceCommit) {
+    throw new Error("N04_SHARED_EXECUTION_SOURCE_LOCK_MISMATCH");
+  }
+  const consumerGateway = n04GatewayTuple(
+    object(consumer["gateway"], "N04_GDPS_CONSUMER_GATEWAY_INVALID"),
+    "N04_GDPS_CONSUMER_GATEWAY"
+  );
+  const gatewayDocument = gatewayFile.value;
+  if (gatewayDocument["schemaVersion"] !== "gowm-gateway-binding-lock/1.0") {
+    throw new Error("N04_GDPS_GATEWAY_BINDING_SCHEMA_MISMATCH");
+  }
+  const gateway = object(gatewayDocument["gateway"], "N04_GDPS_GATEWAY_BINDING_INVALID");
+  const lockedGatewayTuple = {
+    ...n04GatewayTuple(gateway, "N04_GDPS_GATEWAY_BINDING"),
+    instanceFingerprint: digest(gateway["instanceFingerprint"], "N04_GDPS_GATEWAY_INSTANCE_INVALID"),
+    runningConfigFingerprint: digest(gateway["runningConfigFingerprint"], "N04_GDPS_GATEWAY_CONFIG_INVALID")
+  };
+  if (evidenceCanonicalJson(consumerGateway) !== evidenceCanonicalJson({
+    contractCatalogRevision: lockedGatewayTuple.contractCatalogRevision,
+    semanticCatalogHash: lockedGatewayTuple.semanticCatalogHash,
+    bindingRevision: lockedGatewayTuple.bindingRevision
+  })) {
+    throw new Error("N04_GDPS_GATEWAY_LOCK_CROSS_BINDING_MISMATCH");
+  }
+
+  const baseline = baselineFile.value;
+  const attestation = object(baseline["gatewayCanaryAttestation"], "N04_GDPS_BASELINE_ATTESTATION_INVALID");
+  const baselineTuple = n04GatewayTuple(attestation, "N04_GDPS_BASELINE_GATEWAY");
+  if (baseline["schemaVersion"] !== "wsgs-gdps-test-baseline/1.0" || attestation["status"] !== "PASS" ||
+      attestation["executionPath"] !== "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY" ||
+      attestation["authenticationMode"] !== "SIGNED_DELEGATION_V1" || attestation["datasetState"] !== "FINAL_B" ||
+      attestation["requiredCapabilityCount"] !== 30 || attestation["availableCapabilityCount"] !== 30 ||
+      attestation["passedCaseCount"] !== 30 || attestation["directProviderCalls"] !== 0 ||
+      evidenceCanonicalJson(baselineTuple) !== evidenceCanonicalJson(consumerGateway)) {
+    throw new Error("N04_GDPS_FINAL_B_BASELINE_MISMATCH");
+  }
+
+  const endpointOrigin = n04GatewayOrigin(required("GOWM_GATEWAY_BASE_URL"), "N04_GATEWAY_BASE_URL_INVALID");
+  const endpointHash = safeId(endpointOrigin);
+  if (digest(attestation["gatewayBaseUrlHash"], "N04_GDPS_GATEWAY_ENDPOINT_HASH_INVALID") !== endpointHash ||
+      attestation["gatewayInstanceFingerprint"] !== lockedGatewayTuple.instanceFingerprint ||
+      attestation["runningConfigFingerprint"] !== lockedGatewayTuple.runningConfigFingerprint) {
+    throw new Error("N04_GDPS_LIVE_ENDPOINT_LOCK_MISMATCH");
+  }
+
+  const foundationDirectory = required("GOWM_SAMPLE_HANDOFF_DIR");
+  const foundationManifestFile = n04JsonFile(resolve(foundationDirectory, "INSTANCE_MANIFEST.json"),
+    "N04_GOWM_INSTANCE_MANIFEST");
+  const foundationBindingFile = n04JsonFile(resolve(foundationDirectory, "INSTANCE_BINDING.json"),
+    "N04_GOWM_INSTANCE_BINDING");
+  const foundationManifest = foundationManifestFile.value;
+  const foundationBinding = foundationBindingFile.value;
+  if (foundationManifest["schemaVersion"] !== "1.0" || foundationBinding["schemaVersion"] !== "1.0" ||
+      foundationManifest["authMode"] !== "SIGNED_DELEGATION_V1" ||
+      foundationManifest["runtimeInstanceId"] !== foundationBinding["runtimeInstanceId"] ||
+      foundationManifest["instanceId"] !== foundationBinding["instanceId"] ||
+      foundationManifest["fixtureId"] !== foundationBinding["fixtureId"] ||
+      foundationManifest["fixtureVersion"] !== foundationBinding["fixtureVersion"] ||
+      n04GatewayOrigin(string(foundationManifest["gatewayBaseUrl"], "N04_GOWM_INSTANCE_ENDPOINT_MISSING"),
+        "N04_GOWM_INSTANCE_ENDPOINT_INVALID") !== endpointOrigin) {
+    throw new Error("N04_GOWM_INSTANCE_HANDOFF_MISMATCH");
+  }
+  const foundationDataScope = string(foundationManifest["dataScope"], "N04_GOWM_FOUNDATION_SCOPE_INVALID");
+  const foundationOperationLockHash = digest(
+    foundationManifest["operationLockHash"],
+    "N04_GOWM_FOUNDATION_OPERATION_LOCK_INVALID"
+  );
+  const committedFoundationOperationLockHash = sha256(readFileSync(resolve(
+    repositoryRoot,
+    "contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json"
+  )));
+  if (foundationOperationLockHash !== committedFoundationOperationLockHash) {
+    throw new Error("N04_GOWM_FOUNDATION_OPERATION_LOCK_DRIFT");
+  }
+  const dataset = datasetFile.value;
+  const selectedDatasetDataScope = string(dataset["scope"], "N04_GDPS_DATASET_SCOPE_INVALID");
+  if (foundationDataScope.includes("*") || selectedDatasetDataScope.includes("*") ||
+      foundationDataScope === selectedDatasetDataScope) {
+    throw new Error("N04_SEGMENTED_DATA_SCOPE_AUTHORITY_INVALID");
+  }
+
+  return {
+    executionSourceLockSha: expectedSharedExecutionGowmSourceLock,
+    sourceBindingMethod: "CHECKSUMMED_FINAL_B_SOURCE_LOCK_PLUS_LIVE_GATEWAY_LOCK_MATCH",
+    gdpsSourceCommit: expectedGdpsImplementationSourceCommit,
+    handoffBundleHash: expectedGdpsFinalBBundleHash,
+    checksumsFileHash: sha256(checksumsFile.bytes),
+    consumerLockHash: sha256(consumerFile.bytes),
+    gatewayBindingLockHash: sha256(gatewayFile.bytes),
+    capabilityLockHash: sha256(capabilityFile.bytes),
+    foundationInstanceBindingHash: sha256(foundationBindingFile.bytes),
+    foundationOperationLockHash,
+    foundationDataScopeHash: safeId(foundationDataScope),
+    selectedDatasetDataScopeHash: safeId(selectedDatasetDataScope),
+    endpointHash,
+    lockedGatewayTuple
+  };
 }
 
 const n04OperationLockRelativePath =
@@ -668,7 +890,7 @@ async function observeExternalWsgsProcessBinding(
     sourceTree: sourceBinding.sourceTree,
     runtimeVersion: expectedWsgsRuntimeVersion as "0.2.1",
     composeProjectHash: safeId(composeProject),
-    serviceSetHash: canonicalSha256(expectedServices),
+    serviceSetHash: canonicalSha256(expectedServices) as `sha256:${string}`,
     apiEndpointHash: safeId(apiUrl.origin),
     distinctContainerCount: 3 as const,
     apiWorkerImageDigest: apiImageDigest,
@@ -709,6 +931,33 @@ interface CaseEvidence {
   upstreamResultHashes: `sha256:${string}`[];
   modelReceiptCount: number;
   worldQueryCount: number;
+  segmentedWorldQueryCount: number;
+  gatewaySegmentCount: number;
+  segmentManifestHashes: `sha256:${string}`[];
+  segmentPlanHashes: `sha256:${string}`[];
+  segmentScopeHashes: `sha256:${string}`[];
+  segmentBindings: Array<{
+    operationKey: string;
+    dataScopeHash: `sha256:${string}`;
+    sourceLockHash: `sha256:${string}`;
+    scopeAuthorityHash: `sha256:${string}`;
+    upstreamResultHash: `sha256:${string}`;
+    worldResultHash: `sha256:${string}`;
+  }>;
+  segmentDelegationBindingCount: number;
+  segmentDelegationBindingsHash: `sha256:${string}`;
+  admissionGatewayBinding: {
+    contractCatalogRevision: `sha256:${string}`;
+    semanticCatalogHash: `sha256:${string}`;
+    bindingRevision: `sha256:${string}`;
+    operationLockHash: `sha256:${string}`;
+  };
+  admissionSegmentedScopeAuthorityBinding: {
+    schemaVersion: "1.0";
+    authorityHash: `sha256:${string}`;
+    foundationInstanceBindingHash: `sha256:${string}`;
+    gdpsChecksumsHash: `sha256:${string}`;
+  };
   gatewayExecutionCount: number;
   spatialExecutionCount: number;
   operationKeys: string[];
@@ -772,6 +1021,8 @@ interface CaseEvidence {
     };
     gateway: {
       persistedWorldQueryCount: number;
+      persistedSegmentCount: number;
+      segmentedWorldQueryCount: number;
       persistedExecutionCount: number;
       planHashesMatchCheckpoint: true;
       upstreamHashesMatchCheckpoint: true;
@@ -1471,19 +1722,32 @@ function gatewayWorldQueryFacts(value: unknown): {
     if (typeof outcome["resultHash"] === "string" && /^sha256:[0-9a-f]{64}$/u.test(outcome["resultHash"])) {
       upstreamResultHashes.push(outcome["resultHash"] as `sha256:${string}`);
     }
-    const material = outcome["encryptedCheckpointEvidenceMaterial"];
-    if (!material || typeof material !== "object" || Array.isArray(material)) continue;
-    const protectedMaterial = material as JsonObject;
-    const terminal = protectedMaterial["terminal"];
-    const world = protectedMaterial["responseStatus"] === 200
-      ? protectedMaterial["response"]
-      : terminal && typeof terminal === "object" && !Array.isArray(terminal)
-        ? (terminal as JsonObject)["result"]
-        : undefined;
-    if (!world || typeof world !== "object" || Array.isArray(world)) continue;
-    const nodes = (world as JsonObject)["nodes"];
-    if (!Array.isArray(nodes)) continue;
-    for (const rawNode of nodes) {
+    const worlds: unknown[] = [];
+    const segmented = outcome["segmentedExecution"];
+    if (segmented && typeof segmented === "object" && !Array.isArray(segmented) &&
+        (segmented as JsonObject)["executionMode"] === "GATEWAY_SEGMENTED_BY_TRUSTED_DATA_SCOPE") {
+      const segments = (segmented as JsonObject)["segments"];
+      if (Array.isArray(segments)) {
+        worlds.push(...segments.flatMap((raw) => raw && typeof raw === "object" && !Array.isArray(raw)
+          ? [(raw as JsonObject)["worldResult"]] : []));
+      }
+    } else {
+      const material = outcome["encryptedCheckpointEvidenceMaterial"];
+      if (material && typeof material === "object" && !Array.isArray(material)) {
+        const protectedMaterial = material as JsonObject;
+        const terminal = protectedMaterial["terminal"];
+        worlds.push(protectedMaterial["responseStatus"] === 200
+          ? protectedMaterial["response"]
+          : terminal && typeof terminal === "object" && !Array.isArray(terminal)
+            ? (terminal as JsonObject)["result"]
+            : undefined);
+      }
+    }
+    for (const world of worlds) {
+      if (!world || typeof world !== "object" || Array.isArray(world)) continue;
+      const nodes = (world as JsonObject)["nodes"];
+      if (!Array.isArray(nodes)) continue;
+      for (const rawNode of nodes) {
       if (!rawNode || typeof rawNode !== "object" || Array.isArray(rawNode)) continue;
       const node = rawNode as JsonObject;
       const operation = node["operation"];
@@ -1499,11 +1763,12 @@ function gatewayWorldQueryFacts(value: unknown): {
         worldFactHashes.push(...worldFacts.referenceKeyHashes);
         worldFactObjectHashes.push(...worldFacts.referenceObjectHashes);
       }
-      if (operationId.startsWith("spatial.")) {
-        const spatialValue = gatewayEnvelopeOutputValue(node["result"]);
-        if (spatialValue && typeof spatialValue === "object" && !Array.isArray(spatialValue) &&
-            Array.isArray((spatialValue as JsonObject)["objects"])) {
-          spatialResultCount += ((spatialValue as JsonObject)["objects"] as unknown[]).length;
+        if (operationId.startsWith("spatial.")) {
+          const spatialValue = gatewayEnvelopeOutputValue(node["result"]);
+          if (spatialValue && typeof spatialValue === "object" && !Array.isArray(spatialValue) &&
+              Array.isArray((spatialValue as JsonObject)["objects"])) {
+            spatialResultCount += ((spatialValue as JsonObject)["objects"] as unknown[]).length;
+          }
         }
       }
     }
@@ -1516,6 +1781,38 @@ function gatewayWorldQueryFacts(value: unknown): {
     upstreamResultHashes: uniqueDigests(upstreamResultHashes),
     spatialResultCount
   };
+}
+
+function checkpointSegmentBindings(value: unknown): CaseEvidence["segmentBindings"] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const outcomes = (value as JsonObject)["outcomes"];
+  if (!Array.isArray(outcomes)) return [];
+  const bindings: CaseEvidence["segmentBindings"] = [];
+  for (const rawOutcome of outcomes) {
+    if (!rawOutcome || typeof rawOutcome !== "object" || Array.isArray(rawOutcome)) continue;
+    const segmentedValue = (rawOutcome as JsonObject)["segmentedExecution"];
+    if (segmentedValue === undefined) continue;
+    const segmented = object(segmentedValue, "SEGMENTED_CHECKPOINT_INVALID");
+    if (segmented["schemaVersion"] !== "wsgs-segmented-world-query-execution/1.0" ||
+        segmented["executionMode"] !== "GATEWAY_SEGMENTED_BY_TRUSTED_DATA_SCOPE" ||
+        !Array.isArray(segmented["segments"])) {
+      throw new Error("SEGMENTED_CHECKPOINT_INVALID");
+    }
+    const scopeAuthorityHash = digest(segmented["scopeAuthorityHash"], "SEGMENTED_CHECKPOINT_AUTHORITY_INVALID");
+    for (const rawSegment of segmented["segments"]) {
+      const segment = object(rawSegment, "SEGMENTED_CHECKPOINT_SEGMENT_INVALID");
+      const worldResult = object(segment["worldResult"], "SEGMENTED_CHECKPOINT_WORLD_RESULT_INVALID");
+      bindings.push({
+        operationKey: string(segment["operationKey"], "SEGMENTED_CHECKPOINT_OPERATION_INVALID"),
+        dataScopeHash: safeId(string(segment["dataScope"], "SEGMENTED_CHECKPOINT_SCOPE_INVALID")),
+        sourceLockHash: digest(segment["sourceLockHash"], "SEGMENTED_CHECKPOINT_SOURCE_LOCK_INVALID"),
+        scopeAuthorityHash,
+        upstreamResultHash: digest(worldResult["outputHash"], "SEGMENTED_CHECKPOINT_RESULT_HASH_INVALID"),
+        worldResultHash: evidenceCanonicalSha256(worldResult)
+      });
+    }
+  }
+  return bindings;
 }
 
 function compositionProof(
@@ -1617,12 +1914,18 @@ async function collect(
     result_status: string | null;
     result_hash: `sha256:${string}` | null;
     result_bytes: Buffer | null;
+    immutable_locks: unknown;
+    gowm_contract_catalog_revision: `sha256:${string}` | null;
+    gowm_semantic_catalog_hash: `sha256:${string}` | null;
+    gowm_operation_lock_hash: `sha256:${string}` | null;
   }>(
     `SELECT job.job_id, request.request_id, job.status AS job_status, job.stage_generation,
             checkpoint.run_fingerprint, checkpoint.state_hash,
             checkpoint.previous_record_hash AS checkpoint_record_hash,
             checkpoint.last_completed_stage, request.payload_hash,
-            result.status AS result_status, result.result_hash, result.result_bytes
+            result.status AS result_status, result.result_hash, result.result_bytes,
+            job.immutable_locks, request.gowm_contract_catalog_revision,
+            request.gowm_semantic_catalog_hash, request.gowm_operation_lock_hash
        FROM wsgs.grounding_job AS job
        JOIN wsgs.grounding_request AS request ON request.grounding_id = job.grounding_id
        LEFT JOIN wsgs.pipeline_checkpoint AS checkpoint ON checkpoint.job_id = job.job_id
@@ -1632,6 +1935,56 @@ async function collect(
   );
   const jobRow = job.rows[0];
   if (!jobRow) throw new Error("GROUNDING_JOB_MISSING");
+  const immutableLocks = object(jobRow.immutable_locks, "PERSISTED_IMMUTABLE_LOCKS_MISSING");
+  const trustedCapabilitySnapshot = object(
+    immutableLocks["trustedCapabilitySnapshot"],
+    "PERSISTED_TRUSTED_CAPABILITY_SNAPSHOT_MISSING"
+  );
+  const admissionGatewayBinding: CaseEvidence["admissionGatewayBinding"] = {
+    contractCatalogRevision: digest(
+      trustedCapabilitySnapshot["contractCatalogRevision"],
+      "PERSISTED_GATEWAY_CATALOG_REVISION_INVALID"
+    ),
+    semanticCatalogHash: digest(
+      trustedCapabilitySnapshot["semanticCatalogHash"],
+      "PERSISTED_GATEWAY_SEMANTIC_HASH_INVALID"
+    ),
+    bindingRevision: digest(
+      trustedCapabilitySnapshot["bindingRevision"],
+      "PERSISTED_GATEWAY_BINDING_REVISION_INVALID"
+    ),
+    operationLockHash: digest(
+      trustedCapabilitySnapshot["southboundLockHash"],
+      "PERSISTED_GATEWAY_OPERATION_LOCK_INVALID"
+    )
+  };
+  if (jobRow.gowm_contract_catalog_revision !== admissionGatewayBinding.contractCatalogRevision ||
+      jobRow.gowm_semantic_catalog_hash !== admissionGatewayBinding.semanticCatalogHash ||
+      jobRow.gowm_operation_lock_hash !== admissionGatewayBinding.operationLockHash) {
+    throw new Error("PERSISTED_GATEWAY_ADMISSION_BINDING_MISMATCH");
+  }
+  const rawSegmentedScopeAuthorityBinding = object(
+    immutableLocks["segmentedScopeAuthorityBinding"],
+    "PERSISTED_SEGMENTED_SCOPE_AUTHORITY_BINDING_MISSING"
+  );
+  if (rawSegmentedScopeAuthorityBinding["schemaVersion"] !== "1.0") {
+    throw new Error("PERSISTED_SEGMENTED_SCOPE_AUTHORITY_BINDING_VERSION_INVALID");
+  }
+  const admissionSegmentedScopeAuthorityBinding: CaseEvidence["admissionSegmentedScopeAuthorityBinding"] = {
+    schemaVersion: "1.0",
+    authorityHash: digest(
+      rawSegmentedScopeAuthorityBinding["authorityHash"],
+      "PERSISTED_SEGMENTED_SCOPE_AUTHORITY_HASH_INVALID"
+    ),
+    foundationInstanceBindingHash: digest(
+      rawSegmentedScopeAuthorityBinding["foundationInstanceBindingHash"],
+      "PERSISTED_SEGMENTED_FOUNDATION_BINDING_HASH_INVALID"
+    ),
+    gdpsChecksumsHash: digest(
+      rawSegmentedScopeAuthorityBinding["gdpsChecksumsHash"],
+      "PERSISTED_SEGMENTED_GDPS_CHECKSUMS_HASH_INVALID"
+    )
+  };
   const events = await pool.query<{
     stage: string; status: string; output_hash: `sha256:${string}` | null;
     previous_record_hash: `sha256:${string}` | null; record_hash: `sha256:${string}`;
@@ -1645,8 +1998,30 @@ async function collect(
   const terminalEvents = events.rows.filter((event) => event.status !== "STARTED");
   const queries = await pool.query<{
     plan_hash: `sha256:${string}`; upstream_result_hash: `sha256:${string}` | null;
+    execution_mode: "SINGLE_GATEWAY_QUERY" | "SEGMENTED_GATEWAY_QUERIES";
+    segment_manifest_hash: `sha256:${string}` | null;
   }>(
-    "SELECT plan_hash, upstream_result_hash FROM wsgs.world_query WHERE grounding_id = $1 ORDER BY query_id",
+    `SELECT plan_hash, upstream_result_hash, execution_mode, segment_manifest_hash
+       FROM wsgs.world_query WHERE grounding_id = $1 ORDER BY query_id`,
+    [groundingId]
+  );
+  const segments = await pool.query<{
+    operation_key: string;
+    plan_hash: `sha256:${string}`;
+    data_scope: string;
+    source_lock_hash: `sha256:${string}`;
+    scope_authority_hash: `sha256:${string}`;
+    delegated_identity_hash: `sha256:${string}`;
+    completion_delegated_identity_hash: `sha256:${string}` | null;
+    upstream_result_hash: `sha256:${string}` | null;
+    world_result_hash: `sha256:${string}` | null;
+    response_status: number | null;
+    finished_at: Date | null;
+  }>(
+    `SELECT operation_key, plan_hash, data_scope, source_lock_hash, scope_authority_hash,
+             delegated_identity_hash, completion_delegated_identity_hash,
+             upstream_result_hash, world_result_hash, response_status, finished_at
+       FROM wsgs.world_query_segment WHERE grounding_id = $1 ORDER BY query_id, segment_index`,
     [groundingId]
   );
   const executions = await pool.query<{
@@ -1705,6 +2080,39 @@ async function collect(
   if (!sameDigests(gateway.upstreamResultHashes, persistedUpstreamHashes)) {
     throw new Error("PERSISTED_GATEWAY_RESULT_HASH_MISMATCH");
   }
+  const segmentedQueries = queries.rows.filter((row) => row.execution_mode === "SEGMENTED_GATEWAY_QUERIES");
+  if (segmentedQueries.some((row) => row.segment_manifest_hash === null) ||
+      segments.rows.some((row) => row.upstream_result_hash === null || row.world_result_hash === null ||
+        row.finished_at === null ||
+        !/^sha256:[0-9a-f]{64}$/u.test(row.delegated_identity_hash) ||
+        !row.completion_delegated_identity_hash ||
+        !/^sha256:[0-9a-f]{64}$/u.test(row.completion_delegated_identity_hash) ||
+        (row.response_status !== 200 && row.response_status !== 202))) {
+    throw new Error("PERSISTED_SEGMENTED_GATEWAY_TRACE_INCOMPLETE");
+  }
+  if ((segmentedQueries.length === 0) !== (segments.rowCount === 0)) {
+    throw new Error("PERSISTED_SEGMENTED_GATEWAY_TRACE_ORPHANED");
+  }
+  const persistedSegmentBindings: CaseEvidence["segmentBindings"] = segments.rows.map((row) => ({
+    operationKey: row.operation_key,
+    dataScopeHash: safeId(row.data_scope),
+    sourceLockHash: digest(row.source_lock_hash, "PERSISTED_SEGMENT_SOURCE_LOCK_INVALID"),
+    scopeAuthorityHash: digest(row.scope_authority_hash, "PERSISTED_SEGMENT_AUTHORITY_INVALID"),
+    upstreamResultHash: digest(row.upstream_result_hash, "PERSISTED_SEGMENT_RESULT_HASH_INVALID"),
+    worldResultHash: digest(row.world_result_hash, "PERSISTED_SEGMENT_WORLD_RESULT_HASH_INVALID")
+  }));
+  const checkpointBindings = checkpointSegmentBindings(checkpoint.state["GOWM_EXECUTE"]);
+  if (evidenceCanonicalJson(persistedSegmentBindings) !== evidenceCanonicalJson(checkpointBindings)) {
+    throw new Error("PERSISTED_SEGMENTED_GATEWAY_BINDING_MISMATCH");
+  }
+  const segmentDelegationBindings = segments.rows.map((row) => ({
+    operationKey: row.operation_key,
+    delegatedIdentityHash: digest(row.delegated_identity_hash, "PERSISTED_SEGMENT_DELEGATED_IDENTITY_INVALID"),
+    completionDelegatedIdentityHash: digest(
+      row.completion_delegated_identity_hash,
+      "PERSISTED_SEGMENT_COMPLETION_IDENTITY_INVALID"
+    )
+  }));
   const named = collectNamedStrings(terminalResult, new Set(["productId", "contentHash"]));
   const planning = checkpoint.state["REQUIREMENT_PLAN"];
   const selectedRecipeValues = planning && typeof planning === "object" && !Array.isArray(planning)
@@ -1741,6 +2149,16 @@ async function collect(
     upstreamResultHashes: persistedUpstreamHashes,
     modelReceiptCount: Number(model.rows[0]?.count ?? 0),
     worldQueryCount: queries.rowCount ?? 0,
+    segmentedWorldQueryCount: segmentedQueries.length,
+    gatewaySegmentCount: segments.rowCount ?? 0,
+    segmentManifestHashes: segmentedQueries.flatMap((row) => row.segment_manifest_hash ? [row.segment_manifest_hash] : []),
+    segmentPlanHashes: segments.rows.map((row) => row.plan_hash),
+    segmentScopeHashes: [...new Set(segments.rows.map((row) => safeId(row.data_scope)))],
+    segmentBindings: persistedSegmentBindings,
+    segmentDelegationBindingCount: segmentDelegationBindings.length,
+    segmentDelegationBindingsHash: evidenceCanonicalSha256(segmentDelegationBindings),
+    admissionGatewayBinding,
+    admissionSegmentedScopeAuthorityBinding,
     gatewayExecutionCount: executions.rowCount ?? 0,
     spatialExecutionCount: executions.rows.filter((row) => row.operation_id?.startsWith("spatial.")).length,
     operationKeys: [...new Set(executions.rows.flatMap((row) =>
@@ -1790,6 +2208,8 @@ async function collect(
       },
       gateway: {
         persistedWorldQueryCount: queries.rowCount ?? 0,
+        persistedSegmentCount: segments.rowCount ?? 0,
+        segmentedWorldQueryCount: segmentedQueries.length,
         persistedExecutionCount: executions.rowCount ?? 0,
         planHashesMatchCheckpoint: true,
         upstreamHashesMatchCheckpoint: true
@@ -2511,6 +2931,74 @@ async function assertPersistedN04ContractSelection(
   }
 }
 
+function assertN04SegmentedGatewayTrace(
+  evidence: CaseEvidence,
+  sharedBinding: VerifiedN04SharedExecutionGatewayBinding,
+  operationLockBinding: VerifiedN04OperationLockBinding
+): void {
+  if (evidence.segmentedWorldQueryCount !== 1 || evidence.gatewaySegmentCount !== 3 ||
+      evidence.segmentManifestHashes.length !== 1 || evidence.segmentPlanHashes.length !== 3 ||
+      new Set(evidence.segmentPlanHashes).size !== 3 || evidence.segmentScopeHashes.length !== 2 ||
+      evidence.segmentDelegationBindingCount !== 3 ||
+      !/^sha256:[0-9a-f]{64}$/u.test(evidence.segmentDelegationBindingsHash)) {
+    throw new Error("N04_SEGMENTED_GATEWAY_TRACE_MISMATCH");
+  }
+  const required = [
+    "reference.resolve@1.0",
+    "world.get-current-state@1.0",
+    "geo-raster.sample@1.0"
+  ];
+  if (evidence.operationKeys.length !== required.length ||
+      required.some((operationKey) => !evidence.operationKeys.includes(operationKey)) ||
+      evidenceCanonicalJson(evidence.segmentBindings.map((entry) => entry.operationKey)) !== evidenceCanonicalJson(required)) {
+    throw new Error("N04_SEGMENTED_GATEWAY_OPERATION_CHAIN_MISMATCH");
+  }
+  const expectedGatewayBinding = {
+    contractCatalogRevision: sharedBinding.lockedGatewayTuple.contractCatalogRevision,
+    semanticCatalogHash: sharedBinding.lockedGatewayTuple.semanticCatalogHash,
+    bindingRevision: sharedBinding.lockedGatewayTuple.bindingRevision,
+    operationLockHash: operationLockBinding.operationLockHash
+  };
+  if (evidenceCanonicalJson(evidence.admissionGatewayBinding) !== evidenceCanonicalJson(expectedGatewayBinding)) {
+    throw new Error("N04_SHARED_GATEWAY_LIVE_TUPLE_MISMATCH");
+  }
+  const expectedSegmentAuthorities = [{
+    operationKey: "reference.resolve@1.0",
+    dataScopeHash: sharedBinding.foundationDataScopeHash,
+    sourceLockHash: sharedBinding.foundationOperationLockHash
+  }, {
+    operationKey: "world.get-current-state@1.0",
+    dataScopeHash: sharedBinding.foundationDataScopeHash,
+    sourceLockHash: sharedBinding.foundationOperationLockHash
+  }, {
+    operationKey: "geo-raster.sample@1.0",
+    dataScopeHash: sharedBinding.selectedDatasetDataScopeHash,
+    sourceLockHash: sharedBinding.capabilityLockHash
+  }];
+  const actualSegmentAuthorities = evidence.segmentBindings.map(({ operationKey, dataScopeHash, sourceLockHash }) => ({
+    operationKey,
+    dataScopeHash,
+    sourceLockHash
+  }));
+  if (evidenceCanonicalJson(actualSegmentAuthorities) !== evidenceCanonicalJson(expectedSegmentAuthorities) ||
+      new Set(evidence.segmentBindings.map((entry) => entry.scopeAuthorityHash)).size !== 1 ||
+      evidence.segmentBindings.some((entry) => !/^sha256:[0-9a-f]{64}$/u.test(entry.upstreamResultHash) ||
+        !/^sha256:[0-9a-f]{64}$/u.test(entry.worldResultHash))) {
+    throw new Error("N04_SEGMENTED_GATEWAY_SOURCE_AUTHORITY_MISMATCH");
+  }
+  const expectedAdmissionScopeAuthorityBinding = {
+    schemaVersion: "1.0",
+    authorityHash: evidence.segmentBindings[0]?.scopeAuthorityHash,
+    foundationInstanceBindingHash: sharedBinding.foundationInstanceBindingHash,
+    gdpsChecksumsHash: sharedBinding.checksumsFileHash
+  };
+  if (!expectedAdmissionScopeAuthorityBinding.authorityHash ||
+      evidenceCanonicalJson(evidence.admissionSegmentedScopeAuthorityBinding) !==
+        evidenceCanonicalJson(expectedAdmissionScopeAuthorityBinding)) {
+    throw new Error("N04_SEGMENTED_GATEWAY_ADMISSION_AUTHORITY_MISMATCH");
+  }
+}
+
 async function runN04ResultExtensionGate(
   baseUrl: string,
   productionExecutor: PipelineStageExecutor | undefined,
@@ -2519,6 +3007,7 @@ async function runN04ResultExtensionGate(
 ): Promise<void> {
   if (!productionExecutor) throw new Error("N04_PRODUCTION_EXECUTOR_REQUIRED");
   const operationLockBinding = verifyN04OperationLockBinding(wsgsSourceBinding);
+  const sharedExecutionGatewayBinding = loadVerifiedN04SharedExecutionGatewayBinding();
   const legacyCapabilities = await fetchJson(baseUrl, "/v1/capabilities", { headers: n04LegacyHeaders });
   if (legacyCapabilities.status !== 200 ||
       legacyCapabilities.headers.get("wsgs-contract-version") !== "sacs-wsgs-grounding/1.0" ||
@@ -2607,6 +3096,7 @@ async function runN04ResultExtensionGate(
     gdpsSuite,
     gdpsRuntime
   );
+  assertN04SegmentedGatewayTrace(synchronousEvidence, sharedExecutionGatewayBinding, operationLockBinding);
   const synchronousExtension = n04ExtensionSummary(synchronousEvidence);
 
   const geospatialBody = requestBody(
@@ -2629,6 +3119,12 @@ async function runN04ResultExtensionGate(
     geospatialPayloadHash
   );
   validateGdpsCaseEvidence(definition, { ...geospatialEvidence, recipeId: definition.id }, gdpsSuite, gdpsRuntime);
+  assertN04SegmentedGatewayTrace(geospatialEvidence, sharedExecutionGatewayBinding, operationLockBinding);
+  if (evidenceCanonicalJson(synchronousEvidence.admissionGatewayBinding) !==
+        evidenceCanonicalJson(geospatialEvidence.admissionGatewayBinding) ||
+      evidenceCanonicalJson(synchronousEvidence.segmentBindings) !== evidenceCanonicalJson(geospatialEvidence.segmentBindings)) {
+    throw new Error("N04_SYNC_ASYNC_SHARED_GATEWAY_BINDING_MISMATCH");
+  }
   const extension = n04ExtensionSummary(geospatialEvidence);
   const geospatialRuntime = privateCaseRuntime.get(geospatialEvidence);
   if (!geospatialRuntime) throw new Error("N04_PRIVATE_RUNTIME_MISSING");
@@ -2717,17 +3213,31 @@ async function runN04ResultExtensionGate(
   );
 
   const reportPayload = {
-    schemaVersion: "wsgs-v021-result-extension-real-runtime/1.0",
+    schemaVersion: "wsgs-v021-result-extension-real-runtime/1.1",
     sourceCommit,
     qualifiedSourceSha: sourceCommit,
     sourceTree: wsgsSourceBinding.sourceTree,
     sourceBinding: wsgsSourceBinding,
-    upstreamRuntime: {
+    isolatedFoundationQualification: {
       sourceCommit: runtimeBinding.sourceCommit,
       runtimeBindingHash: runtimeBinding.runtimeBindingHash,
       gatewayContractVersion: runtimeBinding.gatewayContractVersion,
+      evidenceLayer: "DIRECT_WSGS_CONSUMER_TO_ISOLATED_GOWM_GATEWAY",
+      usedByN04Execution: false
+    },
+    sharedExecutionGatewayBinding: {
+      ...sharedExecutionGatewayBinding,
+      gatewayContractVersion: expectedGatewayContractVersion,
       operationLockHash: operationLockBinding.operationLockHash,
-      operationLockPathHash: operationLockBinding.operationLockPathHash
+      operationLockPathHash: operationLockBinding.operationLockPathHash,
+      liveGatewayTuple: geospatialEvidence.admissionGatewayBinding,
+      admissionSegmentedScopeAuthorityBinding: geospatialEvidence.admissionSegmentedScopeAuthorityBinding,
+      segmentAuthorityHashes: [...new Set(geospatialEvidence.segmentBindings.map((entry) => entry.scopeAuthorityHash))],
+      segmentSourceLockHashes: [...new Set(geospatialEvidence.segmentBindings.map((entry) => entry.sourceLockHash))].sort(),
+      segmentBindings: geospatialEvidence.segmentBindings,
+      segmentBindingsHash: evidenceCanonicalSha256(geospatialEvidence.segmentBindings),
+      segmentDelegationBindingCount: geospatialEvidence.segmentDelegationBindingCount,
+      segmentDelegationBindingsHash: geospatialEvidence.segmentDelegationBindingsHash
     },
     negotiation: {
       legacyContractVersion: "sacs-wsgs-grounding/1.0",
@@ -2755,6 +3265,14 @@ async function runN04ResultExtensionGate(
       terminalStatus: geospatialEvidence.terminalStatus,
       pipelineStageCount: geospatialEvidence.completedStages.length,
       gatewayExecutionCount: geospatialEvidence.gatewayExecutionCount,
+      segmentedWorldQueryCount: geospatialEvidence.segmentedWorldQueryCount,
+      gatewaySegmentCount: geospatialEvidence.gatewaySegmentCount,
+      segmentManifestHashes: geospatialEvidence.segmentManifestHashes,
+      segmentPlanHashes: geospatialEvidence.segmentPlanHashes,
+      segmentDelegationBindingCount: geospatialEvidence.segmentDelegationBindingCount,
+      segmentDelegationBindingsHash: geospatialEvidence.segmentDelegationBindingsHash,
+      exactSegmentedGatewayOperationChainVerified: true,
+      exactTrustedDataScopeCount: geospatialEvidence.segmentScopeHashes.length,
       resultHash: geospatialEvidence.resultHash,
       persistedResultBytesHash: geospatialEvidence.traceability.postgres.resultBytesHash,
       persistedBytesAndHashMatchGet: true,
