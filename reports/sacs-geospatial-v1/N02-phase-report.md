@@ -26,12 +26,12 @@ This phase is a source/contract/unit qualification only. It does not claim a sha
 
 | Artifact | Raw SHA-256 |
 |---|---|
-| `reports/sacs-geospatial-v1/N02-decoder-coverage.json` | `sha256:5e13ce7206450fa209cd9d1ecb7f28eb6e32950f796aee9970d01e5ddf07e97b` |
-| `reports/sacs-geospatial-v1/N02-determinism.json` | `sha256:21f1c3beb2998c31f5eabcddc17df19767abb230054df8edc8b0739a1e8c524f` |
-| `reports/sacs-geospatial-v1/N02-negative-cases.json` | `sha256:2c739ffcc6a81f51768ca158abe0ea57b30eeefeeec1a3ec5ff048ee23a2f91d` |
-| `reports/sacs-geospatial-v1/decoder-report.json` | `sha256:12acd9c4fa42969d3db719b3ffdc9ecdef83bed12bc2c2cd0d01d6498d482c37` |
+| `reports/sacs-geospatial-v1/N02-decoder-coverage.json` | `sha256:1fd0ccc1c9f776623a61fa0e379c4b320b7cb050a8446d7ed8ce19cb6d343747` |
+| `reports/sacs-geospatial-v1/N02-determinism.json` | `sha256:1fba810cd071d271511c1677020390715298458f2fb3af675cc401feeab19866` |
+| `reports/sacs-geospatial-v1/N02-negative-cases.json` | `sha256:19ceeb202f6c6b1c4c1217b927267141643f7993dbcc2c59c2380513c80c0926` |
+| `reports/sacs-geospatial-v1/decoder-report.json` | `sha256:fb5d48115fd335a2aad082825b8f8e3323418f1d54a0d78bbd0502d4cfd131a7` |
 
-Common deterministic input-set hash: `sha256:430ce6c2cff861aa1c55fe49c1a72c5b989aa6196da583904a9eb5dd7bb735a5`. The aggregate binds the raw bytes of all three detailed JSON reports. It intentionally does not hash itself or this phase report.
+Common deterministic input-set hash: `sha256:9305f083f1299ee3c75f36ad19ab1e3a422b300d9f51fcfebf1368be22ca724e`. The aggregate binds the raw bytes of all three detailed JSON reports. It intentionally does not hash itself or this phase report.
 
 ## Verification executed
 

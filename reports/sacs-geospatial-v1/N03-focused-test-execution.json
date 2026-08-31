@@ -1,7 +1,7 @@
 {
   "schemaVersion": "wsgs-v021-n03-focused-test-execution/1.0",
   "status": "PASS",
-  "inputSetHash": "sha256:80647ab0c011966393ec966e3aaf34b89224f5ede95cc478cd67d4dc78a288da",
+  "inputSetHash": "sha256:ceb63771b7621b47699d727eb8ea7776d8f23734278b0b8b01f2d0ab24e21834",
   "suites": [
     {
       "logicalTestId": "DECODER_REGISTRY",
@@ -13,7 +13,7 @@
     },
     {
       "logicalTestId": "RESULT_NORMALIZER",
-      "passed": 23
+      "passed": 27
     },
     {
       "logicalTestId": "SOURCE_NORMALIZER",
@@ -21,8 +21,8 @@
     }
   ],
   "totals": {
-    "expected": 116,
-    "passed": 116,
+    "expected": 120,
+    "passed": 120,
     "failed": 0,
     "pending": 0
   },

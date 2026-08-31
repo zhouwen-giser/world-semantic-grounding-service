@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:430ce6c2cff861aa1c55fe49c1a72c5b989aa6196da583904a9eb5dd7bb735a5",
+  "inputSetHash": "sha256:9305f083f1299ee3c75f36ad19ab1e3a422b300d9f51fcfebf1368be22ca724e",
   "inputHashCanonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
   "verificationRecipe": {
     "writeCommand": "npm run findings:decoder:write",
@@ -86,7 +86,7 @@
     "inputHashes": {
       "packages/northbound-geospatial-findings/fixtures/gdps-real-result-shapes.json": "sha256:c1f2764e4a6d03eaed6f830a1d372666df428761667b89baba857ed1c8d8b0f9",
       "packages/northbound-geospatial-findings/fixtures/gdps-v021-capability-decoder-coverage.json": "sha256:e785d9f6574a112dbf1b62ec90131c5dc56be63eaa87c28e6c074532126660c4",
-      "packages/northbound-geospatial-findings/package.json": "sha256:696b293ec81a55bd69d7d0332471b84f20290880647e59c20fcd98f9b83c49ae",
+      "packages/northbound-geospatial-findings/package.json": "sha256:de69c85779486d2493f8c22d86af2d11c5fa133241407128fa2a5c4008f964ce",
       "packages/northbound-geospatial-findings/src/canonical.ts": "sha256:8dc240d61ed63f9fed548f62b804f29bcaa44cdf17796e4ce7d54e2ed70953f7",
       "packages/northbound-geospatial-findings/src/decoders.ts": "sha256:08ffb95162677caf8f66c216375904ea10e7ec93a0a1a252ae45110c27967aef",
       "packages/northbound-geospatial-findings/src/index.ts": "sha256:4616624de5771e17fecf59c699ce51198949798a3d0a8c15ff0d975831a2c830",

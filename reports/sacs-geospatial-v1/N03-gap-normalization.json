@@ -4,9 +4,9 @@
   "version": "0.2.1",
   "profile": "sacs-wsgs-geospatial-findings/1.0",
   "transportMode": "RESULT_EXTENSION",
-  "inputSetHash": "sha256:80647ab0c011966393ec966e3aaf34b89224f5ede95cc478cd67d4dc78a288da",
+  "inputSetHash": "sha256:ceb63771b7621b47699d727eb8ea7776d8f23734278b0b8b01f2d0ab24e21834",
   "inputHashes": {
-    "PACKAGE_MANIFEST": "sha256:48c2d38612b7d70c927bacf3544e9c002c71e42c8244f45c4c415ebe281cd8eb",
+    "PACKAGE_MANIFEST": "sha256:6847ee8aae6f86d0ad5521622f732ea943365e7d4efe2b356f620b2101790c76",
     "N03_EVIDENCE_GENERATOR": "sha256:a34af38d8fff78e2f6b97cebf8b8bec7bb535e241af8a073739bd9834327626c",
     "N03_REAL_GATE": "sha256:2f3f27e33f8e80d8c29b4225117f4775da541ab84b21bfa21d8f60a4695d79df",
     "VALIDATED_GOWM_ENVELOPE": "sha256:35f98bdc1d002de5709ace9c0f71862a3499c6200bbd63a3d86e8ef0e0d8b66b",
@@ -14,8 +14,8 @@
     "SOURCE_NORMALIZER_TEST": "sha256:0aab66d9af920798b83687bf55c325ae9d6ca7e3b048ec2c15899b3980fb1d83",
     "GAP_NORMALIZER": "sha256:a1861b1b5ac404fd3e75ace9534492333dbe36f0050f7121c336bbadabb25474",
     "GAP_NORMALIZER_TEST": "sha256:538ee96e6d937b0332337fc6bb3ae3f8bc40723c269c387037f87cf41900ea8b",
-    "RESULT_NORMALIZER": "sha256:44c459c803f9ceb2a7309ba5b19b9b0d85fec3dea3f2a8c2fa019b6bbc418260",
-    "RESULT_NORMALIZER_TEST": "sha256:4b0befb7f4b004fc7a9afe39774560503fa106fe0d78d04e3585ca70b0fe22ff",
+    "RESULT_NORMALIZER": "sha256:0ebc4babf15dc5b10360db1068619f4c2c6c9713d475256b06b7880ef8fa7530",
+    "RESULT_NORMALIZER_TEST": "sha256:03597d27a95efb21a2dc1f3fa231836dcb04f0de7e8c639768d38ee7d7dea747",
     "VALIDATION_BOUNDARY": "sha256:4a3d43a80b8341d6c69571a15943591fcc721e115e380a27d6a74fc1fdbe107b",
     "DECODER_REGISTRY": "sha256:4f380d75ccf1dc7b5b8654e28438eb8514664fa09f532ef84d1c590e6ba6646a",
     "PUBLIC_INDEX": "sha256:4616624de5771e17fecf59c699ce51198949798a3d0a8c15ff0d975831a2c830",
@@ -34,10 +34,10 @@
     "groundingResultExtension": "sha256:8875bc727eadefef8fa8797c1d862e56f4601323941f635ba1c341cf1f4d1a6c"
   },
   "testInventory": {
-    "focusedExecutedCases": 116,
-    "focusedExpectedCases": 116,
+    "focusedExecutedCases": 120,
+    "focusedExpectedCases": 120,
     "focusedSuiteCount": 4,
-    "focusedExecutionEvidenceHash": "sha256:0d2bbf76e8c2028713f808665efcc0e3a3f78fc786c0bc1df818e5ce8fb3ff41",
+    "focusedExecutionEvidenceHash": "sha256:90c17fc57a12e55e2de08aeb10883c8d709133aa17f60d4194a27e35389898a7",
     "focusedExecutionClaimEmbedded": true
   },
   "canonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
