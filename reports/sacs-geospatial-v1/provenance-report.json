@@ -45,8 +45,8 @@
   "localPathsIncluded": false,
   "requestIdentifiersIncluded": false,
   "internalTopologyIncluded": false,
-  "status": "PARTIAL",
-  "marker": null,
+  "status": "PASS",
+  "marker": "WSGS_V021_GEOSPATIAL_PROVENANCE_READY",
   "evidenceReports": {
     "PROVENANCE_INTEGRITY": "sha256:49a0389709783ea4c02b8a29208fbe4f50f2128d17907d21f60c42068d81944f",
     "GAP_NORMALIZATION": "sha256:0e91709871566dcebd971abf6440359e9769e1c49982336484be2ffa5785cac7",
@@ -55,10 +55,14 @@
   },
   "evidenceSetHash": "sha256:933446113862c570a04d7e44634f2d6bcdfa9bcb187d0adc80dc4b0f33f03f7b",
   "unitQualification": "PASS",
-  "realUpstreamQualification": "NOT_RUN",
+  "realUpstreamQualification": "PASS",
+  "realUpstreamEvidence": {
+    "logicalId": "REAL_SIGNED_GATEWAY_UPSTREAM",
+    "artifactSha256": "sha256:e121e9ebc0a317aa2ea93571279619c9f649b8a71ee1266537e41f30bd87c037"
+  },
   "acceptance": {
     "acceptanceId": "V21-G06",
-    "status": "NOT_RUN"
+    "status": "PASS"
   },
   "productionQualified": false
 }
