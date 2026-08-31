@@ -1828,7 +1828,10 @@ function checkpointSegmentBindings(value: unknown): CaseEvidence["segmentBinding
         sourceLockHash: digest(segment["sourceLockHash"], "SEGMENTED_CHECKPOINT_SOURCE_LOCK_INVALID"),
         scopeAuthorityHash,
         upstreamResultHash: digest(worldResult["outputHash"], "SEGMENTED_CHECKPOINT_RESULT_HASH_INVALID"),
-        worldResultHash: evidenceCanonicalSha256(worldResult)
+        worldResultHash: digest(
+          canonicalSha256(worldResult),
+          "SEGMENTED_CHECKPOINT_WORLD_RESULT_HASH_INVALID"
+        )
       });
     }
   }
