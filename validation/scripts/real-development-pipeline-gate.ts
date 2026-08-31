@@ -642,7 +642,11 @@ function loadVerifiedRuntimeBinding(): VerifiedRuntimeBinding {
       imageBuildReport["schemaVersion"] !== "wsgs-gowm-runtime-image-build/1.0" ||
       imageBuildReport["status"] !== "PASS" ||
       imageBuildReport["sourceCommit"] !== runtimeSourceCommit || imageBuildReport["runtimeVersion"] !== runtimeVersion ||
-      imageBuildReport["sourceTree"] !== sourceTree || imageBuildReport["imageDigest"] !== imageDigest) {
+      imageBuildReport["sourceTree"] !== sourceTree || imageBuildReport["runtimeImageDigest"] !== imageDigest ||
+      imageBuildReport["tagIndependentContentMatch"] !== true ||
+      imageBuildReport["independentBuildContentHash"] !== imageBuildReport["runtimeContentHash"] ||
+      !/^sha256:[0-9a-f]{64}$/u.test(String(imageBuildReport["imageDigest"] ?? "")) ||
+      !/^sha256:[0-9a-f]{64}$/u.test(String(imageBuildReport["independentBuildContentHash"] ?? ""))) {
     throw new Error("GOWM_RUNTIME_IMAGE_BUILD_EVIDENCE_BINDING_MISMATCH");
   }
   if (instanceImageBuild["reportPath"] !== imageBuildEvidencePath ||

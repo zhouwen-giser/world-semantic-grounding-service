@@ -1,22 +1,20 @@
 {
   "schemaVersion": "wsgs-runtime-image-build/1.0",
   "status": "PASS",
-  "generatedAt": "2026-08-30T08:30:24.887Z",
-  "sourceCommit": "b3315cbb5dce9635911a90ac095b93b1efab8e70",
-  "sourceTree": "e84b8a482e62ceec66bb9b76315b70d7ca7d660d",
+  "generatedAt": "2026-08-31T06:16:31.599Z",
+  "sourceCommit": "b489d4e9382a9256280ec70b1d7cfb4bf43159aa",
+  "sourceTree": "fad7fc730bad688ffaa86c05fff2ecab8299d9c4",
   "runtimeVersion": "0.2.1",
-  "imageDigest": "sha256:4cca6fe6ad8235006d16bccfe49362d5619f5ad2c84e837570bae1c3a57d068c",
-  "imageTagHash": "sha256:0e8fe1524a8249277d849d15e86a01b01cce82baa0606b6c5f3698fb607c140f",
+  "imageDigest": "sha256:9bf69b3388a69b47b874aebc8f29820ae22a149e9f6282a60c2180b56d46bd6d",
+  "imageTagHash": "sha256:dd9d1220b126f56900f3e22d581bb1b269c86e4a9bd85a6eb394d454afdf3708",
   "dockerServerVersion": "29.6.1",
   "buildMethod": "DOCKER_BUILD_FROM_CLEAN_EXACT_GIT_TREE_WITH_OCI_LABELS",
   "sourceDirectoryIncluded": false,
-  "preexistingUntrackedEvidence": [
-    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json"
-  ],
+  "preexistingUntrackedEvidence": [],
   "redaction": {
     "credentialsIncluded": false,
     "localPathsIncluded": false,
     "internalTopologyIncluded": false
   },
-  "evidenceHash": "sha256:7d23667c2f9e4512f66fb55ee738d8c000f8f4bfe36df95fe89861eb4cdc0d08"
+  "evidenceHash": "sha256:bc06b25a445be77bd68341b25c36d6a1c1af760eb211f9973c29dfebdfe934c6"
 }

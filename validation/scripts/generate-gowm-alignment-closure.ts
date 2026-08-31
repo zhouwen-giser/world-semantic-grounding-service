@@ -515,7 +515,15 @@ function assertDirectRuntimeBinding(root: string, runtime: JsonObject, label: st
   invariant(imageBuildReport["status"] === "PASS", "ALIGNMENT_RUNTIME_IMAGE_BUILD_NOT_PASS", label);
   invariant(imageBuildReport["sourceCommit"] === EXPECTED_RUNTIME_COMMIT, "ALIGNMENT_RUNTIME_IMAGE_BUILD_COMMIT_MISMATCH", label);
   invariant(imageBuildReport["runtimeVersion"] === EXPECTED_RUNTIME_VERSION, "ALIGNMENT_RUNTIME_IMAGE_BUILD_VERSION_MISMATCH", label);
-  invariant(imageBuildReport["imageDigest"] === binding["imageDigest"], "ALIGNMENT_RUNTIME_IMAGE_BUILD_IMAGE_MISMATCH", label);
+  invariant(imageBuildReport["runtimeImageDigest"] === binding["imageDigest"], "ALIGNMENT_RUNTIME_IMAGE_BUILD_IMAGE_MISMATCH", label);
+  invariant(
+    /^sha256:[0-9a-f]{64}$/u.test(String(imageBuildReport["imageDigest"] ?? "")) &&
+      /^sha256:[0-9a-f]{64}$/u.test(String(imageBuildReport["independentBuildContentHash"] ?? "")) &&
+      imageBuildReport["independentBuildContentHash"] === imageBuildReport["runtimeContentHash"] &&
+      imageBuildReport["tagIndependentContentMatch"] === true,
+    "ALIGNMENT_RUNTIME_IMAGE_BUILD_CONTENT_MISMATCH",
+    label
+  );
   invariant(
     imageBuildReport["buildMethod"] === "DOCKER_BUILD_FROM_CLEAN_EXACT_GIT_TREE_WITH_OCI_LABELS",
     "ALIGNMENT_RUNTIME_IMAGE_BUILD_METHOD_MISMATCH",

@@ -1,12 +1,24 @@
 {
   "schemaVersion": "wsgs-gowm-runtime-image-build/1.0",
   "status": "PASS",
-  "generatedAt": "2026-08-30T05:59:50.682Z",
-  "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
-  "sourceTree": "0b48090f0491226817c672e998b633200aaa43ce",
+  "generatedAt": "2026-08-31T06:29:59.146Z",
+  "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+  "sourceTree": "e6d0747d6a8edaf86a54cc5163cb26a36f98fa16",
   "runtimeVersion": "0.6.4",
-  "imageDigest": "sha256:5ada61bbebc1bc808e9db14a9ca2aabe9d23211799393f8012e2e63d49eabe18",
-  "imageTagHash": "sha256:217e6bd3d49b720a851d0b79ab21082e958dfabc8fd23e0ed2bd844e7ec67cf1",
+  "imageDigest": "sha256:4eafb8711b8e4f3182678450f9c657e6b0cbc2153553c692da9b8a857d6cfc86",
+  "runtimeImageDigest": "sha256:5beba90084959786421b23539feffa45c1898e36cdd7749c42428202ffd2ce3e",
+  "independentBuildContentHash": "sha256:866bc7a81bf5324bf98fc4daa2a4d65b2253ff1d1a4d610e641bba5025a12dd5",
+  "runtimeContentHash": "sha256:866bc7a81bf5324bf98fc4daa2a4d65b2253ff1d1a4d610e641bba5025a12dd5",
+  "tagIndependentContentMatch": true,
+  "tagScopedIdentityFieldsExcluded": [
+    "Descriptor",
+    "Id",
+    "Identity",
+    "Metadata",
+    "RepoDigests",
+    "RepoTags"
+  ],
+  "imageTagHash": "sha256:c803f1d434b721ba90ad41ed8511c7988445513a6da68ca38b5ce7194c95cc5f",
   "dockerServerVersion": "29.6.1",
   "buildMethod": "DOCKER_BUILD_FROM_CLEAN_EXACT_GIT_TREE_WITH_OCI_LABELS",
   "sourceDirectoryIncluded": false,
@@ -15,5 +27,5 @@
     "localPathsIncluded": false,
     "internalTopologyIncluded": false
   },
-  "evidenceHash": "sha256:384c19f07ed8be88ee0692d2515c698bdacd227f0544bd2daead9f58df6cf046"
+  "evidenceHash": "sha256:f1da2285134b10976fa57d4a0a1fc38d45870f2b4469f1ed827b2667c5e0a5ae"
 }

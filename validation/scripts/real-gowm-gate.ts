@@ -223,7 +223,24 @@ function loadRuntimeImageBuildEvidence(imageDigest: string): JsonObject {
   assertion(report["status"] === "PASS", "GOWM_RUNTIME_IMAGE_BUILD_REPORT_NOT_PASS");
   assertion(report["sourceCommit"] === "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14", "GOWM_RUNTIME_IMAGE_BUILD_SOURCE_MISMATCH");
   assertion(report["runtimeVersion"] === "0.6.4", "GOWM_RUNTIME_IMAGE_BUILD_VERSION_MISMATCH");
-  assertion(report["imageDigest"] === imageDigest, "GOWM_RUNTIME_IMAGE_BUILD_DIGEST_MISMATCH");
+  const independentBuildImageDigest = text(
+    report["imageDigest"],
+    "GOWM_RUNTIME_IMAGE_BUILD_INDEPENDENT_DIGEST_MISSING"
+  );
+  assertion(/^sha256:[0-9a-f]{64}$/u.test(independentBuildImageDigest),
+    "GOWM_RUNTIME_IMAGE_BUILD_INDEPENDENT_DIGEST_INVALID");
+  assertion(report["runtimeImageDigest"] === imageDigest, "GOWM_RUNTIME_IMAGE_BUILD_DIGEST_MISMATCH");
+  const independentBuildContentHash = text(
+    report["independentBuildContentHash"],
+    "GOWM_RUNTIME_IMAGE_BUILD_CONTENT_HASH_MISSING"
+  );
+  const runtimeContentHash = text(report["runtimeContentHash"], "GOWM_RUNTIME_IMAGE_CONTENT_HASH_MISSING");
+  assertion(/^sha256:[0-9a-f]{64}$/u.test(independentBuildContentHash) &&
+    independentBuildContentHash === runtimeContentHash && report["tagIndependentContentMatch"] === true,
+  "GOWM_RUNTIME_IMAGE_BUILD_CONTENT_MISMATCH");
+  assertion(JSON.stringify(report["tagScopedIdentityFieldsExcluded"]) ===
+    JSON.stringify(["Descriptor", "Id", "Identity", "Metadata", "RepoDigests", "RepoTags"]),
+  "GOWM_RUNTIME_IMAGE_BUILD_CONTENT_PROJECTION_INVALID");
   const sourceTree = text(report["sourceTree"], "GOWM_RUNTIME_IMAGE_BUILD_TREE_MISSING");
   assertion(/^[0-9a-f]{40}$/u.test(sourceTree), "GOWM_RUNTIME_IMAGE_BUILD_TREE_INVALID");
   const generatedAt = text(report["generatedAt"], "GOWM_RUNTIME_IMAGE_BUILD_TIME_MISSING");
@@ -234,6 +251,8 @@ function loadRuntimeImageBuildEvidence(imageDigest: string): JsonObject {
     reportPath: safePath,
     reportFileHash: sha256(bytes),
     reportPayloadHash: evidenceHash,
+    independentBuildImageDigest,
+    tagIndependentContentHash: independentBuildContentHash,
     generatedAt
   };
 }
