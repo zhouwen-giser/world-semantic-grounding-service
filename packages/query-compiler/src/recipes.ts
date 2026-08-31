@@ -235,6 +235,7 @@ const platformProfileBinding: QueryTemplateRequestBinding = {
 function genericGdpsStep(
   stepId: string,
   operationId: string,
+  semantics: Pick<RequirementContract, "domain" | "relationSemantics" | "resultNature">,
   link: QueryTemplateLink,
   requestBindings: readonly QueryTemplateRequestBinding[] = [],
   literalBindings: readonly QueryTemplateLiteralBinding[] = []
@@ -247,13 +248,13 @@ function genericGdpsStep(
     requestBindings: [...gdpsDescriptorBindings, ...requestBindings, platformProfileBinding],
     literalBindings,
     requirement: contract(`${operationId}@1.0`, {
-      domain: "SPATIAL",
-      relationSemantics: ["DESCRIBES"],
+      domain: semantics.domain,
+      relationSemantics: semantics.relationSemantics,
       acceptedReferenceKinds: [],
       producedReferenceKinds: [],
       spatialSemantics: "EXACT",
       timeSemantics: "CURRENT",
-      resultNature: "DERIVED",
+      resultNature: semantics.resultNature,
       inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
       outputPorts: [resultPort()]
     })
@@ -704,6 +705,8 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readCurrentPosition,
       genericGdpsStep("sample-product", "geo-raster.sample", {
+        domain: "ANALYSIS", relationSemantics: ["DESCRIBES"], resultNature: "FACT"
+      }, {
         sourceStepId: "read-current-position", outputPort: "positionCoordinates",
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
       }, [], [geoJsonPointType])]
@@ -717,6 +720,8 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readGeometry,
       genericGdpsStep("profile-product", "geo-raster.profile", {
+        domain: "ANALYSIS", relationSemantics: ["DESCRIBES"], resultNature: "DERIVED"
+      }, {
         sourceStepId: "read-geometry", outputPort: "geometry", inputName: "line", targetPath: "/line"
       })]
   },
@@ -728,7 +733,9 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readGeometry,
-      genericGdpsStep("find-product-class", "geo-raster.find-by-class", { ...geometryLink, targetPath: "/selector" }, [classCodesBinding])]
+      genericGdpsStep("find-product-class", "geo-raster.find-by-class", {
+        domain: "SPATIAL", relationSemantics: ["INSIDE"], resultNature: "DERIVED"
+      }, { ...geometryLink, targetPath: "/selector" }, [classCodesBinding])]
   },
   {
     templateId: "gdps-generic-find-range",
@@ -738,7 +745,9 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readGeometry,
-      genericGdpsStep("find-product-range", "geo-raster.find-by-range", { ...geometryLink, targetPath: "/selector" }, [rangesBinding])]
+      genericGdpsStep("find-product-range", "geo-raster.find-by-range", {
+        domain: "SPATIAL", relationSemantics: ["INSIDE"], resultNature: "DERIVED"
+      }, { ...geometryLink, targetPath: "/selector" }, [rangesBinding])]
   },
   {
     templateId: "gdps-generic-vector-in-area",
@@ -748,7 +757,9 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readGeometry,
-      genericGdpsStep("find-vector-in-area", "geo-vector.find-in-area", { ...geometryLink, targetPath: "/selector" }, [propertyFiltersBinding])]
+      genericGdpsStep("find-vector-in-area", "geo-vector.find-in-area", {
+        domain: "SPATIAL", relationSemantics: ["INSIDE"], resultNature: "DERIVED"
+      }, { ...geometryLink, targetPath: "/selector" }, [propertyFiltersBinding])]
   },
   {
     templateId: "gdps-generic-vector-nearby",
@@ -759,6 +770,8 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readCurrentPosition,
       genericGdpsStep("find-vector-nearby", "geo-vector.find-nearby", {
+        domain: "SPATIAL", relationSemantics: ["NEAR"], resultNature: "DERIVED"
+      }, {
         sourceStepId: "read-current-position", outputPort: "positionCoordinates",
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
       }, [{
@@ -775,7 +788,9 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
     steps: [resolveReference, readGeometry,
-      genericGdpsStep("find-vector-intersections", "geo-vector.find-intersections", { ...geometryLink, targetPath: "/selector" }, [propertyFiltersBinding])]
+      genericGdpsStep("find-vector-intersections", "geo-vector.find-intersections", {
+        domain: "SPATIAL", relationSemantics: ["INTERSECTS"], resultNature: "DERIVED"
+      }, { ...geometryLink, targetPath: "/selector" }, [propertyFiltersBinding])]
   }
 ] as const;
 

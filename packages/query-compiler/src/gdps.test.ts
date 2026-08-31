@@ -1,8 +1,68 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 import { TypedWorldQueryCompiler } from "./compiler.js";
 import { queryTemplateRules } from "./recipes.js";
 import { authorizeGdps, compileInput } from "./test-fixtures.js";
-import type { QuerySemanticPattern } from "./types.js";
+import type {
+  CapabilityDescriptor,
+  CapabilitySemanticProfile,
+  CompileInput,
+  OperationLock,
+  QuerySemanticPattern
+} from "./types.js";
+
+interface PublishedGdpsOperation {
+  operationId: string;
+  operationVersion: string;
+  semanticProfile: CapabilitySemanticProfile;
+  semanticProfileHash: `sha256:${string}`;
+}
+
+const generatedArtifactRoot = resolve(
+  import.meta.dirname,
+  "..", "..", "..", "contracts", "generated", "gdps-v0.2.1"
+);
+const publishedClosure = JSON.parse(readFileSync(
+  resolve(generatedArtifactRoot, "gdps-finding-contract-closure.json"),
+  "utf8"
+)) as {
+  provider: { manifest: { capabilities: CapabilityDescriptor[] } };
+  operations: PublishedGdpsOperation[];
+};
+const publishedOperationLock = JSON.parse(readFileSync(
+  resolve(generatedArtifactRoot, "wsgs-southbound-operation-lock-v2.json"),
+  "utf8"
+)) as { defaultOperations: OperationLock[]; previewOperations: OperationLock[] };
+
+function usePublishedGdpsOperation(input: CompileInput, operationId: string): void {
+  const descriptor = publishedClosure.provider.manifest.capabilities.find((entry) =>
+    entry.operationId === operationId && entry.operationVersion === "1.0");
+  const semantic = publishedClosure.operations.find((entry) =>
+    entry.operationId === operationId && entry.operationVersion === "1.0");
+  const lock = [...publishedOperationLock.defaultOperations, ...publishedOperationLock.previewOperations]
+    .find((entry) => entry.operationId === operationId && entry.operationVersion === "1.0");
+  if (!descriptor || !semantic || !lock) throw new Error(`PUBLISHED_GDPS_OPERATION_MISSING:${operationId}`);
+
+  input.capabilities = input.capabilities.map((entry) =>
+    entry.operationId === operationId && entry.operationVersion === "1.0" ? descriptor : entry);
+  input.semanticProfiles = input.semanticProfiles.map((entry) =>
+    entry.operationId === operationId && entry.operationVersion === "1.0"
+      ? {
+          operationId: semantic.operationId,
+          operationVersion: semantic.operationVersion,
+          semanticProfile: semantic.semanticProfile,
+          semanticProfileHash: semantic.semanticProfileHash
+        }
+      : entry);
+  input.operationLocks = input.operationLocks.map((entry) =>
+    entry.operationId === operationId && entry.operationVersion === "1.0" ? lock : entry);
+  input.availability = input.availability.map((entry) =>
+    entry.operationId === operationId && entry.operationVersion === "1.0"
+      ? { ...entry, maturity: lock.maturity }
+      : entry);
+}
 
 const cases: Array<readonly [QuerySemanticPattern, readonly string[]]> = [
   ["GDPS_LAND_COVER_AT_REFERENCE", ["reference.resolve", "world.get-current-state", "landcover.get-class"]],
@@ -107,6 +167,7 @@ describe("GDPS typed query plans", () => {
   it.each(genericCases)("builds descriptor-driven generic plan %s", (pattern, operations, parameters) => {
     const input = compileInput(pattern);
     input.maturityPolicy.allowPreview = true;
+    usePublishedGdpsOperation(input, operations.at(-1)!);
     authorizeGdps(input, {
       descriptorId: pattern.includes("VECTOR") ? "DRAINAGE_NETWORK/DRAINAGE_FEATURES" : "SLOPE/DEGREE",
       productType: pattern.includes("VECTOR") ? "DRAINAGE_NETWORK" : "SLOPE",
