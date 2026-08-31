@@ -419,6 +419,8 @@ try {
   $env:WSGS_GATE_RUN_ID = "gdps-" + [Guid]::NewGuid().ToString("N").Substring(0, 16)
   $env:WSGS_EVIDENCE_SOURCE_COMMIT = $sourceCommit
   $env:WSGS_DEVELOPMENT_EVIDENCE_DIR = $evidenceDirectory
+  $env:GOWM_ALIGNMENT_DIRECT_REPORT = Join-Path $repositoryRoot `
+    "reports\wsgs-gowm-0.6.4-alignment\direct-r1-r5-smoke.json"
   $env:GOWM_SAMPLE_HANDOFF_DIR = $handoffDirectory
   $env:GOWM_GATEWAY_BASE_URL = $GatewayBaseUrl
   $env:GOWM_GATEWAY_TOKEN = $env:GOWM_WSGS_SAMPLE_TOKEN
@@ -491,6 +493,7 @@ try {
   Remove-Item Env:WSGS_GDPS_VOCABULARY_REGISTRY_SHA256 -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_SEMANTIC_CONCEPT_MAP_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_SEMANTIC_CONCEPT_MAP_SHA256 -ErrorAction SilentlyContinue
+  Remove-Item Env:GOWM_ALIGNMENT_DIRECT_REPORT -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_READINESS_DATA_SCOPES -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_PRIMARY_DATA_SCOPE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_CROSS_SCOPE_GATEWAY_ROUTING -ErrorAction SilentlyContinue
