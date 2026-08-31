@@ -31,6 +31,11 @@ import {
 import { productionPipelinePolicyFromEnvironment } from "../../services/grounding-worker/src/pipeline-policy.js";
 import { PostgresGroundingWorkerStore } from "../../services/grounding-worker/src/postgres-store.js";
 import { GroundingWorker } from "../../services/grounding-worker/src/worker.js";
+import {
+  fetchJsonWithTimeout,
+  formalHttpRequestTimeoutMs,
+  type FormalHttpRequestOptions
+} from "./formal-http-client.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -132,6 +137,7 @@ const expectedGowmRuntimeVersion = "0.6.4";
 const expectedGatewayContractVersion = "0.6.3";
 const expectedWsgsRuntimeVersion = "0.2.1";
 const apiBearerToken = process.env["WSGS_FORMAL_API_BEARER_TOKEN"]?.trim();
+const formalHttpTimeoutMs = formalHttpRequestTimeoutMs();
 const encryptionKey = required("WSGS_REQUEST_ENCRYPTION_KEY_BASE64");
 const payloadCodec = Aes256GcmPayloadCodec.fromBase64(encryptionKey);
 const configuredIdentityDataScopes = process.env["WSGS_READINESS_DATA_SCOPES"]
@@ -1440,14 +1446,21 @@ function worker(executor: PipelineStageExecutor, workerId: string): GroundingWor
 async function fetchJson(
   baseUrl: string,
   path: string,
-  init?: RequestInit
+  init?: RequestInit,
+  timeoutOptions: Partial<FormalHttpRequestOptions> = {}
 ): Promise<{ status: number; body: JsonObject; headers: Headers }> {
   const headers = new Headers(init?.headers);
   if (apiBearerToken) headers.set("authorization", `Bearer ${apiBearerToken}`);
-  const response = await fetch(`${baseUrl}${path}`, { ...init, headers });
+  const { response, body } = await fetchJsonWithTimeout(`${baseUrl}${path}`, { ...init, headers }, {
+    timeoutMs: timeoutOptions.timeoutMs ?? formalHttpTimeoutMs,
+    ...(timeoutOptions.deadlineAt === undefined ? {} : { deadlineAt: timeoutOptions.deadlineAt }),
+    ...(timeoutOptions.deadlineTimeoutCode === undefined
+      ? {}
+      : { deadlineTimeoutCode: timeoutOptions.deadlineTimeoutCode })
+  });
   return {
     status: response.status,
-    body: object(await response.json(), "API_RESPONSE_INVALID"),
+    body: object(body, "API_RESPONSE_INVALID"),
     headers: response.headers
   };
 }
@@ -1462,11 +1475,17 @@ async function pollExternalGrounding(baseUrl: string, groundingId: string): Prom
   ]);
   const deadline = Date.now() + configuredTimeout;
   while (Date.now() < deadline) {
-    const fetched = await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`);
+    const fetched = await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`, undefined, {
+      deadlineAt: deadline,
+      deadlineTimeoutCode: "EXTERNAL_WORKER_GROUNDING_TIMEOUT"
+    });
     if (fetched.status !== 200) throw new Error(`PUBLIC_API_GET_POLL_FAILED_${fetched.status}`);
     const status = string(fetched.body["status"], "GROUNDING_POLL_STATUS_MISSING");
     if (terminalStatuses.has(status)) return fetched;
-    await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
+    const remainingMs = deadline - Date.now();
+    if (remainingMs > 0) {
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, Math.min(250, remainingMs)));
+    }
   }
   throw new Error("EXTERNAL_WORKER_GROUNDING_TIMEOUT");
 }
@@ -3070,6 +3089,12 @@ async function runN04ResultExtensionGate(
   const synchronousWorkerLoop = synchronousWorker.start();
   let synchronousResponse: Awaited<ReturnType<typeof fetchJson>>;
   try {
+    const synchronousPolicy = object(synchronousBody["executionPolicy"], "N04_SYNC_EXECUTION_POLICY_MISSING");
+    const synchronousDeadlineMs = synchronousPolicy["deadlineMs"];
+    if (!Number.isSafeInteger(synchronousDeadlineMs) || (synchronousDeadlineMs as number) < 1_000) {
+      throw new Error("N04_SYNC_EXECUTION_DEADLINE_INVALID");
+    }
+    const synchronousTransportTimeoutMs = (synchronousDeadlineMs as number) + 5_000;
     synchronousResponse = await fetchJson(baseUrl, "/v1/groundings", {
       method: "POST",
       headers: {
@@ -3078,6 +3103,10 @@ async function runN04ResultExtensionGate(
         ...n04GeospatialHeaders
       },
       body: JSON.stringify(synchronousBody)
+    }, {
+      timeoutMs: synchronousTransportTimeoutMs,
+      deadlineAt: Date.now() + synchronousTransportTimeoutMs,
+      deadlineTimeoutCode: "FORMAL_HTTP_REQUEST_TIMEOUT"
     });
   } finally {
     await synchronousWorker.stop(10_000);
