@@ -299,7 +299,7 @@ integration("W04 PostgreSQL production adapters", () => {
       actorId: "operator-multi-scope",
       dataScopes: ["region-a", "region-b"],
       datasetScopes: ["roads", "vehicles"],
-      permissions: ["grounding.read"]
+      permissions: ["grounding.read", "grounding.validate"]
     });
     const scopedBackend = new ProductionGroundingBackend({
       store: backendStore,
@@ -317,10 +317,15 @@ integration("W04 PostgreSQL production adapters", () => {
       true
     );
     const groundingId = (created.value as Record<string, unknown>)["groundingId"] as string;
-    const persisted = await pool.query<{ request_metadata: Record<string, unknown> }>(
-      "SELECT request_metadata FROM wsgs.grounding_request WHERE grounding_id = $1",
+    const persisted = await pool.query<{
+      authorization_context_hash: string;
+      request_metadata: Record<string, unknown>;
+    }>(
+      `SELECT authorization_context_hash, request_metadata
+         FROM wsgs.grounding_request WHERE grounding_id = $1`,
       [groundingId]
     );
+    expect(persisted.rows[0]?.authorization_context_hash).toBe(multiScopeIdentity.authorizationContextHash);
     expect(persisted.rows[0]?.request_metadata).toMatchObject({
       dataScopes: ["region-a", "region-b"]
     });
@@ -340,6 +345,32 @@ integration("W04 PostgreSQL production adapters", () => {
     });
     expect(await scopedBackend.get(foreignContext, groundingId)).toBeNull();
     expect(await scopedBackend.cancel(foreignContext, groundingId)).toBeNull();
+
+    const diminishedDatasetContext = createGroundingIdentity({
+      servicePrincipalId: multiScopeIdentity.servicePrincipalId,
+      actorId: multiScopeIdentity.actorId,
+      dataScopes: [...multiScopeIdentity.dataScopes],
+      datasetScopes: ["roads"],
+      permissions: [...multiScopeIdentity.permissions]
+    });
+    const diminishedPermissionContext = createGroundingIdentity({
+      servicePrincipalId: multiScopeIdentity.servicePrincipalId,
+      actorId: multiScopeIdentity.actorId,
+      dataScopes: [...multiScopeIdentity.dataScopes],
+      datasetScopes: [...multiScopeIdentity.datasetScopes],
+      permissions: ["grounding.read"]
+    });
+    for (const diminishedContext of [diminishedDatasetContext, diminishedPermissionContext]) {
+      expect(diminishedContext.authorizationContextHash).not.toBe(multiScopeIdentity.authorizationContextHash);
+      await expect(scopedBackend.create(
+        diminishedContext,
+        "idem-multi-scope",
+        request("multi-scope"),
+        true
+      )).rejects.toBeInstanceOf(PostgresIdempotencyConflictError);
+      expect(await scopedBackend.get(diminishedContext, groundingId)).toBeNull();
+      expect(await scopedBackend.cancel(diminishedContext, groundingId)).toBeNull();
+    }
     expect(await scopedBackend.get(multiScopeIdentity, groundingId)).toMatchObject({ status: "RUNNING" });
   });
 

@@ -31,14 +31,19 @@ describe("grounding contract negotiation", () => {
   it("accepts authority-valid numeric/slash principals and freezes a copy", () => {
     const parsed = parseContractNegotiationConfig('["7/sacs-service"]');
     expect(parsed.sacsGeospatialServicePrincipals).toEqual(["7/sacs-service"]);
-    expect(negotiateGroundingContract(request({}), identity, parsed)).toMatchObject({
-      contractVersion: "sacs-wsgs-grounding/1.0",
-      resultProfile: null
-    });
     expect(Object.isFrozen(parsed.sacsGeospatialServicePrincipals)).toBe(true);
   });
 
-  it("requires the server-owned principal allowlist even for the exact 1.1 header pair", () => {
+  it("keeps a no-header request on legacy 1.0 even when the principal is allowlisted", () => {
+    expect(negotiateGroundingContract(request({}), identity, {
+      sacsGeospatialServicePrincipals: ["7/sacs-service"]
+    })).toMatchObject({
+      contractVersion: "sacs-wsgs-grounding/1.0",
+      resultProfile: null
+    });
+  });
+
+  it("selects 1.1 only for the exact header pair and an allowlisted principal", () => {
     const exact = request({
       "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
       "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0"
@@ -49,6 +54,14 @@ describe("grounding contract negotiation", () => {
     expect(() => negotiateGroundingContract(exact, identity, {
       sacsGeospatialServicePrincipals: []
     })).toThrowError(/not available/u);
+    for (const partial of [
+      request({ "wsgs-contract-version": "sacs-wsgs-grounding/1.1" }),
+      request({ "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0" })
+    ]) {
+      expect(() => negotiateGroundingContract(partial, identity, {
+        sacsGeospatialServicePrincipals: ["7/sacs-service"]
+      })).toThrowError(/not available/u);
+    }
   });
 
   it("rejects duplicate raw headers even when Node presents one merged value", () => {

@@ -110,6 +110,52 @@ describe("GroundingWorker", () => {
     });
   });
 
+  it("continues the worker loop after a rejected result settlement is durably failed", async () => {
+    const store = new MemoryWorkerStore();
+    store.claims.push(
+      claim(),
+      claim({
+        jobId: "job-2",
+        groundingId: "grounding-2",
+        leaseToken: "lease-2"
+      })
+    );
+    const settlementError = Object.assign(new Error("result exceeds negotiated boundary"), {
+      code: "GROUNDING_RESULT_MAX_BYTES_EXCEEDED"
+    });
+    let secondResultSettled!: () => void;
+    const secondResult = new Promise<void>((resolve) => { secondResultSettled = resolve; });
+    const originalSettle = store.settle.bind(store);
+    const settle = vi.spyOn(store, "settle").mockImplementation(async (fence, value) => {
+      const outcome = await originalSettle(fence, value);
+      if (fence.jobId === "job-2" && value.kind === "RESULT") secondResultSettled();
+      return outcome;
+    });
+    settle.mockRejectedValueOnce(settlementError);
+    const run = vi.fn(async () => success());
+    const groundingWorker = worker(store, run, { pollIntervalMs: 1 });
+    const loop = groundingWorker.start();
+
+    await Promise.race([
+      secondResult,
+      loop.then(() => { throw new Error("worker loop stopped before the second result settled"); })
+    ]);
+    await expect(groundingWorker.stop()).resolves.toEqual({ drained: true, aborted: 0 });
+    await expect(loop).resolves.toBeUndefined();
+
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(settle.mock.calls.map(([, value]) => value.kind)).toEqual(["RESULT", "FAILED", "RESULT"]);
+    expect(store.settlements.map(({ fence, value }) => [fence.jobId, value.kind])).toEqual([
+      ["job-1", "FAILED"],
+      ["job-2", "RESULT"]
+    ]);
+    expect(store.settlements[0]?.value).toMatchObject({
+      kind: "FAILED",
+      errorCode: "GROUNDING_RESULT_MAX_BYTES_EXCEEDED",
+      retryable: false
+    });
+  });
+
   it("heartbeats a long-running lease", async () => {
     const store = new MemoryWorkerStore();
     store.claims.push(claim());
