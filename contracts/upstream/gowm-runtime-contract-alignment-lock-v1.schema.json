@@ -103,7 +103,7 @@
           "const": "zhouwen-giser/geospatial-operational-world-model"
         },
         "sourceCommit": {
-          "const": "fceed92398a0b86c0a0121aa2188a7f1d328e577"
+          "const": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14"
         },
         "softwareVersion": {
           "const": "0.6.4"

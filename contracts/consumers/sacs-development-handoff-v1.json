@@ -11,7 +11,7 @@
   },
   "gowm": {
     "runtimeVersion": "0.6.4",
-    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "gatewayContractVersion": "0.6.3",
     "consumerPackage": {
       "name": "@gowm/world-gateway-contracts",

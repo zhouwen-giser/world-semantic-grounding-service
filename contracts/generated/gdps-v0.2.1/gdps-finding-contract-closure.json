@@ -1,31 +1,31 @@
 {
   "schemaVersion": "wsgs-gdps-finding-contract-closure/1.0",
   "sources": {
-    "gdpsSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
-    "gdpsImplementationTreeHash": "sha256:9fea57f2c567e9edf3f7f2e681a216d69f650b0072ffe26306fc3aec3fe49f6b",
-    "gdpsSourceFingerprint": "sha256:bc0f3e830c572416c3af8afbe734620fda8c723321cb2c2c664b9c7dc7be2d9c",
-    "gdpsSourceFileCount": 444,
-    "gowmSha": "7a3600cfeede1e1eda711a59bdb76caa68c05f64",
+    "gdpsSha": "d9238d19bae98e387d390c936300358a30b024cb",
+    "gdpsImplementationTreeHash": "sha256:55504ba9d5c0ba856c3d9ae3c60ca60ece689084328bf5980616fc9c37d11da5",
+    "gdpsSourceFingerprint": "sha256:acd52c0d7eb8f59cac16928a51cfb00db41badbd232d8cd3f341899f8b9c90b0",
+    "gdpsSourceFileCount": 445,
+    "gowmSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "wsgsSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb"
   },
   "handoff": {
-    "bundleHash": "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19",
-    "checksumsHash": "sha256:71ff33940ee9c037376d70cfd21c54c767e6324fd37f29a42056cf9ffdb3e0fe",
-    "consumerLockHash": "sha256:86b9c65597ffb73c8aef99f4ac39231254a464ed9f3a1664f55346e40c088e13",
+    "bundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab",
+    "checksumsHash": "sha256:1aeb68955da57c0a8ab1367685dee6263978cacaab33d6039c6aaaf33b4b26dc",
+    "consumerLockHash": "sha256:0cad7d644a85c4489c4b0c5f4137c4633ee75276b25a0518fc9e083ad10b3c0a",
     "capabilityLockHash": "sha256:791a268736f1e62904e374838f4f3395904bc87cf4f68b50a8454bcf0677f87d",
     "descriptorLockHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
     "providerRecipeLockHash": "sha256:b0e0a7688ce800c7cda50d107279211a050a89b960a396e9aa2ee216e8a00b68",
     "runtimeRecipeLockHash": "sha256:807f536ad3493e5823c1c04c15d634d74d3fac8f7c81f0985ae148878d11f92b",
     "sampleDatasetLockHash": "sha256:825a1bed2829c59c9a9606674f7b2952a4ebbfeceb65d9586db59978bb71791f",
     "queryCorpusHash": "sha256:4f60e2ceb8ff96dcea76952b3bc3369bada54ddbcc12bc755b2ed2ae56a6559a",
-    "testBaselineHash": "sha256:1e045f313b1b5d6fa2afec85f7d45e399233f926cd99913dff728f3406e790f2"
+    "testBaselineHash": "sha256:605313ec40ba50875af3ef2ef8378a650489bc95f399a1a56b3e5f6adabc690c"
   },
   "gateway": {
     "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
     "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
     "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
     "instanceFingerprint": "sha256:d86aa82d760076f3dc5a5fbcb617555f7c7fb4a011b7f49a4d4b1d849cc61350",
-    "runningConfigFingerprint": "sha256:dcd6401fc171f0183cc93588cf0f5f937099d372eaf7306e453ead88eeee3af2"
+    "runningConfigFingerprint": "sha256:c8c6518162f61eb9a1dc9bb73a051a3d2a5cba32f39197a1c7820fb5a7fdfe9f"
   },
   "provider": {
     "providerId": "gdps.geospatial-products",
@@ -6094,5 +6094,5 @@
       }
     }
   ],
-  "closureHash": "sha256:cd64d329134f14512f9fa96d501887885eb60140bdcfeeec5e0e10219af41c87"
+  "closureHash": "sha256:077f491462d1908ab7bb23c21fa1b1e6fd683ed92ca7cf8ea407529131501ece"
 }

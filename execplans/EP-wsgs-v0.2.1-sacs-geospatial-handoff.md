@@ -1,6 +1,6 @@
 # WSGS v0.2.1 Authoritative SACS Geospatial Handoff
 
-Status: N03 complete; N04 is next; G1 NOT_RUN; productionQualified=false.
+Status: N03 complete; N04 source/runtime qualification in progress; G1 NOT_RUN; productionQualified=false.
 
 ## Purpose and non-goals
 
@@ -32,7 +32,8 @@ SACS, GOWM, and GDPS are read-only upstream/consumer authorities. WSGS never acc
 | Tuple | Exact binding | Permitted claim |
 |---|---|---|
 | WSGS ↔ GOWM 0.6.4 | WSGS runtime source `b3315cbb5dce9635911a90ac095b93b1efab8e70`; GOWM source `fceed92398a0b86c0a0121aa2188a7f1d328e577`; runtime `0.6.4`; Gateway contract `0.6.3` | DEVELOPMENT_READY, R1–R5 5/5, productionQualified=false |
-| GDPS FINAL_B | GDPS implementation `42e06e7341250aa230ac01d201effafe92ce4af5`; evidence `712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6`; GOWM lock `7a3600cfeede1e1eda711a59bdb76caa68c05f64`; WSGS lock `bcad5b05491208f4b549f937cf6e9a62f936d6cb`; bundle `sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19` | upstream development-qualified evidence only; W43/W44 NOT_RUN |
+| GDPS FINAL_B for N04 | GDPS implementation `d9238d19bae98e387d390c936300358a30b024cb`; evidence `8646ded17d03a627305727f92e09c801ff63491f`; GOWM lock `c49bf415fdb4cbe19a09f341c34b6dd825e3ca14`; WSGS lock `bcad5b05491208f4b549f937cf6e9a62f936d6cb`; bundle `sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab` | fresh 18064 Gateway qualification, signed 30/30, direct Provider calls 0; W43/W44 NOT_RUN |
+| GOWM N04 isolated candidate | source `c49bf415fdb4cbe19a09f341c34b6dd825e3ca14`; tree `e6d0747d6a8edaf86a54cc5163cb26a36f98fa16`; image `sha256:5beba90084959786421b23539feffa45c1898e36cdd7749c42428202ffd2ce3e`; runtime `0.6.4`; Gateway contract `0.6.3` | upstream foundation 37/37 and combined N04 persistence canary PASS; WSGS R1–R5 still required |
 
 These tuples are independent and must not be cross-producted into a synthetic runtime identity.
 

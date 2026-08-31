@@ -144,7 +144,7 @@ export function groundingCapabilitiesForSelection(
       gowmContract: Object.freeze({
         softwareVersion: "0.6.4",
         gatewayContractVersion: "0.6.3",
-        commit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+        commit: "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
         sourcePackageArtifacts: 58,
         contractCatalogRevision: "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
         semanticCatalogHash: "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",

@@ -1,15 +1,15 @@
 {
   "schemaVersion": "wsgs-gdps-consumer-lock/1.0",
   "sources": {
-    "gdpsSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
-    "gdpsImplementationTreeHash": "sha256:9fea57f2c567e9edf3f7f2e681a216d69f650b0072ffe26306fc3aec3fe49f6b",
-    "gdpsSourceFileCount": 444,
+    "gdpsSha": "d9238d19bae98e387d390c936300358a30b024cb",
+    "gdpsImplementationTreeHash": "sha256:55504ba9d5c0ba856c3d9ae3c60ca60ece689084328bf5980616fc9c37d11da5",
+    "gdpsSourceFileCount": 445,
     "gdpsEvidenceOnlyPaths": [
       "handoff/**",
       "reports/**"
     ],
-    "gdpsSourceFingerprint": "sha256:bc0f3e830c572416c3af8afbe734620fda8c723321cb2c2c664b9c7dc7be2d9c",
-    "gowmSha": "7a3600cfeede1e1eda711a59bdb76caa68c05f64",
+    "gdpsSourceFingerprint": "sha256:acd52c0d7eb8f59cac16928a51cfb00db41badbd232d8cd3f341899f8b9c90b0",
+    "gowmSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "wsgsSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb",
     "nativeContractSchemas": {
       "capabilityBinding": "sha256:f96773ef90ba158911b5976af3e9cd711316979a5a864b812fc56ed7be55b385",
@@ -22,11 +22,11 @@
     "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
     "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
     "instanceFingerprint": "sha256:d86aa82d760076f3dc5a5fbcb617555f7c7fb4a011b7f49a4d4b1d849cc61350",
-    "runningConfigFingerprint": "sha256:dcd6401fc171f0183cc93588cf0f5f937099d372eaf7306e453ead88eeee3af2",
+    "runningConfigFingerprint": "sha256:c8c6518162f61eb9a1dc9bb73a051a3d2a5cba32f39197a1c7820fb5a7fdfe9f",
     "runningConfigEvidence": {
       "overlayHash": "sha256:2660eebac2839bf78d4025ae609b9d65713d6684dc728177a0bb009460260018",
-      "gatewayImageFingerprint": "sha256:d0a884d703036d30131115cd1a67ec9f95d605f6f5216334839d030aacaaac65",
-      "composeConfigFingerprint": "sha256:75eaaecf063aad9a3ab4f535dddc89d9243ac271d1c3780af20d2bdc5c901945"
+      "gatewayImageFingerprint": "sha256:69a90b5d6e6e20a5f8b4f48ec75d0e3c68dc6329aa105435292af3cad3b68527",
+      "composeConfigFingerprint": "sha256:3376b99518004c79df0de02dd25a2a1a67ac5a9273fe651ab5b9cf3651008813"
     }
   },
   "provider": {

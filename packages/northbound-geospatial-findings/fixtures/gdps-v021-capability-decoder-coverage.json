@@ -373,11 +373,11 @@
   ],
   "schemaVersion": "wsgs-gdps-v021-capability-decoder-coverage/1.0",
   "sourceLocks": {
-    "bundleHash": "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19",
+    "bundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab",
     "capabilityLockRawSha256": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
-    "gdpsDeliveryEvidenceSha": "712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6",
-    "gdpsImplementationSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
-    "gowmSourceSha": "7a3600cfeede1e1eda711a59bdb76caa68c05f64",
+    "gdpsDeliveryEvidenceSha": "8646ded17d03a627305727f92e09c801ff63491f",
+    "gdpsImplementationSha": "d9238d19bae98e387d390c936300358a30b024cb",
+    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "wsgsSourceSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb"
   }
 }

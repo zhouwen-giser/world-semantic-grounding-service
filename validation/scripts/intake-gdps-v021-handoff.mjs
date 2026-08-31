@@ -398,7 +398,7 @@ const sourceMaterialization = resolve(upstream, "source-contracts");
 const closurePath = resolve(generated, "gdps-finding-contract-closure.json");
 const dependencyPath = resolve(generated, "gdps-output-schema-dependencies.json");
 const sourceCommit = sources.gdpsSha;
-assert(sourceCommit === "42e06e7341250aa230ac01d201effafe92ce4af5",
+assert(sourceCommit === "d9238d19bae98e387d390c936300358a30b024cb",
   "WSGS_GDPS_FINDING_SOURCE_COMMIT_UNAUTHORIZED");
 
 function materializedBytes(path) {

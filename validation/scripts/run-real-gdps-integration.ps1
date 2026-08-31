@@ -1,7 +1,8 @@
 param(
   [string]$SampleRoot = $env:GOWM_SAMPLE_ROOT,
   [string]$FoundationHandoffDirectory = $env:GOWM_SAMPLE_HANDOFF_DIR,
-  [string]$GatewayBaseUrl = "http://127.0.0.1:18063",
+  [string]$ConsumerEnvironmentFile = $env:GOWM_CONSUMER_ENV_FILE,
+  [string]$GatewayBaseUrl = $env:GOWM_GATEWAY_BASE_URL,
   [int]$DatabaseHostPort = 55464,
   [string]$GdpsArtifactRoot,
   [string]$DataScope,
@@ -243,7 +244,15 @@ function Assert-ExactGdpsCaseSelection {
 function Get-CleanSourceCommit {
   $allowedRuntimeEvidence = @(
     "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
-    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+    "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+    "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
   )
   $allowedRuntimeEvidenceSet = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
   foreach ($path in $allowedRuntimeEvidence) { [void]$allowedRuntimeEvidenceSet.Add($path) }
@@ -286,7 +295,22 @@ $gdpsVocabularyRegistryArtifact = Get-RequiredArtifactSha256 $gdpsVocabularyRegi
 $gdpsConceptMapArtifact = Get-RequiredArtifactSha256 $gdpsConceptMap "The locked WSGS GDPS semantic concept map"
 Assert-V021OperationLock $operationLock
 
-$consumerEnvironment = Join-Path $SampleRoot ".runtime\wsgs-sample\wsgs-consumer-host.env"
+$resolvedSampleRoot = (Resolve-Path -LiteralPath $SampleRoot).Path.TrimEnd(
+  [IO.Path]::DirectorySeparatorChar,
+  [IO.Path]::AltDirectorySeparatorChar
+)
+if (-not $ConsumerEnvironmentFile -or
+    -not (Test-Path -LiteralPath $ConsumerEnvironmentFile -PathType Leaf)) {
+  throw "GOWM_CONSUMER_ENV_FILE must explicitly identify the authorized Sample World consumer environment"
+}
+$consumerEnvironment = (Resolve-Path -LiteralPath $ConsumerEnvironmentFile).Path
+$authorizedRuntimeRoot = Join-Path $resolvedSampleRoot ".runtime"
+if (-not $consumerEnvironment.StartsWith(
+    $authorizedRuntimeRoot + [IO.Path]::DirectorySeparatorChar,
+    [StringComparison]::OrdinalIgnoreCase
+  )) {
+  throw "GOWM_CONSUMER_ENV_FILE must remain inside the authorized Sample World runtime directory"
+}
 if (-not $FoundationHandoffDirectory -or
     -not (Test-Path -LiteralPath $FoundationHandoffDirectory -PathType Container)) {
   throw "GOWM_SAMPLE_HANDOFF_DIR must explicitly identify the authorized foundation handoff"
@@ -344,6 +368,9 @@ $foundationOperations = @($instanceManifest.stableOperations | ForEach-Object { 
 if (@($requiredFoundationOperations | Where-Object { $_ -notin $foundationOperations }).Count -ne 0) {
   throw "The authorized Sample World foundation operation authority is incomplete"
 }
+if (-not $GatewayBaseUrl) {
+  throw "GatewayBaseUrl must explicitly identify the authorized combined Gateway origin"
+}
 $gatewayOrigin = Get-GatewayOrigin $GatewayBaseUrl "GatewayBaseUrl"
 $handoffGatewayOrigin = Get-GatewayOrigin ([string]$instanceManifest.gatewayBaseUrl) "Foundation gatewayBaseUrl"
 if ($gatewayOrigin -ne $handoffGatewayOrigin) {
@@ -389,6 +416,21 @@ try {
   if (-not $databaseReady) { throw "The isolated WSGS database did not become ready" }
 
   Import-ProcessEnvironment $consumerEnvironment
+  if (-not $env:GOWM_GATEWAY_BASE_URL -or
+      (Get-GatewayOrigin $env:GOWM_GATEWAY_BASE_URL "consumer environment Gateway origin") -ne $gatewayOrigin) {
+    throw "The authorized consumer environment is not bound to the requested combined Gateway origin"
+  }
+  if (-not $env:GOWM_WSGS_SAMPLE_TOKEN -or -not $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH -or
+      -not (Test-Path -LiteralPath $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH -PathType Leaf)) {
+    throw "The authorized consumer environment is incomplete"
+  }
+  $delegationPrivateKey = (Resolve-Path -LiteralPath $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH).Path
+  if (-not $delegationPrivateKey.StartsWith(
+      $authorizedRuntimeRoot + [IO.Path]::DirectorySeparatorChar,
+      [StringComparison]::OrdinalIgnoreCase
+    )) {
+    throw "The authorized delegation key must remain inside the Sample World runtime directory"
+  }
   $effectiveDataScope = if ($DataScope) {
     $DataScope.Trim()
   } elseif ($LegacyV02Evidence) {
@@ -432,7 +474,7 @@ try {
   $env:GOWM_DELEGATION_ISSUER = $env:GATEWAY_DELEGATION_ISSUER
   $env:GOWM_DELEGATION_AUDIENCE = $env:GATEWAY_DELEGATION_AUDIENCE
   $env:GOWM_DELEGATION_SERVICE_PRINCIPAL_ID = $env:GATEWAY_RUNTIME_PRINCIPAL_REF
-  $env:GOWM_DELEGATION_PRIVATE_KEY_FILE = $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH
+  $env:GOWM_DELEGATION_PRIVATE_KEY_FILE = $delegationPrivateKey
   $env:WSGS_READINESS_ACTOR_ID = "wsgs-gdps-readiness"
   $env:WSGS_READINESS_DATA_SCOPE = $effectiveDataScope
   $env:WSGS_PRIMARY_DATA_SCOPE = $effectiveDataScope

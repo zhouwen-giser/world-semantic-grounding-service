@@ -79,6 +79,23 @@ describe("GOWM alignment closure generator", () => {
     for (const path of outputPaths) expect(existsSync(resolve(fixtureRoot, path))).toBe(false);
   });
 
+  it("accepts a byte-equivalent CRLF materialization through the locked LF preimage", () => {
+    const target = resolve(fixtureRoot, "acceptance/alignment-required.csv");
+    const canonicalLf = readFileSync(target, "utf8").replace(/\r\n/gu, "\n");
+    writeFileSync(target, canonicalLf.replace(/\n/gu, "\r\n"), "utf8");
+    for (const path of staticEvidencePaths) copyFixture(path);
+
+    expectBlocked("ALIGNMENT_CLOSURE_EVIDENCE_MISSING");
+  });
+
+  it("rejects a lone carriage return instead of normalizing ambiguous bytes", () => {
+    const target = resolve(fixtureRoot, "acceptance/alignment-required.csv");
+    const canonicalLf = readFileSync(target, "utf8").replace(/\r\n/gu, "\n");
+    writeFileSync(target, canonicalLf.replace("\n", "\r"), "utf8");
+
+    expectBlocked("ALIGNMENT_ACCEPTANCE_MATRIX_LINE_ENDINGS_INVALID");
+  });
+
   it("rejects a canonical evidenceHash mismatch", () => {
     const path = staticEvidencePaths[0];
     copyFixture(path);
@@ -134,7 +151,7 @@ describe("GOWM alignment closure generator", () => {
       "WSGS implementation base: `c2a71a0f455c728ae45d70067f223e1450cfa427`",
       "Qualified WSGS source head: `b3315cbb5dce9635911a90ac095b93b1efab8e70`",
       "PR delivery head: verified after push against the live Draft PR metadata",
-      "Exact GOWM source: `fceed92398a0b86c0a0121aa2188a7f1d328e577`",
+      "Exact GOWM source: `c49bf415fdb4cbe19a09f341c34b6dd825e3ca14`",
       "`runtime=0.6.4 / Gateway contract=0.6.3`",
       "`@gowm/world-gateway-contracts@0.6.3`",
       "Machine invariant / negative gate: PASS",

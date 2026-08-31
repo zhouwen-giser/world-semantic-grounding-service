@@ -35,9 +35,10 @@ productionQualified: `false`
 | Tuple | Exact binding | Honest boundary |
 |---|---|---|
 | WSGS ↔ GOWM 0.6.4 | WSGS `b3315cbb…`, GOWM `fceed923…`, runtime `0.6.4`, Gateway contract `0.6.3` | DEVELOPMENT_READY; formal/direct R1–R5 5/5; not production |
-| GDPS FINAL_B | GDPS implementation `42e06e73…`, evidence `712abb35…`, GOWM lock `7a3600cf…`, WSGS lock `bcad5b05…`, bundle `sha256:93ebb1fd…` | upstream development evidence; W43/W44 NOT_RUN; not this branch's runtime evidence |
+| GDPS FINAL_B for N04 | GDPS implementation `d9238d19…`, evidence `8646ded1…`, GOWM lock `c49bf415…`, WSGS lock `bcad5b05…`, bundle `sha256:0cefdafb…` | fresh 18064 signed Gateway 30/30, direct Provider calls 0; W43/W44 NOT_RUN; not yet WSGS N04 runtime evidence |
+| GOWM N04 isolated candidate | source `c49bf415…`, tree `e6d0747d…`, image `sha256:5beba900…`, runtime `0.6.4`, Gateway contract `0.6.3` | foundation 37/37 and combined persistence canary PASS; WSGS formal R1–R5 remains required |
 
-The tuples are retained independently. The report does not combine GOWM `fceed…` with `7a3600…`, current main heads with old runtime reports, or `bcad…` evidence with the new branch.
+The historical tuple and the fresh N04 tuple remain distinct. The report does not promote the upstream 18064 canaries into WSGS formal R1–R5 or N04 runtime PASS; those must be generated from a clean exact WSGS source commit.
 
 ## Non-main FINAL_B WSGS materialization
 

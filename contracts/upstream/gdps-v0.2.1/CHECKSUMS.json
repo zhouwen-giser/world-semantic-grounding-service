@@ -8,7 +8,7 @@
     },
     {
       "path": "GDPS_CONSUMER_LOCK.json",
-      "sha256": "sha256:6933cda761adf8ccaa020ced610e8b086c20e8c2509e50d9e19bbc967635accc"
+      "sha256": "sha256:fe7e5b8ec76e7eaac61b0df084e99efa3dff59ddac99fe279922f40abc732740"
     },
     {
       "path": "GDPS_PRODUCT_DESCRIPTOR_LOCK.json",
@@ -24,7 +24,7 @@
     },
     {
       "path": "GOWM_GATEWAY_BINDING_LOCK.json",
-      "sha256": "sha256:a20a92071e0767194b10aaf33b7669061df721e47a4b23e75d84bb475716f1bd"
+      "sha256": "sha256:1f47abdc29e977ee01969e2d0daf2e68891260b8d978bb6148ebe88dd777918f"
     },
     {
       "path": "WSGS_QUERY_CORPUS.json",
@@ -32,8 +32,8 @@
     },
     {
       "path": "WSGS_TEST_BASELINE.json",
-      "sha256": "sha256:03fddce19ad58b86ee913e7d0b1e4487966c08adc52c223c6744f628c1d8a8dd"
+      "sha256": "sha256:d93813bb3c6878b5d61382c64ba8b36d56111ce1732f86060b8d41a46022736c"
     }
   ],
-  "bundleHash": "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19"
+  "bundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab"
 }

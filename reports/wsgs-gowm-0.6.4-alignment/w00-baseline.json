@@ -7,7 +7,7 @@
     "targetVersion": "0.2.1"
   },
   "gowmRuntime": {
-    "commit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "commit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "version": "0.6.4"
   },
   "gatewayContract": {
@@ -22,5 +22,5 @@
     "authoritative": false
   },
   "baselineCheck": "npm run check PASS before implementation",
-  "evidenceHash": "sha256:d4096e4a58e1ebb71e24479061816e7bbc6c920958ebaf2dbc274e14fe1f6a2c"
+  "evidenceHash": "sha256:81cdd355fe8360d78a8ec6ece759d56c9baaf25191a58dac0567515244b1b755"
 }

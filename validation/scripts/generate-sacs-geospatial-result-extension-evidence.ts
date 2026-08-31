@@ -80,11 +80,11 @@ const paths = {
 } as const;
 
 const realRuntimeReportPath = "reports/sacs-geospatial-v1/N04-real-runtime.json";
-const expectedIsolatedFoundationSourceCommit = "fceed92398a0b86c0a0121aa2188a7f1d328e577";
-const expectedSharedExecutionGowmSourceLock = "7a3600cfeede1e1eda711a59bdb76caa68c05f64";
-const expectedGdpsImplementationSourceCommit = "42e06e7341250aa230ac01d201effafe92ce4af5";
+const expectedIsolatedFoundationSourceCommit = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14";
+const expectedSharedExecutionGowmSourceLock = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14";
+const expectedGdpsImplementationSourceCommit = "d9238d19bae98e387d390c936300358a30b024cb";
 const expectedGdpsFinalBBundleHash =
-  "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19";
+  "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab";
 const expectedGdpsInventory = [
   "GDPS_CAPABILITY_LOCK.json",
   "GDPS_CONSUMER_LOCK.json",
@@ -97,7 +97,15 @@ const expectedGdpsInventory = [
 ] as const;
 const excludedRuntimeEvidenceOutputs = [
   "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
-  "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+  "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+  "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+  "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
 ] as const;
 
 function sha256(value: string | Buffer): Sha256Digest {
@@ -300,6 +308,13 @@ requireFragments(paths.workerResultSchema, [
 requireFragments(paths.worker, [
   "return await this.#settle(fence, {",
   "kind: \"RESULT\""
+]);
+requireFragments(paths.runRealGdpsIntegration, [
+  "[string]$ConsumerEnvironmentFile = $env:GOWM_CONSUMER_ENV_FILE",
+  "[string]$GatewayBaseUrl = $env:GOWM_GATEWAY_BASE_URL",
+  "GOWM_CONSUMER_ENV_FILE must explicitly identify the authorized Sample World consumer environment",
+  "The authorized consumer environment is not bound to the requested combined Gateway origin",
+  "The authorized delegation key must remain inside the Sample World runtime directory"
 ]);
 
 if (!existsSync(resolve(repoRoot, realRuntimeReportPath))) {

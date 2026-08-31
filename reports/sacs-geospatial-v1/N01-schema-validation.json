@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:982064b2c1ca5aad927f9ac9d497a46da6be161caab3616bd1207fafeba4d854",
+  "inputSetHash": "sha256:3f875b407eef469d9ccd0c323ad4762a60c6dfe3435f6dba8948b4067c4abe7f",
   "verificationRecipe": {
     "writeCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
     "checkCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
@@ -63,7 +63,7 @@
   },
   "positiveExampleCount": 19,
   "positiveExamples": {
-    "examples/capabilities-response-v1.1.json": "sha256:10ffc0e5e3a0113ed2fce3688b73cdd10ec6a7da1a5d4effd7cb59927c1ef544",
+    "examples/capabilities-response-v1.1.json": "sha256:7f07ae546a41180fe456b77568a7cbe4dff9419ef3d6e906779c5b3b47a5b7ee",
     "examples/geospatial-findings-point-measurement.json": "sha256:cd464e0dde151e7a76af1277f5ad3baea7818684945f956de936679453b4fe41",
     "examples/grounding-result-with-geospatial-findings.json": "sha256:cd8e2f975f51ac6c4afdb773d5d259b86551da3af2aa6b9704782ad6b1767624",
     "examples/source-currentness-request.json": "sha256:b7ea9f8055db16808058e566c4642dd5e4a553b886cee659a9646a919836b95a",

@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:9305f083f1299ee3c75f36ad19ab1e3a422b300d9f51fcfebf1368be22ca724e",
+  "inputSetHash": "sha256:aabeba70deca6b340cea370d2946463595d85cf3d1542a8363ffe94419f1b60d",
   "inputHashCanonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
   "verificationRecipe": {
     "writeCommand": "npm run findings:decoder:write",
@@ -33,44 +33,44 @@
   "status": "PASS",
   "authority": {
     "fixtureClass": "TEST_VECTOR",
-    "shapeImplementationSourceSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
-    "shapeDeliveryEvidenceSha": "712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6",
+    "shapeImplementationSourceSha": "d9238d19bae98e387d390c936300358a30b024cb",
+    "shapeDeliveryEvidenceSha": "8646ded17d03a627305727f92e09c801ff63491f",
     "sourceLocks": {
-      "bundleHash": "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19",
+      "bundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab",
       "capabilityLockRawSha256": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
-      "gdpsDeliveryEvidenceSha": "712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6",
-      "gdpsImplementationSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
-      "gowmSourceSha": "7a3600cfeede1e1eda711a59bdb76caa68c05f64",
+      "gdpsDeliveryEvidenceSha": "8646ded17d03a627305727f92e09c801ff63491f",
+      "gdpsImplementationSha": "d9238d19bae98e387d390c936300358a30b024cb",
+      "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
       "wsgsSourceSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb"
     },
     "finalBClosure": {
-      "closureHash": "sha256:cd64d329134f14512f9fa96d501887885eb60140bdcfeeec5e0e10219af41c87",
+      "closureHash": "sha256:077f491462d1908ab7bb23c21fa1b1e6fd683ed92ca7cf8ea407529131501ece",
       "sources": {
-        "gdpsSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
-        "gdpsImplementationTreeHash": "sha256:9fea57f2c567e9edf3f7f2e681a216d69f650b0072ffe26306fc3aec3fe49f6b",
-        "gdpsSourceFingerprint": "sha256:bc0f3e830c572416c3af8afbe734620fda8c723321cb2c2c664b9c7dc7be2d9c",
-        "gdpsSourceFileCount": 444,
-        "gowmSha": "7a3600cfeede1e1eda711a59bdb76caa68c05f64",
+        "gdpsSha": "d9238d19bae98e387d390c936300358a30b024cb",
+        "gdpsImplementationTreeHash": "sha256:55504ba9d5c0ba856c3d9ae3c60ca60ece689084328bf5980616fc9c37d11da5",
+        "gdpsSourceFingerprint": "sha256:acd52c0d7eb8f59cac16928a51cfb00db41badbd232d8cd3f341899f8b9c90b0",
+        "gdpsSourceFileCount": 445,
+        "gowmSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
         "wsgsSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb"
       },
       "handoff": {
-        "bundleHash": "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19",
-        "checksumsHash": "sha256:71ff33940ee9c037376d70cfd21c54c767e6324fd37f29a42056cf9ffdb3e0fe",
-        "consumerLockHash": "sha256:86b9c65597ffb73c8aef99f4ac39231254a464ed9f3a1664f55346e40c088e13",
+        "bundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab",
+        "checksumsHash": "sha256:1aeb68955da57c0a8ab1367685dee6263978cacaab33d6039c6aaaf33b4b26dc",
+        "consumerLockHash": "sha256:0cad7d644a85c4489c4b0c5f4137c4633ee75276b25a0518fc9e083ad10b3c0a",
         "capabilityLockHash": "sha256:791a268736f1e62904e374838f4f3395904bc87cf4f68b50a8454bcf0677f87d",
         "descriptorLockHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
         "providerRecipeLockHash": "sha256:b0e0a7688ce800c7cda50d107279211a050a89b960a396e9aa2ee216e8a00b68",
         "runtimeRecipeLockHash": "sha256:807f536ad3493e5823c1c04c15d634d74d3fac8f7c81f0985ae148878d11f92b",
         "sampleDatasetLockHash": "sha256:825a1bed2829c59c9a9606674f7b2952a4ebbfeceb65d9586db59978bb71791f",
         "queryCorpusHash": "sha256:4f60e2ceb8ff96dcea76952b3bc3369bada54ddbcc12bc755b2ed2ae56a6559a",
-        "testBaselineHash": "sha256:1e045f313b1b5d6fa2afec85f7d45e399233f926cd99913dff728f3406e790f2"
+        "testBaselineHash": "sha256:605313ec40ba50875af3ef2ef8378a650489bc95f399a1a56b3e5f6adabc690c"
       },
       "gateway": {
         "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
         "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
         "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
         "instanceFingerprint": "sha256:d86aa82d760076f3dc5a5fbcb617555f7c7fb4a011b7f49a4d4b1d849cc61350",
-        "runningConfigFingerprint": "sha256:dcd6401fc171f0183cc93588cf0f5f937099d372eaf7306e453ead88eeee3af2"
+        "runningConfigFingerprint": "sha256:c8c6518162f61eb9a1dc9bb73a051a3d2a5cba32f39197a1c7820fb5a7fdfe9f"
       },
       "provider": {
         "providerId": "gdps.geospatial-products",
@@ -84,20 +84,20 @@
       "outputSchemaCount": 30
     },
     "inputHashes": {
-      "packages/northbound-geospatial-findings/fixtures/gdps-real-result-shapes.json": "sha256:c1f2764e4a6d03eaed6f830a1d372666df428761667b89baba857ed1c8d8b0f9",
-      "packages/northbound-geospatial-findings/fixtures/gdps-v021-capability-decoder-coverage.json": "sha256:e785d9f6574a112dbf1b62ec90131c5dc56be63eaa87c28e6c074532126660c4",
+      "packages/northbound-geospatial-findings/fixtures/gdps-real-result-shapes.json": "sha256:f054c4b459fa27d7a20d0d3de6985c162657ce8018915483e86ea05457fa199c",
+      "packages/northbound-geospatial-findings/fixtures/gdps-v021-capability-decoder-coverage.json": "sha256:8f185e9c3a5fa583d324d12c4a7a6d70eb632765056fb752acd3a6b02f9b60d5",
       "packages/northbound-geospatial-findings/package.json": "sha256:de69c85779486d2493f8c22d86af2d11c5fa133241407128fa2a5c4008f964ce",
       "packages/northbound-geospatial-findings/src/canonical.ts": "sha256:8dc240d61ed63f9fed548f62b804f29bcaa44cdf17796e4ce7d54e2ed70953f7",
       "packages/northbound-geospatial-findings/src/decoders.ts": "sha256:08ffb95162677caf8f66c216375904ea10e7ec93a0a1a252ae45110c27967aef",
       "packages/northbound-geospatial-findings/src/index.ts": "sha256:4616624de5771e17fecf59c699ce51198949798a3d0a8c15ff0d975831a2c830",
       "packages/northbound-geospatial-findings/src/registry.ts": "sha256:4f380d75ccf1dc7b5b8654e28438eb8514664fa09f532ef84d1c590e6ba6646a",
-      "packages/northbound-geospatial-findings/src/registry.test.ts": "sha256:1d0d00bccd17f5aaf6bafc273fdf624beb5a86b5ea84661255e855f8c997f91b",
+      "packages/northbound-geospatial-findings/src/registry.test.ts": "sha256:d0fa7c62c0c40344d77cde80a1c680c05fce58370ddce61c890b7fbfd08d98d1",
       "packages/northbound-geospatial-findings/src/types.ts": "sha256:6157aad8bd62ff2b25fccc5ee4d46455a6915bd0378cc587a68b1d7e2d2dc016",
       "packages/northbound-geospatial-findings/src/validation.ts": "sha256:4a3d43a80b8341d6c69571a15943591fcc721e115e380a27d6a74fc1fdbe107b",
       "packages/northbound-geospatial-findings/src/source-normalizer.ts": "sha256:264ac622b9f2d2910e7a1213c85a008233c749fc161cd51ed103685c4041710c",
       "packages/gdps-descriptor-consumer/src/decoder-authority.ts": "sha256:41f776eeede0ed8f6a674bdc83a052fa61e9e76de5def4b30d2da211d3333d93",
       "packages/gdps-descriptor-consumer/src/index.ts": "sha256:dd2c19e1a88d046743ddbef294f30f67c07229b6e87a5121ebd6a452224b8f27",
-      "packages/gowm-contract-intake/src/gdps-v021-finding-contract.generated.ts": "sha256:02ea45f20e366faad4eb78f95557736338b5269d3fcc369f91d6b8f59c93bb7e",
+      "packages/gowm-contract-intake/src/gdps-v021-finding-contract.generated.ts": "sha256:65a02116a6a338e445738ab4b67c52f82a585ce465c6b33a08a4173d9906c7fc",
       "packages/gowm-execution-evidence/src/validated-envelope.ts": "sha256:35f98bdc1d002de5709ace9c0f71862a3499c6200bbd63a3d86e8ef0e0d8b66b",
       "validation/scripts/generate-sacs-geospatial-decoder-evidence.ts": "sha256:6a70f448cefb2d427a824f47fc5fe0b135357d9058a8d155e410f21a87817ec9"
     }

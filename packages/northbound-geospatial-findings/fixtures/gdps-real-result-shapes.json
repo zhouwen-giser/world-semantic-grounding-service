@@ -2,8 +2,8 @@
   "fixtureClass": "TEST_VECTOR",
   "sourceAuthority": {
     "repository": "zhouwen-giser/geospatial-data-product-service",
-    "implementationSourceSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
-    "deliveryEvidenceSha": "712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6",
+    "implementationSourceSha": "d9238d19bae98e387d390c936300358a30b024cb",
+    "deliveryEvidenceSha": "8646ded17d03a627305727f92e09c801ff63491f",
     "schemas": [
       "contracts/raster-sample-result.schema.json",
       "contracts/elevation-profile-result.schema.json",

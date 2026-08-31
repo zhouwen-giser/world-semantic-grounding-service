@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
 
-const EXPECTED_COMMIT = "fceed92398a0b86c0a0121aa2188a7f1d328e577";
+const EXPECTED_COMMIT = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14";
 const EXPECTED_VERSION = "0.6.4";
 
 function required(name: string): string {

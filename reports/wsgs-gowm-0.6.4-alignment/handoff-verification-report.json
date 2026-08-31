@@ -2,8 +2,8 @@
   "schemaVersion": "wsgs-gowm-handoff-verification/1.0",
   "status": "PASS",
   "handoffPath": "contracts/consumers/sacs-development-handoff-v1.json",
-  "handoffFileHash": "sha256:9783cb3ebd80dfbb6c0436593d81aee37f44ae863ea6b4430baba9e58f5b947e",
-  "handoffCanonicalPayloadHash": "sha256:c08deb53a1cd0365d6588584826f04c830c738aaa38cb3fbf71cda8d0cba2d6d",
+  "handoffFileHash": "sha256:ff3791bfd132207d1c9e5347d09a7249f9d9e55fb28ddf5d283fa9faa807dcfa",
+  "handoffCanonicalPayloadHash": "sha256:a2028ef6d86c98d01550288e3fd9b833be390c0a1536d084ab5948b27b85d354",
   "schemaValidationStatus": "PASS",
   "handoffStatus": "DEVELOPMENT_READY",
   "developmentLedgerHash": "sha256:fd2def26d5c34a68121fad531d336d46358b334213dfdefcb09c9e628f73bc74",
@@ -13,7 +13,7 @@
     "verification": "DECLARED_HANDOFF_SOURCE_COMMIT_FOR_CLOSURE_CROSS_VALIDATION"
   },
   "exactTuple": {
-    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "runtimeVersion": "0.6.4",
     "gatewayContractVersion": "0.6.3",
     "consumerPackage": {
@@ -40,5 +40,5 @@
     "developmentLedgerHash": "PASS"
   },
   "marker": "WSGS_GOWM_HANDOFF_ALIGNMENT_VERIFIED",
-  "evidenceHash": "sha256:72fbc3e9c4d4e08772c57d9b285a33e287ddc80f99fbab3e37a5aaf25a6b199e"
+  "evidenceHash": "sha256:36b8e402d0f2a46d2289912d41c3cc0700be6a1f595e45e76d9a7e2a936e63ac"
 }

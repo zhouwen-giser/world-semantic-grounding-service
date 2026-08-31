@@ -55,7 +55,7 @@ describe("GDPS v0.2.1 FINAL_B output-schema closure", () => {
     expect(gdpsV021FindingContractClosure.outputSchemas).toHaveLength(30);
     expect(gdpsV021OutputSchemaDependencies.schemas).toHaveLength(9);
     expect(gdpsV021FindingContractClosure.closureHash).toBe(
-      "sha256:cd64d329134f14512f9fa96d501887885eb60140bdcfeeec5e0e10219af41c87"
+      "sha256:077f491462d1908ab7bb23c21fa1b1e6fd683ed92ca7cf8ea407529131501ece"
     );
     expect(Object.isFrozen(gdpsV021FindingContractClosure)).toBe(true);
     expect(Object.isFrozen(gdpsV021FindingContractClosure.operations[0])).toBe(true);

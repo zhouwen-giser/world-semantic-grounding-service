@@ -123,11 +123,11 @@ if (formalR1R5Only) {
     throw new Error("WSGS_FORMAL_ISOLATED_DATABASE_REQUIRED");
   }
 }
-const expectedGowmRuntimeSourceCommit = "fceed92398a0b86c0a0121aa2188a7f1d328e577";
-const expectedSharedExecutionGowmSourceLock = "7a3600cfeede1e1eda711a59bdb76caa68c05f64";
-const expectedGdpsImplementationSourceCommit = "42e06e7341250aa230ac01d201effafe92ce4af5";
+const expectedGowmRuntimeSourceCommit = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14";
+const expectedSharedExecutionGowmSourceLock = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14";
+const expectedGdpsImplementationSourceCommit = "d9238d19bae98e387d390c936300358a30b024cb";
 const expectedGdpsFinalBBundleHash =
-  "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19" as const;
+  "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab" as const;
 const expectedGowmRuntimeVersion = "0.6.4";
 const expectedGatewayContractVersion = "0.6.3";
 const expectedWsgsRuntimeVersion = "0.2.1";
@@ -155,14 +155,30 @@ interface VerifiedWsgsSourceBinding {
   untrackedSourceClean: true;
   excludedRuntimeEvidenceOutputs: readonly [
     "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
-    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+    "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+    "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
   ];
   verification: "GIT_HEAD_AND_WORKTREE_STATUS_EXCLUDING_EXACT_RUNTIME_EVIDENCE_OUTPUTS";
 }
 
 const excludedRuntimeEvidenceOutputs = [
   "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
-  "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json"
+  "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+  "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+  "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
 ] as const;
 
 const verifiedSourcePathspecs = [

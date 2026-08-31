@@ -387,9 +387,9 @@ describe("descriptor/profile finding decoder registry", () => {
   it("uses TEST_VECTOR payloads copied in the authoritative GDPS shared-schema shapes", () => {
     expect(testVectors.fixtureClass).toBe("TEST_VECTOR");
     expect(testVectors.sourceAuthority.implementationSourceSha)
-      .toBe("42e06e7341250aa230ac01d201effafe92ce4af5");
+      .toBe("d9238d19bae98e387d390c936300358a30b024cb");
     expect(testVectors.sourceAuthority.deliveryEvidenceSha)
-      .toBe("712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6");
+      .toBe("8646ded17d03a627305727f92e09c801ff63491f");
     expect(testVectors.sourceAuthority.schemas).toHaveLength(5);
   });
 

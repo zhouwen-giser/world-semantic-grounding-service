@@ -128,16 +128,29 @@
     },
     "gdpsFinalB": {
       "qualification": "UPSTREAM_DEVELOPMENT_QUALIFIED",
-      "gdpsImplementationSourceSha": "42e06e7341250aa230ac01d201effafe92ce4af5",
-      "gdpsEvidenceDeliverySha": "712abb35c6c11fe96a3ff1f4c990d26bb5fb06d6",
+      "gdpsImplementationSourceSha": "d9238d19bae98e387d390c936300358a30b024cb",
+      "gdpsEvidenceDeliverySha": "8646ded17d03a627305727f92e09c801ff63491f",
       "gdpsMergedMainSha": "bad1de09d15e0145d08f16647ed067964420b8cb",
-      "gowmSourceLockSha": "7a3600cfeede1e1eda711a59bdb76caa68c05f64",
+      "gowmSourceLockSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
       "wsgsConsumerSourceLockSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb",
-      "handoffBundleHash": "sha256:93ebb1fdf376e416cdc38ffac0dde14470993fa09b576867a52a7249f5c0eb19",
+      "handoffBundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab",
       "gatewayCanary": "30/30 PASS",
       "directProviderCalls": 0,
       "w43RuntimeQualification": "NOT_RUN",
       "w44RuntimeQualification": "NOT_RUN",
+      "productionQualified": false
+    },
+    "gowmN04IsolatedCandidate": {
+      "qualification": "UPSTREAM_RUNTIME_QUALIFIED_WSGS_R1_R5_PENDING",
+      "sourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+      "sourceTreeSha": "e6d0747d6a8edaf86a54cc5163cb26a36f98fa16",
+      "imageDigest": "sha256:5beba90084959786421b23539feffa45c1898e36cdd7749c42428202ffd2ce3e",
+      "runtimeVersion": "0.6.4",
+      "gatewayContractVersion": "0.6.3",
+      "foundationCanary": "37/37 PASS",
+      "combinedN04Canary": "PASS",
+      "combinedN04ReportHash": "sha256:ee6068c4b24986251fb39cdcbb8c485562bf60f137f495bceae427852e2b8c37",
+      "sharedInstanceMutated": false,
       "productionQualified": false
     }
   },

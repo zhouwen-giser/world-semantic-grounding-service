@@ -1,13 +1,13 @@
 {
   "schemaVersion": "1.0",
-  "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+  "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
   "packageIntegrity": "sha512-f4bcksAK/JMk67pbkXlTycHREfM/19Xys4PcYhtjPTNW1Q43Xx+GYLlFkir0ePprUmNHo9Mnvksj2d2DOuCFrg==",
   "checks": [
     {
       "id": "source-lock",
       "status": "PASS",
-      "actual": "fceed92398a0b86c0a0121aa2188a7f1d328e577/@gowm/world-gateway-contracts@0.6.3",
-      "expected": "fceed92398a0b86c0a0121aa2188a7f1d328e577/@gowm/world-gateway-contracts@0.6.3"
+      "actual": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14/@gowm/world-gateway-contracts@0.6.3",
+      "expected": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14/@gowm/world-gateway-contracts@0.6.3"
     },
     {
       "id": "tarball-bytes",
@@ -155,5 +155,5 @@
     }
   ],
   "status": "PASS",
-  "evidenceHash": "sha256:1ae68cfc01b1e321be09f4f17c096f63bf166b76cad1a02ae4e1b13de71aeba1"
+  "evidenceHash": "sha256:6fb469f00aebde1a42c23d2da5c62b9f40e07bb164439341db551d6c7d9a10ad"
 }

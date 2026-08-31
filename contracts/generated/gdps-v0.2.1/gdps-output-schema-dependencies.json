@@ -1,6 +1,6 @@
 {
   "schemaVersion": "wsgs-gdps-output-schema-dependencies/1.0",
-  "sourceCommit": "42e06e7341250aa230ac01d201effafe92ce4af5",
+  "sourceCommit": "d9238d19bae98e387d390c936300358a30b024cb",
   "schemas": [
     {
       "schemaUri": "urn:gdps:check-current-result:1.0",
@@ -627,5 +627,5 @@
       }
     }
   ],
-  "closureHash": "sha256:20a40aa72a456acc5c6995f43f76327bcd93df065e757a6968af68a67f6dfa48"
+  "closureHash": "sha256:8a9197faec6f57785446a4fd927e356210da6393065ab8977399e7be3a0bc1e4"
 }

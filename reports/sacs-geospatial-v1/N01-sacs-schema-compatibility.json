@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:982064b2c1ca5aad927f9ac9d497a46da6be161caab3616bd1207fafeba4d854",
+  "inputSetHash": "sha256:3f875b407eef469d9ccd0c323ad4762a60c6dfe3435f6dba8948b4067c4abe7f",
   "verificationRecipe": {
     "writeCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
     "checkCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",

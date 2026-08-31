@@ -197,7 +197,7 @@ const lock = {
   lockVersion: "1.0",
   taskPackageVersion: "R1",
   sourceCommitAtGeneration: "c2a71a0f455c728ae45d70067f223e1450cfa427",
-  gowmSourceCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+  gowmSourceCommit: "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
   artifacts: artifactFiles.map((path) => {
     const bytes = normalizedLf(path);
     return {

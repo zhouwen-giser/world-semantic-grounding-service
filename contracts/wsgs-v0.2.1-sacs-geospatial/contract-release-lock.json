@@ -16,7 +16,7 @@
     "compatibility/sacs-pr17/README.md": "sha256:5d3f24c9fc6c1d5f477054e33a121401fb4610626cd63e488e553aeb36d4bce4",
     "compatibility/sacs-pr17/source-product.schema.json": "sha256:ec0076a8bf292acc0a0798148704c2380a17074d6b8e257e102f4d24c5560b66",
     "compatibility/sacs-pr17/world-finding.schema.json": "sha256:c8c6e5392f266ba56bf525fd09cf0167373e2616b059bb4d262d99c644b3aafe",
-    "examples/capabilities-response-v1.1.json": "sha256:10ffc0e5e3a0113ed2fce3688b73cdd10ec6a7da1a5d4effd7cb59927c1ef544",
+    "examples/capabilities-response-v1.1.json": "sha256:7f07ae546a41180fe456b77568a7cbe4dff9419ef3d6e906779c5b3b47a5b7ee",
     "examples/geospatial-findings-point-measurement.json": "sha256:cd464e0dde151e7a76af1277f5ad3baea7818684945f956de936679453b4fe41",
     "examples/grounding-result-with-geospatial-findings.json": "sha256:cd8e2f975f51ac6c4afdb773d5d259b86551da3af2aa6b9704782ad6b1767624",
     "examples/source-currentness-request.json": "sha256:b7ea9f8055db16808058e566c4642dd5e4a553b886cee659a9646a919836b95a",
