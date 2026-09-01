@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-persistence-report/1.0",
+  "generatedAt": "2026-09-01T14:22:00.000Z",
+  "status": "PASS",
+  "provenance": "REAL_PUBLIC_WSGS_PERSISTENCE_AND_RETRIEVAL",
+  "sources": {
+    "gdpsSha": "e26d0c6807fe9871ae49d2dbfa30b3e98469ecc5",
+    "gdpsImplementationTreeHash": "sha256:cfdf655683bf368385f78e13981906424b46251d6f059e93c4b631ede658912e"
+  },
+  "sourceTuple": {
+    "gdpsSha": "e26d0c6807fe9871ae49d2dbfa30b3e98469ecc5",
+    "gdpsImplementationTreeHash": "sha256:cfdf655683bf368385f78e13981906424b46251d6f059e93c4b631ede658912e",
+    "wsgsImplementationSha": "9f0c2f27c35070d4ee072edf5220bac3b61b300f",
+    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "bundleHash": "sha256:8675e26cdc13e19f83d9234011f808138e51dd2a5fe1a538758be60a6b312150"
+  },
+  "runtime": {
+    "wsgsImageDigest": "sha256:b29bbdaa372ad37d78f3c1a1c0f0cbe6271806ddb4d36b47d3e63ad82c2dbc1d",
+    "wsgsOciRevision": "9f0c2f27c35070d4ee072edf5220bac3b61b300f",
+    "authMode": "BEARER_PRESENT_AND_SIGNED_DELEGATION_V1",
+    "authQualification": "DEBUG_FUNCTIONAL_ONLY"
+  },
+  "evidence": {
+    "requestId": "gdps-v032-final-s1-1788274403632",
+    "groundingId": "grounding-7e5fdab8-f87c-4217-a96a-e934010f59e7",
+    "jobId": "job-a0a52294-2add-4f2d-a5ac-491371ffd9d3",
+    "publicPostHttpStatus": 202,
+    "publicGetHttpStatus": 200,
+    "terminalStatus": "COMPLETED",
+    "resultHash": "sha256:ea52f2953cdc24feb093b74af2a18618b9531ec7996200d1d4edf405a3c7e6de",
+    "publicResponseHash": "sha256:00f7b5a19a6d61b61a9c79846740f5657e0b382f3f38e9e6277413497053247b",
+    "gowmResultHash": "sha256:8ee5a2e473364ea8f38a4bd7019140edbb360c39d4d4f5d20634878534443e35",
+    "evidenceItemCount": 3,
+    "semanticModelReceiptCount": 1,
+    "retrievedResultMatchesCompletedExecution": true,
+    "directDatabaseInsertion": false,
+    "directProviderCalls": 0
+  },
+  "assertions": [
+    {
+      "id": "V032-W07-001",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
+  "nonclaims": [
+    "authorization security qualified",
+    "production identity qualified"
+  ]
+}
