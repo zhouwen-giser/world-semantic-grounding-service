@@ -26,6 +26,7 @@ const catalog = json(join(root, "contracts", "integrations", "gdps", "wsgs-gdps-
 const consumer = json(join(handoffRoot, "GDPS_CONSUMER_LOCK.json"));
 const checksums = json(join(handoffRoot, "CHECKSUMS.json"));
 const intake = json(join(reportRoot, "WSGS_GDPS_HANDOFF_INTAKE_REPORT.json"));
+const spatial = json(join(reportRoot, "WSGS_GDPS_SPATIAL_E2E_REPORT.json"));
 const sources = object(consumer["sources"]);
 const currentImplementation = execFileSync(
   "git",
@@ -38,6 +39,32 @@ if (intake["status"] !== "PASS" ||
     object(intake["sourceTuple"])["currentWsgsHead"] !== currentImplementation) {
   throw new Error("V032_BINDING_EVIDENCE_SOURCE_NOT_CURRENT");
 }
+
+const spatialSource = object(spatial["sources"]);
+const spatialCase = array(spatial["cases"])
+  .map(object)
+  .find((item) => item["acceptanceId"] === "V032-W05-001");
+if (spatialCase === undefined) throw new Error("V032_REAL_SPATIAL_TIME_CASE_MISSING");
+const spatialExecution = object(spatialCase["execution"]);
+const spatialResult = object(spatialCase["result"]);
+const temporalEvidence = object(spatialResult["temporalEvidence"]);
+const realSpatialTimeQualified = spatial["status"] === "PASS" &&
+  spatialSource["gdpsSha"] === sources["gdpsSha"] &&
+  spatialSource["gdpsImplementationTreeHash"] === sources["gdpsImplementationTreeHash"] &&
+  object(spatial["sourceTuple"])["wsgsImplementationSha"] === currentImplementation &&
+  spatialCase["status"] === "PASS" &&
+  spatialExecution["terminalStatus"] === "COMPLETED" &&
+  spatialExecution["publicGetHttpStatus"] === 200 &&
+  temporalEvidence["currentSemantics"] === "CURRENT_AT_QUERY_START" &&
+  temporalEvidence["snapshotMode"] === "LATEST_AT_START" &&
+  temporalEvidence["dataConsistency"] === "CONSISTENT_AT_START" &&
+  temporalEvidence["resourcePinning"] === "PINNED" &&
+  typeof temporalEvidence["queryStartedAt"] === "string" &&
+  typeof temporalEvidence["dataCapturedAt"] === "string" &&
+  typeof temporalEvidence["queryFinishedAt"] === "string" &&
+  Date.parse(String(temporalEvidence["queryStartedAt"])) <= Date.parse(String(temporalEvidence["dataCapturedAt"])) &&
+  Date.parse(String(temporalEvidence["dataCapturedAt"])) <= Date.parse(String(temporalEvidence["queryFinishedAt"]));
+if (!realSpatialTimeQualified) throw new Error("V032_REAL_SPATIAL_TIME_EVIDENCE_INVALID");
 
 const binding = catalog.bindings.find((entry) => entry.bindingId === "SLOPE/DEGREE::SAMPLE_VALUE");
 if (binding === undefined) throw new Error("V032_EVIDENCE_BINDING_MISSING");
@@ -222,17 +249,30 @@ const timeSemanticsReport = {
     temporalApplicability: binding.evidenceMapping.temporalApplicability,
     compiledSnapshotMode: implicit.request.snapshotPolicy.mode,
     compiledHistoricalFallbackAllowed: implicit.request.snapshotPolicy.allowHistoricalFallback,
-    historicalIntentResult: historical
+    historicalIntentResult: historical,
+    realSpatialNormalization: {
+      requestId: object(spatialCase["request"])["requestId"],
+      queryStartedAt: temporalEvidence["queryStartedAt"],
+      dataCapturedAt: temporalEvidence["dataCapturedAt"],
+      queryFinishedAt: temporalEvidence["queryFinishedAt"],
+      currentSemantics: temporalEvidence["currentSemantics"],
+      snapshotMode: temporalEvidence["snapshotMode"],
+      dataConsistency: temporalEvidence["dataConsistency"],
+      resourcePinning: temporalEvidence["resourcePinning"],
+      contentHash: spatialResult["contentHash"],
+      descriptorHash: spatialResult["descriptorHash"],
+      publicResponseHash: spatialResult["publicResponseHash"]
+    }
   },
   assertions: [
     {
       id: "V032-W08-001",
-      status: "NOT_RUN",
-      blockingReason: "REAL_SPATIAL_RESULT_NORMALIZATION_AND_PUBLIC_RETRIEVAL_NOT_EXECUTED"
+      status: "PASS",
+      blockingReason: ""
     },
     { id: "V032-W08-002", status: "PASS", blockingReason: "" }
   ],
-  gatewayQualification: "NOT_RUN"
+  gatewayQualification: "REAL_PUBLIC_WSGS_GATEWAY_GDPS"
 };
 const negativeReport = {
   schemaVersion: "wsgs-gdps-v032-negative-report/1.0",
