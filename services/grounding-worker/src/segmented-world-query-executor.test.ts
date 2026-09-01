@@ -541,6 +541,54 @@ describe("segmented world-query executor", () => {
     expect(JSON.stringify(execution)).not.toContain("signed.segment.token");
   });
 
+  it("captures a shared source port once when downstream consumers select different paths", async () => {
+    const submission = sourceSubmission();
+    delete submission.plan.outputs.find(({ name }) => name === "areaReference")!.binding.path;
+    const runtimeCapabilities = capabilities();
+    delete runtimeCapabilities[0]!.ports.outputs[0]!.path;
+    const requests: WorldQuerySubmission[] = [];
+    const gateway: SegmentedGatewayClient = {
+      submitWorldQuery: vi.fn(async (request) => {
+        const segment = request as unknown as WorldQuerySubmission;
+        requests.push(segment);
+        const node = segment.plan.nodes[0]!;
+        return node.nodeId === "resolve"
+          ? {
+              status: 200,
+              value: worldResult(segment, foundationLock, {
+                candidate: { referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: "area", version: "1.0.0" } }
+              }, "receipt-resolve")
+            }
+          : {
+              status: 200,
+              value: worldResult(segment, gdpsLock, { classification: "FOREST" }, "receipt-classify")
+            };
+      }),
+      pollJob: vi.fn(),
+      cancelWorldQuery: vi.fn()
+    };
+
+    const execution = await executeSegmentedWorldQuery({
+      submission,
+      authority: authority(),
+      capabilities: runtimeCapabilities,
+      identity: identity(),
+      deadlineAt: new Date(Date.now() + 60_000),
+      runtime: { gateway, signer: { sign: vi.fn(async (request: DelegationRequest) => signed(request)) } }
+    });
+
+    expect(requests[0]!.plan.outputs).toEqual([expect.objectContaining({
+      binding: expect.not.objectContaining({ path: expect.anything() })
+    })]);
+    expect(execution.outputs).toMatchObject({
+      areaReference: {
+        candidate: {
+          referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: "area", version: "1.0.0" }
+        }
+      }
+    });
+  });
+
   it("preserves a typed NO_DATA value as the final plan output without making it a downstream input", async () => {
     const gateway: SegmentedGatewayClient = {
       submitWorldQuery: vi.fn(async (request) => {

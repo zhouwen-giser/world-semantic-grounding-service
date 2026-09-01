@@ -325,8 +325,7 @@ function segmentOutputs(plan: WorldQueryPlanV2, nodeId: string): WorldQueryPlanV
       kind: binding.kind,
       port: binding.port,
       nodeId: binding.nodeId,
-      outputPort: binding.outputPort,
-      ...(binding.path === undefined ? {} : { path: binding.path })
+      outputPort: binding.outputPort
     } as const;
     const prior = outputs.get(binding.outputPort);
     if (prior && canonical(prior) !== canonical(selector)) {
