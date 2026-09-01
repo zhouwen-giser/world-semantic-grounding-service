@@ -16,6 +16,7 @@ import {
   PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
   applyReferenceValidation,
   assertPriorGroundingReplaySupport,
+  boundedGatewayOperationDeadline,
   boundedReferenceCandidateLimit,
   buildRecipeOperationInput,
   capabilityCatalogHash,
@@ -191,6 +192,13 @@ describe("production stage module authority boundaries", () => {
     expect(boundedReferenceCandidateLimit(8, 10)).toBe(8);
     expect(boundedReferenceCandidateLimit(20, 5_000)).toBe(10);
     expect(boundedReferenceCandidateLimit(20)).toBe(10);
+  });
+
+  it("leaves a bounded cross-process clock margin on Gateway operation deadlines", () => {
+    const now = Date.parse("2026-09-01T00:00:00.000Z");
+    expect(boundedGatewayOperationDeadline(now, now + 120_000, 30_000).getTime()).toBe(now + 29_000);
+    expect(boundedGatewayOperationDeadline(now, now + 5_000, 30_000).getTime()).toBe(now + 5_000);
+    expect(boundedGatewayOperationDeadline(now, now + 5_000, 500).getTime()).toBe(now + 450);
   });
 
   it("uses per-node best effort for mixed world-independent and snapshot-bound DAGs", () => {

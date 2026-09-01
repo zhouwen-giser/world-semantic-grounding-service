@@ -910,10 +910,11 @@ async function executeOperation(
     callerMaximumResultBytes,
     descriptor.limits.maximumOutputBytes ?? callerMaximumResultBytes
   );
-  const deadlineAt = new Date(Math.min(
+  const deadlineAt = boundedGatewayOperationDeadline(
+    Date.now(),
     context.deadlineAt.getTime(),
-    Date.now() + descriptor.execution.maximumTimeoutMs
-  ));
+    descriptor.execution.maximumTimeoutMs
+  );
   const preferredExecution = descriptor.execution.mode === "SYNC"
     ? "SYNC" as const
     : descriptor.execution.mode === "ASYNC"
@@ -1320,6 +1321,16 @@ export function boundedReferenceCandidateLimit(
     1,
     Math.min(10, requestedMaximumCandidates, descriptorMaximumCandidates ?? requestedMaximumCandidates)
   );
+}
+
+export function boundedGatewayOperationDeadline(
+  nowMs: number,
+  contextDeadlineMs: number,
+  maximumTimeoutMs: number
+): Date {
+  const clockSkewMarginMs = Math.min(1_000, Math.max(1, Math.floor(maximumTimeoutMs / 10)));
+  const operationTimeoutMs = Math.max(1, maximumTimeoutMs - clockSkewMarginMs);
+  return new Date(Math.min(contextDeadlineMs, nowMs + operationTimeoutMs));
 }
 
 /** Builds only schema-shaped inputs justified by the planner graph; it never invents missing recipe data. */
