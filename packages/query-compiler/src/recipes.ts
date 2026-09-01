@@ -415,7 +415,7 @@ function nearestApproachContextStep(
       producedReferenceKinds: [],
       spatialSemantics: "EXACT",
       timeSemantics: "CURRENT",
-      resultNature: "DERIVED",
+      resultNature: "FACT",
       inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
       outputPorts: [resultPort()]
     })
