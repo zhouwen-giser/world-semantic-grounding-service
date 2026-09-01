@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
-  "inputSetHash": "sha256:085a74480c69c29e8adb0e4471560fe886de4ad9c641ee0f0931bd706a87f342",
+  "inputSetHash": "sha256:e1d3850ab6160e126fb3d1cf6b5e87016845a760073cb429a94c68fd7da765f0",
   "verificationRecipe": {
     "writeCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
     "checkCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
@@ -25,7 +25,7 @@
     "sourceAndWorkspace": {
       "version": "0.2.1",
       "workspaceManifestCount": 19,
-      "surfaceHash": "sha256:78a5dd9310a96bf849ab3a09625489946eef0778bbeb6b73c7d13e5a7fa209f2",
+      "surfaceHash": "sha256:15ece291b878983341af31bf52510dca819fcfce10b6e4bef00e539ffb3706a8",
       "status": "PASS"
     },
     "releaseSourceFiles": {

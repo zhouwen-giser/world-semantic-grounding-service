@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "wsgs-v021-n08-handoff-generation/1.0",
+  "phase": "N08",
+  "status": "BLOCKED",
+  "provenance": "AUTHORITATIVE_WSGS_HANDOFF",
+  "inventoryCount": 8,
+  "fileCount": 9,
+  "bundleHash": "sha256:120b3b5e52fc51296ea893a98b4162bbb81637b61d95c7ad804cb33b05f5b33a",
+  "consumerLockHash": "sha256:3263493300db54b71e3513ce2498321c12322649c61d2870c16d245b08b545f8",
+  "sourceLockPath": "contracts/handoff-source-locks/wsgs-sacs-geospatial-v1.json",
+  "sourceLockHash": "sha256:165369d73887655424c7e3d66cb52bbb03e82046af20026f05d9b1db877f2f58",
+  "outputPath": "handoff/sacs-geospatial-v1",
+  "canonicalJson": "WSGS_CODE_POINT_SORTED_JSON_V1",
+  "encoding": "UTF-8",
+  "lineEnding": "LF",
+  "exactRegeneration": "PASS",
+  "readyForSacsConsumer": false,
+  "blockers": [
+    "N07_REAL_POSTGRESQL_AND_RUNTIME_QUALIFICATION_REQUIRED",
+    "N09_SACS_V04_CONSUMER_COMPATIBILITY_REQUIRED",
+    "N10_REAL_18_CASE_E2E_REQUIRED",
+    "WSGS_EXACT_SOURCE_AND_DELIVERY_QUALIFICATION_REQUIRED"
+  ]
+}

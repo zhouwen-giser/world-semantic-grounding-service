@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "wsgs-sacs-geospatial-handoff-source-lock/1.0",
+  "status": "BLOCKED",
+  "wsgs": {
+    "sourceSha": "b5dd865116f52a0801c9c97d3e4d94fd454e3c8b",
+    "deliveryHeadSha": "b5dd865116f52a0801c9c97d3e4d94fd454e3c8b",
+    "runtimeImageDigest": null
+  },
+  "gowm": {
+    "sourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "runtimeVersion": "0.6.4",
+    "gatewayContractVersion": "0.6.3",
+    "runtimeImageDigest": "sha256:5beba90084959786421b23539feffa45c1898e36cdd7749c42428202ffd2ce3e"
+  },
+  "gdps": {
+    "sourceSha": "d9238d19bae98e387d390c936300358a30b024cb",
+    "providerVersion": "0.2.1",
+    "descriptorRegistryHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
+    "consumerBundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab"
+  },
+  "sacs": {
+    "consumerVersion": "0.4",
+    "consumerHeadSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35"
+  }
+}

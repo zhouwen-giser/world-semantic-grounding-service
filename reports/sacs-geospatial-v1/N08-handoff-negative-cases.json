@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "wsgs-v021-n08-handoff-negative-cases/1.0",
+  "phase": "N08",
+  "status": "PASS",
+  "bundleStatus": "BLOCKED",
+  "caseCount": 7,
+  "passedCount": 7,
+  "cases": [
+    {
+      "caseId": "N08-N01",
+      "expectedCode": "HANDOFF_CANONICAL_JSON_MISMATCH",
+      "observedCode": "HANDOFF_CANONICAL_JSON_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N08-N02",
+      "expectedCode": "HANDOFF_INVENTORY_MISMATCH",
+      "observedCode": "HANDOFF_INVENTORY_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N08-N03",
+      "expectedCode": "HANDOFF_INVENTORY_MISMATCH",
+      "observedCode": "HANDOFF_INVENTORY_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N08-N04",
+      "expectedCode": "HANDOFF_LINE_ENDING_MISMATCH",
+      "observedCode": "HANDOFF_LINE_ENDING_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N08-N05",
+      "expectedCode": "HANDOFF_SOURCE_SCHEMA_DRIFT",
+      "observedCode": "HANDOFF_SOURCE_SCHEMA_DRIFT",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N08-N06",
+      "expectedCode": "HANDOFF_CONSUMER_LOCK_HASH_MISMATCH",
+      "observedCode": "HANDOFF_CONSUMER_LOCK_HASH_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N08-N07",
+      "expectedCode": "HANDOFF_FORBIDDEN_FIELD",
+      "observedCode": "HANDOFF_FORBIDDEN_FIELD",
+      "status": "PASS_FAIL_CLOSED"
+    }
+  ],
+  "intake": {
+    "portableCopyVerification": "PASS",
+    "copiedBundleHash": "sha256:120b3b5e52fc51296ea893a98b4162bbb81637b61d95c7ad804cb33b05f5b33a",
+    "consumerSchemaQualification": "NOT_RUN_N09_OWNER",
+    "sourceTreeModified": false
+  },
+  "credentialsIncluded": false,
+  "internalEndpointsIncluded": false
+}
