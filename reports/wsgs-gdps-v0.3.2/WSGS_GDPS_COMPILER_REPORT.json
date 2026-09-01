@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-compiler-report/1.0",
+  "status": "PASS",
+  "provenance": "REAL_WSGS_TYPED_COMPILER_EXECUTION",
+  "sources": {
+    "gdpsSha": "7df0e910e5f2ae3406c95f7023774a971561fb84",
+    "gdpsImplementationTreeHash": "sha256:ac1b6a51d3d4ace2c48798e6813ee57bdfb916addd1a42e8e59b8464413570e2"
+  },
+  "sourceTuple": {
+    "gdpsSha": "7df0e910e5f2ae3406c95f7023774a971561fb84",
+    "gdpsImplementationTreeHash": "sha256:ac1b6a51d3d4ace2c48798e6813ee57bdfb916addd1a42e8e59b8464413570e2",
+    "wsgsImplementationSha": "33d4760fb14d643eeb16ad9a3aef2d95b49dbc70",
+    "bundleHash": "sha256:018fa6f358ef8986e07310177ba8514cf840ec9aebd6d99afab6d96c4fe63569"
+  },
+  "credentialMaterialIncluded": false,
+  "compiler": {
+    "compiledRequestHash": "sha256:377c4c73baf221eb5141db86e2134dc9a5b07711f862e39bbd20a2d441d98d03",
+    "operation": {
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0"
+    },
+    "locks": {
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e"
+    },
+    "inputKeys": [
+      "point",
+      "productProfile",
+      "productType"
+    ],
+    "trustedIdentityBound": true,
+    "callerProviderUrlPresent": false,
+    "callerScopeOverridePresent": false,
+    "defaultProductIdPresent": false,
+    "historicalFallbackAllowed": false,
+    "requirementSchemaValidated": true,
+    "compiledRequestSchemaValidated": true
+  },
+  "assertions": [
+    {
+      "id": "V032-W04-001",
+      "status": "PASS",
+      "blockingReason": ""
+    },
+    {
+      "id": "V032-W04-002",
+      "status": "NOT_RUN",
+      "blockingReason": "REAL_GATEWAY_TWO_PRODUCT_AMBIGUITY_NOT_EXECUTED"
+    }
+  ],
+  "gatewayQualification": "NOT_RUN"
+}
