@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 import { Ajv2020 } from "ajv/dist/2020.js";
 
@@ -190,7 +190,7 @@ function reject(id: string, mutate: (copy: JsonObject) => void) {
 
 function emit(path: string, value: unknown, write: boolean, code: string): void {
   const content = `${JSON.stringify(value, null, 2)}\n`;
-  if (write) { mkdirSync(resolve(path, "..").replace(/[\\/]\.\.$/u, ""), { recursive: true }); writeFileSync(path, content, "utf8"); }
+  if (write) { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, content, "utf8"); }
   else if (readFileSync(path, "utf8").replaceAll("\r\n", "\n") !== content) throw new Error(code);
 }
 function hash(value: Buffer): string { return `sha256:${createHash("sha256").update(value).digest("hex")}`; }
