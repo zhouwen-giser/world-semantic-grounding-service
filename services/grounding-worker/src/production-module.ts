@@ -1732,6 +1732,163 @@ interface PersistedSegmentedWorldQueryOutcome extends JsonObject {
 
 type PersistedWorldQueryOutcome = PersistedSingleWorldQueryOutcome | PersistedSegmentedWorldQueryOutcome;
 
+const stasTimelineSchemaHash =
+  "sha256:5705a8321a6a02f49d596c07fc7a7f29289baa3d25b469134785fd75551eb647" as const;
+const stasGdpsCorrelationSchemaHash =
+  "sha256:ad43f8b8f7addc336f51671f8b0cb2febe98d88936f4381e7974973a0f0c2c7f" as const;
+
+function unique(values: readonly string[]): string[] {
+  return [...new Set(values)].sort();
+}
+
+function literalBindingValue(
+  node: WorldQuerySubmission["plan"]["nodes"][number],
+  targetPath: string
+): string | undefined {
+  for (const binding of Object.values(node.inputs)) {
+    if (binding.kind === "LITERAL" && binding.targetPath === targetPath && typeof binding.value === "string") {
+      return binding.value;
+    }
+  }
+  return undefined;
+}
+
+function inlineObject(item: GroundingEvidenceItem): JsonObject | undefined {
+  return item.safePayload !== null && typeof item.safePayload === "object" && !Array.isArray(item.safePayload)
+    ? item.safePayload as JsonObject
+    : undefined;
+}
+
+function optionalObject(value: unknown): JsonObject | undefined {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value as JsonObject : undefined;
+}
+
+function isStasGdpsSubmission(submission: WorldQuerySubmission): boolean {
+  const operations = submission.plan.nodes.map((node) => node.operation.operationId);
+  return operations.filter((operationId) => operationId === "stas.nearest-approach").length === 1 &&
+    operations.filter((operationId) => operationId === "geo-raster.sample").length === 2;
+}
+
+export function composeStasGdpsEvidence(input: {
+  submissions: readonly WorldQuerySubmission[];
+  evidenceItems: readonly GroundingEvidenceItem[];
+  requestedProducts: readonly string[];
+}): GroundingEvidenceItem[] {
+  if (!input.requestedProducts.includes("EVENT_TIMELINES") &&
+      !input.requestedProducts.includes("CORRELATION_FINDINGS")) return [];
+  const candidates = input.submissions.filter(isStasGdpsSubmission);
+  if (candidates.length !== 1) return [];
+  const submission = candidates[0]!;
+  const stasNode = submission.plan.nodes.find((node) => node.operation.operationId === "stas.nearest-approach");
+  const slopeNode = submission.plan.nodes.find((node) =>
+    node.operation.operationId === "geo-raster.sample" &&
+    literalBindingValue(node, "/productType") === "SLOPE" &&
+    literalBindingValue(node, "/productProfile") === "DEGREE");
+  const landCoverNode = submission.plan.nodes.find((node) =>
+    node.operation.operationId === "geo-raster.sample" &&
+    literalBindingValue(node, "/productType") === "LAND_COVER" &&
+    literalBindingValue(node, "/productProfile") === "DEFAULT");
+  if (!stasNode || !slopeNode || !landCoverNode) return [];
+  const sourceFor = (nodeId: string, operationId: string): GroundingEvidenceItem | undefined => {
+    const matches = input.evidenceItems.filter((item) =>
+      item.sourceNodeId === nodeId && item.sourceOperation === operationId && item.upstreamStatus === "COMPLETED");
+    return matches.length === 1 ? matches[0] : undefined;
+  };
+  const stas = sourceFor(stasNode.nodeId, "stas.nearest-approach");
+  const slope = sourceFor(slopeNode.nodeId, "geo-raster.sample");
+  const landCover = sourceFor(landCoverNode.nodeId, "geo-raster.sample");
+  if (!stas || !slope || !landCover) return [];
+  const stasPayload = inlineObject(stas);
+  const slopePayload = inlineObject(slope);
+  const landCoverPayload = inlineObject(landCover);
+  const result = stasPayload && optionalObject(stasPayload["result"]);
+  const line = result && optionalObject(result["shortest_line"]);
+  const coordinates = line?.["coordinates"];
+  const eventCoordinates = Array.isArray(coordinates) ? coordinates[0] : undefined;
+  const nearestInstant = result?.["nearest_instant"];
+  const minimumDistance = result?.["minimum_distance_m"];
+  const productEvidenceLocked = [slopePayload, landCoverPayload].every((payload) =>
+    payload && /^sha256:[0-9a-f]{64}$/u.test(String(payload["contentHash"])) &&
+      /^sha256:[0-9a-f]{64}$/u.test(String(payload["descriptorHash"])));
+  if (!Array.isArray(eventCoordinates) || eventCoordinates.length < 2 ||
+      !eventCoordinates.slice(0, 2).every((value) => typeof value === "number" && Number.isFinite(value)) ||
+      typeof nearestInstant !== "string" || !Number.isFinite(Date.parse(nearestInstant)) ||
+      typeof minimumDistance !== "number" || !Number.isFinite(minimumDistance) || minimumDistance < 0 ||
+      !productEvidenceLocked) return [];
+
+  const sourceEvidenceIds = [stas.evidenceProductId, slope.evidenceProductId, landCover.evidenceProductId];
+  const sourceItems = [stas, slope, landCover];
+  const receiptIds = unique(sourceItems.flatMap((item) => item.receiptIds));
+  const evidenceIds = unique(sourceItems.flatMap((item) => item.evidenceIds));
+  const planHash = canonicalPlanHash(submission.plan);
+  const timelinePayload = {
+    schemaVersion: "wsgs-stas-event-timeline/1.0",
+    events: [{
+      eventType: "NEAREST_APPROACH",
+      eventTime: nearestInstant,
+      geometry: { type: "Point", coordinates: eventCoordinates.slice(0, 2) },
+      minimumDistanceMetres: minimumDistance,
+      sourceEvidenceIds: [stas.evidenceProductId]
+    }]
+  };
+  const timeline: GroundingEvidenceItem = {
+    evidenceProductId: `evidence-${canonicalSha256({ kind: "EVENT_TIMELINE", planHash, timelinePayload }).slice(7, 39)}`,
+    productKind: "EVENT_TIMELINE",
+    authority: "wsgs",
+    sourceOperation: "wsgs.compose-stas-event-timeline",
+    sourceQueryId: submission.plan.queryId,
+    upstreamStatus: "COMPLETED",
+    payloadSchemaUri: "urn:wsgs:v0.3.2:stas-event-timeline:1.0",
+    payloadSchemaHash: stasTimelineSchemaHash,
+    safePayload: timelinePayload,
+    computeSnapshot: { authority: "WSGS", recipeId: "stas-nearest-approach-gdps-current-context", planHash },
+    receiptIds,
+    evidenceIds,
+    unknowns: [],
+    warnings: []
+  };
+  const correlationPayload = {
+    schemaVersion: "wsgs-stas-gdps-correlation/1.0",
+    relation: "POSSIBLY_CORRESPONDS_TO",
+    temporalEvidence: [{ evidenceProductId: stas.evidenceProductId, applicability: "EVENT_TIME" }],
+    currentSpatialEvidence: [slope, landCover].map((item) => ({
+      evidenceProductId: item.evidenceProductId,
+      applicability: "CURRENT_AT_QUERY_START"
+    })),
+    correlationFindings: [{
+      kind: "CURRENT_CONTEXT_AT_NEAREST_APPROACH_GEOMETRY",
+      factEvidenceIds: sourceEvidenceIds,
+      inference: "WSGS_ASSOCIATED_CURRENT_SPATIAL_CONTEXT_WITH_EVENT_GEOMETRY",
+      temporalApplicability: "CURRENT_AT_QUERY_START_NOT_EVENT_TIME"
+    }],
+    limitations: [
+      "CURRENT_SPATIAL_EVIDENCE_DOES_NOT_PROVE_EVENT_TIME_ENVIRONMENT",
+      "MISSING_EVIDENCE_IS_NOT_NEGATIVE_FACT"
+    ],
+    confidencePolicy: "PRESERVE_SOURCE_QUALITY_NO_AVERAGING"
+  };
+  const correlation: GroundingEvidenceItem = {
+    evidenceProductId: `evidence-${canonicalSha256({ kind: "CORRELATION_FINDING", planHash, correlationPayload }).slice(7, 39)}`,
+    productKind: "CORRELATION_FINDING",
+    authority: "wsgs",
+    sourceOperation: "wsgs.compose-stas-gdps-current-context",
+    sourceQueryId: submission.plan.queryId,
+    upstreamStatus: "COMPLETED",
+    payloadSchemaUri: "urn:wsgs:v0.3.2:stas-gdps-correlation:1.0",
+    payloadSchemaHash: stasGdpsCorrelationSchemaHash,
+    safePayload: correlationPayload,
+    computeSnapshot: { authority: "WSGS", recipeId: "stas-nearest-approach-gdps-current-context", planHash },
+    receiptIds,
+    evidenceIds,
+    unknowns: [],
+    warnings: ["CURRENT_SPATIAL_EVIDENCE_DOES_NOT_PROVE_EVENT_TIME_ENVIRONMENT"]
+  };
+  return [
+    ...(input.requestedProducts.includes("EVENT_TIMELINES") ? [timeline] : []),
+    ...(input.requestedProducts.includes("CORRELATION_FINDINGS") ? [correlation] : [])
+  ];
+}
+
 interface NormalizationUnit {
   submission: WorldQuerySubmission;
   world: JsonObject;
@@ -3273,7 +3430,9 @@ export async function createPipelineStageExecutor(
               authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest,
               delegatedIdentityHash: unit.delegatedIdentityHash as Sha256Digest,
               ...(semantic?.receiptId ? { modelReceiptIds: [semantic.receiptId] } : {}),
-              requestedProducts: normalizationProducts,
+              requestedProducts: isStasGdpsSubmission(outcome.submission)
+                ? ["WORLD_EVIDENCE"]
+                : normalizationProducts,
               maximumInlinePayloadBytes
             },
             operationsByNode,
@@ -3318,6 +3477,11 @@ export async function createPipelineStageExecutor(
           warnings.push(...evidence.warnings, ...evidence.unknowns);
         }
       }
+      evidenceItems.push(...composeStasGdpsEvidence({
+        submissions: execution.outcomes.map((outcome) => outcome.submission),
+        evidenceItems,
+        requestedProducts: requestParts(context).requestedProducts
+      }));
       await persistExecutionRecords(
         context,
         value.pool,

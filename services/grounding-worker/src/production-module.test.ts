@@ -21,6 +21,7 @@ import {
   buildRecipeOperationInput,
   capabilityCatalogHash,
   canonicalLfSha256,
+  composeStasGdpsEvidence,
   computeWorldQueryNodeRequestHashes,
   mergeKnownReferenceProducts,
   normalizeGdpsWorldQuerySources,
@@ -679,6 +680,119 @@ describe("production stage module authority boundaries", () => {
         inputHash: canonicalStasGdpsInputHash(operationInput)
       }
     });
+  });
+
+  it("composes separate temporal and current spatial evidence without historical overclaim", () => {
+    const submission = worldQuerySubmission();
+    const port = {
+      schemaUri: "urn:test:value",
+      schemaHash: digest("a"),
+      valueKind: "ANY" as const,
+      unitSemantics: "UNSPECIFIED" as const
+    };
+    const budget = { maximumRows: 1, maximumCandidates: 1, maximumOutputBytes: 1_024, maximumExecutionMs: 1_000 };
+    submission.plan.nodes = [{
+      nodeId: "Node_1",
+      operation: {
+        operationId: "stas.nearest-approach", operationVersion: "1.0",
+        inputSchemaHash: digest("1"), outputSchemaHash: digest("2")
+      },
+      inputs: { request: { kind: "REQUEST_PATH" as const, port, path: "/operationInput" } },
+      failurePolicy: "FAIL_FAST" as const,
+      budget
+    }, ...[{
+      nodeId: "Node_2", productType: "SLOPE", productProfile: "DEGREE"
+    }, {
+      nodeId: "Node_3", productType: "LAND_COVER", productProfile: "DEFAULT"
+    }].map(({ nodeId, productType, productProfile }) => ({
+      nodeId,
+      operation: {
+        operationId: "geo-raster.sample", operationVersion: "1.0",
+        inputSchemaHash: digest("3"), outputSchemaHash: digest("4")
+      },
+      inputs: {
+        pointCoordinates: {
+          kind: "NODE_OUTPUT" as const, port, nodeId: "Node_1", outputPort: "result",
+          path: "/result/shortest_line/coordinates/0", targetPath: "/point/coordinates"
+        },
+        productType: { kind: "LITERAL" as const, port, value: productType, targetPath: "/productType" },
+        productProfile: { kind: "LITERAL" as const, port, value: productProfile, targetPath: "/productProfile" }
+      },
+      failurePolicy: "FAIL_FAST" as const,
+      budget
+    }))];
+    submission.plan.budgets = {
+      maximumNodes: 3, maximumDepth: 2, maximumRows: 3, maximumCandidates: 3,
+      maximumOutputBytes: 3_072, maximumExecutionMs: 3_000
+    };
+    const item = (nodeId: string, operationId: string, safePayload: Record<string, unknown>) => ({
+      evidenceProductId: `evidence-${nodeId.toLowerCase()}`,
+      productKind: "CAPABILITY_RESULT" as const,
+      authority: "gowm",
+      sourceOperation: operationId,
+      sourceNodeId: nodeId,
+      upstreamStatus: "COMPLETED" as const,
+      payloadSchemaUri: "urn:test:output",
+      payloadSchemaHash: digest("b"),
+      safePayload,
+      receiptIds: [`receipt-${nodeId.toLowerCase()}`],
+      evidenceIds: [`upstream-${nodeId.toLowerCase()}`],
+      unknowns: [],
+      warnings: []
+    });
+    const evidenceItems = [
+      item("Node_1", "stas.nearest-approach", {
+        result: {
+          minimum_distance_m: 23,
+          nearest_instant: "2026-08-13T01:00:03.000Z",
+          shortest_line: { type: "LineString", coordinates: [[116.3, 39.9], [116.31, 39.91]] }
+        }
+      }),
+      item("Node_2", "geo-raster.sample", {
+        contentHash: digest("c"), descriptorHash: digest("d"), value: 12.5
+      }),
+      item("Node_3", "geo-raster.sample", {
+        contentHash: digest("e"), descriptorHash: digest("f"), value: "GRASS"
+      })
+    ];
+    const composed = composeStasGdpsEvidence({
+      submissions: [submission], evidenceItems, requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"]
+    });
+
+    expect(composed.map((entry) => entry.productKind)).toEqual(["EVENT_TIMELINE", "CORRELATION_FINDING"]);
+    expect(composed[0]?.safePayload).toMatchObject({
+      events: [{ eventTime: "2026-08-13T01:00:03.000Z", minimumDistanceMetres: 23 }]
+    });
+    expect(composed[1]?.safePayload).toMatchObject({
+      temporalEvidence: [{ applicability: "EVENT_TIME" }],
+      currentSpatialEvidence: [
+        { applicability: "CURRENT_AT_QUERY_START" },
+        { applicability: "CURRENT_AT_QUERY_START" }
+      ],
+      limitations: expect.arrayContaining(["CURRENT_SPATIAL_EVIDENCE_DOES_NOT_PROVE_EVENT_TIME_ENVIRONMENT"]),
+      confidencePolicy: "PRESERVE_SOURCE_QUALITY_NO_AVERAGING"
+    });
+    const ajv = new Ajv2020Module.default({ strict: true });
+    addFormatsModule.default(ajv);
+    for (const [schemaFile, payload] of [
+      ["stas-event-timeline.schema.json", composed[0]?.safePayload],
+      ["stas-gdps-correlation.schema.json", composed[1]?.safePayload]
+    ] as const) {
+      const schema = JSON.parse(readFileSync(resolve(
+        import.meta.dirname, "..", "..", "..", "contracts", "wsgs-v0.2.1-sacs-geospatial", schemaFile
+      ), "utf8")) as Record<string, unknown>;
+      expect(ajv.validate(schema, payload), ajv.errorsText()).toBe(true);
+    }
+
+    const withoutGeometry = structuredClone(evidenceItems);
+    (withoutGeometry[0]!.safePayload as Record<string, unknown>)["result"] = {
+      minimum_distance_m: 23,
+      nearest_instant: "2026-08-13T01:00:03.000Z"
+    };
+    expect(composeStasGdpsEvidence({
+      submissions: [submission], evidenceItems: withoutGeometry,
+      requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"]
+    })).toEqual([]);
   });
 
   it("places a grounded anchor before an unresolved product descriptor mention", () => {
