@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "wsgs-v021-n09-sacs-negative-cases/1.0",
+  "phase": "N09",
+  "status": "BLOCKED",
+  "cases": [
+    {
+      "id": "WSGS_SHA_MISMATCH",
+      "status": "BLOCKED_FAIL_OPEN",
+      "evidence": "The current consumer has no runtime WSGS SHA binding assertion."
+    },
+    {
+      "id": "GOWM_SHA_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "id": "RESULT_SCHEMA_HASH_MISMATCH",
+      "status": "BLOCKED_FAIL_OPEN",
+      "evidence": "The current adapter parses the result shape but does not bind it to resultSchemaHash."
+    },
+    {
+      "id": "PROFILE_HASH_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "id": "UNKNOWN_FINDING",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "id": "STALE_SOURCE",
+      "status": "PASS_FAIL_CLOSED",
+      "evidence": "SACS focused currentness suite passed 9/9 at the locked head."
+    },
+    {
+      "id": "FOREIGN_SCOPE_SELECTION",
+      "status": "PASS_FAIL_CLOSED",
+      "evidence": "SACS focused structured-selection suites passed 11/11 with 3 PostgreSQL cases skipped."
+    }
+  ]
+}

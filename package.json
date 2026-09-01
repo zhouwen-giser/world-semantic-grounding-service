@@ -39,6 +39,8 @@
     "handoff:sacs-geospatial:write": "tsx validation/scripts/generate-sacs-geospatial-handoff.ts --write && tsx validation/scripts/verify-sacs-geospatial-handoff.ts --write-reports",
     "handoff:sacs-geospatial:check": "tsx validation/scripts/generate-sacs-geospatial-handoff.ts && tsx validation/scripts/verify-sacs-geospatial-handoff.ts",
     "handoff:sacs-geospatial:intake": "tsx validation/scripts/verify-sacs-geospatial-handoff.ts",
+    "consumer:sacs-v04:write": "tsx validation/sacs-v0.4-consumer-harness/run.ts --write",
+    "consumer:sacs-v04:check": "tsx validation/sacs-v0.4-consumer-harness/run.ts",
     "alignment:gowm:check": "tsx validation/scripts/verify-gowm-alignment.ts",
     "alignment:gowm:evidence:check": "tsx validation/scripts/generate-gowm-alignment-evidence.ts",
     "alignment:gowm:evidence:write": "tsx validation/scripts/generate-gowm-alignment-evidence.ts --write",

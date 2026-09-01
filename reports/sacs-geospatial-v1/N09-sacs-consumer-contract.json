@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "wsgs-v021-n09-sacs-consumer-contract/1.0",
+  "phase": "N09",
+  "status": "PARTIAL",
+  "exactConsumerHead": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+  "authoritativeBlockedLockAccepted": true,
+  "projectedReadyLockShapeAccepted": true,
+  "fixtureGroundingResultParsed": true,
+  "fixtureGeospatialFindingsParsed": true,
+  "fixtureIsRuntimeEvidence": false,
+  "focusedTests": [
+    {
+      "command": "pnpm test:v04:s14",
+      "passed": 23,
+      "skipped": 0
+    },
+    {
+      "command": "pnpm test:closure:v04:selection",
+      "passed": 11,
+      "skipped": 3
+    },
+    {
+      "command": "pnpm test:v04:s22",
+      "passed": 9,
+      "skipped": 0
+    }
+  ],
+  "sacsSourceModified": false
+}

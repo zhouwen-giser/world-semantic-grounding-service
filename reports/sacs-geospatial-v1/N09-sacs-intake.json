@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "wsgs-v021-n09-sacs-intake/1.0",
+  "phase": "N09",
+  "status": "BLOCKED",
+  "sacsHeadSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+  "packageManager": "pnpm@11.13.1",
+  "nodeVersion": "v22.14.0",
+  "handoffBundleHash": "sha256:c9184cea37b718271660f3e61401acbe84607dd20179ed55de4c5b2d2a73f89f",
+  "inventoryCount": 8,
+  "consumerLockParsedByActualSacsSource": true,
+  "handoffStatus": "BLOCKED",
+  "authoritativeReadyIntake": false,
+  "realRuntimeResultParsed": false,
+  "blockers": [
+    "AUTHORITATIVE_HANDOFF_NOT_READY",
+    "REAL_WSGS_RESULT_NOT_AVAILABLE",
+    "SACS_RUNTIME_WSGS_SHA_BINDING_MISSING",
+    "SACS_RESULT_SCHEMA_HASH_BINDING_MISSING",
+    "SACS_AUTHORITATIVE_8_PLUS_CHECKSUMS_INTAKE_NOT_IMPLEMENTED"
+  ]
+}

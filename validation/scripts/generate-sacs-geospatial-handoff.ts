@@ -128,6 +128,14 @@ const consumerWithoutHash = {
   schemaVersion: "sacs-wsgs-geospatial-consumer-lock/1.0",
   provenance: "AUTHORITATIVE_WSGS_HANDOFF",
   status,
+  ...(status === "BLOCKED"
+    ? {
+        blocker: {
+          code: "WSGS_HANDOFF_QUALIFICATION_INCOMPLETE",
+          safeDetail: "The authoritative handoff is generated, but runtime, consumer, E2E, or exact-source qualification is incomplete."
+        }
+      }
+    : {}),
   sources: {
     wsgsSha: text(wsgs["sourceSha"], "N08_WSGS_SOURCE_INVALID"),
     gowmSha: text(gowm["sourceSha"], "N08_GOWM_SOURCE_INVALID"),
@@ -140,17 +148,19 @@ const consumerWithoutHash = {
   },
   geospatialProfile: {
     profile: "sacs-wsgs-geospatial-findings/1.0",
-    transportMode: "RESULT_EXTENSION",
+    transportMode: status === "READY" ? "RESULT_EXTENSION" : "UNRESOLVED",
     profileSchemaHash: schema("geospatial-findings.schema.json"),
     findingSchemaHash: schema("world-finding.schema.json"),
     sourceProductSchemaHash: schema("source-product.schema.json"),
     gapSchemaHash: schema("typed-gap.schema.json"),
     requestedProducts: []
   },
-  currentness: {
-    mode: "DEDICATED_OPERATION",
-    operation: "VALIDATE_SOURCE_CURRENTNESS"
-  }
+  currentness: status === "READY"
+    ? {
+        mode: "DEDICATED_OPERATION",
+        operation: "VALIDATE_SOURCE_CURRENTNESS"
+      }
+    : { mode: "UNSUPPORTED" }
 };
 
 const businessDocuments: Record<(typeof SACS_GEOSPATIAL_BUSINESS_FILES)[number], Record<string, unknown>> = {
