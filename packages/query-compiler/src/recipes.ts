@@ -416,7 +416,7 @@ function nearestApproachContextStep(
       spatialSemantics: "EXACT",
       timeSemantics: "CURRENT",
       resultNature: "FACT",
-      inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
+      inputPorts: [requestPort()],
       outputPorts: [resultPort()]
     })
   };

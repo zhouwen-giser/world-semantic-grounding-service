@@ -175,6 +175,20 @@ describe("GDPS typed query plans", () => {
     expect(requirement?.relationSemantics).toEqual(["NEAR"]);
   });
 
+  it("matches combined GDPS context against its published request/result ports", () => {
+    const steps = queryTemplateRules
+      .find((rule) => rule.pattern === "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT")?.steps.slice(1);
+    expect(steps).toHaveLength(2);
+    for (const step of steps ?? []) {
+      expect(step.requirement.inputPorts).toEqual([
+        { name: "request", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }
+      ]);
+      expect(step.requirement.outputPorts).toEqual([
+        { name: "result", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }
+      ]);
+    }
+  });
+
   it("rejects GDPS when only the global PREVIEW switch is enabled", () => {
     const input = compileInput("GDPS_LAND_COVER_AT_REFERENCE");
     input.maturityPolicy.allowPreview = true;
