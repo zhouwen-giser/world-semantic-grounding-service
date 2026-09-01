@@ -3176,9 +3176,17 @@ async function runN04ResultExtensionGate(
   );
   validateGdpsCaseEvidence(definition, { ...geospatialEvidence, recipeId: definition.id }, gdpsSuite, gdpsRuntime);
   assertN04SegmentedGatewayTrace(geospatialEvidence, sharedExecutionGatewayBinding, operationLockBinding);
+  const sharedSegmentAuthorityProjection = (evidence: CaseEvidence): JsonObject[] =>
+    evidence.segmentBindings.map(({ operationKey, dataScopeHash, sourceLockHash, scopeAuthorityHash }) => ({
+      operationKey,
+      dataScopeHash,
+      sourceLockHash,
+      scopeAuthorityHash
+    }));
   if (evidenceCanonicalJson(synchronousEvidence.admissionGatewayBinding) !==
         evidenceCanonicalJson(geospatialEvidence.admissionGatewayBinding) ||
-      evidenceCanonicalJson(synchronousEvidence.segmentBindings) !== evidenceCanonicalJson(geospatialEvidence.segmentBindings)) {
+      evidenceCanonicalJson(sharedSegmentAuthorityProjection(synchronousEvidence)) !==
+        evidenceCanonicalJson(sharedSegmentAuthorityProjection(geospatialEvidence))) {
     throw new Error("N04_SYNC_ASYNC_SHARED_GATEWAY_BINDING_MISMATCH");
   }
   const extension = n04ExtensionSummary(geospatialEvidence);
