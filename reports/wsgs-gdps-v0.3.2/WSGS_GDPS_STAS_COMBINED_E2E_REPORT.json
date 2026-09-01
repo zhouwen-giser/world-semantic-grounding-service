@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-stas-combined-e2e-report/1.0",
+  "generatedAt": "2026-09-01T17:54:00.000Z",
+  "status": "PASS",
+  "qualification": "BLOCKED",
+  "provenance": "REAL_GATEWAY_DISCOVERY_AND_READ_ONLY_RUNTIME_INVENTORY",
+  "sources": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+  },
+  "sourceTuple": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
+    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
+    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
+  },
+  "authority": {
+    "providerId": "gowm.stas",
+    "providerVersion": "0.6.2",
+    "discoveryStatus": "PASS",
+    "discoveredOperationCount": 15,
+    "requiredOperation": "stas.nearest-approach@1.0",
+    "sourceFingerprint": "sha256:b9f36e3be67451509095056fe8bc4d51e9c0abe794292deb5ecaa7f0cbe6d27b",
+    "providerManifestHash": "sha256:087d9f7a574388702aa79c78e7e3de145d77641d3c54f823b1b2bd8016e93880"
+  },
+  "runtime": {
+    "stasProviderDeploymentStatus": "NOT_DEPLOYED",
+    "stasProviderProcessObserved": false,
+    "stasProviderEndpointObserved": false,
+    "temporalOperationExecuted": false,
+    "combinedWorkflowExecuted": false,
+    "persistenceVerified": false,
+    "publicRetrievalVerified": false,
+    "runtimeQualification": "NOT_RUN",
+    "blockingReason": "STAS_PROVIDER_NOT_DEPLOYED_IN_AUTHORIZED_ISOLATED_RUNTIME"
+  },
+  "assertions": [
+    {
+      "id": "V032-W09-002",
+      "status": "NOT_RUN",
+      "blockingReason": "REAL_STAS_TEMPORAL_OPERATION_AND_COMBINED_WORKFLOW_UNAVAILABLE"
+    },
+    {
+      "id": "V032-W09-003",
+      "status": "NOT_RUN",
+      "blockingReason": "COMBINED_EVENT_TIME_VS_CURRENT_SPATIAL_OUTPUT_NOT_PRODUCED"
+    }
+  ],
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
+  "nonclaims": [
+    "STAS Provider readiness",
+    "STAS temporal operation execution",
+    "STAS and GDPS combined result",
+    "event-time spatial evidence",
+    "V032-W09-002 PASS",
+    "V032-W09-003 PASS"
+  ]
+}

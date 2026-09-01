@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-regression-report/1.0",
+  "status": "PASS",
+  "provenance": "EXACT_SOURCE_WSGS_SUITES_AND_LOCKED_GOWM_CANARY",
+  "sources": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+  },
+  "sourceTuple": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
+    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
+    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
+  },
+  "wsgs": {
+    "contractsCheck": "PASS",
+    "architectureCheck": "PASS",
+    "acceptanceLedgerCheck": "PASS",
+    "developmentClosureCheck": "PASS",
+    "typecheck": "PASS",
+    "testFilesPassed": 59,
+    "testFilesSkipped": 5,
+    "testsPassed": 652,
+    "testsSkipped": 29,
+    "testsFailed": 0,
+    "heartbeatTimingFlake": {
+      "initialObservedHeartbeats": 1,
+      "expectedMinimumHeartbeats": 2,
+      "focusedReruns": 2,
+      "focusedRerunsPassed": 2,
+      "subsequentFullSuite": "PASS"
+    }
+  },
+  "gowm": {
+    "runtimeSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "officialCanaryStatus": "PASS",
+    "officialCanaryCases": 37,
+    "officialCanaryPassed": 37,
+    "canaryReportHash": "sha256:9cb6e7d342c6af6017be1b0b0f45d226a3280d9c9923bc386c0a6ece1555ca63",
+    "runtimeMutatedByThisGate": false
+  },
+  "assertions": [
+    {
+      "id": "V032-W12-001",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "credentialMaterialIncluded": false,
+  "sharedRuntimeModified": false
+}

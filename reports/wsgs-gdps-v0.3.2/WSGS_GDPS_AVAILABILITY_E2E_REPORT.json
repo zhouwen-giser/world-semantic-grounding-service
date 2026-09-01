@@ -1,7 +1,8 @@
 {
-  "schemaVersion": "wsgs-gdps-v032-negative-report/1.0",
+  "schemaVersion": "wsgs-gdps-v032-availability-e2e-report/1.0",
+  "generatedAt": "2026-09-01T17:47:30.000Z",
   "status": "PASS",
-  "provenance": "REAL_WSGS_INTAKE_TYPED_COMPILER_AND_PUBLIC_AVAILABILITY_EXECUTION",
+  "provenance": "REAL_PUBLIC_WSGS_CONTROLLED_PROVIDER_UNAVAILABILITY_AND_REAL_NO_DATA_EXECUTION",
   "sources": {
     "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
     "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
@@ -10,24 +11,8 @@
     "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
     "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
     "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
+    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
-  },
-  "credentialMaterialIncluded": false,
-  "observations": {
-    "descriptorHashDriftRejectedByIntake": true,
-    "descriptorMismatchRejectedForExplicitSelection": {
-      "status": "GAP",
-      "reason": "EXPLICIT_PRODUCT_SELECTION_INVALID"
-    },
-    "inputSchemaHashDriftRejectedByIntake": true,
-    "inputSchemaHashDriftRejectedByCompiler": {
-      "status": "GAP",
-      "reason": "OPERATION_LOCK_DRIFT"
-    },
-    "semanticProfileHashDriftRejectedByCompiler": {
-      "status": "GAP",
-      "reason": "OPERATION_LOCK_DRIFT"
-    }
   },
   "availabilityContrast": {
     "providerUnavailable": {
@@ -54,22 +39,6 @@
     "providerRestored": true,
     "wsgsReadinessAfterRestoreHttpStatus": 200
   },
-  "assertions": [
-    {
-      "id": "V032-W10-001",
-      "status": "PASS",
-      "blockingReason": ""
-    },
-    {
-      "id": "V032-W10-002",
-      "status": "PASS",
-      "blockingReason": ""
-    },
-    {
-      "id": "V032-W10-003",
-      "status": "PASS",
-      "blockingReason": ""
-    }
-  ],
-  "gatewayQualification": "REAL_PUBLIC_WSGS_AND_REAL_GATEWAY_CONTROLLED_UNAVAILABILITY"
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false
 }

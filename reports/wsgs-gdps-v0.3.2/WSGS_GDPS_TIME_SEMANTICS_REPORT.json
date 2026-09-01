@@ -3,14 +3,14 @@
   "status": "PASS",
   "provenance": "REAL_WSGS_TYPED_COMPILER_EXECUTION",
   "sources": {
-    "gdpsSha": "d30834a3620b5a7832ce115bcb6fed3eb5851a58",
-    "gdpsImplementationTreeHash": "sha256:5abd00da873eab70d86f4d44dff13451205754b03e4666c0c4c8717d69ee7604"
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
   },
   "sourceTuple": {
-    "gdpsSha": "d30834a3620b5a7832ce115bcb6fed3eb5851a58",
-    "gdpsImplementationTreeHash": "sha256:5abd00da873eab70d86f4d44dff13451205754b03e4666c0c4c8717d69ee7604",
-    "wsgsImplementationSha": "ab2844f384845df9aea1e5f1771bcdb64d00c7df",
-    "bundleHash": "sha256:a9f81116e8ebd6d877f29ccad622c5d76f5f894efb0a19584aa3c00247416d0a"
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
+    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
+    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
   },
   "credentialMaterialIncluded": false,
   "observations": {
@@ -21,13 +21,26 @@
     "historicalIntentResult": {
       "status": "GAP",
       "reason": "HISTORICAL_INTENT_UNSUPPORTED"
+    },
+    "realSpatialNormalization": {
+      "requestId": "gdps-v032-time-s1-114b52b-1788282646720",
+      "queryStartedAt": "2026-09-01T17:11:17.223Z",
+      "dataCapturedAt": "2026-09-01T17:11:36.189615Z",
+      "queryFinishedAt": "2026-09-01T17:11:36.602Z",
+      "currentSemantics": "CURRENT_AT_QUERY_START",
+      "snapshotMode": "LATEST_AT_START",
+      "dataConsistency": "CONSISTENT_AT_START",
+      "resourcePinning": "PINNED",
+      "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
+      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
+      "publicResponseHash": "sha256:7630efc5b996bfe65fe362c97ada8335ca2843897695e2cf762d5139bbd8dddc"
     }
   },
   "assertions": [
     {
       "id": "V032-W08-001",
-      "status": "NOT_RUN",
-      "blockingReason": "REAL_SPATIAL_RESULT_NORMALIZATION_AND_PUBLIC_RETRIEVAL_NOT_EXECUTED"
+      "status": "PASS",
+      "blockingReason": ""
     },
     {
       "id": "V032-W08-002",
@@ -35,5 +48,5 @@
       "blockingReason": ""
     }
   ],
-  "gatewayQualification": "NOT_RUN"
+  "gatewayQualification": "REAL_PUBLIC_WSGS_GATEWAY_GDPS"
 }

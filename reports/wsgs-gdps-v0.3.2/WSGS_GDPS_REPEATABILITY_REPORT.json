@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-repeatability-report/1.0",
+  "status": "PASS",
+  "provenance": "REAL_PUBLIC_WSGS_REPEAT_EXECUTION",
+  "sources": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+  },
+  "sourceTuple": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
+    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
+    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
+  },
+  "runtime": {
+    "wsgsImageDigest": "sha256:606b8c6f6fce5d7085f0b170a067c7314a461e9a3b405665e4a38172dda4f400",
+    "wsgsOciRevision": "114b52bb9932690093fc11e6db496843f698e681",
+    "authQualification": "DEBUG_FUNCTIONAL_ONLY"
+  },
+  "input": {
+    "originalTextSha256": "sha256:7948d2bc9d095ece07d6938d259ac1af312d1ee12131de6ff112fef839c4a1b1",
+    "currentSnapshotChanged": false,
+    "lockTupleChanged": false
+  },
+  "executions": [
+    {
+      "requestId": "gdps-v032-time-s1-114b52b-1788282646720",
+      "groundingId": "grounding-dd016350-6699-4601-b6b4-faaaaf11cf20",
+      "jobId": "job-05090a02-a4fe-4e65-9e5b-a9486db8a1a1",
+      "status": "COMPLETED",
+      "elapsedMs": 19204,
+      "dataCapturedAt": "2026-09-01T17:11:36.189615Z",
+      "wsgsResultHash": "sha256:6c163e538e28db96e90df18d5c498dec7dba466ce164900fb11fb1d8f88fe6ec",
+      "gowmResultHash": "sha256:566ddbfaea9eb61fe38ac6201cf857085e3da42f5e4e5ac318370e332942a2bd",
+      "publicResponseHash": "sha256:7630efc5b996bfe65fe362c97ada8335ca2843897695e2cf762d5139bbd8dddc"
+    },
+    {
+      "requestId": "gdps-v032-repeat-s1-114b52b-1788282727708",
+      "groundingId": "grounding-5c5ad4e2-df13-4ddd-9097-bf65ceef57ac",
+      "jobId": "job-90242cd5-c5d3-4726-80e7-84e9219ff6c7",
+      "status": "COMPLETED",
+      "elapsedMs": 20325,
+      "dataCapturedAt": "2026-09-01T17:12:55.255507Z",
+      "wsgsResultHash": "sha256:04502bf2f1379f9af29b8c9f74194de939e3e2df728ee96df7144ca4498d857f",
+      "gowmResultHash": "sha256:92d5117ace5e4f1d9a5c896be683018499e400eef1b909c449cd65248002e139",
+      "publicResponseHash": "sha256:49952b68bde9ba36a02733d1d1c6e64932e12cb47c312614e7626a687494249b"
+    }
+  ],
+  "comparison": {
+    "operationSet": [
+      "geo-raster.sample",
+      "reference.resolve",
+      "world.get-current-state"
+    ],
+    "productId": "gdps-baseline-slope",
+    "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
+    "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
+    "value": 32.64706039428711,
+    "unit": "degree",
+    "dataConsistency": "CONSISTENT_AT_START",
+    "resourcePinning": "PINNED",
+    "normalizedSemanticSetHash": "sha256:18a0959d5a8906a41eb08ff5f1f0940c597bb0074b564023c375e6f1fd26173e",
+    "semanticallyEquivalent": true,
+    "allowedDifferencesOnly": true
+  },
+  "assertions": [
+    {
+      "id": "V032-W11-001",
+      "status": "PASS",
+      "blockingReason": ""
+    },
+    {
+      "id": "V032-W11-002",
+      "status": "NOT_RUN",
+      "blockingReason": "REAL_OVERSIZED_REQUEST_BOUNDS_NOT_EXECUTED"
+    }
+  ],
+  "credentialMaterialIncluded": false,
+  "directProviderCalls": 0
+}

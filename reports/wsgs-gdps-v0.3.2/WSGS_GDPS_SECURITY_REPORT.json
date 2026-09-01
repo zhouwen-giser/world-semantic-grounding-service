@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-security-report/1.0",
+  "generatedAt": "2026-09-01T17:39:54.124Z",
+  "status": "PASS",
+  "qualification": "BOUNDARY_CONFORMANCE_ONLY",
+  "provenance": "FOCUSED_SOURCE_TESTS_REAL_PUBLIC_WSGS_PROBES_REAL_GOWM_CANARY_AND_CHANGED_FILE_SCAN",
+  "sources": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+  },
+  "sourceTuple": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
+    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
+    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
+  },
+  "northboundAuth": {
+    "mode": "BEARER_PRESENT",
+    "policy": "ANY_NON_EMPTY_BEARER_TOKEN_ACCEPTED",
+    "missingTokenHttpStatus": 401,
+    "emptyTokenHttpStatus": 401,
+    "arbitraryNonEmptyTokenHttpStatus": 200,
+    "tokenSignatureValidated": false,
+    "tokenIssuerValidated": false,
+    "tokenAudienceValidated": false,
+    "tokenClaimsTrusted": false,
+    "callerControlledScopeAccepted": false,
+    "effectiveIdentityAuthority": "SERVER_CONFIGURATION",
+    "formalSecurityQualification": "DEBUG_FUNCTIONAL_ONLY"
+  },
+  "focusedSourceTests": {
+    "testFile": "services/grounding-api/src/server.test.ts",
+    "filesPassed": 1,
+    "testsPassed": 20,
+    "testsFailed": 0,
+    "coveredBoundaries": [
+      "missing and empty bearer token rejected",
+      "arbitrary non-empty token accepted without trusting claims",
+      "caller-controlled data scope, delegated dataset scope, principal and authorization hash rejected from request body"
+    ]
+  },
+  "downstreamGateway": {
+    "authMode": "SIGNED_DELEGATION_V1",
+    "canaryStatus": "PASS",
+    "canaryCaseCount": 37,
+    "canaryPassCount": 37,
+    "canaryReportHash": "sha256:9cb6e7d342c6af6017be1b0b0f45d226a3280d9c9923bc386c0a6ece1555ca63",
+    "securityCases": [
+      {
+        "caseId": "AUTH-MISSING-DELEGATION",
+        "httpStatus": 403,
+        "status": "PASS"
+      },
+      {
+        "caseId": "AUTH-WRONG-BEARER",
+        "httpStatus": 403,
+        "status": "PASS"
+      },
+      {
+        "caseId": "AUTH-FORGED-DELEGATION-SCOPE",
+        "httpStatus": 403,
+        "status": "PASS"
+      },
+      {
+        "caseId": "SECURITY-FORGED-BODY-DATA-SCOPE",
+        "httpStatus": 422,
+        "status": "PASS"
+      },
+      {
+        "caseId": "SECURITY-DIRECT-HIDDEN-REFERENCE",
+        "httpStatus": 403,
+        "status": "PASS"
+      }
+    ]
+  },
+  "changedFileScan": {
+    "gdpsChangedFileCount": 22,
+    "wsgsChangedFileCount": 29,
+    "privateKeyMatches": 0,
+    "bearerValueMatches": 0,
+    "credentialAssignmentMatches": 0,
+    "connectionStringMatches": 0,
+    "localAbsolutePathMatches": 0,
+    "forbiddenMatchFileCount": 0
+  },
+  "assertions": [
+    {
+      "id": "V032-W12-002",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
+  "nonclaims": [
+    "JWT signature, issuer, audience or claim validation",
+    "production northbound authentication",
+    "production security qualification",
+    "penetration testing",
+    "shared runtime security certification"
+  ]
+}
