@@ -1,7 +1,7 @@
 {
-  "schemaVersion": "wsgs-gdps-v032-binding-report/1.0",
+  "schemaVersion": "wsgs-gdps-v032-time-semantics-report/1.0",
   "status": "PASS",
-  "provenance": "REAL_WSGS_BINDING_COMPILER_EXECUTION",
+  "provenance": "REAL_WSGS_TYPED_COMPILER_EXECUTION",
   "sources": {
     "gdpsSha": "71d3ce488ec4182d00c8b5ac8c02e0411629ebe8",
     "gdpsImplementationTreeHash": "sha256:66a5bc93137fa3c13e3fffe3b7e95c22fbca85ced9836393a7452e25a2f36ef6"
@@ -13,30 +13,24 @@
     "bundleHash": "sha256:da4e16022b1d8061f9d7a2c4a47bdd1d355446532c4af24bfa084d28915a155c"
   },
   "credentialMaterialIncluded": false,
-  "catalog": {
-    "authority": "WSGS",
-    "operationFamilyCount": 10,
-    "bindingCount": 88,
-    "catalogHash": "sha256:bf9f2ea9a5e08059402eb100067d1a88c76184298258f977a276ed2964befa78",
-    "defaultProductIdBinding": "FORBIDDEN",
-    "historicalFallback": "FORBIDDEN"
-  },
   "observations": {
-    "exactPreviewBindingCompiled": true,
-    "implicitProductIdPresent": false,
-    "trustedExplicitProductIdCompiled": true,
-    "callerProductIdRejected": true,
-    "maturityEscalationRejected": true,
-    "operationHashDriftRejected": true
+    "catalogTimeSemantics": "CURRENT",
+    "temporalApplicability": "CURRENT_AT_QUERY_START",
+    "compiledSnapshotMode": "LATEST_AT_START",
+    "compiledHistoricalFallbackAllowed": false,
+    "historicalIntentResult": {
+      "status": "GAP",
+      "reason": "HISTORICAL_INTENT_UNSUPPORTED"
+    }
   },
   "assertions": [
     {
-      "id": "V032-W02-004",
-      "status": "PASS",
-      "blockingReason": ""
+      "id": "V032-W08-001",
+      "status": "NOT_RUN",
+      "blockingReason": "REAL_SPATIAL_RESULT_NORMALIZATION_AND_PUBLIC_RETRIEVAL_NOT_EXECUTED"
     },
     {
-      "id": "V032-W02-005",
+      "id": "V032-W08-002",
       "status": "PASS",
       "blockingReason": ""
     }
