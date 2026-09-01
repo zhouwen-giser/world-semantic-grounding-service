@@ -36,6 +36,7 @@ import {
   formalHttpRequestTimeoutMs,
   type FormalHttpRequestOptions
 } from "./formal-http-client.js";
+import { n04ResultSemanticProjection } from "../lib/n04-result-semantic-projection.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -2857,39 +2858,6 @@ function canonicalResultHash(runFingerprint: string, result: JsonObject): `sha25
     status: string(result["status"], "N04_RESULT_STATUS_MISSING"),
     value: material
   }) as `sha256:${string}`;
-}
-
-function n04ResultSemanticProjection(result: JsonObject): JsonObject {
-  const withoutRuntimeFields = (value: unknown): unknown => {
-    if (Array.isArray(value)) return value.map(withoutRuntimeFields);
-    if (!value || typeof value !== "object") return value;
-    return Object.fromEntries(Object.entries(value as JsonObject)
-      .filter(([key]) => ![
-        "validUntil",
-        "evaluatedAt",
-        "receiptIds",
-        "evidenceIds"
-      ].includes(key))
-      .map(([key, entry]) => [key, withoutRuntimeFields(entry)]));
-  };
-  const source = object(result["source"], "N04_RESULT_SOURCE_MISSING");
-  const execution = object(result["execution"], "N04_RESULT_EXECUTION_MISSING");
-  return {
-    schemaVersion: result["schemaVersion"],
-    status: result["status"],
-    source: { originalTextSha256: source["originalTextSha256"] },
-    mentions: withoutRuntimeFields(result["mentions"]),
-    referenceProducts: withoutRuntimeFields(result["referenceProducts"]),
-    evidenceItems: withoutRuntimeFields(result["evidenceItems"]),
-    geospatialFindings: withoutRuntimeFields(result["geospatialFindings"]),
-    ambiguities: withoutRuntimeFields(result["ambiguities"]),
-    unresolvedMentions: withoutRuntimeFields(result["unresolvedMentions"]),
-    capabilityGaps: withoutRuntimeFields(result["capabilityGaps"]),
-    warnings: withoutRuntimeFields(result["warnings"]),
-    execution: Object.fromEntries(Object.entries(execution)
-      .filter(([key]) => key !== "elapsedMs" && key !== "semanticModelReceiptIds")
-      .map(([key, entry]) => [key, withoutRuntimeFields(entry)]))
-  };
 }
 
 function n04ExtensionSummary(evidence: CaseEvidence): {
