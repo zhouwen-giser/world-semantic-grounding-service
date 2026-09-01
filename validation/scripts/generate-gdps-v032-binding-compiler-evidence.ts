@@ -27,6 +27,7 @@ const consumer = json(join(handoffRoot, "GDPS_CONSUMER_LOCK.json"));
 const checksums = json(join(handoffRoot, "CHECKSUMS.json"));
 const intake = json(join(reportRoot, "WSGS_GDPS_HANDOFF_INTAKE_REPORT.json"));
 const spatial = json(join(reportRoot, "WSGS_GDPS_SPATIAL_E2E_REPORT.json"));
+const availability = json(join(reportRoot, "WSGS_GDPS_AVAILABILITY_E2E_REPORT.json"));
 const sources = object(consumer["sources"]);
 const currentImplementation = execFileSync(
   "git",
@@ -65,6 +66,28 @@ const realSpatialTimeQualified = spatial["status"] === "PASS" &&
   Date.parse(String(temporalEvidence["queryStartedAt"])) <= Date.parse(String(temporalEvidence["dataCapturedAt"])) &&
   Date.parse(String(temporalEvidence["dataCapturedAt"])) <= Date.parse(String(temporalEvidence["queryFinishedAt"]));
 if (!realSpatialTimeQualified) throw new Error("V032_REAL_SPATIAL_TIME_EVIDENCE_INVALID");
+
+const availabilitySources = object(availability["sources"]);
+const availabilityTuple = object(availability["sourceTuple"]);
+const availabilityContrast = object(availability["availabilityContrast"]);
+const unavailable = object(availabilityContrast["providerUnavailable"]);
+const noData = object(availabilityContrast["noData"]);
+const availabilityQualified = availability["status"] === "PASS" &&
+  availabilitySources["gdpsSha"] === sources["gdpsSha"] &&
+  availabilitySources["gdpsImplementationTreeHash"] === sources["gdpsImplementationTreeHash"] &&
+  availabilityTuple["wsgsImplementationSha"] === currentImplementation &&
+  availabilityTuple["bundleHash"] === checksums["bundleHash"] &&
+  unavailable["publicPostHttpStatus"] === 503 &&
+  unavailable["groundingCreated"] === false &&
+  unavailable["noDataResultCreated"] === false &&
+  noData["terminalStatus"] === "COMPLETED" &&
+  noData["resultCode"] === "PRODUCT_NOT_AVAILABLE" &&
+  array(noData["unknowns"]).includes("NO_DATA") &&
+  availabilityContrast["classificationsRemainDistinct"] === true &&
+  availabilityContrast["providerRestored"] === true &&
+  availabilityContrast["wsgsReadinessAfterRestoreHttpStatus"] === 200 &&
+  availability["credentialMaterialIncluded"] === false;
+if (!availabilityQualified) throw new Error("V032_REAL_AVAILABILITY_EVIDENCE_INVALID");
 
 const binding = catalog.bindings.find((entry) => entry.bindingId === "SLOPE/DEGREE::SAMPLE_VALUE");
 if (binding === undefined) throw new Error("V032_EVIDENCE_BINDING_MISSING");
@@ -277,7 +300,7 @@ const timeSemanticsReport = {
 const negativeReport = {
   schemaVersion: "wsgs-gdps-v032-negative-report/1.0",
   status: "PASS",
-  provenance: "REAL_WSGS_INTAKE_AND_TYPED_COMPILER_EXECUTION",
+  provenance: "REAL_WSGS_INTAKE_TYPED_COMPILER_AND_PUBLIC_AVAILABILITY_EXECUTION",
   ...common,
   observations: {
     descriptorHashDriftRejectedByIntake: intakeDescriptorDriftRejected,
@@ -296,16 +319,17 @@ const negativeReport = {
     inputSchemaHashDriftRejectedByCompiler: hashDrift,
     semanticProfileHashDriftRejectedByCompiler: semanticHashDrift
   },
+  availabilityContrast,
   assertions: [
     { id: "V032-W10-001", status: "PASS", blockingReason: "" },
     { id: "V032-W10-002", status: "PASS", blockingReason: "" },
     {
       id: "V032-W10-003",
-      status: "NOT_RUN",
-      blockingReason: "REAL_GATEWAY_UNAVAILABLE_VS_NO_DATA_SCENARIOS_NOT_EXECUTED"
+      status: "PASS",
+      blockingReason: ""
     }
   ],
-  gatewayQualification: "NOT_RUN"
+  gatewayQualification: "REAL_PUBLIC_WSGS_AND_REAL_GATEWAY_CONTROLLED_UNAVAILABILITY"
 };
 
 writeOrCheck(join(reportRoot, "WSGS_GDPS_BINDING_REPORT.json"), bindingReport);
@@ -314,7 +338,7 @@ writeOrCheck(join(reportRoot, "WSGS_GDPS_TIME_SEMANTICS_REPORT.json"), timeSeman
 writeOrCheck(join(reportRoot, "WSGS_GDPS_NEGATIVE_REPORT.json"), negativeReport);
 console.log(
   "WSGS_GDPS_V032_BINDING_COMPILER_PASS families=" + catalog.operationFamilies.length +
-  " bindings=" + catalog.bindings.length + " gateway=NOT_RUN"
+  " bindings=" + catalog.bindings.length + " availability=PASS"
 );
 
 function json(path: string): JsonObject {
