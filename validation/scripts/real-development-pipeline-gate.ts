@@ -2156,6 +2156,11 @@ async function collect(
     )
   }));
   const named = collectNamedStrings(terminalResult, new Set(["productId", "contentHash"]));
+  const persistedOperationKeys = [...new Set(executions.rows.flatMap((row) =>
+    row.operation_id && row.operation_version ? [`${row.operation_id}@${row.operation_version}`] : []))];
+  const orderedOperationKeys = segments.rows.length > 0
+    ? [...new Set(segments.rows.map((row) => row.operation_key))]
+    : persistedOperationKeys;
   const planning = checkpoint.state["REQUIREMENT_PLAN"];
   const selectedRecipeValues = planning && typeof planning === "object" && !Array.isArray(planning)
     ? (planning as JsonObject)["selectedRecipeIds"]
@@ -2203,8 +2208,7 @@ async function collect(
     admissionSegmentedScopeAuthorityBinding,
     gatewayExecutionCount: executions.rowCount ?? 0,
     spatialExecutionCount: executions.rows.filter((row) => row.operation_id?.startsWith("spatial.")).length,
-    operationKeys: [...new Set(executions.rows.flatMap((row) =>
-      row.operation_id && row.operation_version ? [`${row.operation_id}@${row.operation_version}`] : []))],
+    operationKeys: orderedOperationKeys,
     operationStatuses: executions.rows.flatMap((row) => row.operation_id && row.operation_version ? [{
       operationKey: `${row.operation_id}@${row.operation_version}`,
       status: row.normalized_status,

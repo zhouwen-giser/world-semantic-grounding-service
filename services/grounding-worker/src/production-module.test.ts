@@ -16,6 +16,7 @@ import {
   PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
   applyReferenceValidation,
   assertPriorGroundingReplaySupport,
+  boundedReferenceCandidateLimit,
   buildRecipeOperationInput,
   capabilityCatalogHash,
   canonicalLfSha256,
@@ -185,6 +186,12 @@ function worldQuerySubmission() {
 }
 
 describe("production stage module authority boundaries", () => {
+  it("clamps direct reference resolution to the live descriptor candidate limit", () => {
+    expect(boundedReferenceCandidateLimit(20, 10)).toBe(10);
+    expect(boundedReferenceCandidateLimit(8, 10)).toBe(8);
+    expect(boundedReferenceCandidateLimit(20)).toBe(20);
+  });
+
   it("uses per-node best effort for mixed world-independent and snapshot-bound DAGs", () => {
     expect(PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY).toEqual({
       mode: "BEST_EFFORT",

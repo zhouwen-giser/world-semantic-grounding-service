@@ -1312,6 +1312,16 @@ function referenceResolveInput(
   };
 }
 
+export function boundedReferenceCandidateLimit(
+  requestedMaximumCandidates: number,
+  descriptorMaximumCandidates?: number
+): number {
+  return Math.max(
+    1,
+    Math.min(requestedMaximumCandidates, descriptorMaximumCandidates ?? requestedMaximumCandidates)
+  );
+}
+
 /** Builds only schema-shaped inputs justified by the planner graph; it never invents missing recipe data. */
 export function buildRecipeOperationInput(options: RecipeOperationInputOptions): RecipeOperationInputResult {
   const chain = requirementChain(options.planning, options.recipeId);
@@ -2479,6 +2489,9 @@ export async function createPipelineStageExecutor(
       if (referenceMentions.length === 0) return normalizeReferenceResolution(null, []);
       const parts = requestParts(context);
       const lock = operationLock(authority, "reference.resolve");
+      const descriptor = authority.capabilityCatalog.capabilities.find((candidate) =>
+        candidate.operationId === lock.operationId && candidate.operationVersion === lock.operationVersion);
+      if (!descriptor) throw new ProductionStageModuleError("GATEWAY_CAPABILITY_DESCRIPTOR_MISSING");
       const envelope = await executeOperation(value, context, lock, {
         schemaVersion: "1.0",
         mentions: referenceMentions.map((mention) => ({
@@ -2486,7 +2499,10 @@ export async function createPipelineStageExecutor(
           ...(mention.expectedKinds.length > 0 ? { expectedKinds: mention.expectedKinds } : {})
         })),
         context: { language: parts.source["locale"], anchorReferenceKeys: [] },
-        limitPerMention: parts.policy["maxCandidatesPerMention"]
+        limitPerMention: boundedReferenceCandidateLimit(
+          integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID"),
+          descriptor.limits.maximumCandidates
+        )
       }, "reference-resolve");
       return normalizeReferenceResolution(envelopeValue(envelope, lock), referenceMentions);
     },
