@@ -19,6 +19,7 @@ function result(overrides: Partial<JsonObject> = {}): JsonObject {
     }],
     evidenceItems: [
       {
+        evidenceProductId: "runtime-product-a",
         productKind: "WORLD_FACT",
         sourceOperation: "world.get-current-state",
         sourceNodeId: "Node_2",
@@ -31,6 +32,7 @@ function result(overrides: Partial<JsonObject> = {}): JsonObject {
         receiptIds: ["receipt-a"]
       },
       {
+        evidenceProductId: "runtime-product-b",
         productKind: "CAPABILITY_RESULT",
         sourceOperation: "geo-raster.sample",
         sourceNodeId: "Node_3",
@@ -66,6 +68,7 @@ describe("N04 sync/async result semantic projection", () => {
       }],
       evidenceItems: [...(sync["evidenceItems"] as unknown[])].reverse().map((entry) => ({
         ...(entry as JsonObject),
+        evidenceProductId: "runtime-product-c",
         receiptIds: ["receipt-b"],
         evidenceIds: ["evidence-b"],
         dataSnapshot: {

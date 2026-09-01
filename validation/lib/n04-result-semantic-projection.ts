@@ -4,6 +4,7 @@ const runtimeFieldNames = new Set([
   "capturedAt",
   "evaluatedAt",
   "evidenceIds",
+  "evidenceProductId",
   "freshnessMs",
   "receiptIds",
   "validUntil",
