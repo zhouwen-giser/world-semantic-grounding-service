@@ -83,6 +83,27 @@ const stringLiteralPort: SchemaPort = {
   unitSemantics: "UNSPECIFIED"
 };
 
+const arrayLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:array",
+  schemaHash: "sha256:8e1e4dd66e9483d8341c51dc5ec424d8e6510ae35cdbc53040d0bab497459945",
+  valueKind: "ANY",
+  unitSemantics: "UNSPECIFIED"
+};
+
+const objectLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:object",
+  schemaHash: "sha256:a874188523644975b2d758a153c3b6fafbafd5b107133b30b9abf4055ae1809c",
+  valueKind: "ANY",
+  unitSemantics: "UNSPECIFIED"
+};
+
+const numberLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:number",
+  schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348",
+  valueKind: "ANY",
+  unitSemantics: "UNSPECIFIED"
+};
+
 const schemaVersionLiteral: QueryTemplateLiteralBinding = {
   inputName: "schemaVersion",
   value: "1.0",
@@ -220,14 +241,16 @@ const gdpsDescriptorBindings: readonly QueryTemplateRequestBinding[] = [{
 }, gdpsProductBinding];
 
 const classCodesBinding: QueryTemplateRequestBinding = {
-  inputName: "classCodes", path: "/classCodes", targetPath: "/classCodes", literalFromParameter: true
+  inputName: "classCodes", path: "/classCodes", targetPath: "/classCodes", port: arrayLiteralPort,
+  literalFromParameter: true
 };
 const rangesBinding: QueryTemplateRequestBinding = {
-  inputName: "ranges", path: "/ranges", targetPath: "/ranges", literalFromParameter: true
+  inputName: "ranges", path: "/ranges", targetPath: "/ranges", port: arrayLiteralPort,
+  literalFromParameter: true
 };
 const propertyFiltersBinding: QueryTemplateRequestBinding = {
-  inputName: "propertyFilters", path: "/propertyFilters", targetPath: "/propertyFilters", optional: true,
-  literalFromParameter: true
+  inputName: "propertyFilters", path: "/propertyFilters", targetPath: "/propertyFilters", port: objectLiteralPort,
+  optional: true, literalFromParameter: true
 };
 const platformProfileBinding: QueryTemplateRequestBinding = {
   inputName: "platformProfile", path: "/platformProfile", targetPath: "/platformProfile", port: stringLiteralPort,
@@ -805,7 +828,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
       }, [{
         inputName: "distanceMetres", path: "/distanceM", targetPath: "/distanceMetres",
-        literalFromParameter: true
+        port: numberLiteralPort, literalFromParameter: true
       }, propertyFiltersBinding],
       [geoJsonPointType])]
   },

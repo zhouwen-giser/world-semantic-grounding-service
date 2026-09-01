@@ -220,8 +220,14 @@ describe("GDPS typed query plans", () => {
       productProfile: expect.objectContaining({ kind: "LITERAL", targetPath: "/productProfile" })
     }));
     for (const [name, value] of Object.entries(parameters)) {
-      expect(result.submission.plan.nodes.at(-1)?.inputs[name === "distanceM" ? "distanceMetres" : name])
-        .toMatchObject({ kind: "LITERAL", value });
+      const bindingName = name === "distanceM" ? "distanceMetres" : name;
+      const expectedSchemaUri = name === "distanceM"
+        ? "urn:gowm:v0.2:value:number"
+        : name === "propertyFilters"
+          ? "urn:gowm:v0.2:value:object"
+          : "urn:gowm:v0.2:value:array";
+      expect(result.submission.plan.nodes.at(-1)?.inputs[bindingName])
+        .toMatchObject({ kind: "LITERAL", value, port: { schemaUri: expectedSchemaUri } });
     }
     if (pattern === "GDPS_GENERIC_SAMPLE_VALUE" || pattern === "GDPS_GENERIC_VECTOR_NEARBY") {
       expect(result.submission.plan.nodes.at(-1)?.inputs["pointType"]).toMatchObject({
