@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { TypedWorldQueryCompiler } from "./compiler.js";
 import { queryTemplateRules } from "./recipes.js";
-import { authorizeGdps, compileInput } from "./test-fixtures.js";
+import { authorizeGdps, compileInput, digest } from "./test-fixtures.js";
 import type {
   CapabilityDescriptor,
   CapabilitySemanticProfile,
@@ -86,6 +86,77 @@ const genericCases: Array<readonly [QuerySemanticPattern, readonly string[], Rec
 
 describe("GDPS typed query plans", () => {
   const compiler = new TypedWorldQueryCompiler();
+
+  function trustedNearestApproachInput(): CompileInput {
+    const input = compileInput("STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT");
+    input.maturityPolicy.allowPreview = true;
+    input.operationInput = {
+      dataScopeId: "00000000-0000-4000-8000-000000000001",
+      dimensionPolicy: "2D",
+      timeRange: { end: "2026-08-13T01:00:06.000Z", start: "2026-08-13T01:00:00.000Z" },
+      trackletA: { trackletId: "40000000-0000-4000-8000-000000000001", versionNo: 1 },
+      trackletB: { trackletId: "40000000-0000-4000-8000-000000000002", versionNo: 1 },
+      uncertaintyPolicy: "NOMINAL_WITH_SCALAR_SENSITIVITY"
+    };
+    input.parameterValues = {};
+    authorizeGdps(input);
+    return input;
+  }
+
+  it("requires an exact trusted fixture lock for the STAS plus GDPS recipe", () => {
+    const input = trustedNearestApproachInput();
+
+    expect(compiler.compile(input)).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "SCHEMA_MISMATCH", details: { reason: "TRUSTED_OPERATION_INPUT_REQUIRED" } }
+    });
+  });
+
+  it("compiles locked nearest-approach geometry into two complementary current products", () => {
+    const input = trustedNearestApproachInput();
+    input.trustedOperationInput = {
+      source: "RUNTIME_FIXTURE_LOCK",
+      inputHash: digest(JSON.stringify(input.operationInput))
+    };
+
+    const result = compiler.compile(input);
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual([
+      "stas.nearest-approach",
+      "geo-raster.sample",
+      "geo-raster.sample"
+    ]);
+    for (const node of result.submission.plan.nodes.slice(1)) {
+      expect(node.inputs["pointCoordinates"]).toMatchObject({
+        kind: "NODE_OUTPUT",
+        nodeId: "Node_1",
+        outputPort: "result",
+        path: "/result/shortest_line/coordinates/0",
+        targetPath: "/point/coordinates"
+      });
+    }
+    expect(result.submission.plan.nodes[1]?.inputs).toMatchObject({
+      productType: { kind: "LITERAL", value: "SLOPE", targetPath: "/productType" },
+      productProfile: { kind: "LITERAL", value: "DEGREE", targetPath: "/productProfile" },
+      pointType: { kind: "LITERAL", value: "Point", targetPath: "/point/type" }
+    });
+    expect(result.submission.plan.nodes[2]?.inputs).toMatchObject({
+      productType: { kind: "LITERAL", value: "LAND_COVER", targetPath: "/productType" },
+      productProfile: { kind: "LITERAL", value: "DEFAULT", targetPath: "/productProfile" },
+      pointType: { kind: "LITERAL", value: "Point", targetPath: "/point/type" }
+    });
+    expect(result.submission.plan.outputs.map((output) => output.name)).toEqual([
+      "temporalEvidence", "slopeEvidence", "landCoverEvidence"
+    ]);
+    expect(JSON.stringify(result.submission.plan)).not.toMatch(/providerId|providerUrl|https?:\/\//iu);
+
+    (input.operationInput["trackletA"] as Record<string, unknown>)["versionNo"] = 2;
+    expect(compiler.compile(input)).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "SCHEMA_MISMATCH", details: { reason: "TRUSTED_OPERATION_INPUT_REQUIRED" } }
+    });
+  });
 
   it.each([
     "GDPS_WETLANDS_IN_AREA",

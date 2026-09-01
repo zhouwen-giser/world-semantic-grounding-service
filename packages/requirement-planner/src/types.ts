@@ -11,6 +11,7 @@ export const requirementTypes = [
   "SPATIAL_NEARBY",
   "SPATIAL_IN_AREA",
   "SPATIAL_INTERSECTS",
+  "ANALYZE_NEAREST_APPROACH",
   "READ_LAND_COVER",
   "READ_TERRAIN_CLASS",
   "READ_ELEVATION",
@@ -118,7 +119,8 @@ export const stableRecipeIds = [
   "GDPS_GENERIC_FIND_RANGE",
   "GDPS_GENERIC_VECTOR_IN_AREA",
   "GDPS_GENERIC_VECTOR_NEARBY",
-  "GDPS_GENERIC_VECTOR_INTERSECTS"
+  "GDPS_GENERIC_VECTOR_INTERSECTS",
+  "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT"
 ] as const;
 
 export type StableRecipeId = (typeof stableRecipeIds)[number];

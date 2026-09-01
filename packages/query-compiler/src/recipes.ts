@@ -15,8 +15,16 @@ type RequirementContract = Omit<
 export interface QueryTemplateLink {
   sourceStepId: string;
   outputPort: string;
+  sourcePath?: string;
   inputName: string;
   targetPath: string;
+}
+
+export interface QueryTemplateOutput {
+  name: string;
+  sourceStepId: string;
+  outputPort: string;
+  sourcePath?: string;
 }
 
 export interface QueryTemplateRequestBinding {
@@ -54,7 +62,9 @@ export interface QueryTemplateRule {
   previewAuthorizationRequired?: boolean;
   authorizationRecipeId?: string;
   descriptorAuthorizationRequired?: boolean;
+  requiresTrustedOperationInput?: true;
   defaultSnapshotMode?: SnapshotMode;
+  outputs?: readonly QueryTemplateOutput[];
   steps: readonly QueryTemplateStep[];
 }
 
@@ -359,7 +369,81 @@ function gdpsAreaStep(
   };
 }
 
+const nearestApproachStep: QueryTemplateStep = {
+  stepId: "nearest-approach",
+  costWeight: 3,
+  failurePolicy: "FAIL_FAST",
+  links: [],
+  requirement: contract("stas.nearest-approach@1.0", {
+    domain: "TEMPORAL",
+    relationSemantics: [],
+    acceptedReferenceKinds: [],
+    producedReferenceKinds: [],
+    spatialSemantics: "NONE",
+    timeSemantics: "INTERVAL",
+    resultNature: "DERIVED",
+    inputPorts: [requestPort()],
+    outputPorts: [resultPort()]
+  })
+};
+
+function nearestApproachContextStep(
+  stepId: string,
+  productType: "SLOPE" | "LAND_COVER",
+  productProfile: "DEGREE" | "DEFAULT"
+): QueryTemplateStep {
+  return {
+    stepId,
+    costWeight: 3,
+    failurePolicy: "FAIL_FAST",
+    links: [{
+      sourceStepId: "nearest-approach",
+      outputPort: "result",
+      sourcePath: "/result/shortest_line/coordinates/0",
+      inputName: "pointCoordinates",
+      targetPath: "/point/coordinates"
+    }],
+    literalBindings: [
+      geoJsonPointType,
+      { inputName: "productType", value: productType, targetPath: "/productType", port: stringLiteralPort },
+      { inputName: "productProfile", value: productProfile, targetPath: "/productProfile", port: stringLiteralPort }
+    ],
+    requirement: contract("geo-raster.sample@1.0", {
+      domain: "ANALYSIS",
+      relationSemantics: ["DESCRIBES"],
+      acceptedReferenceKinds: [],
+      producedReferenceKinds: [],
+      spatialSemantics: "EXACT",
+      timeSemantics: "CURRENT",
+      resultNature: "DERIVED",
+      inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
+      outputPorts: [resultPort()]
+    })
+  };
+}
+
 export const queryTemplateRules: readonly QueryTemplateRule[] = [
+  {
+    templateId: "stas-nearest-approach-with-gdps-context",
+    pattern: "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    authorizationRecipeId: "stas-nearest-approach-gdps-current-context",
+    descriptorAuthorizationRequired: false,
+    requiresTrustedOperationInput: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    outputs: [
+      { name: "temporalEvidence", sourceStepId: "nearest-approach", outputPort: "result" },
+      { name: "slopeEvidence", sourceStepId: "slope-context", outputPort: "result" },
+      { name: "landCoverEvidence", sourceStepId: "land-cover-context", outputPort: "result" }
+    ],
+    steps: [
+      nearestApproachStep,
+      nearestApproachContextStep("slope-context", "SLOPE", "DEGREE"),
+      nearestApproachContextStep("land-cover-context", "LAND_COVER", "DEFAULT")
+    ]
+  },
   {
     templateId: "reference-identity",
     pattern: "REFERENCE_IDENTITY",

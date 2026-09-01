@@ -244,6 +244,19 @@ export class TypedWorldQueryCompiler {
     }
     const authorizationGap = gdpsAuthorizationGap(input, rule);
     if (authorizationGap) return authorizationGap;
+    if (rule.requiresTrustedOperationInput) {
+      const expectedInputHash = `sha256:${hash(canonical(input.operationInput))}`;
+      if (
+        input.trustedOperationInput?.source !== "RUNTIME_FIXTURE_LOCK" ||
+        !digestPattern.test(input.trustedOperationInput.inputHash) ||
+        input.trustedOperationInput.inputHash !== expectedInputHash
+      ) {
+        return gap(input, "SCHEMA_MISMATCH", {
+          reason: "TRUSTED_OPERATION_INPUT_REQUIRED",
+          trustedInputMatched: input.trustedOperationInput?.inputHash === expectedInputHash
+        });
+      }
+    }
     if (!digestPattern.test(input.parameterSchemaHash)) {
       return gap(input, "SCHEMA_MISMATCH", { reason: "WORLD_QUERY_PARAMETER_SCHEMA_HASH_INVALID" });
     }
@@ -376,7 +389,9 @@ export class TypedWorldQueryCompiler {
             port: schemaPort(outputPort),
             nodeId: source.node.nodeId,
             outputPort: outputPort.name,
-            ...(outputPort.path === undefined ? {} : { path: outputPort.path }),
+            ...((link.sourcePath ?? outputPort.path) === undefined
+              ? {}
+              : { path: link.sourcePath ?? outputPort.path }),
             targetPath: link.targetPath
           };
         }
@@ -445,7 +460,6 @@ export class TypedWorldQueryCompiler {
     }
 
     const finalUnit = units.at(-1)!;
-    const finalNode = nodes.at(-1)!;
     const finalOutput = finalUnit.matched.descriptor.ports.outputs.find((port) => port.name === "result") ??
       finalUnit.matched.descriptor.ports.outputs[0];
     if (!finalOutput) {
@@ -462,20 +476,33 @@ export class TypedWorldQueryCompiler {
       operationKeys: units.map((unit) =>
         `${unit.matched.lock.operationId}@${unit.matched.lock.operationVersion}`)
     }));
+    const outputs: WorldQueryPlanV2["outputs"] = (rule.outputs ?? [{
+      name: "result",
+      sourceStepId: finalUnit.unitId,
+      outputPort: finalOutput.name,
+      ...(finalOutput.path === undefined ? {} : { sourcePath: finalOutput.path })
+    }]).map((output) => {
+      const source = resolvedByUnitId.get(output.sourceStepId);
+      if (!source) throw new QueryCompilationError("TEMPLATE_OUTPUT_DEPENDENCY");
+      const outputPort = sourceOutput(source, output.outputPort);
+      if (!outputPort) throw new QueryCompilationError("TEMPLATE_OUTPUT_PORT");
+      const path = output.sourcePath ?? outputPort.path;
+      return {
+        name: output.name,
+        binding: {
+          kind: "NODE_OUTPUT" as const,
+          port: schemaPort(outputPort),
+          nodeId: source.node.nodeId,
+          outputPort: outputPort.name,
+          ...(path === undefined ? {} : { path })
+        }
+      };
+    });
     const plan: WorldQueryPlanV2 = {
       queryPlanVersion: "2.0",
       queryId,
       nodes,
-      outputs: [{
-        name: "result",
-        binding: {
-          kind: "NODE_OUTPUT",
-          port: schemaPort(finalOutput),
-          nodeId: finalNode.nodeId,
-          outputPort: finalOutput.name,
-          ...(finalOutput.path === undefined ? {} : { path: finalOutput.path })
-        }
-      }],
+      outputs,
       budgets: { ...input.budgets }
     };
     validateCompiledPlan(plan, units.map((unit) => unit.matched.descriptor));

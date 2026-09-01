@@ -39,6 +39,7 @@ export type QuerySemanticPattern =
   | "GDPS_GENERIC_VECTOR_NEARBY"
   | "GDPS_GENERIC_VECTOR_INTERSECTS"
   | "GDPS_VALIDATE_SOURCE_CURRENTNESS"
+  | "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT"
   | "TERRAIN_VISIBILITY";
 
 export interface GdpsRecipeAuthorization {
@@ -97,6 +98,11 @@ export interface CompileInput {
   gdpsRecipeAuthorization?: GdpsRecipeAuthorization;
   /** Independently loaded exact-byte hash of the trusted GDPS recipe-lock artifact. */
   trustedGdpsRecipeLockHash?: `sha256:${string}`;
+  /** Exact canonical input lock supplied by a trusted runtime fixture, never from user text. */
+  trustedOperationInput?: {
+    source: "RUNTIME_FIXTURE_LOCK";
+    inputHash: `sha256:${string}`;
+  };
   /** Canonical hash loaded through the verified GOWM consumer package. */
   parameterSchemaHash: `sha256:${string}`;
   degradedPolicy?: "ALLOW" | "REJECT";

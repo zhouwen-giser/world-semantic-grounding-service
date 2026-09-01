@@ -151,7 +151,21 @@ describe("SemanticRequirementPlanner", () => {
     ];
     expect([...observed].sort()).toEqual([...originalKinds].sort());
     expect(stableRecipeCatalog.filter((entry) => entry.maturity === "STABLE")).toHaveLength(9);
-    expect(stableRecipeCatalog.filter((entry) => entry.maturity === "PREVIEW")).toHaveLength(14);
+    expect(stableRecipeCatalog.filter((entry) => entry.maturity === "PREVIEW")).toHaveLength(15);
+  });
+
+  it("plans one provider-neutral STAS plus GDPS correlation recipe", () => {
+    const result = plan(graph(mention()), ["EVENT_TIMELINES", "CORRELATION_FINDINGS"]);
+
+    expect(result.status).toBe("PLANNED");
+    expect(result.selectedRecipeIds).toEqual(["STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT"]);
+    expect(plannedGraph(result).requirements.map((entry) => entry.requirementType)).toEqual([
+      "ANALYZE_NEAREST_APPROACH",
+      "READ_LAND_COVER",
+      "READ_GEO_PRODUCT_VALUE"
+    ]);
+    expect(JSON.stringify(result.graph)).not.toMatch(/operationId|providerId|providerUrl|trackletId|https?:\/\//iu);
+    expect(validateWorldQueryRequirementGraph(plannedGraph(result))).toBe(result.graph);
   });
 
   it("creates typed dependencies and rejects a dependency cycle", () => {

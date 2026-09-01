@@ -46,6 +46,22 @@ function isPrefix(left: readonly string[], right: readonly string[]): boolean {
   return left.length <= right.length && left.every((segment, index) => right[index] === segment);
 }
 
+function validSourcePath(portPath: string | undefined, bindingPath: string | undefined): boolean {
+  if (bindingPath === undefined) return portPath === undefined;
+  let bindingSegments: string[];
+  try {
+    bindingSegments = targetSegments(bindingPath);
+  } catch {
+    return false;
+  }
+  if (portPath === undefined) return true;
+  try {
+    return isPrefix(targetSegments(portPath), bindingSegments);
+  } catch {
+    return false;
+  }
+}
+
 function validateTargetPaths(bindings: readonly WorldQueryInputBinding[]): void {
   const targets = bindings
     .filter((binding) => binding.targetPath !== undefined)
@@ -121,7 +137,7 @@ function validateAgainstCapabilities(
       if (binding.kind !== "NODE_OUTPUT") continue;
       const sourceDescriptor = descriptorsByNode.get(binding.nodeId!);
       const sourcePort = sourceDescriptor?.ports.outputs.find((port) => port.name === binding.outputPort);
-      if (!sourcePort || !samePort(binding.port, sourcePort) || binding.path !== sourcePort.path) {
+      if (!sourcePort || !samePort(binding.port, sourcePort) || !validSourcePath(sourcePort.path, binding.path)) {
         throw new Error("PLAN_SOURCE_PORT_DRIFT");
       }
       if (
@@ -140,7 +156,7 @@ function validateAgainstCapabilities(
     if (
       !port ||
       !samePort(output.binding.port, port) ||
-      output.binding.path !== port.path
+      !validSourcePath(port.path, output.binding.path)
     ) throw new Error("PLAN_OUTPUT_PORT_DRIFT");
   }
 }

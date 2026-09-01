@@ -47,6 +47,7 @@ function descriptorMaturity(operationId: string): "STABLE" | "PREVIEW" {
     operationId === "spatial.find-containing-area" ||
     operationId === "correlation.resolve" ||
     operationId === "predicate.evaluate" ||
+    operationId.startsWith("stas.") ||
     ["landcover.", "hydrology.", "obstacle.", "traversability.", "terrain.", "elevation.", "geo-raster.", "geo-vector."]
       .some((prefix) => operationId.startsWith(prefix))
   ) ? "PREVIEW" : "STABLE";
@@ -243,8 +244,8 @@ export function authorizeGdps(input: CompileInput, values: {
 } = {}): CompileInput {
   const rule = queryTemplateRules.find((entry) => entry.pattern === input.pattern);
   if (!rule?.previewAuthorizationRequired) throw new Error(`NOT_GDPS_RECIPE:${input.pattern}`);
-  const operationKeys = rule.steps.flatMap((step) => step.requirement.allowedOperationKeys ?? [])
-    .filter((key) => !key.startsWith("reference.") && !key.startsWith("world."));
+  const operationKeys = [...new Set(rule.steps.flatMap((step) => step.requirement.allowedOperationKeys ?? [])
+    .filter((key) => !key.startsWith("reference.") && !key.startsWith("world.")))];
   const allowedOperations = operationKeys.map((key) => {
     const separator = key.lastIndexOf("@");
     const operationId = key.slice(0, separator);
@@ -257,22 +258,21 @@ export function authorizeGdps(input: CompileInput, values: {
       semanticProfileHash: lock.semanticProfileHash
     };
   });
+  const descriptorAuthorizationRequired = rule.descriptorAuthorizationRequired !== false;
   const descriptorId = values.descriptorId ?? "LEGACY/LOCKED";
   const descriptorHash = values.descriptorHash ?? digest(descriptorId);
   input.gdpsRecipeAuthorization = {
-    recipeId: `recipe-${input.pattern.toLowerCase().replaceAll("_", "-")}`,
+    recipeId: rule.authorizationRecipeId ?? `recipe-${input.pattern.toLowerCase().replaceAll("_", "-")}`,
     semanticPattern: input.pattern,
     recipeLockHash: digest(`recipe:${input.pattern}`),
-    descriptorId,
-    descriptorHash,
+    ...(descriptorAuthorizationRequired ? { descriptorId, descriptorHash } : { descriptorConstraint: null as null }),
     previewAuthorizationRequired: true,
     allowedOperations
   };
   input.trustedGdpsRecipeLockHash = input.gdpsRecipeAuthorization.recipeLockHash;
   input.parameterValues = {
     ...input.parameterValues,
-    descriptorId,
-    descriptorHash,
+    ...(descriptorAuthorizationRequired ? { descriptorId, descriptorHash } : {}),
     ...(values.productType ? { productType: values.productType } : {}),
     ...(values.productProfile ? { productProfile: values.productProfile } : {})
   };
