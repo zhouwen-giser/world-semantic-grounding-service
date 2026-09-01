@@ -1318,7 +1318,7 @@ export function boundedReferenceCandidateLimit(
 ): number {
   return Math.max(
     1,
-    Math.min(requestedMaximumCandidates, descriptorMaximumCandidates ?? requestedMaximumCandidates)
+    Math.min(10, requestedMaximumCandidates, descriptorMaximumCandidates ?? requestedMaximumCandidates)
   );
 }
 

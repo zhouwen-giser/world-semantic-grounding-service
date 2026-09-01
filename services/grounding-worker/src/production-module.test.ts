@@ -189,7 +189,8 @@ describe("production stage module authority boundaries", () => {
   it("clamps direct reference resolution to the live descriptor candidate limit", () => {
     expect(boundedReferenceCandidateLimit(20, 10)).toBe(10);
     expect(boundedReferenceCandidateLimit(8, 10)).toBe(8);
-    expect(boundedReferenceCandidateLimit(20)).toBe(20);
+    expect(boundedReferenceCandidateLimit(20, 5_000)).toBe(10);
+    expect(boundedReferenceCandidateLimit(20)).toBe(10);
   });
 
   it("uses per-node best effort for mixed world-independent and snapshot-bound DAGs", () => {
