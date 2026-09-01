@@ -1,0 +1,251 @@
+{
+  "schemaVersion": "wsgs-v021-n10-real-e2e/1.0",
+  "phase": "N10",
+  "status": "NOT_RUN",
+  "corpusHash": "sha256:0c68d268e6f14782b5b3ef4487031e26d4d18209bee78a82fdf2ee26110e4a00",
+  "counts": {
+    "pass": 0,
+    "fail": 0,
+    "notRun": 18,
+    "blocked": 0
+  },
+  "cases": [
+    {
+      "caseId": "E2E-01",
+      "questionKind": "POINT_VALUE",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-02",
+      "questionKind": "VALUE_RANGE_AREAS",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-03",
+      "questionKind": "FEATURES_IN_AREA",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-04",
+      "questionKind": "FEATURES_NEARBY",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-05",
+      "questionKind": "FEATURES_IN_AREA",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-06",
+      "questionKind": "FEATURES_IN_AREA",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-07",
+      "questionKind": "POINT_CLASSIFICATION",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-08",
+      "questionKind": "QUALIFIED_EXPLANATION",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-09",
+      "questionKind": "VALUE_RANGE_AREAS",
+      "expectedExplanationStatus": "COMPLETE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "E2E-10",
+      "questionKind": "MULTI_FINDING",
+      "expectedExplanationStatus": "COMPLETE_OR_CLARIFY",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "NEG-01",
+      "questionKind": "FEATURES_IN_AREA",
+      "expectedExplanationStatus": "DATA_UNAVAILABLE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "NEG-02",
+      "questionKind": "FEATURES_IN_AREA",
+      "expectedExplanationStatus": "DATA_UNAVAILABLE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "NEG-03",
+      "questionKind": "FEATURES_NEARBY",
+      "expectedExplanationStatus": "CLARIFICATION_REQUIRED",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "NEG-04",
+      "questionKind": "FEATURES_IN_AREA",
+      "expectedExplanationStatus": "PARTIAL",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "NEG-05",
+      "questionKind": "MULTI_FINDING",
+      "expectedExplanationStatus": "PARTIAL_OR_DATA_UNAVAILABLE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "NEG-06",
+      "questionKind": "MULTI_FINDING",
+      "expectedExplanationStatus": "DATA_UNAVAILABLE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "NEG-07",
+      "questionKind": "MULTI_FINDING",
+      "expectedExplanationStatus": "DATA_UNAVAILABLE",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    },
+    {
+      "caseId": "HYBRID-01",
+      "questionKind": "MULTI_FINDING",
+      "expectedExplanationStatus": "COMPLETE_OR_PARTIAL",
+      "status": "NOT_RUN",
+      "runtimeEvidence": null,
+      "blockers": [
+        "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+        "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+        "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+        "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+      ]
+    }
+  ],
+  "fixtureOrMockAcceptedAsRealEvidence": false,
+  "directProviderCalls": null,
+  "completionMarkerEmitted": false
+}

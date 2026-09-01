@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "wsgs-v021-n10-runtime-binding/1.0",
+  "phase": "N10",
+  "status": "NOT_RUN",
+  "sourceTuple": {
+    "wsgs": {
+      "sourceSha": "b5dd865116f52a0801c9c97d3e4d94fd454e3c8b",
+      "deliveryHeadSha": "b5dd865116f52a0801c9c97d3e4d94fd454e3c8b",
+      "runtimeImageDigest": null
+    },
+    "gowm": {
+      "sourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+      "runtimeVersion": "0.6.4",
+      "gatewayContractVersion": "0.6.3",
+      "runtimeImageDigest": "sha256:5beba90084959786421b23539feffa45c1898e36cdd7749c42428202ffd2ce3e"
+    },
+    "gdps": {
+      "sourceSha": "d9238d19bae98e387d390c936300358a30b024cb",
+      "providerVersion": "0.2.1",
+      "descriptorRegistryHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
+      "consumerBundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab"
+    },
+    "sacs": {
+      "consumerVersion": "0.4",
+      "consumerHeadSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35"
+    }
+  },
+  "corpus": {
+    "source": "SACS_PR17_CURRENT_E2E_CORPUS",
+    "hash": "sha256:0c68d268e6f14782b5b3ef4487031e26d4d18209bee78a82fdf2ee26110e4a00",
+    "caseCount": 18
+  },
+  "requiredLivePath": [
+    "SACS_HTTP",
+    "WSGS_HTTP",
+    "WSGS_POSTGRES_QUEUE_WORKER_PIPELINE",
+    "GOWM_WORLD_CAPABILITY_GATEWAY",
+    "GDPS_CURRENT_PRODUCT",
+    "WSGS_FINDING_PERSISTENCE",
+    "SACS_EXPLANATION_PERSISTENCE",
+    "RESULT_RETRIEVAL"
+  ],
+  "isolatedComposeIdentity": null,
+  "imageDigests": null,
+  "blockers": [
+    "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+    "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+    "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+    "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+  ]
+}
