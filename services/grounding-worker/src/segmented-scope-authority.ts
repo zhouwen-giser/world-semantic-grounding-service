@@ -55,6 +55,10 @@ export interface LoadSegmentedScopeAuthorityInput {
   readonly gdpsHandoffDirectory: string;
   readonly foundationOperations: readonly OperationLock[];
   readonly selectedDatasetOperations: readonly OperationLock[];
+  readonly additionalFoundationSources?: readonly {
+    readonly sourceLockHash: Sha256Digest;
+    readonly operations: readonly OperationLock[];
+  }[];
 }
 
 export interface LoadedSegmentedScopeAuthority {
@@ -206,7 +210,9 @@ function createLoadedSegmentedScopeAuthority(
     readonly gdpsChecksumsHash: Sha256Digest;
   }
 ): SegmentedScopeAuthority {
-  if (sources.length !== 2 || sources[0]?.role === sources[1]?.role) {
+  if (sources.length < 2 ||
+      !sources.some((source) => source.role === "FOUNDATION") ||
+      !sources.some((source) => source.role === "SELECTED_DATASET")) {
     throw new SegmentedScopeAuthorityError("TRUSTED_SCOPE_SOURCES_REQUIRED");
   }
   const requiredDataScopes = new Set<string>();
@@ -365,7 +371,19 @@ export function loadSegmentedScopeAuthority(
   const foundationInstanceBindingHash = sha256(bindingFile.bytes);
   const gdpsChecksumsHash = sha256(checksumsFile.bytes);
 
-  const sources = [{
+  const additionalFoundationSources: readonly TrustedOperationScopeSource[] =
+    (input.additionalFoundationSources ?? []).map((source) => {
+      if (source.operations.length === 0) {
+        throw new SegmentedScopeAuthorityError("ADDITIONAL_FOUNDATION_OPERATIONS_REQUIRED");
+      }
+      return {
+        role: "FOUNDATION" as const,
+        dataScope: foundationDataScope,
+        sourceLockHash: digest(source.sourceLockHash, "ADDITIONAL_FOUNDATION_SOURCE_HASH_INVALID"),
+        operations: source.operations
+      };
+    });
+  const sources: readonly TrustedOperationScopeSource[] = [{
       role: "FOUNDATION",
       dataScope: foundationDataScope,
       sourceLockHash: foundationSourceHash,
@@ -375,7 +393,7 @@ export function loadSegmentedScopeAuthority(
       dataScope: selectedDatasetDataScope,
       sourceLockHash: gdpsCapabilityHash,
       operations: input.selectedDatasetOperations
-    }] as const;
+    }, ...additionalFoundationSources];
   return Object.freeze({
     authority: createLoadedSegmentedScopeAuthority(sources, {
       foundationInstanceBindingHash,

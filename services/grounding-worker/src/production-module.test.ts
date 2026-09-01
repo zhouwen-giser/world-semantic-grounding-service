@@ -33,6 +33,7 @@ import {
   selectFindingSubjectReferenceProductIdsForNode,
   selectProductionSouthboundLock
 } from "./production-module.js";
+import { canonicalStasGdpsInputHash } from "./stas-gdps-fixture-lock.js";
 
 const digest = (character: string): `sha256:${string}` => `sha256:${character.repeat(64)}`;
 
@@ -615,6 +616,69 @@ describe("production stage module authority boundaries", () => {
     addFormatsModule.default(ajv);
     ajv.addSchema(common);
     expect(ajv.validate(schema, result.operationInput), ajv.errorsText()).toBe(true);
+  });
+
+  it("loads combined STAS input only from the exact runtime fixture authority", () => {
+    const base = nearbyPlanning();
+    const operationInput = {
+      dataScopeId: "00000000-0000-4000-8000-000000000001",
+      dimensionPolicy: "2D",
+      timeRange: { start: "2026-08-13T01:00:00.000Z", end: "2026-08-13T01:00:06.000Z" },
+      trackletA: { trackletId: "40000000-0000-4000-8000-000000000001", versionNo: 1 },
+      trackletB: { trackletId: "40000000-0000-4000-8000-000000000002", versionNo: 1 },
+      uncertaintyPolicy: "NOMINAL_WITH_SCALAR_SENSITIVITY"
+    };
+    const requirements = [
+      {
+        requirementId: "requirement-nearest", requirementType: "ANALYZE_NEAREST_APPROACH" as const,
+        requiredForProduct: "CORRELATION_FINDINGS" as const, required: true, allowApproximation: false,
+        inputs: { inputAuthority: "RUNTIME_FIXTURE_LOCK" }, outputs: ["nearestApproach"]
+      },
+      {
+        requirementId: "requirement-slope", requirementType: "READ_GEO_PRODUCT_VALUE" as const,
+        requiredForProduct: "CORRELATION_FINDINGS" as const, required: true, allowApproximation: false,
+        inputs: {}, outputs: ["geospatialProductValue"]
+      },
+      {
+        requirementId: "requirement-land-cover", requirementType: "READ_LAND_COVER" as const,
+        requiredForProduct: "CORRELATION_FINDINGS" as const, required: true, allowApproximation: false,
+        inputs: {}, outputs: ["landCover"]
+      }
+    ];
+    const result = buildRecipeOperationInput({
+      ...base,
+      recipeId: "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT",
+      planning: {
+        status: "PLANNED",
+        graph: {
+          schemaVersion: "1.0", graphId: "requirement-graph-stas-gdps", graphHash: digest("9"), requirements,
+          dependencies: [{
+            fromRequirementId: "requirement-nearest", toRequirementId: "requirement-slope",
+            outputName: "nearestApproach", targetPath: "/point"
+          }, {
+            fromRequirementId: "requirement-slope", toRequirementId: "requirement-land-cover",
+            outputName: "geospatialProductValue", targetPath: "/point"
+          }]
+        },
+        selectedRecipeIds: ["STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT"],
+        capabilityGaps: []
+      },
+      stasGdpsFixture: {
+        lockHash: digest("8"),
+        lock: { operationInput, operationInputHash: canonicalStasGdpsInputHash(operationInput) }
+      } as never
+    });
+
+    expect(result).toMatchObject({
+      status: "READY",
+      requiredForProduct: "CORRELATION_FINDINGS",
+      operationInput,
+      parameterValues: {},
+      trustedOperationInput: {
+        source: "RUNTIME_FIXTURE_LOCK",
+        inputHash: canonicalStasGdpsInputHash(operationInput)
+      }
+    });
   });
 
   it("places a grounded anchor before an unresolved product descriptor mention", () => {
