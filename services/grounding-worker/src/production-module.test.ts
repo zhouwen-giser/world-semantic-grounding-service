@@ -617,6 +617,58 @@ describe("production stage module authority boundaries", () => {
     expect(ajv.validate(schema, result.operationInput), ajv.errorsText()).toBe(true);
   });
 
+  it("places a grounded anchor before an unresolved product descriptor mention", () => {
+    const options = nearbyPlanning();
+    const graph = options.planning.graph!;
+    graph.requirements[0]!.inputs["mentionNodeIds"] = ["node-product", "node-anchor"];
+    options.groundingGraph = {
+      graph: {
+        schemaVersion: "1.0",
+        nodes: [{
+          nodeId: "node-product",
+          kind: "MENTION",
+          payload: {
+            mentionId: "mention-product",
+            surfaceText: "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+            expectedKinds: ["WORLD_OBJECT"]
+          }
+        }, {
+          nodeId: "node-anchor",
+          kind: "MENTION",
+          payload: {
+            mentionId: "mention-anchor",
+            surfaceText: "3号车",
+            expectedKinds: ["WORLD_OBJECT"]
+          }
+        }],
+        edges: []
+      }
+    } as never;
+    options.references = {
+      mentions: [{ mentionId: "mention-product", candidateProductIds: [] }, {
+        mentionId: "mention-anchor", candidateProductIds: ["reference-anchor"]
+      }],
+      referenceProducts: [{
+        productId: "reference-anchor",
+        referenceKey: {
+          namespace: "gowm", kind: "WORLD_OBJECT", id: `wrf_${"b".repeat(32)}`, version: "69"
+        }
+      }]
+    } as never;
+
+    const result = buildRecipeOperationInput(options);
+    expect(result.status).toBe("READY");
+    if (result.status !== "READY") return;
+    expect(result.operationInput["mentions"]).toEqual([
+      { mentionId: "mention-anchor", surfaceText: "3号车", expectedKinds: ["WORLD_OBJECT"] },
+      {
+        mentionId: "mention-product",
+        surfaceText: "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+        expectedKinds: ["WORLD_OBJECT"]
+      }
+    ]);
+  });
+
   it.each(stableRecipeIds)("returns a typed gap when %s has no requirement graph inputs", (recipeId) => {
     const base = nearbyPlanning();
     const result = buildRecipeOperationInput({

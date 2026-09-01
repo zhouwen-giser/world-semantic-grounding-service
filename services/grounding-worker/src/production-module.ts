@@ -1311,7 +1311,12 @@ function referenceResolveInput(
   if (mentionNodeIds.length === 0) return null;
   const nodes = new Map(graph.graph.nodes.map((entry) => [entry.nodeId, entry]));
   const fallbackKinds = stringArray(requirement.inputs["expectedReferenceKinds"]);
-  const mentions = mentionNodeIds.flatMap((nodeId) => {
+  const groundedMentionIds = new Set(
+    (Array.isArray(references.mentions) ? references.mentions : [])
+      .filter((mention) => Array.isArray(mention.candidateProductIds) && mention.candidateProductIds.length > 0)
+      .map((mention) => mention.mentionId)
+  );
+  const mentions = mentionNodeIds.flatMap((nodeId, index) => {
     const node = nodes.get(nodeId);
     if (node?.kind !== "MENTION") return [];
     const payload = object(node.payload, "GROUNDING_GRAPH_MENTION_PAYLOAD_INVALID");
@@ -1323,8 +1328,11 @@ function referenceResolveInput(
       .filter((entry, index, values) => entry.length <= 128 && values.indexOf(entry) === index)
       .sort()
       .slice(0, 32);
-    return [{ mentionId, surfaceText, ...(expectedKinds.length > 0 ? { expectedKinds } : {}) }];
-  });
+    return [{ mentionId, surfaceText, ...(expectedKinds.length > 0 ? { expectedKinds } : {}), sourceIndex: index }];
+  }).sort((left, right) =>
+    Number(groundedMentionIds.has(right.mentionId)) - Number(groundedMentionIds.has(left.mentionId)) ||
+    left.sourceIndex - right.sourceIndex
+  ).map(({ sourceIndex: _sourceIndex, ...mention }) => mention);
   if (mentions.length !== mentionNodeIds.length || mentions.length > 32) return null;
   const anchorReferenceKeys = references.referenceProducts
     .map((entry) => entry.referenceKey)
