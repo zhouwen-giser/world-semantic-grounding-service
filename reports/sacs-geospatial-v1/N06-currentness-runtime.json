@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "wsgs-v021-n06-currentness-runtime/1.0",
+  "phase": "N06",
+  "generator": {
+    "name": "generate-sacs-geospatial-currentness-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_SOURCE_VECTOR_EXECUTION_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:dbb07b413a3f53664339e285feaef4149c074071d493113411a3d355c89097e8",
+  "sourceHashes": {
+    "packages/source-currentness/src/index.ts": "sha256:04ec7dc8e6f500c6ea3be8e32adf95994db1c0fe00545418a89ca28d3ae131b5",
+    "packages/source-currentness/src/index.test.ts": "sha256:9a8649de3af16fa56d664aca00473ef7f5d1f0e5c7d6e3e6b2caa4d1685a9552",
+    "packages/query-compiler/src/recipes.ts": "sha256:ee03257f6e08f250e154c51d71e1013705201f2e53bef78bae87fd4abf567cdb",
+    "packages/query-compiler/src/compiler.ts": "sha256:325c2f2cce10fa416b6c309f3aede1d840445a0b77f662708dc89ec75b7f25e5",
+    "packages/grounding-pipeline/src/pipeline.ts": "sha256:bd76ed1ce91457450b5bdace53f44d39992f30777c3e8abf91e85f8299ccaef5",
+    "packages/grounding-pipeline/src/backend.ts": "sha256:da8836cf54ec9ee7fdb2a6a25b09bb91ad66c517ff692e60a8ef00966be44e16",
+    "services/grounding-api/src/server.ts": "sha256:99867d3959f85058ad742fb5bb049b795af273f313131b05464c5183cc4f85d4",
+    "services/grounding-api/src/production.ts": "sha256:e9aac34cb349106f97ba35cb3dc59831e19a4e3a56c7af79124a0dd58e8ecf31",
+    "services/grounding-worker/src/production-module.ts": "sha256:a28e295b032f929f44736096d93703cf7257298d47e19ddfb713db0f1add39bd",
+    "contracts/wsgs-v0.2.1-sacs-geospatial/source-currentness-request.schema.json": "sha256:78e74b77a4ced0c336db0c4fe9c169fb717dd19adf21cd72dc885d5e18e9b8e7",
+    "contracts/wsgs-v0.2.1-sacs-geospatial/source-currentness-result.schema.json": "sha256:0b9f0ec6f33bea4177d71c56ebb712d83875bb7d27dce91b281933ea3fe2cd8e"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "postgresQualification": "NOT_RUN_N07_OWNER",
+  "productionQualified": false,
+  "status": "NOT_RUN",
+  "reason": "REAL_GATEWAY_POSTGRES_RUNTIME_NOT_EXECUTED",
+  "gatewayEndpoint": null,
+  "signedDelegation": "NOT_RUN",
+  "directProviderCalls": "NOT_RUN",
+  "foreignScope": "NOT_RUN",
+  "fourStateRuntimeCases": {
+    "passed": 0,
+    "required": 4
+  },
+  "runtimeEvidenceIncluded": false
+}

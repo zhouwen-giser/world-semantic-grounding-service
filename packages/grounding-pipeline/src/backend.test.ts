@@ -88,6 +88,7 @@ function backend(
       readiness: async () => ({ ready: true, reasons: [] }),
       capabilities: async () => ({ service: "wsgs", executable: true }),
       captureAdmissionSnapshot: async () => admissionSnapshot,
+      sourceCurrentnessEnabled: true,
       selectDataScope,
       cancellationNotifier: { notify },
       now: () => Date.parse("2026-08-27T00:00:00Z"),
@@ -119,6 +120,34 @@ describe("ProductionGroundingBackend", () => {
       kind: "RESULT",
       value: { status: "COMPLETED" }
     });
+  });
+
+  it("submits source currentness as a deterministic dedicated operation without old product content", async () => {
+    const fixture = backend();
+    const currentness = {
+      schemaVersion: "wsgs-source-currentness-request/1.0",
+      sourceProductId: "source-product.current.1",
+      productId: "gdps-baseline-dtm",
+      previousContentHash: `sha256:${"a".repeat(64)}`
+    };
+    fixture.store.waitValue = {
+      kind: "RESULT",
+      value: { schemaVersion: "sacs-source-currentness/1.0", status: "CURRENT" }
+    };
+    await expect(fixture.value.validateSourceCurrentness(identity, "currentness-1", currentness))
+      .resolves.toMatchObject({ schemaVersion: "sacs-source-currentness/1.0", status: "CURRENT" });
+    await fixture.value.validateSourceCurrentness(identity, "currentness-1", currentness);
+    expect(fixture.store.submissions).toHaveLength(2);
+    expect(fixture.store.submissions[0]).toMatchObject({
+      operation: "VALIDATE_SOURCE_CURRENTNESS",
+      contractSelection: SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
+      requestMetadata: { operation: "VALIDATE_SOURCE_CURRENTNESS" }
+    });
+    expect(fixture.store.submissions[0]?.payloadHash).toBe(fixture.store.submissions[1]?.payloadHash);
+    expect(JSON.stringify(fixture.store.submissions[0]?.requestMetadata)).not.toContain("content");
+    await expect(fixture.value.validateSourceCurrentness(identity, "currentness-invalid", {
+      ...currentness, dataScope: "foreign"
+    })).rejects.toMatchObject({ code: "INVALID_SOURCE_CURRENTNESS_REQUEST" });
   });
 
   it("binds the exact contract selection into metadata and the idempotency payload hash", async () => {

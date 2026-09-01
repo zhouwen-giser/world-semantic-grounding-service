@@ -25,6 +25,7 @@
     "@wsgs/requirement-planner": "0.2.1",
     "@wsgs/semantic-frame": "0.2.1",
     "@wsgs/semantic-model": "0.2.1",
+    "@wsgs/source-currentness": "0.2.1",
     "@wsgs/trusted-capability-snapshot": "0.2.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",

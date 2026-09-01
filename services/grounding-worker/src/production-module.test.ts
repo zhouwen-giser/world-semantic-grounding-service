@@ -251,6 +251,28 @@ describe("production stage module authority boundaries", () => {
       .toEqual(["landcover.get-class@1.0"]);
   });
 
+  it("adds the dedicated currentness operation through an exact non-finding recipe lock", () => {
+    const lock = JSON.parse(readFileSync(resolve(
+      import.meta.dirname,
+      "..", "..", "..",
+      "contracts", "upstream", "gowm-0.6.3", "extracted", "package", "bundle", "locks",
+      "wsgs-southbound-operation-lock-v2.json"
+    ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
+    const currentness = {
+      ...lock.previewOperations[0]!,
+      operationId: "geo-product.check-current",
+      operationVersion: "1.0",
+      maturity: "PREVIEW" as const,
+      inputSchemaHash: "sha256:284dd239dba4acd2fbc0a3a8d31a7bc7fa1783218b85ee5c9dce4ed19ac27ed9",
+      outputSchemaHash: "sha256:67ef7be1d9057705654ce3a17f91c6c76b96dd176384b86e2a2eb269cdf0c475",
+      semanticProfileHash: "sha256:69f1a115e6dcb55d6c5dbe589c9b486fb5ac708aeeec03282c6b665905182034"
+    };
+    lock.previewOperations.push(currentness);
+    const selected = selectProductionSouthboundLock(lock, [], [currentness]);
+    expect(selected.previewOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`))
+      .toEqual(["geo-product.check-current@1.0"]);
+  });
+
   it("fails closed when an enabled GDPS recipe is absent from the exact lock", () => {
     const lock = JSON.parse(readFileSync(resolve(
       import.meta.dirname,

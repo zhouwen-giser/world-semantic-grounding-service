@@ -38,14 +38,16 @@ export type QuerySemanticPattern =
   | "GDPS_GENERIC_VECTOR_IN_AREA"
   | "GDPS_GENERIC_VECTOR_NEARBY"
   | "GDPS_GENERIC_VECTOR_INTERSECTS"
+  | "GDPS_VALIDATE_SOURCE_CURRENTNESS"
   | "TERRAIN_VISIBILITY";
 
 export interface GdpsRecipeAuthorization {
   recipeId: string;
   semanticPattern: QuerySemanticPattern;
   recipeLockHash: `sha256:${string}`;
-  descriptorId: string;
-  descriptorHash: `sha256:${string}`;
+  descriptorId?: string;
+  descriptorHash?: `sha256:${string}`;
+  descriptorConstraint?: null;
   previewAuthorizationRequired: true;
   allowedOperations: ReadonlyArray<{
     operationId: string;

@@ -4,7 +4,8 @@ export type WorkerGroundingOperation =
   | "GROUND_REFERENCES"
   | "VALIDATE_REFERENCES"
   | "COMPILE_WORLD_QUERY"
-  | "EXECUTE_WORLD_QUERY";
+  | "EXECUTE_WORLD_QUERY"
+  | "VALIDATE_SOURCE_CURRENTNESS";
 
 export type WorkerTerminalStatus =
   | "COMPLETED"

@@ -21,6 +21,7 @@
       "@wsgs/requirement-planner": ["./../../packages/requirement-planner/dist/index.d.ts"],
       "@wsgs/semantic-frame": ["./../../packages/semantic-frame/dist/index.d.ts"],
       "@wsgs/semantic-model": ["./../../packages/semantic-model/dist/index.d.ts"],
+      "@wsgs/source-currentness": ["./../../packages/source-currentness/dist/index.d.ts"],
       "@wsgs/trusted-capability-snapshot": ["./../../packages/trusted-capability-snapshot/dist/index.d.ts"]
     }
   },
@@ -42,6 +43,7 @@
     { "path": "../../packages/requirement-planner" },
     { "path": "../../packages/semantic-frame" },
     { "path": "../../packages/semantic-model" },
+    { "path": "../../packages/source-currentness" },
     { "path": "../../packages/trusted-capability-snapshot" }
   ]
 }

@@ -107,12 +107,23 @@ import {
   type SemanticModelPolicyResult
 } from "@wsgs/semantic-model";
 import {
+  buildSourceCurrentnessEvidence,
+  currentnessOperationInput,
+  loadSourceCurrentnessRecipeAuthorization,
+  normalizeSourceCurrentness,
+  parseSourceCurrentnessRequest,
+  type SourceCurrentnessRecipeAuthorization,
+  type SourceCurrentnessResultMaterial,
+  type ValidateSourceCurrentnessRequest
+} from "@wsgs/source-currentness";
+import {
   buildTrustedCapabilitySnapshot,
   loadGdpsConsumerSnapshotExtension,
   loadGdpsRecipeLock,
   verifyGdpsConsumerSnapshotExtension,
   verifyPersistedTrustedCapabilitySnapshot,
   type GdpsConsumerSnapshotExtension,
+  type GdpsLockedOperation,
   type GdpsLockedRecipe,
   type LoadedGdpsRecipeLock,
   type SchemaValidatedSouthboundLock,
@@ -147,6 +158,10 @@ const frameSchemaPath = fileURLToPath(new URL(
 ));
 const commonSchemaPath = fileURLToPath(new URL(
   "../../../contracts/wsgs-v0.1/contracts/common.schema.json",
+  import.meta.url
+));
+const currentnessRecipeLockPath = fileURLToPath(new URL(
+  "../../../contracts/upstream/gdps-v0.2.1/GDPS_RECIPE_LOCK.json",
   import.meta.url
 ));
 const referenceIdPattern = /^wrf_[0-9a-f]{32}$/u;
@@ -230,6 +245,7 @@ interface Runtime {
   gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
   gdpsRecipeLock?: LoadedGdpsRecipeLock;
   gdpsRecipes: GdpsLockedRecipe[];
+  currentnessRecipe: SourceCurrentnessRecipeAuthorization;
   segmentedScopeAuthority?: LoadedSegmentedScopeAuthority;
   gdpsDescriptor?: {
     consumer: GdpsDescriptorConsumer;
@@ -239,6 +255,9 @@ interface Runtime {
 }
 
 type PersistedSemanticModelResult = SemanticModelPolicyResult & { receiptId?: string };
+type RuntimeRequirementPlanning = Omit<RequirementPlanningResult, "selectedRecipeIds"> & {
+  selectedRecipeIds: QuerySemanticPattern[];
+};
 
 interface ProductionFactoryOptions {
   pool?: Pool;
@@ -335,7 +354,8 @@ function allGatewayLocks(lock: OperationalGowmLock): OperationLock[] {
 
 export function selectProductionSouthboundLock(
   lock: OperationalGowmLock,
-  previewRecipes: readonly GdpsLockedRecipe[] = []
+  previewRecipes: readonly GdpsLockedRecipe[] = [],
+  additionalPreviewOperations: readonly GdpsLockedOperation[] = []
 ): OperationalGowmLock {
   const available = [...lock.defaultOperations, ...lock.previewOperations];
   const selected = PRODUCTION_STABLE_OPERATION_IDS.map((operationId) => {
@@ -346,7 +366,8 @@ export function selectProductionSouthboundLock(
     }
     return entry;
   });
-  const previewOperations = new Map(previewRecipes.flatMap((recipe) => recipe.allowedOperations)
+  const previewOperations = new Map([...previewRecipes.flatMap((recipe) => recipe.allowedOperations),
+    ...additionalPreviewOperations]
     .map((entry) => [`${entry.operationId}@${entry.operationVersion}`, entry] as const));
   const selectedPreview = [...previewOperations.entries()].sort(([left], [right]) => left.localeCompare(right))
     .map(([operationKey, expected]) => {
@@ -507,7 +528,13 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const lock = operationalLock.lock;
   const gdps = configuredGdpsRecipes();
   const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded, gdps.recipes);
-  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes);
+  const currentnessRecipe = loadSourceCurrentnessRecipeAuthorization(currentnessRecipeLockPath);
+  const allowPreview = process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES";
+  const productionLock = selectProductionSouthboundLock(
+    lock,
+    gdps.recipes,
+    allowPreview ? currentnessRecipe.allowedOperations : []
+  );
   const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
   if (segmentedMode && segmentedMode !== "GOWM_GDPS_V021") {
     throw new ProductionStageModuleError("INVALID_WSGS_CROSS_SCOPE_GATEWAY_ROUTING");
@@ -552,10 +579,11 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     signer,
     model: createModel(modelPolicy),
     modelPolicy,
-    allowPreview: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES",
+    allowPreview,
     ...(gdps.consumerSnapshot ? { gdpsConsumerSnapshot: gdps.consumerSnapshot } : {}),
     ...(gdps.loaded ? { gdpsRecipeLock: gdps.loaded } : {}),
     gdpsRecipes: gdps.recipes,
+    currentnessRecipe,
     ...(segmentedScopeAuthority ? { segmentedScopeAuthority } : {}),
     ...(gdpsDescriptor ? { gdpsDescriptor } : {}),
     parameterSchemaHash: loadWorldQueryParameterSchemaHash()
@@ -606,7 +634,8 @@ async function liveAuthority(
   const lock = value.operationalLock.lock;
   const productionLock = selectProductionSouthboundLock(
     lock,
-    value.gdpsRecipes
+    value.gdpsRecipes,
+    value.allowPreview ? value.currentnessRecipe.allowedOperations : []
   );
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
@@ -1311,6 +1340,14 @@ function referenceResolveInput(
     },
     limitPerMention: Math.max(1, Math.min(20, maximumCandidates))
   };
+}
+
+function isSourceCurrentness(context: PipelineStageContext): boolean {
+  return context.operation === "VALIDATE_SOURCE_CURRENTNESS";
+}
+
+function sourceCurrentnessRequest(context: PipelineStageContext): ValidateSourceCurrentnessRequest {
+  return parseSourceCurrentnessRequest(request(context)["currentnessRequest"]);
 }
 
 export function boundedReferenceCandidateLimit(
@@ -2548,6 +2585,14 @@ export async function createPipelineStageExecutor(
     },
 
     REQUIREMENT_PLAN: async (context) => {
+      if (isSourceCurrentness(context)) {
+        return {
+          status: "PLANNED" as const,
+          graph: null,
+          selectedRecipeIds: ["GDPS_VALIDATE_SOURCE_CURRENTNESS" as const],
+          capabilityGaps: []
+        };
+      }
       const parts = requestParts(context);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_FRAME_VALIDATE");
@@ -2632,7 +2677,7 @@ export async function createPipelineStageExecutor(
 
     CAPABILITY_MATCH: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
-      const planning = stageValue<RequirementPlanningResult>(context, "REQUIREMENT_PLAN");
+      const planning = stageValue<RuntimeRequirementPlanning>(context, "REQUIREMENT_PLAN");
       const matches: JsonObject[] = [];
       const gaps: JsonObject[] = [];
       for (const recipeId of planning.selectedRecipeIds) {
@@ -2664,18 +2709,68 @@ export async function createPipelineStageExecutor(
 
     WORLD_QUERY_COMPILE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
-      const planning = stageValue<RequirementPlanningResult>(context, "REQUIREMENT_PLAN");
+      const planning = stageValue<RuntimeRequirementPlanning>(context, "REQUIREMENT_PLAN");
       const matched = stageValue<{ capabilityGaps: JsonObject[] }>(context, "CAPABILITY_MATCH");
       const parts = requestParts(context);
+      if (isSourceCurrentness(context)) {
+        const currentness = sourceCurrentnessRequest(context);
+        const result = compiler.compile({
+          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
+          idempotencyKey: `${idempotencyKey(context)}:source-currentness`,
+          pattern: "GDPS_VALIDATE_SOURCE_CURRENTNESS",
+          requiredForProduct: "SOURCE_PRODUCTS",
+          operationInput: currentnessOperationInput(currentness),
+          parameterValues: {},
+          capabilities: authority.capabilityCatalog.capabilities,
+          semanticProfiles: authority.semanticCatalog.profiles,
+          operationLocks: allGatewayLocks(authority.southboundLock),
+          availability: authority.availability.operations,
+          maturityPolicy: { allowPreview: value.allowPreview },
+          trustedGdpsRecipeLockHash: value.currentnessRecipe.recipeLockHash,
+          gdpsRecipeAuthorization: value.currentnessRecipe,
+          parameterSchemaHash: value.parameterSchemaHash,
+          observedAt: authority.availability.checkedAt,
+          snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false },
+          budgets: {
+            maximumNodes: 1,
+            maximumDepth: 1,
+            maximumRows: 1,
+            maximumCandidates: 1,
+            maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+            maximumExecutionMs: integer(parts.policy["deadlineMs"], "DEADLINE_INVALID")
+          }
+        });
+        if (result.status === "COMPILED") {
+          await withFence(context, value.pool, async (client) => {
+            const persisted = await client.query(
+              `INSERT INTO wsgs.world_query(query_id, grounding_id, data_scope, plan, plan_hash)
+               VALUES ($1,$2,$3,$4::jsonb,$5)
+               ON CONFLICT (query_id) DO UPDATE SET plan = EXCLUDED.plan, plan_hash = EXCLUDED.plan_hash
+               WHERE wsgs.world_query.grounding_id = EXCLUDED.grounding_id
+                 AND wsgs.world_query.plan_hash = EXCLUDED.plan_hash`,
+              [result.submission.plan.queryId, context.groundingId, identity(context).dataScope,
+                JSON.stringify(result.submission), result.planHash]
+            );
+            if (persisted.rowCount !== 1) throw new PipelineFenceRejectedError();
+          });
+        }
+        return {
+          compiled: [result],
+          capabilityGaps: result.status === "CAPABILITY_GAP"
+            ? [...matched.capabilityGaps, result.gap as unknown as JsonObject]
+            : [...matched.capabilityGaps]
+        };
+      }
       const groundingGraph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
       const compiled: CompileResult[] = [];
       const gaps = [...matched.capabilityGaps];
-      for (const recipeId of planning.selectedRecipeIds) {
+      for (const semanticPattern of planning.selectedRecipeIds) {
+        const recipeId = semanticPattern as StableRecipeId;
         const gdpsRecipe = value.gdpsRecipes.find((entry) => entry.semanticPattern === recipeId);
         const recipeInput = buildRecipeOperationInput({
           recipeId,
-          planning,
+          planning: planning as unknown as RequirementPlanningResult,
           groundingGraph,
           references,
           ...(typeof parts.source["locale"] === "string" ? { locale: parts.source["locale"] } : {}),
@@ -2921,6 +3016,58 @@ export async function createPipelineStageExecutor(
     },
 
     EVIDENCE_NORMALIZE: async (context) => {
+      if (isSourceCurrentness(context)) {
+        const execution = stageValue<{ outcomes: PersistedWorldQueryOutcome[] }>(context, "GOWM_EXECUTE");
+        const outcome = execution.outcomes[0];
+        const fallbackCheckedAt = text(
+          object(stageValue(context, "LOAD_CONTEXT"), "CURRENTNESS_LOAD_CONTEXT_INVALID")["startedAt"],
+          "CURRENTNESS_CHECKED_AT_MISSING"
+        );
+        if (!outcome) {
+          return {
+            result: normalizeSourceCurrentness({
+              request: sourceCurrentnessRequest(context),
+              validationGroundingId: context.groundingId,
+              checkedAt: fallbackCheckedAt,
+              upstream: null
+            }),
+            evidence: null,
+            authorityDecision: "UNAVAILABLE"
+          };
+        }
+        if (outcome.executionMode !== "SINGLE_GATEWAY_QUERY") {
+          throw new ProductionStageModuleError("CURRENTNESS_SINGLE_GATEWAY_QUERY_REQUIRED");
+        }
+        const world = finalSingleWorldResult(outcome);
+        const outputs = object(world["outputs"], "CURRENTNESS_WORLD_OUTPUTS_INVALID");
+        const nodes = Array.isArray(world["nodes"]) ? world["nodes"] : [];
+        const receiptIds = nodes.flatMap((rawNode) => {
+          if (!rawNode || typeof rawNode !== "object" || Array.isArray(rawNode)) return [];
+          const envelope = (rawNode as JsonObject)["result"];
+          if (!envelope || typeof envelope !== "object" || Array.isArray(envelope)) return [];
+          const receipts = (envelope as JsonObject)["receipts"];
+          if (!Array.isArray(receipts)) return [];
+          return receipts.flatMap((receipt) => receipt && typeof receipt === "object" && !Array.isArray(receipt) &&
+            typeof (receipt as JsonObject)["receiptId"] === "string"
+            ? [(receipt as JsonObject)["receiptId"] as string]
+            : []);
+        });
+        const result = normalizeSourceCurrentness({
+          request: sourceCurrentnessRequest(context),
+          validationGroundingId: context.groundingId,
+          checkedAt: typeof world["finishedAt"] === "string" ? world["finishedAt"] : fallbackCheckedAt,
+          upstream: outputs["result"]
+        });
+        return {
+          result,
+          evidence: buildSourceCurrentnessEvidence({
+            queryId: outcome.submission.plan.queryId,
+            upstreamResultHash: outcome.resultHash as `sha256:${string}`,
+            receiptIds
+          }),
+          authorityDecision: result.status === "UNKNOWN" ? "UNAVAILABLE" : "AUTHORITATIVE"
+        };
+      }
       const authority = persistedAuthority(context, value.gateway);
       const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, authority);
       const execution = stageValue<{ outcomes: PersistedWorldQueryOutcome[] }>(context, "GOWM_EXECUTE");
@@ -3133,7 +3280,9 @@ export async function createPipelineStageExecutor(
       };
     },
 
-    PRODUCT_ASSEMBLE: async (context) => resultDocument(context),
+    PRODUCT_ASSEMBLE: async (context) => isSourceCurrentness(context)
+      ? stageValue<{ result: SourceCurrentnessResultMaterial }>(context, "EVIDENCE_NORMALIZE").result
+      : resultDocument(context),
 
     RESULT_PERSIST: async (context) => stageValue<JsonObject>(context, "PRODUCT_ASSEMBLE")
   });

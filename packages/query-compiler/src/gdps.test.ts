@@ -113,6 +113,43 @@ describe("GDPS typed query plans", () => {
     });
   });
 
+  it("compiles source currentness as one exact Gateway operation without a descriptor binding", () => {
+    const input = compileInput("GDPS_VALIDATE_SOURCE_CURRENTNESS");
+    input.maturityPolicy.allowPreview = true;
+    usePublishedGdpsOperation(input, "geo-product.check-current");
+    input.operationInput = {
+      productId: "gdps-baseline-dtm",
+      contentHash: `sha256:${"a".repeat(64)}`
+    };
+    const lock = input.operationLocks.find((entry) => entry.operationId === "geo-product.check-current")!;
+    input.gdpsRecipeAuthorization = {
+      recipeId: "gdps-check-current-geo-product",
+      semanticPattern: "GDPS_VALIDATE_SOURCE_CURRENTNESS",
+      recipeLockHash: `sha256:${"f".repeat(64)}`,
+      descriptorConstraint: null,
+      previewAuthorizationRequired: true,
+      allowedOperations: [{
+        operationId: lock.operationId,
+        operationVersion: lock.operationVersion,
+        inputSchemaHash: lock.inputSchemaHash,
+        outputSchemaHash: lock.outputSchemaHash,
+        semanticProfileHash: lock.semanticProfileHash
+      }]
+    };
+    input.trustedGdpsRecipeLockHash = input.gdpsRecipeAuthorization.recipeLockHash;
+    input.parameterValues = {};
+    const result = compiler.compile(input);
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.plan.nodes).toHaveLength(1);
+    expect(result.submission.plan.nodes[0]).toMatchObject({
+      operation: { operationId: "geo-product.check-current", operationVersion: "1.0" },
+      inputs: { request: { kind: "REQUEST_PATH", path: "/operationInput" } }
+    });
+    expect(result.submission.parameters).toEqual({ operationInput: input.operationInput });
+    expect(JSON.stringify(result.submission)).not.toContain("sourceProductId");
+  });
+
   it.each(cases)("compiles explicitly locked recipe %s", (pattern, operations) => {
     const input = compileInput(pattern);
     input.maturityPolicy.allowPreview = true;

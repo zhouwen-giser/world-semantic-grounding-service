@@ -217,7 +217,8 @@ export function groundingCapabilitiesForSelection(
         semanticCatalogHash: "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
         operationLockHash: "sha256:765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686"
       }),
-      requiredCapabilitiesReady: phaseReadiness.structuredSelection && phaseReadiness.currentness,
+      requiredCapabilitiesReady: currentReadiness.ready &&
+        phaseReadiness.structuredSelection && phaseReadiness.currentness,
       optionalCapabilities: Object.freeze([
         Object.freeze({
           operationId: "RESOLVE_WORLD_SELECTION",
@@ -290,6 +291,7 @@ export function createProductionBackendFromEnvironment(
     sealer: codec,
     readiness,
     captureAdmissionSnapshot: (context) => requiredReadiness.captureAdmissionSnapshot(context),
+    sourceCurrentnessEnabled: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES",
     ...(selectionResolver === undefined ? {} : {
       resolveWorldSelection: async (
         identity: ScopedGroundingIdentity,
@@ -307,7 +309,10 @@ export function createProductionBackendFromEnvironment(
     capabilities: async (_identity, contractSelection) => groundingCapabilitiesForSelection(
       contractSelection,
       await readiness(),
-      { structuredSelection: selectionResolver !== undefined, currentness: false }
+      {
+        structuredSelection: selectionResolver !== undefined,
+        currentness: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES"
+      }
     ),
     ...(primaryDataScope === undefined ? {} : { selectDataScope: () => primaryDataScope }),
     sourceRetentionMs: integerEnvironment("WSGS_SOURCE_RETENTION_MS", 3_600_000, 1_000, 604_800_000)

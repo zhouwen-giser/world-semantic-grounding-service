@@ -52,6 +52,8 @@ export interface QueryTemplateRule {
   maturity: "STABLE" | "PREVIEW";
   allowDegraded: boolean;
   previewAuthorizationRequired?: boolean;
+  authorizationRecipeId?: string;
+  descriptorAuthorizationRequired?: boolean;
   defaultSnapshotMode?: SnapshotMode;
   steps: readonly QueryTemplateStep[];
 }
@@ -611,6 +613,33 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
         timeSemantics: "SNAPSHOT",
         resultNature: "VALIDATION",
         inputPorts: [requestPort()],
+        outputPorts: [resultPort()]
+      })
+    }]
+  },
+  {
+    templateId: "gdps-validate-source-currentness",
+    pattern: "GDPS_VALIDATE_SOURCE_CURRENTNESS",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    authorizationRecipeId: "gdps-check-current-geo-product",
+    descriptorAuthorizationRequired: false,
+    allowDegraded: false,
+    defaultSnapshotMode: "LATEST_AT_START",
+    steps: [{
+      stepId: "check-current-product",
+      costWeight: 1,
+      failurePolicy: "FAIL_FAST",
+      links: [],
+      requirement: contract("geo-product.check-current@1.0", {
+        domain: "PLATFORM",
+        relationSemantics: ["VALIDATES"],
+        acceptedReferenceKinds: [],
+        producedReferenceKinds: [],
+        spatialSemantics: "NONE",
+        timeSemantics: "CURRENT",
+        resultNature: "VALIDATION",
+        inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
         outputPorts: [resultPort()]
       })
     }]

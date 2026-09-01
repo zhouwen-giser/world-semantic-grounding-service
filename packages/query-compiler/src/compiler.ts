@@ -157,13 +157,17 @@ function snapshotPolicy(input: CompileInput, rule: QueryTemplateRule): QuerySnap
 function gdpsAuthorizationGap(input: CompileInput, rule: QueryTemplateRule): CompileResult | undefined {
   if (!rule.previewAuthorizationRequired) return undefined;
   const authorization = input.gdpsRecipeAuthorization;
-  const expectedRecipeId = `recipe-${rule.pattern.toLowerCase().replaceAll("_", "-")}`;
+  const expectedRecipeId = rule.authorizationRecipeId ??
+    `recipe-${rule.pattern.toLowerCase().replaceAll("_", "-")}`;
+  const descriptorAuthorizationRequired = rule.descriptorAuthorizationRequired !== false;
   if (!authorization || authorization.previewAuthorizationRequired !== true ||
       authorization.semanticPattern !== rule.pattern ||
       authorization.recipeId !== expectedRecipeId ||
       !input.trustedGdpsRecipeLockHash ||
       authorization.recipeLockHash !== input.trustedGdpsRecipeLockHash ||
-      !digestPattern.test(authorization.recipeLockHash) || !digestPattern.test(authorization.descriptorHash)) {
+      !digestPattern.test(authorization.recipeLockHash) ||
+      (descriptorAuthorizationRequired && !digestPattern.test(authorization.descriptorHash ?? "")) ||
+      (!descriptorAuthorizationRequired && authorization.descriptorConstraint !== null)) {
     return gap(input, "RECIPE_LOCK_DRIFT", {
       pattern: rule.pattern,
       exactRecipeAuthorized: false,
@@ -172,8 +176,16 @@ function gdpsAuthorizationGap(input: CompileInput, rule: QueryTemplateRule): Com
     });
   }
   const parameterValues = input.parameterValues ?? {};
-  if (parameterValues["descriptorId"] !== authorization.descriptorId ||
-      parameterValues["descriptorHash"] !== authorization.descriptorHash) {
+  if (descriptorAuthorizationRequired &&
+      (parameterValues["descriptorId"] !== authorization.descriptorId ||
+       parameterValues["descriptorHash"] !== authorization.descriptorHash)) {
+    return gap(input, "DESCRIPTOR_LOCK_DRIFT", {
+      pattern: rule.pattern,
+      exactDescriptorAuthorized: false
+    });
+  }
+  if (!descriptorAuthorizationRequired &&
+      (Object.hasOwn(parameterValues, "descriptorId") || Object.hasOwn(parameterValues, "descriptorHash"))) {
     return gap(input, "DESCRIPTOR_LOCK_DRIFT", {
       pattern: rule.pattern,
       exactDescriptorAuthorized: false

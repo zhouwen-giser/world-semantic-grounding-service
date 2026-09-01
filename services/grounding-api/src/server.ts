@@ -314,6 +314,29 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
     return reply.code(200).send(value);
   });
 
+  app.post("/v1/source-currentness:validate", async (request, reply) => {
+    const caller = await identity(request, config);
+    const selection = negotiateGroundingContract(request, caller, contractNegotiation);
+    if (!isSacsGeospatialContract(selection)) {
+      throw new ApiProtocolError("WSGS_CONSUMER_CONTRACT_MISMATCH", 406);
+    }
+    rateBudget.consume(caller);
+    const body = requestObject(request);
+    assertNoAuthority(body);
+    validate(validators.sourceCurrentnessRequest, body, "INVALID_SOURCE_CURRENTNESS_REQUEST");
+    if (!config.backend.validateSourceCurrentness) throw new ApiProtocolError("NOT_READY", 503);
+    const header = request.headers["idempotency-key"];
+    const idempotencyKey = Array.isArray(header) ? header[0] : header;
+    if (!idempotencyKey || idempotencyKey.length > 256) {
+      throw new ApiProtocolError("MISSING_OR_INVALID_IDEMPOTENCY_KEY", 400);
+    }
+    const value = await config.backend.validateSourceCurrentness(caller, idempotencyKey, body);
+    validateResponse(validators.sourceCurrentnessResult, value);
+    exposeNegotiation(reply, selection);
+    metrics.increment("source_currentness_validate");
+    return reply.code(200).send(value);
+  });
+
   app.post("/v1/groundings/*", async (request, reply) => {
     const caller = await identity(request, config);
     const selection = negotiateGroundingContract(request, caller, contractNegotiation);

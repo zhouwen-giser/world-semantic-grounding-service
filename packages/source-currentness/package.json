@@ -1,0 +1,9 @@
+{
+  "name": "@wsgs/source-currentness",
+  "version": "0.2.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": "./dist/index.js"
+}

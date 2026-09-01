@@ -85,6 +85,31 @@ describe("GroundingPipeline", () => {
     ]);
     expect(pipelinePlanForOperation("COMPILE_WORLD_QUERY")).not.toContain("GOWM_EXECUTE");
     expect(pipelinePlanForOperation("COMPILE_WORLD_QUERY").at(-1)).toBe("WORLD_QUERY_COMPILE");
+    expect(pipelinePlanForOperation("VALIDATE_SOURCE_CURRENTNESS")).toEqual([
+      "LOAD_CONTEXT", "REQUIREMENT_PLAN", "CAPABILITY_MATCH", "WORLD_QUERY_COMPILE",
+      "GOWM_EXECUTE", "EVIDENCE_NORMALIZE", "PRODUCT_ASSEMBLE", "RESULT_PERSIST"
+    ]);
+    expect(pipelinePlanForOperation("VALIDATE_SOURCE_CURRENTNESS")).not.toContain("SEMANTIC_MODEL_PARSE");
+  });
+
+  it("materializes the dedicated currentness hash without adding the legacy resultHash field", async () => {
+    const pipeline = new GroundingPipeline({
+      executor: new ProductionPipelineStageExecutor(handlerMap([], {
+        RESULT_PERSIST: async () => ({
+          schemaVersion: "sacs-source-currentness/1.0",
+          productId: "gdps-baseline-dtm",
+          previousContentHash: `sha256:${"a".repeat(64)}`,
+          currentContentHash: `sha256:${"a".repeat(64)}`,
+          status: "CURRENT",
+          checkedAt: "2026-09-01T00:00:00.000Z",
+          validationGroundingId: "grounding-1"
+        })
+      })),
+      journal: new MemoryJournal()
+    });
+    const result = await pipeline.run(runInput({ operation: "VALIDATE_SOURCE_CURRENTNESS" }));
+    expect(result.value).toMatchObject({ validationResultHash: result.resultHash });
+    expect(result.value).not.toHaveProperty("resultHash");
   });
 
   it("AC-P001..P014 executes every stage and records deterministic chained start/terminal hashes", async () => {

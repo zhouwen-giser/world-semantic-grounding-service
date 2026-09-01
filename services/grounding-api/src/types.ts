@@ -41,6 +41,12 @@ export interface GroundingApiBackend {
     identity: GroundingIdentity,
     request: Readonly<Record<string, unknown>>
   ): Promise<unknown>;
+  validateSourceCurrentness?(
+    identity: GroundingIdentity,
+    idempotencyKey: string,
+    request: Readonly<Record<string, unknown>>,
+    signal?: AbortSignal
+  ): Promise<unknown>;
 }
 
 export interface GroundingApiConfig {
