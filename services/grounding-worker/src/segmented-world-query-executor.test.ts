@@ -300,7 +300,13 @@ function pinnedSnapshotPolicy(): WorldQuerySubmission["snapshotPolicy"] {
   };
 }
 
-function envelope(lock: OperationLock, value: unknown, receiptId: string, inputHash: `sha256:${string}`) {
+function envelope(
+  lock: OperationLock,
+  value: unknown,
+  receiptId: string,
+  inputHash: `sha256:${string}`,
+  status: "COMPLETED" | "NO_DATA" = "COMPLETED"
+) {
   const provider = { providerId: "test.provider", providerVersion: "1", implementationDigest: digest("9") };
   const computeSnapshot = {
     operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
@@ -312,7 +318,7 @@ function envelope(lock: OperationLock, value: unknown, receiptId: string, inputH
     providerProtocolVersion: "1.0",
     requestId: "upstream-request",
     operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
-    status: "COMPLETED",
+    status,
     computeSnapshot,
     output: { schemaUri: `urn:test:${lock.operationId}:output`, schemaHash: lock.outputSchemaHash, value },
     receipts: [{
@@ -357,14 +363,20 @@ function testNodeInput(submission: WorldQuerySubmission): unknown {
   return result;
 }
 
-function worldResult(submission: WorldQuerySubmission, lock: OperationLock, value: unknown, receiptId: string) {
+function worldResult(
+  submission: WorldQuerySubmission,
+  lock: OperationLock,
+  value: unknown,
+  receiptId: string,
+  nodeStatus: "COMPLETED" | "NO_DATA" = "COMPLETED"
+) {
   const node = submission.plan.nodes[0]!;
   const outputs = Object.fromEntries(submission.plan.outputs.map((output) => [
     output.name,
     testPointer(value, output.binding.path)
   ]));
   const inputHash = canonicalSha256(testNodeInput(submission));
-  const resultEnvelope = envelope(lock, value, receiptId, inputHash);
+  const resultEnvelope = envelope(lock, value, receiptId, inputHash, nodeStatus);
   const manifestBody = {
     querySnapshotId: `snapshot-${node.nodeId}`,
     mode: "BEST_EFFORT" as const,
@@ -384,11 +396,11 @@ function worldResult(submission: WorldQuerySubmission, lock: OperationLock, valu
     queryPlanVersion: "2.0",
     queryId: submission.plan.queryId,
     jobId: `job-${node.nodeId}`,
-    status: "COMPLETED",
+    status: nodeStatus === "NO_DATA" ? "PARTIAL" : "COMPLETED",
     nodes: [{
       nodeId: node.nodeId,
       operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
-      status: "COMPLETED",
+      status: nodeStatus,
       attempt: 1,
       inputHash,
       outputHash: canonicalSha256(resultEnvelope),
@@ -527,6 +539,53 @@ describe("segmented world-query executor", () => {
     expect(execution.segments[1]!.terminal).toMatchObject({ status: "COMPLETED" });
     expect(execution.segmentedExecutionHash).toMatch(/^sha256:[0-9a-f]{64}$/u);
     expect(JSON.stringify(execution)).not.toContain("signed.segment.token");
+  });
+
+  it("preserves a typed NO_DATA value as the final plan output without making it a downstream input", async () => {
+    const gateway: SegmentedGatewayClient = {
+      submitWorldQuery: vi.fn(async (request) => {
+        const submission = request as unknown as WorldQuerySubmission;
+        const node = submission.plan.nodes[0]!;
+        return node.nodeId === "resolve"
+          ? {
+              status: 200,
+              value: worldResult(submission, foundationLock, {
+                candidate: { referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: "area", version: "1.0.0" } }
+              }, "receipt-resolve")
+            }
+          : {
+              status: 200,
+              value: worldResult(submission, gdpsLock, {
+                classification: {
+                  code: "PRODUCT_COVERAGE_INSUFFICIENT",
+                  message: "No current product covers the query"
+                }
+              }, "receipt-no-data", "NO_DATA")
+            };
+      }),
+      pollJob: vi.fn(),
+      cancelWorldQuery: vi.fn()
+    };
+
+    const execution = await executeSegmentedWorldQuery({
+      submission: sourceSubmission(),
+      authority: authority(),
+      capabilities: capabilities(),
+      identity: identity(),
+      deadlineAt: new Date(Date.now() + 60_000),
+      runtime: { gateway, signer: { sign: vi.fn(async (request: DelegationRequest) => signed(request)) } }
+    });
+
+    expect(execution).toMatchObject({
+      status: "PARTIAL",
+      outputs: {
+        classification: {
+          code: "PRODUCT_COVERAGE_INSUFFICIENT",
+          message: "No current product covers the query"
+        }
+      }
+    });
+    expect(execution.nodeResults.at(-1)).toMatchObject({ status: "NO_DATA" });
   });
 
   it("preserves an authoritative PINNED snapshot across every segment", async () => {

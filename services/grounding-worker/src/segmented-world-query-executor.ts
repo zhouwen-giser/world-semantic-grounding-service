@@ -295,8 +295,7 @@ function nodeResultValue(
     throw new SegmentedWorldQueryError("SOURCE_NODE_NOT_USABLE");
   }
   const envelope = object(node["result"], "SOURCE_NODE_RESULT_ENVELOPE_MISSING");
-  if (node["status"] === "NO_DATA") {
-    if (noData === "NULL") return null;
+  if (node["status"] === "NO_DATA" && noData === "REJECT") {
     throw new SegmentedWorldQueryError("SOURCE_NODE_NO_DATA");
   }
   const output = object(envelope["output"], "SOURCE_NODE_OUTPUT_MISSING");
