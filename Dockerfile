@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM node:22.14.0-bookworm-slim@sha256:1c18d9ab3af4585870b92e4dbc5cac5a0dc77dd13df1a5905cea89fc720eb05b AS build
 
 ENV CI=true
@@ -10,7 +11,11 @@ COPY contracts ./contracts
 COPY database ./database
 COPY validation ./validation
 
-RUN npm ci --ignore-scripts \
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci --ignore-scripts \
+      --fetch-retries=5 \
+      --fetch-retry-mintimeout=1000 \
+      --fetch-retry-maxtimeout=10000 \
     && npm run build \
     && npm prune --omit=dev
 
