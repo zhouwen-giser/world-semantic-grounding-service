@@ -7,7 +7,8 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   canonicalStasGdpsInputHash,
-  loadStasGdpsFixtureLock
+  loadStasGdpsFixtureLock,
+  transformStasGdpsEventCoordinates
 } from "./stas-gdps-fixture-lock.js";
 
 const directories: string[] = [];
@@ -39,6 +40,12 @@ function fixture() {
     operationInput,
     operationInputHash: canonicalStasGdpsInputHash(operationInput),
     eventGeometryPath: "/result/shortest_line/coordinates/0",
+    eventGeometryTransform: {
+      sourceCrs: "EPSG:32650",
+      targetCrs: "EPSG:4326",
+      axisOrder: "EAST_NORTH_TO_LONGITUDE_LATITUDE",
+      engine: "PROJ4JS/2.22.0"
+    },
     products: [
       { productType: "SLOPE", productProfile: "DEGREE" },
       { productType: "LAND_COVER", productProfile: "DEFAULT" }
@@ -80,6 +87,12 @@ describe("STAS plus GDPS runtime fixture lock", () => {
     expect(loaded.lockHash).toBe(file.hash);
     expect(loaded.lock.operationInputHash).toBe(canonicalStasGdpsInputHash(value.operationInput));
     expect(loaded.lock.runtimeBinding.gdpsDataScope).toBe("scope-gdps-v031-a");
+    const point = transformStasGdpsEventCoordinates(
+      loaded.lock.eventGeometryTransform,
+      [440_254.01, 4_416_157.22]
+    );
+    expect(point[0]).toBeCloseTo(116.301156760807, 9);
+    expect(point[1]).toBeCloseTo(39.893379763710, 9);
     expect(loaded.lock.allowedOperations.map((entry) => entry.operationId)).toEqual([
       "stas.nearest-approach", "geo-raster.sample"
     ]);
@@ -115,5 +128,13 @@ describe("STAS plus GDPS runtime fixture lock", () => {
       lockPath: wildcardFile.path,
       expectedSha256: wildcardFile.hash
     })).toThrow(/RUNTIME_BINDING_INVALID/u);
+
+    const invalidTransform = fixture();
+    invalidTransform.eventGeometryTransform.targetCrs = "EPSG:3857" as never;
+    const invalidTransformFile = materialize(invalidTransform);
+    expect(() => loadStasGdpsFixtureLock({
+      lockPath: invalidTransformFile.path,
+      expectedSha256: invalidTransformFile.hash
+    })).toThrow(/EVENT_GEOMETRY_TRANSFORM_INVALID/u);
   });
 });

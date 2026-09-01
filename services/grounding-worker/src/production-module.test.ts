@@ -697,6 +697,16 @@ describe("production stage module authority boundaries", () => {
 
   it("composes separate temporal and current spatial evidence without historical overclaim", () => {
     const submission = worldQuerySubmission();
+    const stasGdpsFixture = {
+      lock: {
+        eventGeometryTransform: {
+          sourceCrs: "EPSG:32650",
+          targetCrs: "EPSG:4326",
+          axisOrder: "EAST_NORTH_TO_LONGITUDE_LATITUDE",
+          engine: "PROJ4JS/2.22.0"
+        }
+      }
+    } as never;
     const port = {
       schemaUri: "urn:test:value",
       schemaHash: digest("a"),
@@ -758,7 +768,10 @@ describe("production stage module authority boundaries", () => {
         result: {
           minimum_distance_m: 23,
           nearest_instant: "2026-08-13T01:00:03.000Z",
-          shortest_line: { type: "LineString", coordinates: [[116.3, 39.9], [116.31, 39.91]] }
+          shortest_line: {
+            type: "LineString",
+            coordinates: [[440_254.01, 4_416_157.22], [441_117.92, 4_417_259.71]]
+          }
         }
       }),
       item("Node_2", "geo-raster.sample", {
@@ -769,7 +782,8 @@ describe("production stage module authority boundaries", () => {
       })
     ];
     const composed = composeStasGdpsEvidence({
-      submissions: [submission], evidenceItems, requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"]
+      submissions: [submission], evidenceItems, requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"],
+      stasGdpsFixture
     });
 
     expect(composed.map((entry) => entry.productKind)).toEqual(["EVENT_TIMELINE", "CORRELATION_FINDING"]);
@@ -804,7 +818,7 @@ describe("production stage module authority boundaries", () => {
     };
     expect(composeStasGdpsEvidence({
       submissions: [submission], evidenceItems: withoutGeometry,
-      requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"]
+      requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"], stasGdpsFixture
     })).toEqual([]);
   });
 

@@ -147,6 +147,7 @@ import {
 } from "./segmented-scope-authority.js";
 import {
   loadStasGdpsFixtureLock,
+  transformStasGdpsEventCoordinates,
   type LoadedStasGdpsFixtureLock
 } from "./stas-gdps-fixture-lock.js";
 
@@ -1798,6 +1799,7 @@ export function composeStasGdpsEvidence(input: {
   submissions: readonly WorldQuerySubmission[];
   evidenceItems: readonly GroundingEvidenceItem[];
   requestedProducts: readonly string[];
+  stasGdpsFixture?: LoadedStasGdpsFixtureLock;
 }): GroundingEvidenceItem[] {
   if (!input.requestedProducts.includes("EVENT_TIMELINES") &&
       !input.requestedProducts.includes("CORRELATION_FINDINGS")) return [];
@@ -1829,14 +1831,24 @@ export function composeStasGdpsEvidence(input: {
   const result = stasPayload && optionalObject(stasPayload["result"]);
   const line = result && optionalObject(result["shortest_line"]);
   const coordinates = line?.["coordinates"];
-  const eventCoordinates = Array.isArray(coordinates) ? coordinates[0] : undefined;
+  const rawEventCoordinates = Array.isArray(coordinates) ? coordinates[0] : undefined;
+  let eventCoordinates: readonly [number, number] | undefined;
+  if (input.stasGdpsFixture && Array.isArray(rawEventCoordinates)) {
+    try {
+      eventCoordinates = transformStasGdpsEventCoordinates(
+        input.stasGdpsFixture.lock.eventGeometryTransform,
+        rawEventCoordinates
+      );
+    } catch {
+      return [];
+    }
+  }
   const nearestInstant = result?.["nearest_instant"];
   const minimumDistance = result?.["minimum_distance_m"];
   const productEvidenceLocked = [slopePayload, landCoverPayload].every((payload) =>
     payload && /^sha256:[0-9a-f]{64}$/u.test(String(payload["contentHash"])) &&
       /^sha256:[0-9a-f]{64}$/u.test(String(payload["descriptorHash"])));
-  if (!Array.isArray(eventCoordinates) || eventCoordinates.length < 2 ||
-      !eventCoordinates.slice(0, 2).every((value) => typeof value === "number" && Number.isFinite(value)) ||
+  if (!eventCoordinates ||
       typeof nearestInstant !== "string" || !Number.isFinite(Date.parse(nearestInstant)) ||
       typeof minimumDistance !== "number" || !Number.isFinite(minimumDistance) || minimumDistance < 0 ||
       !productEvidenceLocked) return [];
@@ -1851,7 +1863,7 @@ export function composeStasGdpsEvidence(input: {
     events: [{
       eventType: "NEAREST_APPROACH",
       eventTime: nearestInstant,
-      geometry: { type: "Point", coordinates: eventCoordinates.slice(0, 2) },
+      geometry: { type: "Point", coordinates: [...eventCoordinates] },
       minimumDistanceMetres: minimumDistance,
       sourceEvidenceIds: [stas.evidenceProductId]
     }]
@@ -3139,6 +3151,16 @@ export async function createPipelineStageExecutor(
               authority: scopeAuthority.authority,
               capabilities: persisted.capabilityCatalog.capabilities,
               identity: caller,
+              ...(value.stasGdpsFixture ? {
+                nodeOutputTransforms: [{
+                  kind: "PROJECT_COORDINATES" as const,
+                  sourceOperationKey: "stas.nearest-approach@1.0" as const,
+                  sourcePath: value.stasGdpsFixture.lock.eventGeometryPath,
+                  targetOperationKey: "geo-raster.sample@1.0" as const,
+                  targetPath: "/point/coordinates" as const,
+                  transform: value.stasGdpsFixture.lock.eventGeometryTransform
+                }]
+              } : {}),
               deadlineAt: context.deadlineAt,
               signal: context.signal,
               runtime: {
@@ -3505,7 +3527,8 @@ export async function createPipelineStageExecutor(
       evidenceItems.push(...composeStasGdpsEvidence({
         submissions: execution.outcomes.map((outcome) => outcome.submission),
         evidenceItems,
-        requestedProducts: requestParts(context).requestedProducts
+        requestedProducts: requestParts(context).requestedProducts,
+        ...(value.stasGdpsFixture ? { stasGdpsFixture: value.stasGdpsFixture } : {})
       }));
       await persistExecutionRecords(
         context,

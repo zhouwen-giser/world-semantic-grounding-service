@@ -94,7 +94,8 @@
     "jose": "6.2.10",
     "json-schema-to-ts": "3.1.1",
     "pg": "8.23.0",
-    "pino": "10.3.1"
+    "pino": "10.3.1",
+    "proj4": "2.22.0"
   },
   "devDependencies": {
     "@types/node": "26.2.0",

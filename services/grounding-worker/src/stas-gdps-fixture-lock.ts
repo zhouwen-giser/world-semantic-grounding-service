@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
+import proj4 from "proj4";
+
 import type { GdpsLockedOperation } from "@wsgs/trusted-capability-snapshot";
 
 export interface StasGdpsRuntimeBinding {
@@ -9,6 +11,13 @@ export interface StasGdpsRuntimeBinding {
   gdpsDataScope: string;
   gatewayInstanceBindingHash: `sha256:${string}`;
   gdpsProviderImageDigest: `sha256:${string}`;
+}
+
+export interface StasGdpsEventGeometryTransform {
+  sourceCrs: "EPSG:32650";
+  targetCrs: "EPSG:4326";
+  axisOrder: "EAST_NORTH_TO_LONGITUDE_LATITUDE";
+  engine: "PROJ4JS/2.22.0";
 }
 
 export interface StasGdpsFixtureLock {
@@ -20,6 +29,7 @@ export interface StasGdpsFixtureLock {
   operationInput: Record<string, unknown>;
   operationInputHash: `sha256:${string}`;
   eventGeometryPath: "/result/shortest_line/coordinates/0";
+  eventGeometryTransform: StasGdpsEventGeometryTransform;
   products: readonly [
     { productType: "SLOPE"; productProfile: "DEGREE" },
     { productType: "LAND_COVER"; productProfile: "DEFAULT" }
@@ -43,12 +53,13 @@ const commit = /^[0-9a-f]{40}$/u;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const topLevelKeys = [
   "schemaVersion", "recipeId", "semanticPattern", "authority", "runtimeBinding", "operationInput",
-  "operationInputHash", "eventGeometryPath", "products", "allowedOperations"
+  "operationInputHash", "eventGeometryPath", "eventGeometryTransform", "products", "allowedOperations"
 ] as const;
 const runtimeBindingKeys = [
   "gowmSourceCommit", "gdpsSourceCommit", "gdpsDataScope", "gatewayInstanceBindingHash", "gdpsProviderImageDigest"
 ] as const;
 const dataScope = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/u;
+const eventGeometryTransformKeys = ["sourceCrs", "targetCrs", "axisOrder", "engine"] as const;
 const expectedOperations: Readonly<Record<string, Omit<GdpsLockedOperation, "operationId" | "operationVersion">>> = {
   "stas.nearest-approach@1.0": {
     inputSchemaHash: "sha256:fa852ea7022341b5e4f93985af177c0eadf0085928ca0b7516111dfeb4b74dd1",
@@ -82,6 +93,29 @@ function canonical(value: unknown): string {
 
 export function canonicalStasGdpsInputHash(value: Record<string, unknown>): `sha256:${string}` {
   return `sha256:${createHash("sha256").update(canonical(value), "utf8").digest("hex")}`;
+}
+
+export function transformStasGdpsEventCoordinates(
+  transform: StasGdpsEventGeometryTransform,
+  value: unknown
+): readonly [number, number] {
+  if (!Array.isArray(value) || value.length < 2 ||
+      !value.slice(0, 2).every((entry) => typeof entry === "number" && Number.isFinite(entry))) {
+    throw new StasGdpsFixtureLockError("EVENT_GEOMETRY_COORDINATES_INVALID");
+  }
+  let projected: number[];
+  try {
+    projected = proj4(transform.sourceCrs, transform.targetCrs, [value[0] as number, value[1] as number]);
+  } catch {
+    throw new StasGdpsFixtureLockError("EVENT_GEOMETRY_TRANSFORM_FAILED");
+  }
+  const [longitude, latitude] = projected;
+  if (projected.length < 2 || longitude === undefined || latitude === undefined ||
+      !Number.isFinite(longitude) || !Number.isFinite(latitude) ||
+      longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
+    throw new StasGdpsFixtureLockError("EVENT_GEOMETRY_TRANSFORM_INVALID");
+  }
+  return Object.freeze([longitude, latitude] as [number, number]);
 }
 
 function validateOperationInput(value: Record<string, unknown>): void {
@@ -128,6 +162,14 @@ function validateLock(value: unknown): StasGdpsFixtureLock {
       !digest.test(String(runtimeBinding["gatewayInstanceBindingHash"])) ||
       !digest.test(String(runtimeBinding["gdpsProviderImageDigest"]))) {
     throw new StasGdpsFixtureLockError("RUNTIME_BINDING_INVALID");
+  }
+  const eventGeometryTransform = value["eventGeometryTransform"];
+  if (!object(eventGeometryTransform) || !exactKeys(eventGeometryTransform, eventGeometryTransformKeys) ||
+      eventGeometryTransform["sourceCrs"] !== "EPSG:32650" ||
+      eventGeometryTransform["targetCrs"] !== "EPSG:4326" ||
+      eventGeometryTransform["axisOrder"] !== "EAST_NORTH_TO_LONGITUDE_LATITUDE" ||
+      eventGeometryTransform["engine"] !== "PROJ4JS/2.22.0") {
+    throw new StasGdpsFixtureLockError("EVENT_GEOMETRY_TRANSFORM_INVALID");
   }
   const operationInput = value["operationInput"];
   if (!object(operationInput)) throw new StasGdpsFixtureLockError("OPERATION_INPUT_INVALID");
