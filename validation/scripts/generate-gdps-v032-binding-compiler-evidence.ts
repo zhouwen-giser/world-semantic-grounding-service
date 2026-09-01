@@ -101,9 +101,17 @@ const maturityEscalation = compile({
 const hashDrift = compile({
   operationState: { ...operationState(), inputSchemaHash: "sha256:drift" }
 });
+const semanticHashDrift = compile({
+  operationState: { ...operationState(), semanticProfileHash: "sha256:drift" }
+});
 const historical = compile({
   requirement: { ...requirement, timeIntent: "HISTORICAL" }
 });
+const intakeNegativeCases = array(intake["negativeCases"]).map(object);
+const intakeDescriptorDriftRejected = intakeNegativeCases.some((entry) =>
+  entry["id"] === "DESCRIPTOR_HASH_DRIFT" && entry["status"] === "PASS_FAIL_CLOSED");
+const intakeSchemaDriftRejected = intakeNegativeCases.some((entry) =>
+  entry["id"] === "INPUT_SCHEMA_HASH_DRIFT" && entry["status"] === "PASS_FAIL_CLOSED");
 const ajv = new Ajv2020({ allErrors: true, strict: true, strictRequired: false });
 const validateRequirement = ajv.compile(json(
   join(root, "contracts", "integrations", "gdps", "wsgs-gdps-requirement.schema.json")
@@ -116,7 +124,9 @@ if (implicit.status !== "COMPILED" || "productId" in implicit.request.input ||
     injectedProduct.status !== "GAP" || injectedProduct.reason !== "INVALID_REQUIREMENT" ||
     maturityEscalation.status !== "GAP" || maturityEscalation.reason !== "MATURITY_NOT_ALLOWED" ||
     hashDrift.status !== "GAP" || hashDrift.reason !== "OPERATION_LOCK_DRIFT" ||
-    historical.status !== "GAP" || historical.reason !== "HISTORICAL_INTENT_UNSUPPORTED") {
+    semanticHashDrift.status !== "GAP" || semanticHashDrift.reason !== "OPERATION_LOCK_DRIFT" ||
+    historical.status !== "GAP" || historical.reason !== "HISTORICAL_INTENT_UNSUPPORTED" ||
+    !intakeDescriptorDriftRejected || !intakeSchemaDriftRejected) {
   throw new Error("V032_BINDING_COMPILER_FAIL_OPEN");
 }
 if (!validateRequirement(requirement) ||
@@ -202,9 +212,66 @@ const compilerReport = {
   ],
   gatewayQualification: "NOT_RUN"
 };
+const timeSemanticsReport = {
+  schemaVersion: "wsgs-gdps-v032-time-semantics-report/1.0",
+  status: "PASS",
+  provenance: "REAL_WSGS_TYPED_COMPILER_EXECUTION",
+  ...common,
+  observations: {
+    catalogTimeSemantics: binding.timeSemantics,
+    temporalApplicability: binding.evidenceMapping.temporalApplicability,
+    compiledSnapshotMode: implicit.request.snapshotPolicy.mode,
+    compiledHistoricalFallbackAllowed: implicit.request.snapshotPolicy.allowHistoricalFallback,
+    historicalIntentResult: historical
+  },
+  assertions: [
+    {
+      id: "V032-W08-001",
+      status: "NOT_RUN",
+      blockingReason: "REAL_SPATIAL_RESULT_NORMALIZATION_AND_PUBLIC_RETRIEVAL_NOT_EXECUTED"
+    },
+    { id: "V032-W08-002", status: "PASS", blockingReason: "" }
+  ],
+  gatewayQualification: "NOT_RUN"
+};
+const negativeReport = {
+  schemaVersion: "wsgs-gdps-v032-negative-report/1.0",
+  status: "PASS",
+  provenance: "REAL_WSGS_INTAKE_AND_TYPED_COMPILER_EXECUTION",
+  ...common,
+  observations: {
+    descriptorHashDriftRejectedByIntake: intakeDescriptorDriftRejected,
+    descriptorMismatchRejectedForExplicitSelection:
+      compile({
+        trustedContext: {
+          ...trustedContext,
+          explicitProductSelection: {
+            productId: "slope-current-a",
+            source: "REVALIDATED_PRIOR_REFERENCE",
+            descriptorHash: "sha256:drift"
+          }
+        }
+      }),
+    inputSchemaHashDriftRejectedByIntake: intakeSchemaDriftRejected,
+    inputSchemaHashDriftRejectedByCompiler: hashDrift,
+    semanticProfileHashDriftRejectedByCompiler: semanticHashDrift
+  },
+  assertions: [
+    { id: "V032-W10-001", status: "PASS", blockingReason: "" },
+    { id: "V032-W10-002", status: "PASS", blockingReason: "" },
+    {
+      id: "V032-W10-003",
+      status: "NOT_RUN",
+      blockingReason: "REAL_GATEWAY_UNAVAILABLE_VS_NO_DATA_SCENARIOS_NOT_EXECUTED"
+    }
+  ],
+  gatewayQualification: "NOT_RUN"
+};
 
 writeOrCheck(join(reportRoot, "WSGS_GDPS_BINDING_REPORT.json"), bindingReport);
 writeOrCheck(join(reportRoot, "WSGS_GDPS_COMPILER_REPORT.json"), compilerReport);
+writeOrCheck(join(reportRoot, "WSGS_GDPS_TIME_SEMANTICS_REPORT.json"), timeSemanticsReport);
+writeOrCheck(join(reportRoot, "WSGS_GDPS_NEGATIVE_REPORT.json"), negativeReport);
 console.log(
   "WSGS_GDPS_V032_BINDING_COMPILER_PASS families=" + catalog.operationFamilies.length +
   " bindings=" + catalog.bindings.length + " gateway=NOT_RUN"
@@ -216,6 +283,10 @@ function json(path: string): JsonObject {
 function object(value: unknown): JsonObject {
   if (value === null || typeof value !== "object" || Array.isArray(value)) throw new Error("V032_OBJECT_REQUIRED");
   return value as JsonObject;
+}
+function array(value: unknown): unknown[] {
+  if (!Array.isArray(value)) throw new Error("V032_ARRAY_REQUIRED");
+  return value;
 }
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
