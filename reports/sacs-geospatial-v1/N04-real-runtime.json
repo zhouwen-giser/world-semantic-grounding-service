@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "wsgs-v021-result-extension-real-runtime/1.1",
+  "sourceCommit": "fc2601f13ce1481fcb297811dfc147787a9464f8",
+  "qualifiedSourceSha": "fc2601f13ce1481fcb297811dfc147787a9464f8",
+  "sourceTree": "03392c307253eaafb0289c44e59e1bd09a041bb5",
+  "sourceBinding": {
+    "status": "PASS",
+    "headCommit": "fc2601f13ce1481fcb297811dfc147787a9464f8",
+    "sourceTree": "03392c307253eaafb0289c44e59e1bd09a041bb5",
+    "evidenceSourceCommit": "fc2601f13ce1481fcb297811dfc147787a9464f8",
+    "trackedSourceClean": true,
+    "untrackedSourceClean": true,
+    "excludedRuntimeEvidenceOutputs": [
+      "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+      "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+      "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+      "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+      "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+      "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+      "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
+    ],
+    "verification": "GIT_HEAD_AND_WORKTREE_STATUS_EXCLUDING_EXACT_RUNTIME_EVIDENCE_OUTPUTS"
+  },
+  "isolatedFoundationQualification": {
+    "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "runtimeBindingHash": "sha256:9e347475dd3f51e077ffd45f8c0cc7297936a3c9deee8a31c857fdecb6c7395e",
+    "gatewayContractVersion": "0.6.3",
+    "evidenceLayer": "DIRECT_WSGS_CONSUMER_TO_ISOLATED_GOWM_GATEWAY",
+    "usedByN04Execution": false
+  },
+  "sharedExecutionGatewayBinding": {
+    "executionSourceLockSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "sourceBindingMethod": "CHECKSUMMED_FINAL_B_SOURCE_LOCK_PLUS_LIVE_GATEWAY_LOCK_MATCH",
+    "gdpsSourceCommit": "d9238d19bae98e387d390c936300358a30b024cb",
+    "handoffBundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab",
+    "checksumsFileHash": "sha256:1aeb68955da57c0a8ab1367685dee6263978cacaab33d6039c6aaaf33b4b26dc",
+    "consumerLockHash": "sha256:fe7e5b8ec76e7eaac61b0df084e99efa3dff59ddac99fe279922f40abc732740",
+    "gatewayBindingLockHash": "sha256:1f47abdc29e977ee01969e2d0daf2e68891260b8d978bb6148ebe88dd777918f",
+    "capabilityLockHash": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
+    "foundationInstanceBindingHash": "sha256:ddf7da55867a2a178bf76ca022b3073aef6f77a4dbf66a2881bd1051ac2be8e0",
+    "foundationOperationLockHash": "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a",
+    "foundationDataScopeHash": "sha256:2b08942f63930b4ec058aca04006bed754caa339f1e6fb0c81d9f72fb68844e5",
+    "selectedDatasetDataScopeHash": "sha256:43899e6ef2966927a5f2b1af10acb29efc21069d7a38caaa6c5f6e966c49a1a5",
+    "endpointHash": "sha256:327c5e3e90c30ac3b0b0986ff4a4de5b851f53bbc46e4d1715b0d061fa1a8752",
+    "lockedGatewayTuple": {
+      "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+      "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+      "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
+      "instanceFingerprint": "sha256:d86aa82d760076f3dc5a5fbcb617555f7c7fb4a011b7f49a4d4b1d849cc61350",
+      "runningConfigFingerprint": "sha256:c8c6518162f61eb9a1dc9bb73a051a3d2a5cba32f39197a1c7820fb5a7fdfe9f"
+    },
+    "gatewayContractVersion": "0.6.3",
+    "operationLockHash": "sha256:c08e76a8c43c49a070d6b8efb86078044556b30b843e1395e9b2d03d4be84db3",
+    "operationLockPathHash": "sha256:a30919db5f33f98fd7eef1d1e81ee44453bea25ce1b4d81fd4bdfb6dcb7db92f",
+    "liveGatewayTuple": {
+      "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+      "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+      "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
+      "operationLockHash": "sha256:c08e76a8c43c49a070d6b8efb86078044556b30b843e1395e9b2d03d4be84db3"
+    },
+    "admissionSegmentedScopeAuthorityBinding": {
+      "schemaVersion": "1.0",
+      "authorityHash": "sha256:93f780fc20ad095caa95cf19cdaa5a58c57a994d822c1ab64ffc51f6d8f6e488",
+      "foundationInstanceBindingHash": "sha256:ddf7da55867a2a178bf76ca022b3073aef6f77a4dbf66a2881bd1051ac2be8e0",
+      "gdpsChecksumsHash": "sha256:1aeb68955da57c0a8ab1367685dee6263978cacaab33d6039c6aaaf33b4b26dc"
+    },
+    "segmentAuthorityHashes": [
+      "sha256:93f780fc20ad095caa95cf19cdaa5a58c57a994d822c1ab64ffc51f6d8f6e488"
+    ],
+    "segmentSourceLockHashes": [
+      "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
+      "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a"
+    ],
+    "segmentBindings": [
+      {
+        "operationKey": "reference.resolve@1.0",
+        "dataScopeHash": "sha256:2b08942f63930b4ec058aca04006bed754caa339f1e6fb0c81d9f72fb68844e5",
+        "sourceLockHash": "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a",
+        "scopeAuthorityHash": "sha256:93f780fc20ad095caa95cf19cdaa5a58c57a994d822c1ab64ffc51f6d8f6e488",
+        "upstreamResultHash": "sha256:2c7904d416778f2f1d4123a566f94d0f262b613ec309778a8ae325658e9ddd66",
+        "worldResultHash": "sha256:e96be6f33d4e33708420cfc7f93afc1da5140daa2c8acf7edc1710b37ee11940"
+      },
+      {
+        "operationKey": "world.get-current-state@1.0",
+        "dataScopeHash": "sha256:2b08942f63930b4ec058aca04006bed754caa339f1e6fb0c81d9f72fb68844e5",
+        "sourceLockHash": "sha256:e31f657f5ab82a687dba58021d0b105d635753f2d3a59c2daa616afa20b9e54a",
+        "scopeAuthorityHash": "sha256:93f780fc20ad095caa95cf19cdaa5a58c57a994d822c1ab64ffc51f6d8f6e488",
+        "upstreamResultHash": "sha256:3907b1b5caacdf7a5f7d4ba3d979fc1dfc960fbce50fd833d46e450e71a30d49",
+        "worldResultHash": "sha256:1092db0409181b1c337c7a7708f47ffab72ee5da57053d24bb3a994950bfb094"
+      },
+      {
+        "operationKey": "geo-raster.sample@1.0",
+        "dataScopeHash": "sha256:43899e6ef2966927a5f2b1af10acb29efc21069d7a38caaa6c5f6e966c49a1a5",
+        "sourceLockHash": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
+        "scopeAuthorityHash": "sha256:93f780fc20ad095caa95cf19cdaa5a58c57a994d822c1ab64ffc51f6d8f6e488",
+        "upstreamResultHash": "sha256:6b46ff103a4ae62507d21aee9bf1b9090a3ca3a48bd383f1687797efdaa0d3b5",
+        "worldResultHash": "sha256:653df5f84a730a15e93a7ee65f6270db4e847765330e30b19ddd583942109354"
+      }
+    ],
+    "segmentBindingsHash": "sha256:d77035061884d944be21fa3613b5e5d2eb3e5947b2177c5739da1b9c2169c521",
+    "segmentDelegationBindingCount": 3,
+    "segmentDelegationBindingsHash": "sha256:66d41a07d987c077eae5630187dc0c81c814f5e6a535220ba79b7faa7b0e53a8"
+  },
+  "negotiation": {
+    "legacyContractVersion": "sacs-wsgs-grounding/1.0",
+    "contractVersion": "sacs-wsgs-grounding/1.1",
+    "profile": "sacs-wsgs-geospatial-findings/1.0",
+    "transportMode": "RESULT_EXTENSION",
+    "noHeaderDefault": "sacs-wsgs-grounding/1.0",
+    "explicitResponseHeadersVerified": true,
+    "crossContractPersistedReadHttpStatus": 406
+  },
+  "capabilities": {
+    "legacyHash": "sha256:b8e56741bab842022888bd5bb5d2ce430783b8c4d61ffdecf5ec34fa532af59d",
+    "geospatialHash": "sha256:959536b42faeb68af25b7a937ba63957acf84eb092e622a99125b6b5c7e9715e",
+    "supportedOperationCount": 6,
+    "requiredCapabilitiesReady": false,
+    "n05N06RemainUnavailable": true
+  },
+  "realExecution": {
+    "caseId": "E2E-SLOPE-POINT",
+    "freshSyncPostHttpStatus": 200,
+    "freshSyncGetHttpStatus": 200,
+    "asyncPostHttpStatus": 202,
+    "persistedGetHttpStatus": 200,
+    "syncReplayHttpStatus": 200,
+    "terminalStatus": "COMPLETED",
+    "pipelineStageCount": 14,
+    "gatewayExecutionCount": 6,
+    "segmentedWorldQueryCount": 1,
+    "gatewaySegmentCount": 3,
+    "segmentManifestHashes": [
+      "sha256:f3bfc0bac15a44f3066df637a349a8d0ff23811c8efc3fd2fd07004a989f192f"
+    ],
+    "segmentPlanHashes": [
+      "sha256:804602dd897faf9648d68ea1a1d437376e6d50f64a85ff1afc8b5a55615cfd63",
+      "sha256:cc3d53f7b23208590bf94aef2c4f5afb6de460456fc999ffc19d61733abca782",
+      "sha256:7817c5bc92a6c9dc9362f03b7eaa2346627a7db8c91a42f95ee0161e00d1d2aa"
+    ],
+    "segmentDelegationBindingCount": 3,
+    "segmentDelegationBindingsHash": "sha256:66d41a07d987c077eae5630187dc0c81c814f5e6a535220ba79b7faa7b0e53a8",
+    "exactSegmentedGatewayOperationChainVerified": true,
+    "exactTrustedDataScopeCount": 2,
+    "resultHash": "sha256:b75057f99443aca6a8465dcc00630e8511395e9bfefe4a2fdebd30edae82d1cb",
+    "persistedResultBytesHash": "sha256:5345ea3afca08f0599db771b7763ba5111ef7573644232d46d842f72bf84ada3",
+    "persistedBytesAndHashMatchGet": true,
+    "persistedContractSelectionVerified": true,
+    "syncAndAsyncResultSemanticsMatch": true,
+    "syncAndAsyncSemanticProjectionHash": "sha256:6a774494d4b797047d189195df4fe4cb59d773c8e911b03cd00943df61cb1ace",
+    "semanticProjectionIncludesGapsEvidenceAndSubjects": true,
+    "syncReplayAddedGatewayExecutions": 0,
+    "findingCount": 1,
+    "sourceProductCount": 1,
+    "evidenceItemCount": 4,
+    "gapCount": 0,
+    "subjectReferenceCount": 1,
+    "extensionIncludedInResultHash": true,
+    "elapsedMsExcludedFromResultHash": true
+  },
+  "synchronousExecution": {
+    "terminalStatus": "COMPLETED",
+    "resultHash": "sha256:ea09152437f8f93bccedbbdd781e2122055f91d8728722a0cbab6267a591defe",
+    "persistedResultBytesHash": "sha256:064f88b10071954d75fbb8757b195df7b606dbe89580af07287a400f70c61e8e",
+    "findingCount": 1,
+    "sourceProductCount": 1,
+    "evidenceItemCount": 4,
+    "gapCount": 0,
+    "subjectReferenceCount": 1,
+    "extensionIncludedInResultHash": true,
+    "elapsedMsExcludedFromResultHash": true
+  },
+  "legacyCompatibility": {
+    "asyncPostHttpStatus": 202,
+    "persistedGetHttpStatus": 200,
+    "terminalStatus": "COMPLETED",
+    "geospatialFindingsAbsent": true,
+    "resultHash": "sha256:23523db351d18d2dc0a0549ade6ac72177373fdade0796a3b074f0f67df146a7"
+  },
+  "executionBoundary": {
+    "publicApi": true,
+    "productionPipeline": true,
+    "isolatedPostgresqlPersistence": true,
+    "signedGowmGatewayOnly": true,
+    "wsgsDirectProviderCalls": 0,
+    "wsgsDirectUpstreamDatabaseCalls": 0,
+    "testHarnessPersistenceInspection": true,
+    "sharedInstanceModified": false
+  },
+  "qualification": {
+    "contractAuthority": "AUTHORITATIVE",
+    "implementationQualified": true,
+    "runtimeQualified": true,
+    "consumerCompatible": false,
+    "productionQualified": false,
+    "g1": "NOT_RUN"
+  },
+  "redaction": {
+    "credentialsIncluded": false,
+    "rawGroundingIdsIncluded": false,
+    "rawReferenceIdsIncluded": false,
+    "internalProviderUrlsIncluded": false,
+    "databaseIdentifiersIncluded": false,
+    "localPathsIncluded": false
+  },
+  "status": "PASS",
+  "reportHash": "sha256:da2251a00bc4c18f1366a2fb54b6404b9ecc8c3c2f38bb5af90a6b75368a428e"
+}
