@@ -510,6 +510,7 @@ try {
   $env:MODEL_OUTPUT_MODE = "CHAT_COMPLETIONS_JSON"
   $env:MODEL_TIMEOUT_MS = "180000"
   $env:MODEL_MAX_RETRIES = "3"
+  $env:WSGS_FORMAL_HTTP_REQUEST_TIMEOUT_MS = "60000"
 
   Push-Location $repositoryRoot
   try {
@@ -539,6 +540,7 @@ try {
   Remove-Item Env:WSGS_READINESS_DATA_SCOPES -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_PRIMARY_DATA_SCOPE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_CROSS_SCOPE_GATEWAY_ROUTING -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_FORMAL_HTTP_REQUEST_TIMEOUT_MS -ErrorAction SilentlyContinue
   if (-not $KeepDatabase) { Remove-ExactDatabaseContainer }
 }
 

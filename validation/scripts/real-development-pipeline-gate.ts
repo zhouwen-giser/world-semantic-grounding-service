@@ -3119,7 +3119,17 @@ async function runN04ResultExtensionGate(
   if (synchronousResponse.status !== 200 || synchronousResponse.body["status"] !== "COMPLETED" ||
       synchronousResponse.headers.get("wsgs-contract-version") !== "sacs-wsgs-grounding/1.1" ||
       synchronousResponse.headers.get("wsgs-result-profile") !== "sacs-wsgs-geospatial-findings/1.0") {
-    throw new Error("N04_FRESH_SYNC_SUBMISSION_FAILED");
+    const terminalStatus = typeof synchronousResponse.body["status"] === "string" &&
+      /^[A-Z][A-Z0-9_]{1,31}$/u.test(synchronousResponse.body["status"])
+      ? synchronousResponse.body["status"]
+      : "MISSING_OR_INVALID";
+    const contractBinding = synchronousResponse.headers.get("wsgs-contract-version") ===
+      "sacs-wsgs-grounding/1.1" ? "CONTRACT_MATCH" : "CONTRACT_MISMATCH";
+    const profileBinding = synchronousResponse.headers.get("wsgs-result-profile") ===
+      "sacs-wsgs-geospatial-findings/1.0" ? "PROFILE_MATCH" : "PROFILE_MISMATCH";
+    throw new Error(
+      `N04_FRESH_SYNC_SUBMISSION_FAILED_HTTP_${synchronousResponse.status}_STATUS_${terminalStatus}_${contractBinding}_${profileBinding}`
+    );
   }
   const synchronousGroundingId = string(
     synchronousResponse.body["groundingId"],
