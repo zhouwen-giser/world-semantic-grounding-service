@@ -29,8 +29,10 @@ function environmentList(plural: string, singular: string, allowMissing: boolean
   return [required(plural)];
 }
 
-function environmentListFallback(preferred: string, fallback: string, allowMissing: boolean): string[] {
-  const value = process.env[preferred] ?? process.env[fallback];
+function environmentListFallback(preferred: string, fallbacks: readonly string[], allowMissing: boolean): string[] {
+  const value = process.env[preferred] ?? fallbacks
+    .map((name) => process.env[name])
+    .find((entry) => entry !== undefined);
   if (value === undefined) {
     if (allowMissing) return [];
     return [required(preferred)];
@@ -52,10 +54,14 @@ export function authFromEnvironment(): ApiAuthConfig {
           ? requiredEither("WSGS_BEARER_ACTOR_ID", "WSGS_READINESS_ACTOR_ID")
           : requiredEither("WSGS_STATIC_ACTOR_ID", "WSGS_STATIC_ACTOR"),
         dataScopes: useBearerDefaults
-          ? environmentListFallback("WSGS_BEARER_DATA_SCOPES", "WSGS_READINESS_DATA_SCOPE", false)
+          ? environmentListFallback(
+              "WSGS_BEARER_DATA_SCOPES",
+              ["WSGS_READINESS_DATA_SCOPES", "WSGS_READINESS_DATA_SCOPE"],
+              false
+            )
           : environmentList("WSGS_STATIC_DATA_SCOPES", "WSGS_STATIC_DATA_SCOPE", false),
         datasetScopes: useBearerDefaults
-          ? environmentListFallback("WSGS_BEARER_DATASET_SCOPES", "WSGS_READINESS_DATASET_SCOPES", true)
+          ? environmentListFallback("WSGS_BEARER_DATASET_SCOPES", ["WSGS_READINESS_DATASET_SCOPES"], true)
           : environmentList("WSGS_STATIC_DATASET_SCOPES", "WSGS_STATIC_DATASET_SCOPE", true),
         permissions: (useBearerDefaults
           ? process.env["WSGS_BEARER_PERMISSIONS"] ?? process.env["WSGS_READINESS_PERMISSIONS"]
