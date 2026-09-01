@@ -174,7 +174,11 @@ const negativeCases = [
   reject("MATURITY_ESCALATION", (copy) => { record(array(copy["bindings"])[0])["allowedMaturity"] = ["STABLE"]; }),
   reject("HISTORICAL_FALLBACK", (copy) => { record(copy["policy"])["historicalFallback"] = "ALLOWED"; })
 ];
-const currentHead = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+const currentHead = execFileSync(
+  "git",
+  ["log", "-1", "--format=%H", "--", ".", ":(exclude)reports/**"],
+  { cwd: root, encoding: "utf8" }
+).trim();
 const exactSource = consumerSources["wsgsSha"] === currentHead;
 const report = {
   schemaVersion: "wsgs-gdps-v032-handoff-intake-report/1.0",
@@ -189,6 +193,7 @@ const report = {
     wsgsSha: consumerSources["wsgsSha"], currentWsgsHead: currentHead,
     gowmSha: consumerSources["gowmSha"], stasSha: consumerSources["stasSha"]
   },
+  wsgsEvidenceOnlyPaths: ["reports/**"],
   handoff: { inventoryCount: 11, businessFileCount: 10, bundleHash: checksums["bundleHash"] },
   locks: {
     providerManifestHash: provider["manifestHash"],
