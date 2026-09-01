@@ -643,7 +643,8 @@ async function liveAuthority(
     availability,
     southboundLock: validatedLock(productionLock),
     southboundLockHash: value.operationalLock.lockHash,
-    capturedAt: new Date()
+    capturedAt: new Date(),
+    maximumFutureClockSkewMs: 1_000
   });
   const validation = value.gateway.validateTrustedContracts({
     catalog,

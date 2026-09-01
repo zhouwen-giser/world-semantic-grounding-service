@@ -299,6 +299,47 @@ describe("trusted capability snapshot", () => {
     expectSnapshotError(() => buildTrustedCapabilitySnapshot(expired), "AVAILABILITY_EXPIRED");
   });
 
+  it("absorbs only explicitly bounded Gateway clock skew and keeps the strict default", () => {
+    const input = fixture();
+    const futureObservation: TrustedCapabilitySnapshotInput = {
+      ...input,
+      availability: {
+        ...input.availability,
+        operations: input.availability.operations.map((entry, index) => index === 0
+          ? entry
+          : {
+              ...entry,
+              checkedAt: "2026-08-27T09:01:00.500Z",
+              validUntil: "2026-08-27T09:05:30.000Z"
+            })
+      }
+    };
+
+    expectSnapshotError(
+      () => buildTrustedCapabilitySnapshot(futureObservation),
+      "AVAILABILITY_OBSERVED_IN_FUTURE"
+    );
+
+    const tolerated = { ...futureObservation, maximumFutureClockSkewMs: 1_000 };
+    expect(evaluateNewJobSnapshotReadiness(tolerated)).toEqual({ status: "READY" });
+    expect(buildTrustedCapabilitySnapshot(tolerated).capturedAt).toBe("2026-08-27T09:01:00.500Z");
+
+    expectSnapshotError(
+      () => buildTrustedCapabilitySnapshot({
+        ...futureObservation,
+        maximumFutureClockSkewMs: 499
+      }),
+      "AVAILABILITY_OBSERVED_IN_FUTURE"
+    );
+    expectSnapshotError(
+      () => buildTrustedCapabilitySnapshot({
+        ...futureObservation,
+        maximumFutureClockSkewMs: 1_001
+      }),
+      "INVALID_FUTURE_CLOCK_SKEW"
+    );
+  });
+
   it("rejects locked schema and embedded semantic-profile mismatches", () => {
     const input = fixture();
     const schemaMismatch: TrustedCapabilitySnapshotInput = {

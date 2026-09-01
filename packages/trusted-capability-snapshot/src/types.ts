@@ -128,6 +128,8 @@ export interface TrustedCapabilitySnapshotInput {
   /** SHA-256 of the exact locked file bytes, established by contract intake. */
   readonly southboundLockHash: Sha256Digest;
   readonly capturedAt?: Date;
+  /** Explicit local-vs-Gateway clock skew budget. Defaults to zero and is capped at 1 second. */
+  readonly maximumFutureClockSkewMs?: number;
 }
 
 export type SnapshotReadinessFailureCode =
@@ -154,6 +156,7 @@ export type TrustedCapabilitySnapshotErrorCode =
   | "GATEWAY_CONTRACT_VERSION_MISMATCH"
   | "CONSUMER_CONTRACT_PACKAGE_MISMATCH"
   | "INVALID_CAPTURE_TIME"
+  | "INVALID_FUTURE_CLOCK_SKEW"
   | "INVALID_DIGEST"
   | "INVALID_PACKAGE_INTEGRITY"
   | "INVALID_OPERATION_KEY"
