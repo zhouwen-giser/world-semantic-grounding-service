@@ -92,13 +92,19 @@ integration("001 to 002 production database upgrade", () => {
     }
   });
 
-  it("applies additive 002, backfills actor fences, and passes schema assertions", async () => {
+  it("upgrades an existing 001 database through the additive migration chain and passes assertions", async () => {
     expect(await applyMigrations(pool, resolve(root, "database", "migrations"))).toEqual([
-      "002_wsgs_gowm_063_runtime.sql"
+      "002_wsgs_gowm_063_runtime.sql",
+      "003_wsgs_gdps_descriptor_runtime.sql",
+      "004_wsgs_segmented_gateway_runtime.sql",
+      "005_wsgs_sacs_geospatial.sql"
     ]);
     expect(await runAssertions(pool, resolve(root, "database", "assertions"))).toEqual([
       "001_wsgs_core.sql",
-      "002_wsgs_gowm_063_runtime.sql"
+      "002_wsgs_gowm_063_runtime.sql",
+      "003_wsgs_gdps_descriptor_runtime.sql",
+      "004_wsgs_segmented_gateway_runtime.sql",
+      "005_wsgs_sacs_geospatial.sql"
     ]);
     const upgraded = await pool.query<{
       request_actor: string;

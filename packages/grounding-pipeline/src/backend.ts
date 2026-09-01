@@ -313,7 +313,10 @@ export class ProductionGroundingBackend {
         operation: requestedOperation,
         dataScopes: [...identity.dataScopes],
         permissions: [...identity.permissions],
-        contractSelection: negotiatedContract
+        contractSelection: negotiatedContract,
+        ...(requestedOperation === "VALIDATE_SOURCE_CURRENTNESS"
+          ? { currentnessRequest: structuredClone(request["currentnessRequest"]) }
+          : {})
       })
     });
 

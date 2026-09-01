@@ -5,7 +5,9 @@ import { SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION } from "@wsgs/grounding-pi
 import {
   GroundingResultSchemaValidationError,
   assertFrozenGroundingResult,
-  assertNegotiatedGroundingResult
+  assertNegotiatedGroundingResult,
+  assertSourceCurrentnessRequest,
+  assertSourceCurrentnessResult
 } from "./result-schema.js";
 
 const digest = `sha256:${"a".repeat(64)}`;
@@ -67,5 +69,20 @@ describe("frozen grounding-result validation", () => {
       SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
     )).not.toThrow();
     expect(() => assertFrozenGroundingResult(geospatialResult)).toThrowError(GroundingResultSchemaValidationError);
+  });
+
+  it("validates the dedicated currentness request and result contracts", () => {
+    const request = JSON.parse(readFileSync(new URL(
+      "../../../contracts/wsgs-v0.2.1-sacs-geospatial/examples/source-currentness-request.json",
+      import.meta.url
+    ), "utf8")) as unknown;
+    const result = JSON.parse(readFileSync(new URL(
+      "../../../contracts/wsgs-v0.2.1-sacs-geospatial/examples/source-currentness-result-current.json",
+      import.meta.url
+    ), "utf8")) as unknown;
+    expect(() => assertSourceCurrentnessRequest(request)).not.toThrow();
+    expect(() => assertSourceCurrentnessResult(result)).not.toThrow();
+    expect(() => assertSourceCurrentnessResult({ ...(result as Record<string, unknown>), status: "COMPLETED" }))
+      .toThrowError(GroundingResultSchemaValidationError);
   });
 });

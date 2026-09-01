@@ -22,7 +22,11 @@ import type {
   WorkerSettlement,
   WorkerSettlementOutcome
 } from "./types.js";
-import { assertNegotiatedGroundingResult } from "./result-schema.js";
+import {
+  assertNegotiatedGroundingResult,
+  assertSourceCurrentnessRequest,
+  assertSourceCurrentnessResult
+} from "./result-schema.js";
 
 interface ClaimRow {
   job_id: string;
@@ -116,7 +120,8 @@ function jobError(code: string, retryable: boolean, pipelineStage?: PipelineStag
 function assertResult(
   settlement: Extract<WorkerSettlement, { kind: "RESULT" }>,
   maximumBytes: number,
-  contractSelection: GroundingContractSelection
+  contractSelection: GroundingContractSelection,
+  storedOperation: WorkerGroundingOperation
 ): Readonly<Record<string, unknown>> {
   if (!/^sha256:[0-9a-f]{64}$/u.test(settlement.resultHash)) {
     throw new PostgresWorkerStoreError("Worker result hash is not a tagged SHA-256 digest");
@@ -125,11 +130,146 @@ function assertResult(
     throw new PostgresWorkerStoreError("Worker result exceeds the persisted maximum result size");
   }
   const result = jsonObject(settlement.resultBytes);
+  if (storedOperation === "VALIDATE_SOURCE_CURRENTNESS") {
+    if (settlement.status !== "COMPLETED" || result["validationResultHash"] !== settlement.resultHash) {
+      throw new PostgresWorkerStoreError("Worker currentness result bytes do not match their settlement metadata");
+    }
+    assertSourceCurrentnessResult(result);
+    return result;
+  }
   if (result["resultHash"] !== settlement.resultHash || result["status"] !== settlement.status) {
     throw new PostgresWorkerStoreError("Worker result bytes do not match their settlement metadata");
   }
   assertNegotiatedGroundingResult(result, contractSelection);
   return result;
+}
+
+interface GeospatialResultPersistence {
+  contractVersion: string | null;
+  resultProfile: string | null;
+  contractSelectionHash: string | null;
+  geospatialFindings: Readonly<Record<string, unknown>> | null;
+  profileSchemaHash: string | null;
+  findingSetHash: string | null;
+  sourceProductSetHash: string | null;
+  sourceLocks: readonly Readonly<Record<string, unknown>>[] | null;
+  sourceLocksHash: string | null;
+}
+
+function geospatialResultPersistence(
+  selection: GroundingContractSelection,
+  result: Readonly<Record<string, unknown>>
+): GeospatialResultPersistence {
+  if (selection.contractVersion !== "sacs-wsgs-grounding/1.1") {
+    return {
+      contractVersion: null,
+      resultProfile: null,
+      contractSelectionHash: null,
+      geospatialFindings: null,
+      profileSchemaHash: null,
+      findingSetHash: null,
+      sourceProductSetHash: null,
+      sourceLocks: null,
+      sourceLocksHash: null
+    };
+  }
+  const contractSelectionHash = canonicalSha256(selection);
+  const raw = result["geospatialFindings"];
+  if (raw === undefined) {
+    return {
+      contractVersion: selection.contractVersion,
+      resultProfile: selection.resultProfile,
+      contractSelectionHash,
+      geospatialFindings: null,
+      profileSchemaHash: null,
+      findingSetHash: null,
+      sourceProductSetHash: null,
+      sourceLocks: null,
+      sourceLocksHash: null
+    };
+  }
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new PostgresWorkerStoreError("Worker geospatial extension is invalid");
+  }
+  const extension = raw as Readonly<Record<string, unknown>>;
+  const products = extension["sourceProducts"];
+  if (!Array.isArray(products)) throw new PostgresWorkerStoreError("Worker source product set is invalid");
+  const sourceLocks = products.map((rawProduct) => {
+    if (!rawProduct || typeof rawProduct !== "object" || Array.isArray(rawProduct)) {
+      throw new PostgresWorkerStoreError("Worker source product lock is invalid");
+    }
+    const product = rawProduct as Readonly<Record<string, unknown>>;
+    return Object.freeze({
+      sourceProductId: product["sourceProductId"],
+      productId: product["productId"],
+      productType: product["productType"],
+      productProfile: product["productProfile"],
+      contentHash: product["contentHash"],
+      ...(product["descriptorId"] === undefined ? {} : { descriptorId: product["descriptorId"] }),
+      ...(product["descriptorHash"] === undefined ? {} : { descriptorHash: product["descriptorHash"] })
+    });
+  }).sort((left, right) => String(left.sourceProductId) < String(right.sourceProductId) ? -1 :
+    String(left.sourceProductId) > String(right.sourceProductId) ? 1 : 0);
+  return {
+    contractVersion: selection.contractVersion,
+    resultProfile: selection.resultProfile,
+    contractSelectionHash,
+    geospatialFindings: extension,
+    profileSchemaHash: String(extension["profileSchemaHash"]),
+    findingSetHash: String(extension["findingSetHash"]),
+    sourceProductSetHash: String(extension["sourceProductSetHash"]),
+    sourceLocks,
+    sourceLocksHash: canonicalSha256(sourceLocks)
+  };
+}
+
+async function persistSourceCurrentness(
+  client: PoolClient,
+  job: {
+    grounding_id: string;
+    data_scope: string;
+    actor_id: string;
+    principal_id: string;
+    authorization_context_hash: string;
+  },
+  metadata: Record<string, unknown>,
+  contractSelection: GroundingContractSelection,
+  result: Readonly<Record<string, unknown>>
+): Promise<void> {
+  const request = metadata["currentnessRequest"];
+  assertSourceCurrentnessRequest(request);
+  assertSourceCurrentnessResult(result);
+  if (request["productId"] !== result["productId"] ||
+      request["previousContentHash"] !== result["previousContentHash"] ||
+      result["validationGroundingId"] !== job.grounding_id) {
+    throw new PostgresWorkerStoreError("Currentness request and result bindings do not match");
+  }
+  await client.query(
+    `INSERT INTO wsgs.source_currentness_validation(
+       grounding_id, data_scope, actor_id, principal_id, authorization_context_hash,
+       contract_selection_hash, request_json, request_hash, result_json,
+       validation_result_hash, source_product_id, product_id, previous_content_hash,
+       current_content_hash, currentness, checked_at
+     ) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9::jsonb,$10,$11,$12,$13,$14,$15,$16)`,
+    [
+      job.grounding_id,
+      job.data_scope,
+      job.actor_id,
+      job.principal_id,
+      job.authorization_context_hash,
+      canonicalSha256(contractSelection),
+      JSON.stringify(request),
+      canonicalSha256(request),
+      JSON.stringify(result),
+      result["validationResultHash"],
+      request["sourceProductId"],
+      request["productId"],
+      request["previousContentHash"],
+      result["currentContentHash"] ?? null,
+      result["status"],
+      result["checkedAt"]
+    ]
+  );
 }
 
 function storedContractSelection(metadata: Record<string, unknown>): GroundingContractSelection {
@@ -361,6 +501,9 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
         grounding_id: string;
         data_scope: string;
         actor_id: string;
+        principal_id: string;
+        authorization_context_hash: string;
+        operation: string;
         status: string;
         cancel_requested_at: Date | null;
         lease_token: string | null;
@@ -368,7 +511,9 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
         max_result_bytes: number;
         request_metadata: unknown;
       }>(
-        `SELECT job.grounding_id, job.data_scope, job.actor_id, job.status, job.cancel_requested_at,
+        `SELECT job.grounding_id, job.data_scope, job.actor_id, request.principal_id,
+                request.authorization_context_hash, request.request_metadata->>'operation' AS operation,
+                job.status, job.cancel_requested_at,
                 job.lease_token, job.stage_generation, job.max_result_bytes, request.request_metadata
            FROM wsgs.grounding_job AS job
            JOIN wsgs.grounding_request AS request ON request.grounding_id = job.grounding_id
@@ -386,20 +531,39 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
           && !Array.isArray(job.request_metadata)
           ? job.request_metadata as Record<string, unknown>
           : {};
-        const result = assertResult(settlement, job.max_result_bytes, storedContractSelection(metadata));
+        const contractSelection = storedContractSelection(metadata);
+        const storedOperation = operation(job.operation);
+        const result = assertResult(settlement, job.max_result_bytes, contractSelection, storedOperation);
+        const extension = geospatialResultPersistence(contractSelection, result);
         await client.query(
           `INSERT INTO wsgs.grounding_result(
-             grounding_id, data_scope, actor_id, status, result_hash, result_bytes
-           ) VALUES ($1,$2,$3,$4,$5,$6)`,
+             grounding_id, data_scope, actor_id, status, result_hash, result_bytes,
+             contract_version, result_profile, contract_selection_hash,
+             geospatial_findings_json, geospatial_profile_schema_hash,
+             geospatial_finding_set_hash, geospatial_source_product_set_hash,
+             geospatial_source_locks, geospatial_source_locks_hash
+           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13,$14::jsonb,$15)`,
           [
             job.grounding_id,
             job.data_scope,
             job.actor_id,
             settlement.status,
             settlement.resultHash,
-            Buffer.from(settlement.resultBytes)
+            Buffer.from(settlement.resultBytes),
+            extension.contractVersion,
+            extension.resultProfile,
+            extension.contractSelectionHash,
+            extension.geospatialFindings === null ? null : JSON.stringify(extension.geospatialFindings),
+            extension.profileSchemaHash,
+            extension.findingSetHash,
+            extension.sourceProductSetHash,
+            extension.sourceLocks === null ? null : JSON.stringify(extension.sourceLocks),
+            extension.sourceLocksHash
           ]
         );
+        if (storedOperation === "VALIDATE_SOURCE_CURRENTNESS") {
+          await persistSourceCurrentness(client, job, metadata, contractSelection, result);
+        }
         await persistResultProducts(client, job.grounding_id, job.data_scope, result);
         await client.query(
           `UPDATE wsgs.idempotency

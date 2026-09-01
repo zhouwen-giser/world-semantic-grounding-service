@@ -19,6 +19,7 @@ import { pathToFileURL } from "node:url";
 import { Pool } from "pg";
 
 import type { GroundingApiBackend } from "./types.js";
+import { PostgresStructuredSelectionStore } from "./postgres-selection-store.js";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -276,6 +277,9 @@ export function createProductionBackendFromEnvironment(
     pollIntervalMs: integerEnvironment("WSGS_SYNC_POLL_INTERVAL_MS", 50, 1, 5_000)
   });
   const selectionResolver = structuredSelectionResolverFromEnvironment();
+  const selectionStore = selectionResolver === undefined
+    ? undefined
+    : new PostgresStructuredSelectionStore(pool, selectionResolver);
   const requiredReadiness = options.readinessProbe ?? readinessProbeFromEnvironment();
   const primaryDataScope = primaryDataScopeFromEnvironment();
   const readiness = async (): Promise<{ ready: boolean; reasons: string[] }> => {
@@ -292,11 +296,11 @@ export function createProductionBackendFromEnvironment(
     readiness,
     captureAdmissionSnapshot: (context) => requiredReadiness.captureAdmissionSnapshot(context),
     sourceCurrentnessEnabled: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES",
-    ...(selectionResolver === undefined ? {} : {
+    ...(selectionStore === undefined ? {} : {
       resolveWorldSelection: async (
         identity: ScopedGroundingIdentity,
         request: Readonly<Record<string, unknown>>
-      ) => selectionResolver.resolve({
+      ) => selectionStore.resolve({
         identity,
         request: request as unknown as ResolveWorldSelectionRequest,
         priorResult: priorGroundingResult(await store.get(
@@ -310,7 +314,7 @@ export function createProductionBackendFromEnvironment(
       contractSelection,
       await readiness(),
       {
-        structuredSelection: selectionResolver !== undefined,
+        structuredSelection: selectionStore !== undefined,
         currentness: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES"
       }
     ),

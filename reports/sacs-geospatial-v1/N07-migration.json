@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "wsgs-v021-n07-migration/1.0",
+  "phase": "N07",
+  "generator": {
+    "name": "generate-sacs-geospatial-persistence-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_SOURCE_AUDIT_NO_DATABASE",
+  "inputSetHash": "sha256:a07e7730d7a1e77eca7380bd31d1fe929c590125ef642d011fa39accf8e5facc",
+  "sourceHashes": {
+    "database/migrations/005_wsgs_sacs_geospatial.sql": "sha256:74dc5f2bd25634587946d2eda3ec1277eddf3e5a55fb4f01ca28c29ea515b2af",
+    "database/assertions/005_wsgs_sacs_geospatial.sql": "sha256:79297663a0fc599e5fa00440fd69d0d575bb3f0ef60cfc1c5b47957741feb9de",
+    "packages/runtime/src/migrations.ts": "sha256:6221b7d709d2f34778c4fad4ee553e5463f12cf0912ffdc62fed32349df9e918",
+    "packages/runtime/src/migration-002.integration.test.ts": "sha256:75d0efddeb70d7df629906782ca5ca0a4320da4cfeb3cba51db54ac896af37db",
+    "packages/grounding-pipeline/src/backend.ts": "sha256:093e86eaa0fa1611a672b77ac9d34ae8eca45c93b59a572595a9e502a498a2a5",
+    "packages/grounding-pipeline/src/postgres-backend-store.ts": "sha256:e8ce31fe9536b750d513bfec145092a3782dc8e3fd6e97233bc6c9cb8d2bc4a2",
+    "services/grounding-worker/src/result-schema.ts": "sha256:801405554fb89802973136e5b0e4663fe11013a0fcad4d395031e108be7f9bf8",
+    "services/grounding-worker/src/postgres-store.ts": "sha256:c7019fdb82c940b71bbc9854c00ef629dc5f052b9b273b29a1944f940c290279",
+    "services/grounding-worker/src/postgres.integration.test.ts": "sha256:0bd1e87023721cf55ee69b4b9d41aa5607986be1fdea5bec32703dbeb96212e4",
+    "services/grounding-api/src/postgres-selection-store.ts": "sha256:e72752647881dbac05ebff4df6ade4837db3eea4ccd038aba4bcdd218c51cb6d",
+    "services/grounding-api/src/postgres-selection-store.test.ts": "sha256:92fbe5057229ed2adf0db67187f3aed7162e75baf87c5ade06add2b55202ef66",
+    "services/grounding-api/src/postgres-selection-store.integration.test.ts": "sha256:654b30d45b7f6d2abdecaa912cfc7d57e5d5920d1252bc7f1b2aed8bc7119822",
+    "services/grounding-api/src/production.ts": "sha256:209b691367b4d8be74bd1744523929e176baf90bb6443301016a9b6ed6860d1d"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "postgresQualification": "NOT_RUN",
+  "productionQualified": false,
+  "status": "SOURCE_READY_POSTGRES_NOT_RUN",
+  "migration": {
+    "path": "database/migrations/005_wsgs_sacs_geospatial.sql",
+    "sha256": "sha256:74dc5f2bd25634587946d2eda3ec1277eddf3e5a55fb4f01ca28c29ea515b2af",
+    "additive": true,
+    "exactResultAuthority": "wsgs.grounding_result.result_bytes",
+    "duplicateFullResultStore": false
+  },
+  "assertion": {
+    "path": "database/assertions/005_wsgs_sacs_geospatial.sql",
+    "sha256": "sha256:79297663a0fc599e5fa00440fd69d0d575bb3f0ef60cfc1c5b47957741feb9de"
+  },
+  "persistedState": [
+    "contract release/profile/hash",
+    "geospatial finding/source set hashes",
+    "source descriptor/content locks",
+    "structured selection binding and token metadata",
+    "source currentness request/result",
+    "exact result bytes"
+  ],
+  "migrationRunner": "packages/runtime/src/migrations.ts",
+  "emptyExistingRepeatPostgresCases": "NOT_RUN"
+}

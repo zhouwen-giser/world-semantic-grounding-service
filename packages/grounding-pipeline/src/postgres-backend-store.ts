@@ -386,16 +386,21 @@ export class PostgresProductionGroundingStore implements ProductionGroundingStor
         request_table: string | null;
         job_table: string | null;
         checkpoint_table: string | null;
+        selection_table: string | null;
+        currentness_table: string | null;
         read_only: string;
       }>(
         `SELECT to_regclass('wsgs.grounding_request')::text AS request_table,
                 to_regclass('wsgs.grounding_job')::text AS job_table,
                 to_regclass('wsgs.pipeline_checkpoint')::text AS checkpoint_table,
+                to_regclass('wsgs.world_selection')::text AS selection_table,
+                to_regclass('wsgs.source_currentness_validation')::text AS currentness_table,
                 current_setting('transaction_read_only') AS read_only`
       );
       const row = result.rows[0];
       const reasons: string[] = [];
-      if (!row?.request_table || !row.job_table || !row.checkpoint_table) reasons.push("DATABASE_SCHEMA_NOT_READY");
+      if (!row?.request_table || !row.job_table || !row.checkpoint_table ||
+          !row.selection_table || !row.currentness_table) reasons.push("DATABASE_SCHEMA_NOT_READY");
       if (row?.read_only === "on") reasons.push("DATABASE_READ_ONLY");
       return { ready: reasons.length === 0, reasons };
     } catch {

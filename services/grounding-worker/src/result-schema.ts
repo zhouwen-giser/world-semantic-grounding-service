@@ -144,3 +144,27 @@ export function assertNegotiatedGroundingResult(
     );
   }
 }
+
+export function assertSourceCurrentnessRequest(
+  value: unknown
+): asserts value is Readonly<Record<string, unknown>> {
+  try {
+    sacsGeospatialRegistry.validate("source-currentness-request.schema.json", value);
+  } catch {
+    throw new GroundingResultSchemaValidationError(
+      "source currentness request does not satisfy wsgs-source-currentness-request/1.0"
+    );
+  }
+}
+
+export function assertSourceCurrentnessResult(
+  value: unknown
+): asserts value is Readonly<Record<string, unknown>> {
+  try {
+    sacsGeospatialRegistry.validate("source-currentness-result.schema.json", value);
+  } catch {
+    throw new GroundingResultSchemaValidationError(
+      "result does not satisfy sacs-source-currentness/1.0"
+    );
+  }
+}
