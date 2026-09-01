@@ -6,6 +6,7 @@ import type { GdpsLockedOperation } from "@wsgs/trusted-capability-snapshot";
 export interface StasGdpsRuntimeBinding {
   gowmSourceCommit: string;
   gdpsSourceCommit: string;
+  gdpsDataScope: string;
   gatewayInstanceBindingHash: `sha256:${string}`;
   gdpsProviderImageDigest: `sha256:${string}`;
 }
@@ -45,8 +46,9 @@ const topLevelKeys = [
   "operationInputHash", "eventGeometryPath", "products", "allowedOperations"
 ] as const;
 const runtimeBindingKeys = [
-  "gowmSourceCommit", "gdpsSourceCommit", "gatewayInstanceBindingHash", "gdpsProviderImageDigest"
+  "gowmSourceCommit", "gdpsSourceCommit", "gdpsDataScope", "gatewayInstanceBindingHash", "gdpsProviderImageDigest"
 ] as const;
+const dataScope = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/u;
 const expectedOperations: Readonly<Record<string, Omit<GdpsLockedOperation, "operationId" | "operationVersion">>> = {
   "stas.nearest-approach@1.0": {
     inputSchemaHash: "sha256:fa852ea7022341b5e4f93985af177c0eadf0085928ca0b7516111dfeb4b74dd1",
@@ -121,6 +123,8 @@ function validateLock(value: unknown): StasGdpsFixtureLock {
   if (!object(runtimeBinding) || !exactKeys(runtimeBinding, runtimeBindingKeys) ||
       !commit.test(String(runtimeBinding["gowmSourceCommit"])) ||
       !commit.test(String(runtimeBinding["gdpsSourceCommit"])) ||
+      !dataScope.test(String(runtimeBinding["gdpsDataScope"])) ||
+      String(runtimeBinding["gdpsDataScope"]).includes("*") ||
       !digest.test(String(runtimeBinding["gatewayInstanceBindingHash"])) ||
       !digest.test(String(runtimeBinding["gdpsProviderImageDigest"]))) {
     throw new StasGdpsFixtureLockError("RUNTIME_BINDING_INVALID");

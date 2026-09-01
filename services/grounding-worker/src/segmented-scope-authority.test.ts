@@ -156,6 +156,28 @@ describe("segmented scope authority loader", () => {
     });
   });
 
+  it("binds a fixture-locked selected operation to its exact runtime dataset scope", () => {
+    const paths = fixture();
+    const loaded = loadSegmentedScopeAuthority({
+      foundationHandoffDirectory: paths.gowm,
+      gdpsHandoffDirectory: paths.gdps,
+      foundationOperations: [foundation],
+      selectedDatasetOperations: [selected],
+      selectedDatasetScopeSource: {
+        dataScope: "scope-gdps-v031-a",
+        sourceLockHash: digest("e")
+      },
+      additionalFoundationSources: [{ sourceLockHash: digest("f"), operations: [foundationPreview] }]
+    });
+
+    expect(loaded.authority.requiredDataScopes).toEqual(["scope-gdps-v031-a", "wsgs-demo"]);
+    expect(loaded.authority.bindings["geo-raster.sample@1.0"]).toMatchObject({
+      role: "SELECTED_DATASET",
+      dataScope: "scope-gdps-v031-a",
+      sourceLockHash: digest("e")
+    });
+  });
+
   it("fails closed when the dataset bytes drift from CHECKSUMS", () => {
     const paths = fixture();
     writeFileSync(join(paths.gdps, "GDPS_SAMPLE_DATASET_LOCK.json"), "{}\n");

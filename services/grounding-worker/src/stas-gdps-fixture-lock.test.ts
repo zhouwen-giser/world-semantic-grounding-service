@@ -32,6 +32,7 @@ function fixture() {
     runtimeBinding: {
       gowmSourceCommit: "a".repeat(40),
       gdpsSourceCommit: "b".repeat(40),
+      gdpsDataScope: "scope-gdps-v031-a",
       gatewayInstanceBindingHash: `sha256:${"c".repeat(64)}`,
       gdpsProviderImageDigest: `sha256:${"d".repeat(64)}`
     },
@@ -78,6 +79,7 @@ describe("STAS plus GDPS runtime fixture lock", () => {
     const loaded = loadStasGdpsFixtureLock({ lockPath: file.path, expectedSha256: file.hash });
     expect(loaded.lockHash).toBe(file.hash);
     expect(loaded.lock.operationInputHash).toBe(canonicalStasGdpsInputHash(value.operationInput));
+    expect(loaded.lock.runtimeBinding.gdpsDataScope).toBe("scope-gdps-v031-a");
     expect(loaded.lock.allowedOperations.map((entry) => entry.operationId)).toEqual([
       "stas.nearest-approach", "geo-raster.sample"
     ]);
@@ -105,5 +107,13 @@ describe("STAS plus GDPS runtime fixture lock", () => {
       lockPath: operationFile.path,
       expectedSha256: operationFile.hash
     })).toThrow(/OPERATION_LOCK_DRIFT/u);
+
+    const wildcardScope = fixture();
+    wildcardScope.runtimeBinding.gdpsDataScope = "scope-gdps-*";
+    const wildcardFile = materialize(wildcardScope);
+    expect(() => loadStasGdpsFixtureLock({
+      lockPath: wildcardFile.path,
+      expectedSha256: wildcardFile.hash
+    })).toThrow(/RUNTIME_BINDING_INVALID/u);
   });
 });

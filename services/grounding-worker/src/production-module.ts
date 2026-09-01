@@ -554,7 +554,10 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     lock,
     gdps.recipes,
     allowPreview
-      ? [...currentnessRecipe.allowedOperations, ...(stasGdpsFixture?.lock.allowedOperations ?? [])]
+      ? [
+          ...(gdps.recipes.length > 0 ? currentnessRecipe.allowedOperations : []),
+          ...(stasGdpsFixture?.lock.allowedOperations ?? [])
+        ]
       : []
   );
   const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
@@ -571,6 +574,12 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
         gdpsHandoffDirectory: fileURLToPath(new URL("../../../contracts/upstream/gdps-v0.2.1/", import.meta.url)),
         foundationOperations: productionLock.defaultOperations.map(gatewayLock),
         selectedDatasetOperations: selectedDatasetOperations.map(gatewayLock),
+        ...(stasGdpsFixture && gdps.recipes.length === 0 ? {
+          selectedDatasetScopeSource: {
+            dataScope: stasGdpsFixture.lock.runtimeBinding.gdpsDataScope,
+            sourceLockHash: stasGdpsFixture.lockHash
+          }
+        } : {}),
         ...(stasGdpsFixture && stasFoundationOperations.length > 0 ? {
           additionalFoundationSources: [{
             sourceLockHash: stasGdpsFixture.lockHash,
