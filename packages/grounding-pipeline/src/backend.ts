@@ -110,6 +110,10 @@ export interface ProductionGroundingBackendConfig {
     groundingId: string;
     jobId: string;
   }) => Promise<ProductionAdmissionSnapshot>;
+  resolveWorldSelection?: (
+    identity: ScopedGroundingIdentity,
+    request: Readonly<Record<string, unknown>>
+  ) => Promise<unknown>;
   cancellationNotifier?: GroundingCancellationNotifier;
   selectDataScope?: (identity: ProductionGroundingIdentity, request: Record<string, unknown>) => string;
   now?: () => number;
@@ -349,6 +353,17 @@ export class ProductionGroundingBackend {
     if (!cancelled) return null;
     await this.#config.cancellationNotifier?.notify(cancelled.jobId);
     return cancelled.value;
+  }
+
+  async resolveWorldSelection(
+    identity: ProductionGroundingIdentity,
+    request: Readonly<Record<string, unknown>>
+  ): Promise<unknown> {
+    assertIdentity(identity);
+    if (!this.#config.resolveWorldSelection) {
+      throw new ProductionBackendError("NOT_READY", "Structured world selection is not configured");
+    }
+    return this.#config.resolveWorldSelection(this.#scope(identity, {}), request);
   }
 
   #selectDataScope(identity: ProductionGroundingIdentity, request: Record<string, unknown>): string {

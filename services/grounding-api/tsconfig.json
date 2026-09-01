@@ -7,7 +7,8 @@
     "paths": {
       "@wsgs/contracts": ["./../../packages/contracts/dist/index.d.ts"],
       "@wsgs/grounding-pipeline": ["./../../packages/grounding-pipeline/dist/index.d.ts"],
-      "@wsgs/runtime": ["./../../packages/runtime/dist/index.d.ts"]
+      "@wsgs/runtime": ["./../../packages/runtime/dist/index.d.ts"],
+      "@wsgs/structured-world-selection": ["./../../packages/structured-world-selection/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts"],
@@ -15,6 +16,7 @@
     { "path": "../../packages/contracts" },
     { "path": "../../packages/delegated-identity" },
     { "path": "../../packages/grounding-pipeline" },
-    { "path": "../../packages/runtime" }
+    { "path": "../../packages/runtime" },
+    { "path": "../../packages/structured-world-selection" }
   ]
 }

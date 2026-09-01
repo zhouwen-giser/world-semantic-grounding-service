@@ -37,6 +37,10 @@ export interface GroundingApiBackend {
     groundingId: string,
     contractSelection?: GroundingContractSelection
   ): Promise<unknown | null>;
+  resolveWorldSelection?(
+    identity: GroundingIdentity,
+    request: Readonly<Record<string, unknown>>
+  ): Promise<unknown>;
 }
 
 export interface GroundingApiConfig {

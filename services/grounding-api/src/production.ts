@@ -3,10 +3,17 @@ import {
   isSacsGeospatialContract,
   PostgresProductionGroundingStore,
   ProductionGroundingBackend,
+  SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
   type GroundingContractSelection,
   type ProductionAdmissionSnapshot,
   type ScopedGroundingIdentity
 } from "@wsgs/grounding-pipeline";
+import {
+  StructuredSelectionTokenCodec,
+  StructuredWorldSelectionResolver,
+  type PriorGroundingResult,
+  type ResolveWorldSelectionRequest
+} from "@wsgs/structured-world-selection";
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Pool } from "pg";
@@ -44,6 +51,62 @@ export interface ProductionReadinessProbe {
 
 export interface ProductionBackendEnvironmentOptions {
   readinessProbe?: ProductionReadinessProbe;
+}
+
+function structuredSelectionResolverFromEnvironment(): StructuredWorldSelectionResolver | undefined {
+  const activeKeyId = process.env["WSGS_SELECTION_ACTIVE_KEY_ID"];
+  const keysJson = process.env["WSGS_SELECTION_KEYS_JSON"];
+  const configured = activeKeyId !== undefined || keysJson !== undefined;
+  if (!configured) return undefined;
+  if (!activeKeyId || !keysJson) {
+    throw new Error("Structured selection key configuration is incomplete");
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(keysJson) as unknown;
+  } catch {
+    throw new Error("WSGS_SELECTION_KEYS_JSON must contain a JSON object");
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("WSGS_SELECTION_KEYS_JSON must contain a JSON object");
+  }
+  const keys = Object.entries(parsed).map(([keyId, encoded]) => {
+    if (typeof encoded !== "string" || !/^[A-Za-z0-9+/]{43}=$/u.test(encoded)) {
+      throw new Error("WSGS_SELECTION_KEYS_JSON contains an invalid key");
+    }
+    const key = Buffer.from(encoded, "base64");
+    if (key.byteLength !== 32 || key.toString("base64") !== encoded) {
+      throw new Error("WSGS_SELECTION_KEYS_JSON contains an invalid key");
+    }
+    return { keyId, key };
+  });
+  if (keys.length < 1 || keys.length > 16) throw new Error("Structured selection key ring size is invalid");
+  return new StructuredWorldSelectionResolver(new StructuredSelectionTokenCodec({
+    activeKeyId,
+    keys,
+    ttlMs: integerEnvironment("WSGS_SELECTION_TTL_MS", 300_000, 1_000, 86_400_000)
+  }));
+}
+
+function priorGroundingResult(value: unknown): PriorGroundingResult | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const presentation = value as Record<string, unknown>;
+  const result = presentation["result"];
+  if (!result || typeof result !== "object" || Array.isArray(result)) return null;
+  const record = result as Record<string, unknown>;
+  const extension = record["geospatialFindings"];
+  if (!extension || typeof extension !== "object" || Array.isArray(extension)) return null;
+  const geospatial = extension as Record<string, unknown>;
+  if (typeof record["groundingId"] !== "string" || typeof record["resultHash"] !== "string" ||
+    !Array.isArray(geospatial["findings"]) || !Array.isArray(geospatial["sourceProducts"])) return null;
+  return {
+    groundingId: record["groundingId"],
+    resultHash: record["resultHash"],
+    geospatialFindings: {
+      findings: geospatial["findings"] as Readonly<Record<string, unknown>>[],
+      sourceProducts: geospatial["sourceProducts"] as Readonly<Record<string, unknown>>[]
+    }
+  };
 }
 
 function readinessProbeFromEnvironment(): ProductionReadinessProbe {
@@ -110,7 +173,11 @@ export function primaryDataScopeFromEnvironment(
  */
 export function groundingCapabilitiesForSelection(
   contractSelection: GroundingContractSelection,
-  currentReadiness: Readonly<{ ready: boolean; reasons: readonly string[] }>
+  currentReadiness: Readonly<{ ready: boolean; reasons: readonly string[] }>,
+  phaseReadiness: Readonly<{ structuredSelection: boolean; currentness: boolean }> = {
+    structuredSelection: false,
+    currentness: false
+  }
 ): Readonly<Record<string, unknown>> {
   if (isSacsGeospatialContract(contractSelection)) {
     return Object.freeze({
@@ -150,19 +217,17 @@ export function groundingCapabilitiesForSelection(
         semanticCatalogHash: "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
         operationLockHash: "sha256:765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686"
       }),
-      // N04 advertises the frozen 1.1 surface, but the complete release is
-      // intentionally not ready until N05 and N06 implement both added operations.
-      requiredCapabilitiesReady: false,
+      requiredCapabilitiesReady: phaseReadiness.structuredSelection && phaseReadiness.currentness,
       optionalCapabilities: Object.freeze([
         Object.freeze({
           operationId: "RESOLVE_WORLD_SELECTION",
-          available: false,
-          reason: "IMPLEMENTATION_PENDING_N05"
+          available: phaseReadiness.structuredSelection,
+          ...(phaseReadiness.structuredSelection ? {} : { reason: "IMPLEMENTATION_PENDING_N05" })
         }),
         Object.freeze({
           operationId: "VALIDATE_SOURCE_CURRENTNESS",
-          available: false,
-          reason: "IMPLEMENTATION_PENDING_N06"
+          available: phaseReadiness.currentness,
+          ...(phaseReadiness.currentness ? {} : { reason: "IMPLEMENTATION_PENDING_N06" })
         })
       ])
     });
@@ -209,6 +274,7 @@ export function createProductionBackendFromEnvironment(
   const store = new PostgresProductionGroundingStore(pool, {
     pollIntervalMs: integerEnvironment("WSGS_SYNC_POLL_INTERVAL_MS", 50, 1, 5_000)
   });
+  const selectionResolver = structuredSelectionResolverFromEnvironment();
   const requiredReadiness = options.readinessProbe ?? readinessProbeFromEnvironment();
   const primaryDataScope = primaryDataScopeFromEnvironment();
   const readiness = async (): Promise<{ ready: boolean; reasons: string[] }> => {
@@ -224,8 +290,25 @@ export function createProductionBackendFromEnvironment(
     sealer: codec,
     readiness,
     captureAdmissionSnapshot: (context) => requiredReadiness.captureAdmissionSnapshot(context),
-    capabilities: async (_identity, contractSelection) =>
-      groundingCapabilitiesForSelection(contractSelection, await readiness()),
+    ...(selectionResolver === undefined ? {} : {
+      resolveWorldSelection: async (
+        identity: ScopedGroundingIdentity,
+        request: Readonly<Record<string, unknown>>
+      ) => selectionResolver.resolve({
+        identity,
+        request: request as unknown as ResolveWorldSelectionRequest,
+        priorResult: priorGroundingResult(await store.get(
+          identity,
+          String(request["priorGroundingId"] ?? ""),
+          SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+        ))
+      })
+    }),
+    capabilities: async (_identity, contractSelection) => groundingCapabilitiesForSelection(
+      contractSelection,
+      await readiness(),
+      { structuredSelection: selectionResolver !== undefined, currentness: false }
+    ),
     ...(primaryDataScope === undefined ? {} : { selectDataScope: () => primaryDataScope }),
     sourceRetentionMs: integerEnvironment("WSGS_SOURCE_RETENTION_MS", 3_600_000, 1_000, 604_800_000)
   });

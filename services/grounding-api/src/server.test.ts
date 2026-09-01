@@ -19,6 +19,14 @@ const capabilities11 = JSON.parse(readFileSync(
   new URL("examples/capabilities-response-v1.1.json", sacsGeospatialDirectory),
   "utf8"
 )) as Record<string, unknown>;
+const structuredSelectionRequest = JSON.parse(readFileSync(
+  new URL("examples/structured-selection-request.json", sacsGeospatialDirectory),
+  "utf8"
+)) as Record<string, unknown>;
+const structuredSelectionResult = JSON.parse(readFileSync(
+  new URL("examples/structured-selection-result-reference-key.json", sacsGeospatialDirectory),
+  "utf8"
+)) as Record<string, unknown>;
 const now = "2026-08-25T00:00:00Z";
 const resultHash = `sha256:${"a".repeat(64)}`;
 const sourceText = "road";
@@ -124,6 +132,10 @@ function backend(captured: GroundingIdentity[] = []): GroundingApiBackend {
     cancel: vi.fn(async (identity, groundingId) => {
       captured.push(identity);
       return groundingId === "missing" ? null : { ...groundingJob, status: "CANCELLED", updatedAt: now, finishedAt: now };
+    }),
+    resolveWorldSelection: vi.fn(async (identity) => {
+      captured.push(identity);
+      return structuredSelectionResult;
     })
   };
 }
@@ -182,6 +194,39 @@ describe("grounding API", () => {
     });
     expect(asyncResponse.statusCode).toBe(202);
     expect(asyncResponse.json()).toEqual(groundingJob);
+  });
+
+  it("resolves a contract-valid structured selection only through negotiated 1.1 authority", async () => {
+    const captured: GroundingIdentity[] = [];
+    const app = await staticApp(captured, backend(captured), ["service-a"]);
+    const headers = {
+      "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
+      "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0"
+    };
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/world-selections:resolve",
+      headers,
+      payload: structuredSelectionRequest
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual(structuredSelectionResult);
+    expect(captured.at(-1)).toMatchObject({ servicePrincipalId: "service-a", dataScopes: ["scope-a"] });
+
+    const legacy = await app.inject({
+      method: "POST",
+      url: "/v1/world-selections:resolve",
+      payload: structuredSelectionRequest
+    });
+    expect(legacy.statusCode).toBe(406);
+    const forged = await app.inject({
+      method: "POST",
+      url: "/v1/world-selections:resolve",
+      headers,
+      payload: { ...structuredSelectionRequest, principalId: "forged" }
+    });
+    expect(forged.statusCode).toBe(400);
+    expect(forged.json().error.code).toBe("BODY_AUTHORITY_FIELD_FORBIDDEN");
   });
 
   it("negotiates the exact 1.1 Result-extension profile for sync, async, GET, and capabilities", async () => {

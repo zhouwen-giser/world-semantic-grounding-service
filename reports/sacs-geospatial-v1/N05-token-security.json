@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "wsgs-v021-n05-token-security/1.0",
+  "phase": "N05",
+  "generator": {
+    "name": "generate-sacs-geospatial-selection-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_TEST_VECTOR_EXECUTION_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:629891aef95752d82e6308e2cc3a1d61632afe8fb0f15dc4f9d8be43244db332",
+  "sourceHashes": {
+    "packages/structured-world-selection/src/index.ts": "sha256:ea1278ffd279c519202966b12663c9f8e0712c4daca391cf5dc8070eebe83c69",
+    "packages/structured-world-selection/src/index.test.ts": "sha256:fd2787a927d7c7baf87223d792e21caba2528ae27a0db989ad11fb205f4035cc",
+    "services/grounding-api/src/server.ts": "sha256:f640871cb46a817a8768fbc5115be4e1670efc67e86286f4153fe23de1f3c862",
+    "services/grounding-api/src/production.ts": "sha256:03761c4b98c91463e8424cebc88c9e16114e3b680d9012d8fc4bacfb13bd9718",
+    "contracts/wsgs-v0.2.1-sacs-geospatial/structured-selection-request.schema.json": "sha256:062575d20fe96a78df3e1ce9a1105b4d40a5fc6b60e5e62ab38d943eeeb4b6e4",
+    "contracts/wsgs-v0.2.1-sacs-geospatial/structured-selection-result.schema.json": "sha256:36263725923f7c045cc89bc142e32cc71bef8742386497253dbf1d89bd017ee3"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "postgresQualification": "NOT_RUN_N07_OWNER",
+  "consumerRuntimeQualification": "NOT_RUN_N09_OWNER",
+  "productionQualified": false,
+  "status": "PASS",
+  "algorithm": "AES-256-GCM",
+  "tokenClaimsOpaque": true,
+  "activeKeyId": "TEST_VECTOR_K2",
+  "retainedVerificationKeyCount": 2,
+  "rawTokenPersistedInEvidence": false,
+  "tokenSha256": "sha256:dbc7b03b5d2844d0929ff94a2563a262b4b73b302cd2fb4831cea5caf0fb1c2a",
+  "negativeCases": [
+    {
+      "caseId": "N05-N01",
+      "expectedCode": "SELECTION_RESULT_HASH_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N05-N02",
+      "expectedCode": "SELECTION_NOT_FOUND",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N05-N03",
+      "expectedCode": "SELECTION_SOURCE_HASH_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N05-N04",
+      "expectedCode": "SELECTION_REVISION_CONFLICT",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N05-N05",
+      "expectedCode": "SELECTION_REFERENCE_STALE",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N05-N06",
+      "expectedCode": "SELECTION_TOKEN_INVALID",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N05-N07",
+      "expectedCode": "SELECTION_SCOPE_MISMATCH",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N05-N08",
+      "expectedCode": "SELECTION_TOKEN_EXPIRED",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "caseId": "N05-N09",
+      "expectedCode": "SELECTION_REFERENCE_STALE",
+      "status": "PASS_FAIL_CLOSED"
+    }
+  ]
+}
