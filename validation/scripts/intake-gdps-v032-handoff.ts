@@ -49,6 +49,44 @@ if (consumer["status"] !== "CANDIDATE_READY_FOR_WSGS_INTAKE" || capabilities["op
 const consumerSources = record(consumer["sources"]);
 if (consumerSources["gdpsSha"] !== checksums["sourceSha"] ||
     consumerSources["gdpsImplementationTreeHash"] !== checksums["implementationTreeHash"]) throw new Error("V032_GDPS_SOURCE_CROSS_LOCK_MISMATCH");
+const consumerLocks = record(consumer["locks"]);
+const canonicalLocks: Record<string, JsonObject> = {
+  "GDPS_BINDING_CANDIDATE.json": candidate,
+  "GDPS_CAPABILITY_LOCK.json": capabilities,
+  "GDPS_CONTRACT_BYTE_LOCK.json": json(join(handoffRoot, "GDPS_CONTRACT_BYTE_LOCK.json")),
+  "GDPS_DESCRIPTOR_LOCK.json": descriptors,
+  "GDPS_OPERATIONAL_RUNTIME_LOCK.json": json(join(handoffRoot, "GDPS_OPERATIONAL_RUNTIME_LOCK.json")),
+  "GDPS_REAL_DATA_COVERAGE_LOCK.json": coverage,
+  "GDPS_REAL_DATA_TRUTH_LOCK.json": json(join(handoffRoot, "GDPS_REAL_DATA_TRUTH_LOCK.json")),
+  "GOWM_GATEWAY_CONTRACT_LOCK.json": gateway,
+  "STAS_AUTHORITY_LOCK.json": stas
+};
+for (const [path, value] of Object.entries(canonicalLocks)) {
+  if (consumerLocks[path] !== canonicalHash(value)) throw new Error("V032_CANONICAL_LOCK_DRIFT:" + path);
+}
+const provider = record(consumer["provider"]);
+if (capabilities["providerManifestHash"] !== provider["manifestHash"] ||
+    descriptors["descriptorRegistryHash"] !== provider["descriptorRegistryHash"]) {
+  throw new Error("V032_PROVIDER_CONTRACT_CROSS_LOCK_MISMATCH");
+}
+if (record(gateway["gowm"])["commit"] !== consumerSources["gowmSha"] ||
+    record(stas["source"])["commit"] !== consumerSources["stasSha"] ||
+    record(gateway["runtimeBinding"])["credentialMaterialIncluded"] !== false) {
+  throw new Error("V032_FOUNDATION_SOURCE_CROSS_LOCK_MISMATCH");
+}
+const nativeSchemas = array(consumer["wsgsNativeContractSchemas"]).map(record);
+if (nativeSchemas.length === 0) throw new Error("V032_WSGS_NATIVE_SCHEMA_LOCK_EMPTY");
+for (const entry of nativeSchemas) {
+  const relativePath = String(entry["path"]);
+  if (relativePath.startsWith("/") || relativePath.includes("\\") || relativePath.split("/").includes("..")) {
+    throw new Error("V032_WSGS_NATIVE_SCHEMA_PATH_INVALID:" + relativePath);
+  }
+  const normalized = readFileSync(join(root, relativePath), "utf8").replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+  if (hash(Buffer.from(normalized, "utf8")) !== entry["sha256"] ||
+      canonicalHash(JSON.parse(normalized) as unknown) !== entry["canonicalHash"]) {
+    throw new Error("V032_WSGS_NATIVE_SCHEMA_DRIFT:" + relativePath);
+  }
+}
 
 const operationById = new Map(array(capabilities["operations"]).map((value) => {
   const item = record(value);
@@ -142,6 +180,10 @@ const report = {
   schemaVersion: "wsgs-gdps-v032-handoff-intake-report/1.0",
   status: exactSource ? "PASS" : "BLOCKED",
   provenance: "AUTHORITATIVE_GDPS_HANDOFF_CONSUMED_BY_WSGS",
+  sources: {
+    gdpsSha: consumerSources["gdpsSha"],
+    gdpsImplementationTreeHash: consumerSources["gdpsImplementationTreeHash"]
+  },
   sourceTuple: {
     gdpsSha: consumerSources["gdpsSha"], gdpsImplementationTreeHash: consumerSources["gdpsImplementationTreeHash"],
     wsgsSha: consumerSources["wsgsSha"], currentWsgsHead: currentHead,
@@ -149,13 +191,21 @@ const report = {
   },
   handoff: { inventoryCount: 11, businessFileCount: 10, bundleHash: checksums["bundleHash"] },
   locks: {
-    providerManifestHash: record(consumer["provider"])["manifestHash"],
-    descriptorRegistryHash: record(consumer["provider"])["descriptorRegistryHash"],
+    providerManifestHash: provider["manifestHash"],
+    capabilityLockHash: canonicalHash(capabilities),
+    descriptorRegistryHash: provider["descriptorRegistryHash"],
+    descriptorLockHash: canonicalHash(descriptors),
     realDataCoverageLockHash: canonicalHash(coverage), gowmGatewayContractLockHash: canonicalHash(gateway),
-    stasAuthorityLockHash: canonicalHash(stas), catalogHash: canonicalHash(catalog)
+    stasAuthorityLockHash: canonicalHash(stas), wsgsNativeContractSchemaSetHash: canonicalHash(nativeSchemas),
+    handoffChecksumsHash: canonicalHash(checksums), catalogHash: canonicalHash(catalog)
   },
   catalog: { authority: "WSGS", operationFamilyCount: families.length, bindingCount: bindings.length, defaultProductIdBinding: "FORBIDDEN" },
   negativeCases,
+  assertions: [{
+    id: "V032-W01-001",
+    status: exactSource ? "PASS" : "NOT_RUN",
+    blockingReason: exactSource ? "" : "GDPS_HANDOFF_WSGS_SOURCE_LOCK_NOT_CURRENT"
+  }],
   runtimeQualification: "NOT_RUN",
   blockers: exactSource ? [] : ["GDPS_HANDOFF_WSGS_SOURCE_LOCK_NOT_CURRENT"],
   credentialMaterialIncluded: false
