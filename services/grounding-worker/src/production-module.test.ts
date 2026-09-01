@@ -32,6 +32,7 @@ import {
   productionReferenceMentions,
   referenceMentionsRequiringResolution,
   selectFindingSubjectReferenceProductIdsForNode,
+  selectProductionAdditionalPreviewOperations,
   selectProductionSouthboundLock
 } from "./production-module.js";
 import { canonicalStasGdpsInputHash } from "./stas-gdps-fixture-lock.js";
@@ -273,6 +274,18 @@ describe("production stage module authority boundaries", () => {
     const selected = selectProductionSouthboundLock(lock, [], [currentness]);
     expect(selected.previewOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`))
       .toEqual(["geo-product.check-current@1.0"]);
+  });
+
+  it("does not add currentness to a fixture-only combined STAS/GDPS runtime", () => {
+    const currentness = { allowedOperations: [{ operationId: "geo-product.check-current" }] } as never;
+    const fixture = {
+      lock: { allowedOperations: [{ operationId: "stas.nearest-approach" }, { operationId: "geo-raster.sample" }] }
+    } as never;
+
+    expect(selectProductionAdditionalPreviewOperations(true, [], currentness, fixture)
+      .map((entry) => entry.operationId))
+      .toEqual(["stas.nearest-approach", "geo-raster.sample"]);
+    expect(selectProductionAdditionalPreviewOperations(false, [], currentness, fixture)).toEqual([]);
   });
 
   it("fails closed when an enabled GDPS recipe is absent from the exact lock", () => {

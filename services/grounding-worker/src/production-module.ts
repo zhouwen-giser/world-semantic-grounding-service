@@ -396,6 +396,19 @@ export function selectProductionSouthboundLock(
   };
 }
 
+export function selectProductionAdditionalPreviewOperations(
+  allowPreview: boolean,
+  gdpsRecipes: readonly GdpsLockedRecipe[],
+  currentnessRecipe: SourceCurrentnessRecipeAuthorization,
+  stasGdpsFixture?: LoadedStasGdpsFixtureLock
+): GdpsLockedOperation[] {
+  if (!allowPreview) return [];
+  return [
+    ...(gdpsRecipes.length > 0 ? currentnessRecipe.allowedOperations : []),
+    ...(stasGdpsFixture?.lock.allowedOperations ?? [])
+  ];
+}
+
 function configuredGdpsRecipes(): {
   loaded?: LoadedGdpsRecipeLock;
   recipes: GdpsLockedRecipe[];
@@ -553,12 +566,12 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const productionLock = selectProductionSouthboundLock(
     lock,
     gdps.recipes,
-    allowPreview
-      ? [
-          ...(gdps.recipes.length > 0 ? currentnessRecipe.allowedOperations : []),
-          ...(stasGdpsFixture?.lock.allowedOperations ?? [])
-        ]
-      : []
+    selectProductionAdditionalPreviewOperations(
+      allowPreview,
+      gdps.recipes,
+      currentnessRecipe,
+      stasGdpsFixture
+    )
   );
   const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
   if (segmentedMode && segmentedMode !== "GOWM_GDPS_V021") {
@@ -677,9 +690,12 @@ async function liveAuthority(
   const productionLock = selectProductionSouthboundLock(
     lock,
     value.gdpsRecipes,
-    value.allowPreview
-      ? [...value.currentnessRecipe.allowedOperations, ...(value.stasGdpsFixture?.lock.allowedOperations ?? [])]
-      : []
+    selectProductionAdditionalPreviewOperations(
+      value.allowPreview,
+      value.gdpsRecipes,
+      value.currentnessRecipe,
+      value.stasGdpsFixture
+    )
   );
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
