@@ -5,23 +5,24 @@
   "qualification": "PARTIAL",
   "provenance": "REAL_PUBLIC_WSGS_TO_GOWM_TO_GDPS_EXECUTION",
   "sources": {
-    "gdpsSha": "e26d0c6807fe9871ae49d2dbfa30b3e98469ecc5",
-    "gdpsImplementationTreeHash": "sha256:cfdf655683bf368385f78e13981906424b46251d6f059e93c4b631ede658912e"
+    "gdpsSha": "d30834a3620b5a7832ce115bcb6fed3eb5851a58",
+    "gdpsImplementationTreeHash": "sha256:5abd00da873eab70d86f4d44dff13451205754b03e4666c0c4c8717d69ee7604"
   },
   "sourceTuple": {
-    "gdpsSha": "e26d0c6807fe9871ae49d2dbfa30b3e98469ecc5",
-    "gdpsImplementationTreeHash": "sha256:cfdf655683bf368385f78e13981906424b46251d6f059e93c4b631ede658912e",
-    "wsgsImplementationSha": "9f0c2f27c35070d4ee072edf5220bac3b61b300f",
+    "gdpsSha": "d30834a3620b5a7832ce115bcb6fed3eb5851a58",
+    "gdpsImplementationTreeHash": "sha256:5abd00da873eab70d86f4d44dff13451205754b03e4666c0c4c8717d69ee7604",
+    "wsgsImplementationSha": "ab2844f384845df9aea1e5f1771bcdb64d00c7df",
     "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
-    "bundleHash": "sha256:8675e26cdc13e19f83d9234011f808138e51dd2a5fe1a538758be60a6b312150"
+    "bundleHash": "sha256:a9f81116e8ebd6d877f29ccad622c5d76f5f894efb0a19584aa3c00247416d0a"
   },
   "runtime": {
     "classification": "LOCAL_ISOLATED_CONTROLLED_ENVIRONMENT",
     "wsgsVersion": "0.2.1",
-    "wsgsImage": "wsgs-gdps-v032-9f0c2f2:bearer-present",
-    "wsgsImageDigest": "sha256:b29bbdaa372ad37d78f3c1a1c0f0cbe6271806ddb4d36b47d3e63ad82c2dbc1d",
-    "wsgsOciRevision": "9f0c2f27c35070d4ee072edf5220bac3b61b300f",
-    "wsgsBuildEvidenceHash": "sha256:a911d0fc194c3102a8f712febe31203851aa0c6e0d1af1c460805f3d623144eb",
+    "wsgsImage": "wsgs-gdps-v032-ab2844f:bearer-present",
+    "wsgsImageDigest": "sha256:349313293aae0b315d1f9e9a70d0edd7cece64ff49d38377b8b607a51025bbfc",
+    "wsgsOciRevision": "ab2844f384845df9aea1e5f1771bcdb64d00c7df",
+    "wsgsBuildEvidenceHash": "sha256:a9983d4b09f70f9d0bf3ec690ae88f59ce2cff872cf1a64d123efec31f983c37",
+    "wsgsBuildEvidencePreimage": "CANONICAL_JSON_IMAGE_DIGEST_OCI_REVISION_TAG",
     "gowmVersion": "0.6.4",
     "gowmImageDigest": "sha256:5beba90084959786421b23539feffa45c1898e36cdd7749c42428202ffd2ce3e",
     "gatewayRegistryVersion": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
@@ -35,16 +36,16 @@
       "acceptanceId": "V032-W05-001",
       "status": "PASS",
       "request": {
-        "requestId": "gdps-v032-final-s1-1788274403632",
+        "requestId": "gdps-v032-s1-ab2844f-1788280554327",
         "originalTextSha256": "sha256:7948d2bc9d095ece07d6938d259ac1af312d1ee12131de6ff112fef839c4a1b1",
         "publicPostHttpStatus": 202,
-        "groundingId": "grounding-7e5fdab8-f87c-4217-a96a-e934010f59e7",
-        "jobId": "job-a0a52294-2add-4f2d-a5ac-491371ffd9d3"
+        "groundingId": "grounding-4c414e64-0207-4b99-9686-cfd88d55ee20",
+        "jobId": "job-2f21181e-11fe-4fa9-9d39-5d161aa89f91"
       },
       "execution": {
         "terminalStatus": "COMPLETED",
         "publicGetHttpStatus": 200,
-        "elapsedMs": 20258,
+        "elapsedMs": 19066,
         "operationKeys": [
           "reference.resolve@1.0",
           "world.get-current-state@1.0",
@@ -52,7 +53,7 @@
         ],
         "gowmQueryCount": 1,
         "evidenceItemCount": 3,
-        "semanticModelReceiptSetHash": "sha256:b0d393bdb46dd29615fadf9e7f7ef477b64e64b6a541a2c0305368b294985abb",
+        "semanticModelReceiptCount": 1,
         "directProviderCalls": 0
       },
       "result": {
@@ -63,9 +64,9 @@
         "unit": "degree",
         "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
         "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
-        "gowmResultHash": "sha256:8ee5a2e473364ea8f38a4bd7019140edbb360c39d4d4f5d20634878534443e35",
-        "wsgsResultHash": "sha256:ea52f2953cdc24feb093b74af2a18618b9531ec7996200d1d4edf405a3c7e6de",
-        "publicResponseHash": "sha256:00f7b5a19a6d61b61a9c79846740f5657e0b382f3f38e9e6277413497053247b",
+        "gowmResultHash": "sha256:e3ce062af282e43d1e398392c66aa4e421a88c7809490f0aaf1867937dbd80b8",
+        "wsgsResultHash": "sha256:54305efde7fd63d426d83e184002727928f8967fbc44665c51855ed0fa1d15c1",
+        "publicResponseHash": "sha256:8c0866b21b4a275af776ecfa8e09073d064ff6368b7b4de8ac5cc8d8cb86afe1",
         "ambiguityCount": 0,
         "capabilityGapCount": 0,
         "warningCount": 0
@@ -76,16 +77,16 @@
       "acceptanceId": "V032-W05-002",
       "status": "PASS",
       "request": {
-        "requestId": "gdps-v032-final-s2-1788274453685",
+        "requestId": "gdps-v032-s2-ab2844f-1788280632030",
         "originalTextSha256": "sha256:806f99f4618723ce1cdebb39683dd44f81f092bbbf1a03d308dd1ece68e4adae",
         "publicPostHttpStatus": 202,
-        "groundingId": "grounding-cc521333-ffb9-4245-a8a5-f6a2847064ec",
-        "jobId": "job-d6888f20-39e3-4571-b5e2-c25abe2d9540"
+        "groundingId": "grounding-0ce29d29-6452-4669-ae95-2e6340f70efe",
+        "jobId": "job-9a567202-7e9f-4acc-8cdb-40e2400e8763"
       },
       "execution": {
         "terminalStatus": "COMPLETED",
         "publicGetHttpStatus": 200,
-        "elapsedMs": 26905,
+        "elapsedMs": 23152,
         "operationKeys": [
           "reference.resolve@1.0",
           "world.get-geometry@1.0",
@@ -93,7 +94,7 @@
         ],
         "gowmQueryCount": 1,
         "evidenceItemCount": 3,
-        "semanticModelReceiptSetHash": "sha256:6cbd367238107f5df6ecc4718df75cc54ecd28fe7abec730fcbbe8bba23ad6f0",
+        "semanticModelReceiptCount": 1,
         "directProviderCalls": 0
       },
       "result": {
@@ -106,9 +107,9 @@
         "truncated": false,
         "contentHash": "sha256:61f4fa83d539aaa7f0a321caa608a42069c635bd7b49cdfa9e7f1f7885464538",
         "descriptorHash": "sha256:e2fdf01ee5fd97d2660f67f570de581671e5125c441f0e3578ff8b6aaecbc261",
-        "gowmResultHash": "sha256:e9f40a1d722f806ca26a0189defa8dc484c5c2dcd54bf84392cbcc3d359b7bd7",
-        "wsgsResultHash": "sha256:44f7b38a446cf404f4523aeb269d0c463dd69d2bab792accddd208d18bfa1006",
-        "publicResponseHash": "sha256:fc123857bd9d622d9f97af2fb49567923595f6b586232af4fe54e8f2a8a5b37d",
+        "gowmResultHash": "sha256:29b8408a99a08a81e227e67443dd98e6972438d6b8d73f6844a8248b8874a1de",
+        "wsgsResultHash": "sha256:c8f2c950e0d8bb18252d3d310fc4b53f0ee3c2929eacd7faf1129ac687d679c8",
+        "publicResponseHash": "sha256:b0c8e6a7885cd99eae0c80cc0c9460face195d9d51c03674e404f163202ca38f",
         "ambiguityCount": 0,
         "capabilityGapCount": 0,
         "warningCount": 0
@@ -117,19 +118,19 @@
     {
       "caseId": "S3-DRAINAGE-PROXIMITY",
       "acceptanceId": "V032-W05-003",
-      "status": "BLOCKED",
+      "status": "PASS",
       "request": {
-        "requestId": "gdps-v032-nearby-fix-1788274289753",
-        "originalTextSha256": "sha256:daadeb13cad0e9fe12ca6ade7f262e03fafd504c53f2037a43f00715aef80ce4",
+        "requestId": "gdps-v032-s3-anchorfix-1788279549830",
+        "originalTextSha256": "sha256:129b36a175d355e1d9d339e759184dab918d26ec97265faf370a7da4854c6a1b",
         "publicPostHttpStatus": 202,
-        "groundingId": "grounding-9a4fed1f-ad90-4e8c-8d7c-c5c78a79665e",
-        "jobId": "job-9755c230-314d-41e4-ae8c-b4c87fe05e0e"
+        "groundingId": "grounding-af1cefe7-9334-47c7-80cd-665423238894",
+        "jobId": "job-4684432c-5258-49f3-85d4-56d65509d05a"
       },
       "execution": {
         "terminalStatus": "COMPLETED",
-        "gatewayStatus": "PARTIAL",
+        "gatewayStatus": "COMPLETED",
         "publicGetHttpStatus": 200,
-        "elapsedMs": 25887,
+        "elapsedMs": 32041,
         "operationKeys": [
           "reference.resolve@1.0",
           "world.get-current-state@1.0",
@@ -137,19 +138,31 @@
         ],
         "gowmQueryCount": 1,
         "evidenceItemCount": 3,
-        "semanticModelReceiptSetHash": "sha256:d837e143dd7b642ca6064d2e28a5803da2ceb6ced4a43b09c8e472e018394d2a",
+        "semanticModelReceiptCount": 1,
         "directProviderCalls": 0
       },
       "result": {
-        "code": "PRODUCT_COVERAGE_INSUFFICIENT",
-        "message": "No single current product fully covers the query geometry",
-        "unknowns": ["NO_DATA"],
-        "gowmResultHash": "sha256:fcc6aeb3975d3956e948a67faba2355d1a7d4837376fedb2cd664e75284fb709",
-        "wsgsResultHash": "sha256:5626957221dc77efe92a729d32691a2669e3da4d371cef6b52641d29fdade3db",
-        "publicResponseHash": "sha256:d23f57a9951a6acf49f1bb421e742a7ef421585f430c2ffcf73f405c148c6959"
-      },
-      "blockingReason": "CURRENT_DRAINAGE_PRODUCT_DOES_NOT_COVER_QUERY_GEOMETRY",
-      "nonclaim": "NO_DATA does not establish that no drainage feature exists"
+        "productId": "gdps-baseline-drainage",
+        "productType": "DRAINAGE_NETWORK",
+        "productProfile": "DRAINAGE_FEATURES",
+        "featureId": "gdps-baseline-drainage-1",
+        "featureGeometryType": "LineString",
+        "featureCount": 1,
+        "truncated": false,
+        "queryPoint": [113.936, 22.545],
+        "radiusMetres": 100,
+        "computedDistanceMetres": 21.12964967,
+        "distanceMethod": "POSTGIS_GEOGRAPHY_WGS84",
+        "withinRadius": true,
+        "contentHash": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7",
+        "descriptorHash": "sha256:0a9169a48da947a20cbf597c07a09613d3f46a36d3686d594bad5e8d13adb0d1",
+        "gowmResultHash": "sha256:f81f047bbf84a671ca8310740f97aa36fbe20c552e614ebb62108999540c1799",
+        "wsgsResultHash": "sha256:091b9af1c944870bd1069c6c2cc18b5977ebfd84b767baeaebc358ee6d933126",
+        "publicResponseHash": "sha256:e2ed4b3b892e64b681383be86e8735f617735b1d05700561a6606d4273d460c5",
+        "ambiguityCount": 0,
+        "capabilityGapCount": 0,
+        "warningCount": 0
+      }
     },
     {
       "caseId": "S4-DRAINAGE-LINE-INTERSECTION",
@@ -194,17 +207,17 @@
       "acceptanceId": "V032-W06-002",
       "status": "PASS",
       "request": {
-        "requestId": "gdps-v032-s5-1788275911564",
+        "requestId": "gdps-v032-s5-ab2844f-1788280708639",
         "originalTextSha256": "sha256:6f87a9f5d0131d635a41485a3598746453aff51acd97ae6f54f9281db66180be",
         "publicPostHttpStatus": 202,
-        "groundingId": "grounding-ab646509-7b72-46ba-b9c5-7a482713e3d2",
-        "jobId": "job-f458c75c-d48a-49a5-9014-6bfe428cb8ce"
+        "groundingId": "grounding-4104d818-cad4-410f-9c59-c9f0405eee6f",
+        "jobId": "job-c932b3ec-084b-4825-ad95-8a27420dcc07"
       },
       "execution": {
         "terminalStatus": "COMPLETED",
         "gatewayStatus": "COMPLETED",
         "publicGetHttpStatus": 200,
-        "elapsedMs": 22361,
+        "elapsedMs": 23486,
         "resolvedReference": {
           "referenceId": "RD-BH-E",
           "geometryType": "LineString"
@@ -232,8 +245,9 @@
         "noDataCount": 0,
         "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
         "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
-        "gowmResultHash": "sha256:348715bcb0b5dea678804f7950c1d95d4c87270f0cf2d3a8b4e5dd2308038871",
-        "wsgsResultHash": "sha256:84caa01d18cd8eadfabb83052fccbe6e2d759f5147741c1b19e0e840e58b6849",
+        "gowmResultHash": "sha256:d1154cfcd1fbb89da9d5f9d4e51240e005ce2e297c38f76d3130e37fb56f95d9",
+        "wsgsResultHash": "sha256:58a5db0def9ab3ff01af89fc1653a1a58a782ed67d284bca6ae7cbe930b8a4ca",
+        "publicResponseHash": "sha256:cad7ff6b3c1b0fc8b8acb5866657f31d33e80fc5e79bfb6918331dad82878fc8",
         "ambiguityCount": 0,
         "capabilityGapCount": 0,
         "warningCount": 0
@@ -253,8 +267,8 @@
     },
     {
       "id": "V032-W05-003",
-      "status": "BLOCKED",
-      "blockingReason": "CURRENT_DRAINAGE_PRODUCT_DOES_NOT_COVER_QUERY_GEOMETRY"
+      "status": "PASS",
+      "blockingReason": ""
     },
     {
       "id": "V032-W06-001",
@@ -270,7 +284,6 @@
   "credentialMaterialIncluded": false,
   "internalTopologyIncluded": false,
   "nonclaims": [
-    "S3 proximity feature evidence qualified",
     "S4 intersection feature evidence qualified",
     "Layer A complete",
     "security qualified",
