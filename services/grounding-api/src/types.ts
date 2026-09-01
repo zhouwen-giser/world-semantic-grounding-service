@@ -11,6 +11,10 @@ export type ApiAuthConfig =
       identity: GroundingIdentity;
     }
   | {
+      mode: "BEARER_PRESENT";
+      identity: GroundingIdentity;
+    }
+  | {
       mode: "JWT_SERVICE";
       key: Uint8Array;
       issuer: string;

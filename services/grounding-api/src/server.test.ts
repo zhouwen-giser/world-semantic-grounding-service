@@ -431,6 +431,33 @@ describe("grounding API", () => {
     }));
   });
 
+  it("accepts any non-empty token in BEARER_PRESENT mode without trusting token claims", async () => {
+    const captured: GroundingIdentity[] = [];
+    const app = await createGroundingApi({
+      auth: { mode: "BEARER_PRESENT", identity: staticIdentity },
+      backend: backend(captured),
+      schemas
+    });
+    apps.push(app);
+
+    expect((await app.inject({ method: "GET", url: "/v1/capabilities" })).statusCode).toBe(401);
+    expect((await app.inject({
+      method: "GET",
+      url: "/v1/capabilities",
+      headers: { authorization: "Bearer   " }
+    })).statusCode).toBe(401);
+
+    const supplied = "not-a-jwt-and-not-a-shared-secret";
+    const response = await app.inject({
+      method: "GET",
+      url: "/v1/capabilities",
+      headers: { authorization: `Bearer ${supplied}` }
+    });
+    expect(response.statusCode).toBe(200);
+    expect(captured).toEqual([staticIdentity]);
+    expect(JSON.stringify(captured)).not.toContain(supplied);
+  });
+
   it("rejects missing, duplicate, ambiguous, oversized, and invalid scope claims", async () => {
     const key = new TextEncoder().encode("a-secure-test-key-with-at-least-32-bytes");
     const service = backend();
