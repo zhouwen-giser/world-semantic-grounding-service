@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:gdps-compiled-operation:1.0",
+  "title": "Typed WSGS to GDPS operation request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "requirementId",
+    "operation",
+    "locks",
+    "binding",
+    "authorization",
+    "snapshotPolicy",
+    "input"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "wsgs-gdps-compiled-operation/1.0" },
+    "requirementId": { "$ref": "#/$defs/lowerIdentifier" },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operationId", "operationVersion"],
+      "properties": {
+        "operationId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "operationVersion": { "const": "1.0" }
+      }
+    },
+    "locks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputSchemaHash",
+        "outputSchemaHash",
+        "semanticProfileHash",
+        "descriptorHash"
+      ],
+      "properties": {
+        "inputSchemaHash": { "$ref": "#/$defs/hash" },
+        "outputSchemaHash": { "$ref": "#/$defs/hash" },
+        "semanticProfileHash": { "$ref": "#/$defs/hash" },
+        "descriptorHash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bindingId",
+        "familyId",
+        "descriptorId",
+        "productType",
+        "productProfile",
+        "queryProfile"
+      ],
+      "properties": {
+        "bindingId": { "type": "string", "minLength": 1 },
+        "familyId": { "type": "string", "minLength": 1 },
+        "descriptorId": { "type": "string", "minLength": 1 },
+        "productType": { "$ref": "#/$defs/upperIdentifier" },
+        "productProfile": { "$ref": "#/$defs/upperIdentifier" },
+        "queryProfile": { "type": "string", "minLength": 1 }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["servicePrincipalId", "dataScope", "source"],
+      "properties": {
+        "servicePrincipalId": { "$ref": "#/$defs/lowerIdentifier" },
+        "dataScope": { "$ref": "#/$defs/lowerIdentifier" },
+        "source": { "const": "TRUSTED_IDENTITY" }
+      }
+    },
+    "snapshotPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "allowHistoricalFallback"],
+      "properties": {
+        "mode": { "const": "LATEST_AT_START" },
+        "allowHistoricalFallback": { "const": false }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["productType", "productProfile"],
+      "properties": {
+        "productType": { "$ref": "#/$defs/upperIdentifier" },
+        "productProfile": { "$ref": "#/$defs/upperIdentifier" },
+        "platformProfile": { "$ref": "#/$defs/upperIdentifier" },
+        "point": { "$ref": "#/$defs/geometry" },
+        "line": { "$ref": "#/$defs/geometry" },
+        "selector": { "$ref": "#/$defs/geometry" },
+        "classCodes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "ranges": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "minimum": { "type": "number" },
+              "maximum": { "type": "number" }
+            },
+            "anyOf": [
+              { "required": ["minimum"] },
+              { "required": ["maximum"] }
+            ]
+          }
+        },
+        "distanceMetres": { "type": "number", "exclusiveMinimum": 0 },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "minimumAreaSquareMetres": { "type": "number", "minimum": 0 },
+        "propertyFilters": { "type": "object", "maxProperties": 32 },
+        "sampleCount": { "type": "integer", "minimum": 2, "maximum": 4096 },
+        "productId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{2,127}$" }
+      },
+      "oneOf": [
+        { "required": ["point"] },
+        { "required": ["line"] },
+        { "required": ["selector"] }
+      ]
+    }
+  },
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "lowerIdentifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{2,127}$"
+    },
+    "upperIdentifier": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+    },
+    "geometry": {
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "properties": {
+        "type": {
+          "enum": [
+            "Point",
+            "LineString",
+            "MultiLineString",
+            "Polygon",
+            "MultiPolygon"
+          ]
+        },
+        "coordinates": { "type": "array", "minItems": 1 }
+      }
+    }
+  }
+}

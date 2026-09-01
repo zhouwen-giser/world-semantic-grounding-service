@@ -46,6 +46,8 @@
     "intake:gdps-v032:catalog": "tsx validation/scripts/intake-gdps-v032-handoff.ts --write-catalog",
     "intake:gdps-v032:write": "tsx validation/scripts/intake-gdps-v032-handoff.ts --write",
     "intake:gdps-v032:check": "tsx validation/scripts/intake-gdps-v032-handoff.ts",
+    "evidence:gdps-v032:write": "tsx validation/scripts/generate-gdps-v032-binding-compiler-evidence.ts --write",
+    "evidence:gdps-v032:check": "tsx validation/scripts/generate-gdps-v032-binding-compiler-evidence.ts",
     "alignment:gowm:check": "tsx validation/scripts/verify-gowm-alignment.ts",
     "alignment:gowm:evidence:check": "tsx validation/scripts/generate-gowm-alignment-evidence.ts",
     "alignment:gowm:evidence:write": "tsx validation/scripts/generate-gowm-alignment-evidence.ts --write",

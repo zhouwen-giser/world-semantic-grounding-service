@@ -1,0 +1,239 @@
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+
+import { Ajv2020 } from "ajv/dist/2020.js";
+import {
+  compileGdpsV032Requirement,
+  type GdpsV032BindingCatalog,
+  type GdpsV032CatalogBinding,
+  type GdpsV032OperationState,
+  type GdpsV032Requirement,
+  type GdpsV032TrustedContext
+} from "../../packages/query-compiler/src/index.js";
+
+type JsonObject = Record<string, unknown>;
+
+const root = process.cwd();
+const gdpsRoot = process.env["GDPS_V032_SOURCE_ROOT"] === undefined
+  ? resolve(root, "..", "geospatial-data-product-service-v0.3.2")
+  : resolve(process.env["GDPS_V032_SOURCE_ROOT"]!);
+const handoffRoot = join(gdpsRoot, "handoff", "gdps-v0.3.2");
+const reportRoot = join(root, "reports", "wsgs-gdps-v0.3.2");
+const write = process.argv.includes("--write");
+const catalog = json(join(root, "contracts", "integrations", "gdps", "wsgs-gdps-binding-catalog.json")) as unknown as GdpsV032BindingCatalog;
+const consumer = json(join(handoffRoot, "GDPS_CONSUMER_LOCK.json"));
+const checksums = json(join(handoffRoot, "CHECKSUMS.json"));
+const intake = json(join(reportRoot, "WSGS_GDPS_HANDOFF_INTAKE_REPORT.json"));
+const sources = object(consumer["sources"]);
+const currentImplementation = execFileSync(
+  "git",
+  ["log", "-1", "--format=%H", "--", ".", ":(exclude)reports/**"],
+  { cwd: root, encoding: "utf8" }
+).trim();
+if (intake["status"] !== "PASS" ||
+    object(intake["handoff"])["bundleHash"] !== checksums["bundleHash"] ||
+    sources["wsgsSha"] !== currentImplementation ||
+    object(intake["sourceTuple"])["currentWsgsHead"] !== currentImplementation) {
+  throw new Error("V032_BINDING_EVIDENCE_SOURCE_NOT_CURRENT");
+}
+
+const binding = catalog.bindings.find((entry) => entry.bindingId === "SLOPE/DEGREE::SAMPLE_VALUE");
+if (binding === undefined) throw new Error("V032_EVIDENCE_BINDING_MISSING");
+const requirement: GdpsV032Requirement = {
+  schemaVersion: "wsgs-gdps-requirement/1.0",
+  requirementId: "evidence-req-1",
+  kind: "POINT_VALUE",
+  productType: "SLOPE",
+  productProfile: "DEGREE",
+  geometry: { type: "Point", coordinates: [116.3, 39.9] },
+  timeIntent: "CURRENT"
+};
+const trustedContext: GdpsV032TrustedContext = {
+  servicePrincipalId: "wsgs-service",
+  dataScope: "scope-gdps-v032",
+  maximumGeometryBytes: 16_384
+};
+
+function operationState(value: GdpsV032CatalogBinding = binding): GdpsV032OperationState {
+  return {
+    operationId: value.operationId,
+    operationVersion: value.operationVersion,
+    maturity: "PREVIEW",
+    inputSchemaHash: value.inputSchemaHash,
+    outputSchemaHash: value.outputSchemaHash,
+    semanticProfileHash: value.semanticProfileHash
+  };
+}
+
+function compile(values: Partial<{
+  requirement: GdpsV032Requirement;
+  trustedContext: GdpsV032TrustedContext;
+  operationState: GdpsV032OperationState;
+}> = {}) {
+  return compileGdpsV032Requirement({
+    requirement,
+    catalog,
+    trustedContext,
+    operationState: operationState(),
+    ...values
+  });
+}
+
+const implicit = compile();
+const explicit = compile({
+  trustedContext: {
+    ...trustedContext,
+    explicitProductSelection: {
+      productId: "slope-current-a",
+      source: "USER_EXPLICIT",
+      descriptorHash: binding.descriptorHash
+    }
+  }
+});
+const injectedProduct = compile({
+  requirement: { ...requirement, productId: "attacker-product" } as GdpsV032Requirement
+});
+const maturityEscalation = compile({
+  operationState: { ...operationState(), maturity: "STABLE" }
+});
+const hashDrift = compile({
+  operationState: { ...operationState(), inputSchemaHash: "sha256:drift" }
+});
+const historical = compile({
+  requirement: { ...requirement, timeIntent: "HISTORICAL" }
+});
+const ajv = new Ajv2020({ allErrors: true, strict: true, strictRequired: false });
+const validateRequirement = ajv.compile(json(
+  join(root, "contracts", "integrations", "gdps", "wsgs-gdps-requirement.schema.json")
+));
+const validateCompiledRequest = ajv.compile(json(
+  join(root, "contracts", "integrations", "gdps", "wsgs-gdps-compiled-operation.schema.json")
+));
+if (implicit.status !== "COMPILED" || "productId" in implicit.request.input ||
+    explicit.status !== "COMPILED" || explicit.request.input["productId"] !== "slope-current-a" ||
+    injectedProduct.status !== "GAP" || injectedProduct.reason !== "INVALID_REQUIREMENT" ||
+    maturityEscalation.status !== "GAP" || maturityEscalation.reason !== "MATURITY_NOT_ALLOWED" ||
+    hashDrift.status !== "GAP" || hashDrift.reason !== "OPERATION_LOCK_DRIFT" ||
+    historical.status !== "GAP" || historical.reason !== "HISTORICAL_INTENT_UNSUPPORTED") {
+  throw new Error("V032_BINDING_COMPILER_FAIL_OPEN");
+}
+if (!validateRequirement(requirement) ||
+    !validateCompiledRequest(implicit.status === "COMPILED" ? implicit.request : null)) {
+  throw new Error("V032_BINDING_COMPILER_SCHEMA_INVALID");
+}
+const compiledText = JSON.stringify(implicit.request);
+if (compiledText.includes("providerUrl") || compiledText.includes("allowHistoricalFallback\":true") ||
+    implicit.request.operation.operationId !== binding.operationId ||
+    implicit.request.operation.operationVersion !== binding.operationVersion ||
+    implicit.request.locks.inputSchemaHash !== binding.inputSchemaHash ||
+    implicit.request.locks.outputSchemaHash !== binding.outputSchemaHash ||
+    implicit.request.locks.semanticProfileHash !== binding.semanticProfileHash ||
+    implicit.request.locks.descriptorHash !== binding.descriptorHash) {
+  throw new Error("V032_COMPILED_REQUEST_LOCK_DRIFT");
+}
+
+const source = {
+  gdpsSha: sources["gdpsSha"],
+  gdpsImplementationTreeHash: sources["gdpsImplementationTreeHash"]
+};
+const common = {
+  sources: source,
+  sourceTuple: {
+    ...source,
+    wsgsImplementationSha: currentImplementation,
+    bundleHash: checksums["bundleHash"]
+  },
+  credentialMaterialIncluded: false
+};
+const bindingReport = {
+  schemaVersion: "wsgs-gdps-v032-binding-report/1.0",
+  status: "PASS",
+  provenance: "REAL_WSGS_BINDING_COMPILER_EXECUTION",
+  ...common,
+  catalog: {
+    authority: catalog.authority,
+    operationFamilyCount: catalog.operationFamilies.length,
+    bindingCount: catalog.bindings.length,
+    catalogHash: canonicalHash(catalog),
+    defaultProductIdBinding: catalog.policy.defaultProductIdBinding,
+    historicalFallback: catalog.policy.historicalFallback
+  },
+  observations: {
+    exactPreviewBindingCompiled: true,
+    implicitProductIdPresent: false,
+    trustedExplicitProductIdCompiled: true,
+    callerProductIdRejected: true,
+    maturityEscalationRejected: true,
+    operationHashDriftRejected: true
+  },
+  assertions: [
+    { id: "V032-W02-004", status: "PASS", blockingReason: "" },
+    { id: "V032-W02-005", status: "PASS", blockingReason: "" }
+  ],
+  gatewayQualification: "NOT_RUN"
+};
+const compilerReport = {
+  schemaVersion: "wsgs-gdps-v032-compiler-report/1.0",
+  status: "PASS",
+  provenance: "REAL_WSGS_TYPED_COMPILER_EXECUTION",
+  ...common,
+  compiler: {
+    compiledRequestHash: canonicalHash(implicit.request),
+    operation: implicit.request.operation,
+    locks: implicit.request.locks,
+    inputKeys: Object.keys(implicit.request.input).sort(),
+    trustedIdentityBound: implicit.request.authorization.source === "TRUSTED_IDENTITY",
+    callerProviderUrlPresent: false,
+    callerScopeOverridePresent: false,
+    defaultProductIdPresent: false,
+    historicalFallbackAllowed: false,
+    requirementSchemaValidated: true,
+    compiledRequestSchemaValidated: true
+  },
+  assertions: [
+    { id: "V032-W04-001", status: "PASS", blockingReason: "" },
+    {
+      id: "V032-W04-002",
+      status: "NOT_RUN",
+      blockingReason: "REAL_GATEWAY_TWO_PRODUCT_AMBIGUITY_NOT_EXECUTED"
+    }
+  ],
+  gatewayQualification: "NOT_RUN"
+};
+
+writeOrCheck(join(reportRoot, "WSGS_GDPS_BINDING_REPORT.json"), bindingReport);
+writeOrCheck(join(reportRoot, "WSGS_GDPS_COMPILER_REPORT.json"), compilerReport);
+console.log(
+  "WSGS_GDPS_V032_BINDING_COMPILER_PASS families=" + catalog.operationFamilies.length +
+  " bindings=" + catalog.bindings.length + " gateway=NOT_RUN"
+);
+
+function json(path: string): JsonObject {
+  return JSON.parse(readFileSync(path, "utf8")) as JsonObject;
+}
+function object(value: unknown): JsonObject {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) throw new Error("V032_OBJECT_REQUIRED");
+  return value as JsonObject;
+}
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value === null || typeof value !== "object") return value;
+  const item = value as JsonObject;
+  return Object.fromEntries(Object.keys(item).sort().map((key) => [key, canonical(item[key])]));
+}
+function canonicalHash(value: unknown): string {
+  return "sha256:" + createHash("sha256").update(JSON.stringify(canonical(value)), "utf8").digest("hex");
+}
+function writeOrCheck(path: string, value: unknown): void {
+  const content = JSON.stringify(value, null, 2) + "\n";
+  if (write) {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, content, "utf8");
+    return;
+  }
+  if (!existsSync(path) || readFileSync(path, "utf8").replaceAll("\r\n", "\n") !== content) {
+    throw new Error("V032_BINDING_COMPILER_EVIDENCE_DRIFT:" + path);
+  }
+}
