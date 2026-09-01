@@ -40,6 +40,39 @@ const unsafeTargetSegments = new Set(["__proto__", "prototype", "constructor"]);
 const successfulWorldStatuses = new Set(["COMPLETED", "PARTIAL"]);
 const usableNodeStatuses = new Set(["COMPLETED", "PARTIAL", "NO_DATA"]);
 
+const projectedValuePorts = Object.freeze({
+  array: {
+    schemaUri: "urn:gowm:v0.2:value:array",
+    schemaHash: "sha256:8e1e4dd66e9483d8341c51dc5ec424d8e6510ae35cdbc53040d0bab497459945",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  },
+  boolean: {
+    schemaUri: "urn:gowm:v0.2:value:boolean",
+    schemaHash: "sha256:7f17d695204279bf96eee346c482a8525470b30e5685c0a8fe2d8c3d291c6837",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  },
+  number: {
+    schemaUri: "urn:gowm:v0.2:value:number",
+    schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  },
+  object: {
+    schemaUri: "urn:gowm:v0.2:value:object",
+    schemaHash: "sha256:a874188523644975b2d758a153c3b6fafbafd5b107133b30b9abf4055ae1809c",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  },
+  string: {
+    schemaUri: "urn:gowm:v0.2:value:string",
+    schemaHash: "sha256:a71d355802de7ff21b9c9d9214a1ba71b3648866bcf1b7c0f4ff3b656485c6d5",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  }
+} as const);
+
 type JsonObject = Record<string, unknown>;
 
 export class SegmentedWorldQueryError extends Error {
@@ -318,6 +351,15 @@ function resolveInputBinding(
   return nodeResultValue(resultByNode, binding);
 }
 
+function projectedValuePort(value: unknown): WorldQueryInputBinding["port"] {
+  if (Array.isArray(value)) return projectedValuePorts.array;
+  if (value !== null && typeof value === "object") return projectedValuePorts.object;
+  if (typeof value === "boolean") return projectedValuePorts.boolean;
+  if (typeof value === "number") return projectedValuePorts.number;
+  if (typeof value === "string") return projectedValuePorts.string;
+  throw new SegmentedWorldQueryError("PROJECTED_NODE_OUTPUT_TYPE_UNSUPPORTED");
+}
+
 function segmentOutputs(plan: WorldQueryPlanV2, nodeId: string): WorldQueryPlanV2["outputs"] {
   const outputs = new Map<string, WorldQueryPlanV2["outputs"][number]["binding"]>();
   const add = (binding: WorldQueryPlanV2["outputs"][number]["binding"]): void => {
@@ -361,12 +403,18 @@ function singleNodeSubmission(
   index: number,
   resultByNode: ReadonlyMap<string, Readonly<JsonObject>>
 ): WorldQuerySubmission {
-  const inputEntries = Object.entries(node.inputs).map(([name, binding]) => [name, {
-    kind: "LITERAL" as const,
-    port: jsonClone(binding.port, "INVALID_BINDING_PORT"),
-    value: resolveInputBinding(source, resultByNode, binding),
-    ...(binding.targetPath === undefined ? {} : { targetPath: binding.targetPath })
-  }] as const);
+  const inputEntries = Object.entries(node.inputs).map(([name, binding]) => {
+    const value = resolveInputBinding(source, resultByNode, binding);
+    const port = binding.kind === "NODE_OUTPUT" && binding.path !== undefined
+      ? projectedValuePort(value)
+      : binding.port;
+    return [name, {
+      kind: "LITERAL" as const,
+      port: jsonClone(port, "INVALID_BINDING_PORT"),
+      value,
+      ...(binding.targetPath === undefined ? {} : { targetPath: binding.targetPath })
+    }] as const;
+  });
   const segmentDigest = createHash("sha256")
     .update(`${source.plan.queryId}:${index}:${node.nodeId}:${operationKey(node.operation)}`)
     .digest("hex").slice(0, 20);

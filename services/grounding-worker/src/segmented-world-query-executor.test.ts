@@ -544,6 +544,14 @@ describe("segmented world-query executor", () => {
   it("captures a shared source port once when downstream consumers select different paths", async () => {
     const submission = sourceSubmission();
     delete submission.plan.outputs.find(({ name }) => name === "areaReference")!.binding.path;
+    submission.plan.nodes.find(({ nodeId }) => nodeId === "classify")!.inputs["coordinates"] = {
+      kind: "NODE_OUTPUT",
+      port: port("reference-key", foundationLock.outputSchemaHash),
+      nodeId: "resolve",
+      outputPort: "result",
+      path: "/candidate/coordinates",
+      targetPath: "/coordinates"
+    };
     const runtimeCapabilities = capabilities();
     delete runtimeCapabilities[0]!.ports.outputs[0]!.path;
     const requests: WorldQuerySubmission[] = [];
@@ -556,7 +564,10 @@ describe("segmented world-query executor", () => {
           ? {
               status: 200,
               value: worldResult(segment, foundationLock, {
-                candidate: { referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: "area", version: "1.0.0" } }
+                candidate: {
+                  coordinates: [116.3, 39.9],
+                  referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: "area", version: "1.0.0" }
+                }
               }, "receipt-resolve")
             }
           : {
@@ -580,6 +591,10 @@ describe("segmented world-query executor", () => {
     expect(requests[0]!.plan.outputs).toEqual([expect.objectContaining({
       binding: expect.not.objectContaining({ path: expect.anything() })
     })]);
+    expect(requests[1]!.plan.nodes[0]!.inputs["coordinates"]!.port).toMatchObject({
+      schemaUri: "urn:gowm:v0.2:value:array",
+      schemaHash: "sha256:8e1e4dd66e9483d8341c51dc5ec424d8e6510ae35cdbc53040d0bab497459945"
+    });
     expect(execution.outputs).toMatchObject({
       areaReference: {
         candidate: {
