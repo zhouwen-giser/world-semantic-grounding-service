@@ -154,7 +154,7 @@ export function stabilizeSemanticFrame(frame: WorldSemanticFrame, originalText: 
       arguments: arguments_
     }];
   });
-  const sourceClaimsSpatialMeaning = /(?:附近|\bnear\b|\bwithin\b|\bintersects?\b|\bbuffer\b)/iu.test(originalText);
+  const sourceClaimsSpatialMeaning = /(?:附近|相交|穿过|\bnear\b|\bwithin\b|\bintersects?\b|\bbuffer\b)/iu.test(originalText);
   const spatialExpressions = explicitSpatial.length > 0 ? explicitSpatial : sourceClaimsSpatialMeaning ? proposedSpatial : [];
 
   const explicitRelations: WorldSemanticFrame["relationExpressions"] = [];
