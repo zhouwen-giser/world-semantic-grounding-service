@@ -875,6 +875,7 @@ describe("production stage module authority boundaries", () => {
       unresolvedMentionIds: ["map-1"],
       referenceProductCount: 0,
       trustedDirectMapMentionIds: ["map-1"],
+      completedDirectMapEvidence: false,
       partial: false
     })).toBe("COMPLETED");
     expect(deriveGroundingResultStatus({
@@ -882,8 +883,17 @@ describe("production stage module authority boundaries", () => {
       unresolvedMentionIds: ["map-1", "world-object-1"],
       referenceProductCount: 0,
       trustedDirectMapMentionIds: ["map-1"],
+      completedDirectMapEvidence: false,
       partial: false
     })).toBe("UNRESOLVED");
+    expect(deriveGroundingResultStatus({
+      ambiguityCount: 0,
+      unresolvedMentionIds: ["query-target-1"],
+      referenceProductCount: 0,
+      trustedDirectMapMentionIds: ["map-1"],
+      completedDirectMapEvidence: true,
+      partial: false
+    })).toBe("COMPLETED");
   });
 
   it("keeps the legacy reference recipe authoritative when no map geometry is present", () => {

@@ -1644,12 +1644,15 @@ export function deriveGroundingResultStatus(options: {
   unresolvedMentionIds: readonly string[];
   referenceProductCount: number;
   trustedDirectMapMentionIds: readonly string[];
+  completedDirectMapEvidence: boolean;
   partial: boolean;
 }): "AMBIGUOUS" | "UNRESOLVED" | "PARTIAL" | "COMPLETED" {
   if (options.ambiguityCount > 0) return "AMBIGUOUS";
   const trustedMapIds = new Set(options.trustedDirectMapMentionIds);
   const blockingUnresolvedCount = options.unresolvedMentionIds.filter((mentionId) => !trustedMapIds.has(mentionId)).length;
-  if (blockingUnresolvedCount > 0 && options.referenceProductCount === 0) return "UNRESOLVED";
+  if (blockingUnresolvedCount > 0 && options.referenceProductCount === 0 && !options.completedDirectMapEvidence) {
+    return "UNRESOLVED";
+  }
   return options.partial ? "PARTIAL" : "COMPLETED";
 }
 
@@ -1694,6 +1697,8 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     unresolvedMentionIds: unresolved.map((entry) => entry.mentionId),
     referenceProductCount: references?.referenceProducts.length ?? 0,
     trustedDirectMapMentionIds,
+    completedDirectMapEvidence: trustedDirectMapMentionIds.length === 1 &&
+      normalized?.status === "COMPLETED" && normalized.evidenceItems.length > 0,
     partial
   });
   const queryRecords = executed?.outcomes.map((entry) => ({
