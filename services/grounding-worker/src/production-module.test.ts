@@ -6,6 +6,7 @@ import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import type { DeterministicParseResult } from "@wsgs/deterministic-parser";
 import { canonicalSha256, type PipelineStageContext } from "@wsgs/grounding-pipeline";
+import type { GdpsV032BindingCatalog } from "@wsgs/query-compiler";
 import { stableRecipeIds } from "@wsgs/requirement-planner";
 import type { GdpsLockedRecipe } from "@wsgs/trusted-capability-snapshot";
 import type { Pool } from "pg";
@@ -21,6 +22,7 @@ import {
   buildRecipeOperationInput,
   capabilityCatalogHash,
   canonicalLfSha256,
+  compileGdpsV032MapSelectionQuery,
   composeStasGdpsEvidence,
   computeWorldQueryNodeRequestHashes,
   mergeKnownReferenceProducts,
@@ -38,6 +40,111 @@ import {
 import { canonicalStasGdpsInputHash } from "./stas-gdps-fixture-lock.js";
 
 const digest = (character: string): `sha256:${string}` => `sha256:${character.repeat(64)}`;
+const gdpsV032Catalog = JSON.parse(readFileSync(resolve(
+  process.cwd(), "contracts", "integrations", "gdps", "wsgs-gdps-binding-catalog.json"
+), "utf8")) as GdpsV032BindingCatalog;
+
+function gdpsV032MapOptions(mapGeometryCount = 1): Parameters<typeof compileGdpsV032MapSelectionQuery>[0] {
+  const binding = gdpsV032Catalog.bindings.find((entry) => entry.bindingId === "SLOPE/DEGREE::SAMPLE_VALUE")!;
+  const mapMentions = Array.from({ length: mapGeometryCount }, (_, index) => ({
+    mentionId: `map-${index + 1}`,
+    surfaceText: `区域${index + 1}`,
+    span: { encoding: "UTF16_CODE_UNIT" as const, start: index, end: index + 1 },
+    expectedKinds: ["POINT"],
+    extractionSource: "CLIENT_MAP" as const,
+    priority: 500,
+    candidate: {
+      kind: "MAP_SELECTION" as const,
+      value: { selectionId: `selection-${index + 1}`, revision: 1, geometry: { type: "Point", coordinates: [116.3, 39.9] } },
+      approximate: false,
+      requiresUpstreamValidation: false
+    }
+  }));
+  return {
+    recipeId: "GDPS_GENERIC_SAMPLE_VALUE",
+    intent: {
+      schemaVersion: "wsgs-grounded-geospatial-product-intent/1.0",
+      intentId: "intent-slope-point",
+      descriptorId: binding.descriptorId,
+      descriptorHash: binding.descriptorHash as `sha256:${string}`,
+      productType: binding.productType,
+      productProfile: binding.productProfile,
+      representation: "RASTER_CONTINUOUS",
+      queryProfile: "SAMPLE_VALUE",
+      sourceNodeIds: ["map-1"]
+    },
+    deterministic: {
+      parserVersion: "deterministic-parser/1.0",
+      mentions: mapMentions,
+      ambiguities: [],
+      priorGroundings: [],
+      warnings: []
+    },
+    requiredForProduct: "WORLD_EVIDENCE",
+    catalog: gdpsV032Catalog,
+    capabilities: [{
+      operationId: binding.operationId,
+      operationVersion: binding.operationVersion,
+      maturity: "PREVIEW",
+      inputSchemaHash: binding.inputSchemaHash,
+      outputSchemaHash: binding.outputSchemaHash,
+      ports: {
+        inputs: [{
+          name: "request", schemaUri: "urn:gdps:test:input", schemaHash: binding.inputSchemaHash,
+          valueKind: "ANY", unitSemantics: "UNSPECIFIED"
+        }],
+        outputs: [{
+          name: "result", schemaUri: "urn:gdps:test:output", schemaHash: binding.outputSchemaHash,
+          valueKind: "ANY", unitSemantics: "UNSPECIFIED"
+        }]
+      },
+      execution: { costClass: "LOW", mode: "SYNC", defaultTimeoutMs: 1_000, maximumTimeoutMs: 5_000 },
+      limits: { maximumOutputBytes: 1_048_576 }
+    } as never],
+    operationLocks: [{
+      operationId: binding.operationId,
+      operationVersion: binding.operationVersion,
+      maturity: "PREVIEW",
+      inputSchemaHash: binding.inputSchemaHash,
+      outputSchemaHash: binding.outputSchemaHash,
+      semanticProfileHash: binding.semanticProfileHash,
+      snapshotSupport: "CONSISTENT_AT_START",
+      requiredPermissions: ["data:read"]
+    }],
+    availability: [{
+      operationId: binding.operationId,
+      operationVersion: binding.operationVersion,
+      maturity: "PREVIEW",
+      availability: "AVAILABLE",
+      reasonCodes: [],
+      checkedAt: "2026-09-02T00:00:00.000Z",
+      validUntil: "2026-09-02T01:00:00.000Z",
+      contractCatalogRevision: digest("a"),
+      bindingRevision: digest("b")
+    }],
+    caller: {
+      schemaVersion: "2.0",
+      servicePrincipalId: "wsgs-service",
+      actorId: "wsgs-service",
+      dataScope: "scope-gdps",
+      dataScopes: ["scope-gdps"],
+      datasetScopes: [],
+      permissions: ["data:read"]
+    } as never,
+    requestId: "request-gdps-v032-map",
+    idempotencyKey: "idempotency-gdps-v032-map",
+    parameterSchemaHash: digest("c"),
+    maximumGeometryBytes: 4096,
+    budgets: {
+      maximumNodes: 1,
+      maximumDepth: 1,
+      maximumRows: 10,
+      maximumCandidates: 10,
+      maximumOutputBytes: 1_048_576,
+      maximumExecutionMs: 5_000
+    }
+  };
+}
 
 function lockedRecipe(entry: Parameters<typeof selectProductionSouthboundLock>[0]["previewOperations"][number]): GdpsLockedRecipe {
   return {
@@ -598,6 +705,39 @@ describe("production stage module authority boundaries", () => {
       matchedBy: "EXACT_REFERENCE_KEY",
       revalidationRequired: true,
       safeSummary: { source: "contextCapsule" }
+    });
+  });
+
+  it("compiles one bounded map geometry through the exact v0.3.2 GDPS binding", () => {
+    const result = compileGdpsV032MapSelectionQuery(gdpsV032MapOptions());
+    expect(result).toMatchObject({
+      status: "COMPILED",
+      templateId: "gdps-v032:SLOPE/DEGREE::SAMPLE_VALUE",
+      submission: {
+        snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false },
+        plan: { nodes: [{ operation: { operationId: "geo-raster.sample", operationVersion: "1.0" } }] },
+        parameters: {
+          operationInput: {
+            productType: "SLOPE",
+            productProfile: "DEGREE",
+            point: { type: "Point", coordinates: [116.3, 39.9] }
+          }
+        }
+      }
+    });
+  });
+
+  it("keeps the legacy reference recipe authoritative when no map geometry is present", () => {
+    expect(compileGdpsV032MapSelectionQuery(gdpsV032MapOptions(0))).toBeNull();
+  });
+
+  it("fails closed when more than one map geometry could bind the GDPS request", () => {
+    expect(compileGdpsV032MapSelectionQuery(gdpsV032MapOptions(2))).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: {
+        reason: "UNSUPPORTED_EXPRESSION",
+        details: { code: "MAP_SELECTION_GEOMETRY_AMBIGUOUS", geometryCount: 2 }
+      }
     });
   });
 

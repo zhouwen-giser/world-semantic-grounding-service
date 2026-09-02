@@ -16,6 +16,7 @@ import {
 import {
   GdpsDescriptorConsumer,
   projectGeospatialProductIntent,
+  type GroundedGeospatialProductIntent,
   type ProductDescriptorRegistry,
   type ProductVocabularyRegistry,
   type SemanticConceptMap
@@ -78,10 +79,14 @@ import {
   CapabilityMatcher,
   TypedWorldQueryCompiler,
   canonicalPlanHash,
+  compileGdpsV032Requirement,
   queryTemplateRules,
   recipeSnapshotMode,
+  validateCompiledPlan,
   type CapabilityGap,
   type CompileResult,
+  type GdpsV032BindingCatalog,
+  type GdpsV032RequirementKind,
   type GdpsRecipeAuthorization,
   type QuerySemanticPattern,
   type WorldQuerySubmission
@@ -170,6 +175,12 @@ const currentnessRecipeLockPath = fileURLToPath(new URL(
   "../../../contracts/upstream/gdps-v0.2.1/GDPS_RECIPE_LOCK.json",
   import.meta.url
 ));
+const gdpsV032BindingCatalogPath = fileURLToPath(new URL(
+  "../../../contracts/integrations/gdps/wsgs-gdps-binding-catalog.json",
+  import.meta.url
+));
+const gdpsV032BindingCatalogRawSha256 =
+  "sha256:9f430bef8d0289e85497f29465513cc71aba673295054418e989734f83713feb" as const;
 const referenceIdPattern = /^wrf_[0-9a-f]{32}$/u;
 const evidenceProducts = new Set<OperationalRequestedProduct>([
   "WORLD_EVIDENCE",
@@ -258,12 +269,14 @@ interface Runtime {
     consumer: GdpsDescriptorConsumer;
     conceptMap: SemanticConceptMap;
   };
+  gdpsV032BindingCatalog: GdpsV032BindingCatalog;
   parameterSchemaHash: `sha256:${string}`;
 }
 
 type PersistedSemanticModelResult = SemanticModelPolicyResult & { receiptId?: string };
 type RuntimeRequirementPlanning = Omit<RequirementPlanningResult, "selectedRecipeIds"> & {
   selectedRecipeIds: QuerySemanticPattern[];
+  gdpsV032Intent?: GroundedGeospatialProductIntent;
 };
 
 interface ProductionFactoryOptions {
@@ -517,6 +530,25 @@ function configuredStasGdpsFixture(): LoadedStasGdpsFixtureLock | undefined {
   });
 }
 
+function loadGdpsV032BindingCatalog(): GdpsV032BindingCatalog {
+  const bytes = readFileSync(gdpsV032BindingCatalogPath);
+  const actual = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+  if (actual !== gdpsV032BindingCatalogRawSha256) {
+    throw new ProductionStageModuleError("WSGS_GDPS_V032_BINDING_CATALOG_INTEGRITY_MISMATCH");
+  }
+  let catalog: GdpsV032BindingCatalog;
+  try {
+    catalog = JSON.parse(bytes.toString("utf8")) as GdpsV032BindingCatalog;
+  } catch {
+    throw new ProductionStageModuleError("WSGS_GDPS_V032_BINDING_CATALOG_JSON_INVALID");
+  }
+  if (catalog.schemaVersion !== "wsgs-gdps-binding-catalog/1.0" || catalog.authority !== "WSGS" ||
+      !Array.isArray(catalog.operationFamilies) || !Array.isArray(catalog.bindings)) {
+    throw new ProductionStageModuleError("WSGS_GDPS_V032_BINDING_CATALOG_INVALID");
+  }
+  return catalog;
+}
+
 function gatewayFailure(error: unknown): never {
   if (!(error instanceof GatewayProtocolError)) throw error;
   const details = error.details ?? {};
@@ -561,6 +593,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const lock = operationalLock.lock;
   const gdps = configuredGdpsRecipes();
   const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded, gdps.recipes);
+  const gdpsV032BindingCatalog = loadGdpsV032BindingCatalog();
   const stasGdpsFixture = configuredStasGdpsFixture();
   const currentnessRecipe = loadSourceCurrentnessRecipeAuthorization(currentnessRecipeLockPath);
   const allowPreview = process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES";
@@ -642,6 +675,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     currentnessRecipe,
     ...(segmentedScopeAuthority ? { segmentedScopeAuthority } : {}),
     ...(gdpsDescriptor ? { gdpsDescriptor } : {}),
+    gdpsV032BindingCatalog,
     parameterSchemaHash: loadWorldQueryParameterSchemaHash()
   };
 }
@@ -1745,6 +1779,274 @@ function trustedPlanDataScopes(
   const scopes = new Set(submission.plan.nodes.map(({ operation }) =>
     trustedOperationDataScope(segmentedScopeAuthority, caller, operation)));
   return [...scopes].sort();
+}
+
+const gdpsV032RequirementKindByQueryProfile = Object.freeze({
+  SAMPLE_VALUE: "POINT_VALUE",
+  SAMPLE_CLASS: "POINT_CLASSIFICATION",
+  PROFILE_VALUE: "PROFILE",
+  FIND_CLASS: "CLASS_AREAS",
+  FIND_VALUE_RANGE: "VALUE_RANGE_AREAS",
+  VECTOR_IN_AREA: "FEATURES_IN_AREA",
+  VECTOR_NEARBY: "FEATURES_NEARBY",
+  VECTOR_INTERSECTS: "INTERSECTIONS"
+} satisfies Record<GroundedGeospatialProductIntent["queryProfile"], GdpsV032RequirementKind>);
+
+const gdpsV032RecipeByQueryProfile = Object.freeze({
+  SAMPLE_VALUE: "GDPS_GENERIC_SAMPLE_VALUE",
+  SAMPLE_CLASS: "GDPS_GENERIC_SAMPLE_VALUE",
+  PROFILE_VALUE: "GDPS_GENERIC_PROFILE_VALUE",
+  FIND_CLASS: "GDPS_GENERIC_FIND_CLASS",
+  FIND_VALUE_RANGE: "GDPS_GENERIC_FIND_RANGE",
+  VECTOR_IN_AREA: "GDPS_GENERIC_VECTOR_IN_AREA",
+  VECTOR_NEARBY: "GDPS_GENERIC_VECTOR_NEARBY",
+  VECTOR_INTERSECTS: "GDPS_GENERIC_VECTOR_INTERSECTS"
+} satisfies Record<GroundedGeospatialProductIntent["queryProfile"], QuerySemanticPattern>);
+
+interface GdpsV032MapSelectionCompileOptions {
+  recipeId: QuerySemanticPattern;
+  intent: GroundedGeospatialProductIntent;
+  deterministic: DeterministicParseResult;
+  requiredForProduct: string;
+  catalog: GdpsV032BindingCatalog;
+  capabilities: readonly CapabilityDescriptor[];
+  operationLocks: readonly OperationLock[];
+  availability: Readonly<OperationAvailabilityList["operations"]>;
+  caller: GroundingIdentityV2 & { dataScope: string };
+  segmentedScopeAuthority?: LoadedSegmentedScopeAuthority;
+  requestId: string;
+  idempotencyKey: string;
+  parameterSchemaHash: `sha256:${string}`;
+  maximumGeometryBytes: number;
+  budgets: WorldQuerySubmission["plan"]["budgets"];
+}
+
+function gdpsV032Gap(
+  options: Pick<GdpsV032MapSelectionCompileOptions, "recipeId" | "requiredForProduct">,
+  reason: CapabilityGap["reason"],
+  code: string,
+  details: JsonObject = {}
+): CompileResult {
+  return {
+    status: "CAPABILITY_GAP",
+    gap: {
+      gapId: `gdps-v032-${canonicalSha256({ recipeId: options.recipeId, code, details }).slice(7, 31)}`,
+      semanticCapability: options.recipeId,
+      reason,
+      requiredForProduct: options.requiredForProduct,
+      blocking: true,
+      details: { code, ...details }
+    }
+  };
+}
+
+function directMapSelectionGeometry(
+  deterministic: DeterministicParseResult
+): { status: "ABSENT" } | { status: "AMBIGUOUS"; count: number } | { status: "READY"; geometry: JsonObject } {
+  const geometries = deterministic.mentions.flatMap((mention): JsonObject[] => {
+    if (mention.candidate.kind !== "MAP_SELECTION" || mention.candidate.requiresUpstreamValidation) return [];
+    const candidate = mention.candidate.value;
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+    const geometry = (candidate as JsonObject)["geometry"];
+    return geometry && typeof geometry === "object" && !Array.isArray(geometry)
+      ? [structuredClone(geometry as JsonObject)]
+      : [];
+  });
+  if (geometries.length === 0) return { status: "ABSENT" };
+  if (geometries.length !== 1) return { status: "AMBIGUOUS", count: geometries.length };
+  return { status: "READY", geometry: geometries[0]! };
+}
+
+/**
+ * Compiles a single caller-supplied, bounded map geometry through the WSGS-owned
+ * v0.3.2 GDPS binding catalog. A null result means that the legacy reference
+ * recipe remains authoritative; a gap is fail-closed and must never fall back.
+ */
+export function compileGdpsV032MapSelectionQuery(
+  options: GdpsV032MapSelectionCompileOptions
+): CompileResult | null {
+  if (gdpsV032RecipeByQueryProfile[options.intent.queryProfile] !== options.recipeId) return null;
+  const selectedGeometry = directMapSelectionGeometry(options.deterministic);
+  if (selectedGeometry.status === "ABSENT") return null;
+  if (selectedGeometry.status === "AMBIGUOUS") {
+    return gdpsV032Gap(options, "UNSUPPORTED_EXPRESSION", "MAP_SELECTION_GEOMETRY_AMBIGUOUS", {
+      geometryCount: selectedGeometry.count
+    });
+  }
+  const requirementKind = gdpsV032RequirementKindByQueryProfile[options.intent.queryProfile];
+  const matchingBindings = options.catalog.bindings.filter((entry) =>
+    entry.requirementKind === requirementKind &&
+    entry.productType === options.intent.productType &&
+    entry.productProfile === options.intent.productProfile);
+  if (matchingBindings.length !== 1) {
+    return gdpsV032Gap(options, "UNSUPPORTED_EXPRESSION", matchingBindings.length === 0
+      ? "GDPS_V032_BINDING_NOT_FOUND"
+      : "GDPS_V032_BINDING_AMBIGUOUS", { bindingCount: matchingBindings.length });
+  }
+  const binding = matchingBindings[0]!;
+  const lock = options.operationLocks.find((entry) =>
+    entry.operationId === binding.operationId && entry.operationVersion === binding.operationVersion);
+  if (!lock) return gdpsV032Gap(options, "NOT_REGISTERED", "GDPS_V032_OPERATION_LOCK_MISSING");
+  const available = options.availability.find((entry) =>
+    entry.operationId === binding.operationId && entry.operationVersion === binding.operationVersion);
+  if (!available || available.availability !== "AVAILABLE") {
+    return gdpsV032Gap(options, "OPERATION_UNAVAILABLE", "GDPS_V032_OPERATION_NOT_AVAILABLE", {
+      availability: available?.availability ?? "MISSING"
+    });
+  }
+  const descriptor = options.capabilities.find((entry) =>
+    entry.operationId === binding.operationId && entry.operationVersion === binding.operationVersion);
+  if (!descriptor) return gdpsV032Gap(options, "NOT_REGISTERED", "GDPS_V032_CAPABILITY_DESCRIPTOR_MISSING");
+  if (descriptor.inputSchemaHash !== lock.inputSchemaHash || descriptor.outputSchemaHash !== lock.outputSchemaHash ||
+      descriptor.maturity !== lock.maturity) {
+    return gdpsV032Gap(options, "SCHEMA_MISMATCH", "GDPS_V032_CAPABILITY_LOCK_DRIFT");
+  }
+  const inputPort = descriptor.ports.inputs.find((entry) => entry.name === "request") ?? descriptor.ports.inputs[0];
+  const outputPort = descriptor.ports.outputs.find((entry) => entry.name === "result") ?? descriptor.ports.outputs[0];
+  if (!inputPort || !outputPort) return gdpsV032Gap(options, "SCHEMA_MISMATCH", "GDPS_V032_PORT_MISSING");
+  const parameters: JsonObject = {
+    ...(options.intent.classCodes ? { classCodes: [...options.intent.classCodes] } : {}),
+    ...(options.intent.ranges ? { ranges: structuredClone(options.intent.ranges) } : {}),
+    ...(options.intent.propertyFilters ? { propertyFilters: structuredClone(options.intent.propertyFilters) } : {}),
+    ...(options.intent.queryProfile === "VECTOR_NEARBY" && options.intent.spatialConstraint?.distanceM !== undefined
+      ? { distanceMetres: options.intent.spatialConstraint.distanceM }
+      : {})
+  };
+  const selectedDataScope = trustedOperationDataScope(
+    options.segmentedScopeAuthority,
+    options.caller,
+    binding
+  );
+  const direct = compileGdpsV032Requirement({
+    requirement: {
+      schemaVersion: "wsgs-gdps-requirement/1.0",
+      requirementId: `gdps-v032-${canonicalSha256({ intent: options.intent, geometry: selectedGeometry.geometry }).slice(7, 31)}`,
+      kind: requirementKind,
+      productType: options.intent.productType,
+      productProfile: options.intent.productProfile,
+      ...(options.intent.platformProfile ? { platformProfile: options.intent.platformProfile } : {}),
+      geometry: selectedGeometry.geometry,
+      ...(Object.keys(parameters).length > 0 ? { parameters } : {}),
+      timeIntent: "CURRENT"
+    },
+    catalog: options.catalog,
+    trustedContext: {
+      servicePrincipalId: options.caller.servicePrincipalId,
+      dataScope: selectedDataScope,
+      maximumGeometryBytes: options.maximumGeometryBytes,
+      ...(options.intent.explicitProductId
+        ? { explicitProductSelection: {
+            productId: options.intent.explicitProductId,
+            source: "USER_EXPLICIT",
+            descriptorHash: options.intent.descriptorHash
+          } }
+        : {})
+    },
+    operationState: {
+      operationId: lock.operationId,
+      operationVersion: lock.operationVersion,
+      maturity: lock.maturity,
+      inputSchemaHash: lock.inputSchemaHash,
+      outputSchemaHash: lock.outputSchemaHash,
+      semanticProfileHash: lock.semanticProfileHash
+    }
+  });
+  if (direct.status === "GAP") {
+    const reason: CapabilityGap["reason"] = direct.reason === "MATURITY_NOT_ALLOWED" ? "MATURITY_NOT_ALLOWED"
+      : direct.reason === "GEOMETRY_BUDGET_EXCEEDED" ? "BUDGET_EXCEEDED"
+        : ["CATALOG_LOCK_DRIFT", "OPERATION_LOCK_DRIFT"].includes(direct.reason) ? "SCHEMA_MISMATCH"
+          : "UNSUPPORTED_EXPRESSION";
+    return gdpsV032Gap(options, reason, `GDPS_V032_${direct.reason}`, direct.details ?? {});
+  }
+  const nodeBudget = {
+    maximumRows: options.budgets.maximumRows,
+    maximumCandidates: options.budgets.maximumCandidates,
+    maximumOutputBytes: Math.min(
+      options.budgets.maximumOutputBytes,
+      descriptor.limits.maximumOutputBytes ?? options.budgets.maximumOutputBytes
+    ),
+    maximumExecutionMs: Math.min(options.budgets.maximumExecutionMs, descriptor.execution.maximumTimeoutMs)
+  };
+  const queryId = `query-${canonicalSha256({ requestId: options.requestId, request: direct.request }).slice(7, 31)}`;
+  const plan: WorldQuerySubmission["plan"] = {
+    queryPlanVersion: "2.0",
+    queryId,
+    nodes: [{
+      nodeId: "Node_1",
+      operation: {
+        operationId: lock.operationId,
+        operationVersion: lock.operationVersion,
+        inputSchemaHash: lock.inputSchemaHash,
+        outputSchemaHash: lock.outputSchemaHash
+      },
+      inputs: {
+        request: {
+          kind: "REQUEST_PATH",
+          port: {
+            schemaUri: inputPort.schemaUri,
+            schemaHash: inputPort.schemaHash,
+            valueKind: inputPort.valueKind,
+            unitSemantics: inputPort.unitSemantics
+          },
+          path: "/operationInput"
+        }
+      },
+      failurePolicy: "FAIL_FAST",
+      budget: nodeBudget
+    }],
+    outputs: [{
+      name: outputPort.name,
+      binding: {
+        kind: "NODE_OUTPUT",
+        port: {
+          schemaUri: outputPort.schemaUri,
+          schemaHash: outputPort.schemaHash,
+          valueKind: outputPort.valueKind,
+          unitSemantics: outputPort.unitSemantics
+        },
+        nodeId: "Node_1",
+        outputPort: outputPort.name,
+        ...(outputPort.path ? { path: outputPort.path } : {})
+      }
+    }],
+    budgets: { ...options.budgets }
+  };
+  validateCompiledPlan(plan, [descriptor]);
+  const submission: WorldQuerySubmission = {
+    requestId: options.requestId,
+    idempotencyKey: options.idempotencyKey,
+    plan,
+    parameters: { operationInput: direct.request.input },
+    parameterSchemaHash: options.parameterSchemaHash,
+    snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false }
+  };
+  return {
+    status: "COMPILED",
+    templateId: `gdps-v032:${binding.bindingId}`,
+    bindings: [{
+      requirementId: direct.request.requirementId,
+      operationId: lock.operationId,
+      operationVersion: lock.operationVersion,
+      inputSchemaHash: lock.inputSchemaHash,
+      outputSchemaHash: lock.outputSchemaHash,
+      semanticProfileHash: lock.semanticProfileHash,
+      maturity: lock.maturity,
+      availability: "AVAILABLE",
+      snapshotSupport: lock.snapshotSupport ?? "CONSISTENT_AT_START",
+      requiredPermissions: [...(lock.requiredPermissions ?? [])],
+      matchEvidence: {
+        bindingId: binding.bindingId,
+        descriptorId: binding.descriptorId,
+        descriptorHash: binding.descriptorHash,
+        dataScope: selectedDataScope,
+        policy: "WSGS_GDPS_V032_BINDING_CATALOG_EXACT"
+      },
+      selectionPolicy: "WSGS_GDPS_V032_BINDING_CATALOG_EXACT"
+    }],
+    submission,
+    planHash: canonicalPlanHash(plan),
+    policy: { approximateInput: false, exactVerificationRequired: false, snapshotMode: "LATEST_AT_START" }
+  };
 }
 
 interface PersistedSegmentedWorldQueryOutcome extends JsonObject {
@@ -2928,7 +3230,7 @@ export async function createPipelineStageExecutor(
             }
           }];
         });
-        if (recipeGaps.length === 0) return planned;
+        if (recipeGaps.length === 0) return { ...planned, gdpsV032Intent: descriptorResolution.intent };
         return {
           ...planned,
           status: "CAPABILITY_GAP" as const,
@@ -3052,10 +3354,48 @@ export async function createPipelineStageExecutor(
       }
       const groundingGraph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
+      const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
+      const caller = identity(context);
+      const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, authority);
       const compiled: CompileResult[] = [];
       const gaps = [...matched.capabilityGaps];
       for (const semanticPattern of planning.selectedRecipeIds) {
         const recipeId = semanticPattern as StableRecipeId;
+        const requiredForProduct = planning.graph?.requirements.find((entry) => entry.required)?.requiredForProduct ?? "WORLD_QUERY";
+        const direct = planning.gdpsV032Intent ? compileGdpsV032MapSelectionQuery({
+          recipeId,
+          intent: planning.gdpsV032Intent,
+          deterministic,
+          requiredForProduct,
+          catalog: value.gdpsV032BindingCatalog,
+          capabilities: authority.capabilityCatalog.capabilities,
+          operationLocks: allGatewayLocks(authority.southboundLock),
+          availability: authority.availability.operations,
+          caller,
+          ...(segmentedScopeAuthority ? { segmentedScopeAuthority } : {}),
+          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
+          idempotencyKey: `${idempotencyKey(context)}:${recipeId}:gdps-v032-map`,
+          parameterSchemaHash: value.parameterSchemaHash,
+          maximumGeometryBytes: environmentInteger(
+            "WSGS_GDPS_V032_MAX_GEOMETRY_BYTES",
+            1_048_576,
+            64,
+            16_777_216
+          ),
+          budgets: {
+            maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
+            maximumDepth: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
+            maximumRows: Math.max(1, integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID") * 32),
+            maximumCandidates: Math.max(1, integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID") * 32),
+            maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+            maximumExecutionMs: integer(parts.policy["deadlineMs"], "DEADLINE_INVALID")
+          }
+        }) : null;
+        if (direct) {
+          compiled.push(direct);
+          if (direct.status === "CAPABILITY_GAP") gaps.push(direct.gap as unknown as JsonObject);
+          continue;
+        }
         const gdpsRecipe = value.gdpsRecipes.find((entry) => entry.semanticPattern === recipeId);
         const recipeInput = buildRecipeOperationInput({
           recipeId,
