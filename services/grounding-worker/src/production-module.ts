@@ -1268,9 +1268,11 @@ export function referenceMentionsRequiringResolution(
   mentions: readonly MergedMention[],
   deterministic: DeterministicParseResult
 ): MergedMention[] {
-  const knownMentionIds = new Set(deterministic.mentions.flatMap((mention) =>
-    mention.candidate.kind === "KNOWN_REFERENCE" ? [mention.mentionId] : []));
-  return productionReferenceMentions(mentions).filter((mention) => !knownMentionIds.has(mention.mentionId));
+  const locallyBoundMentionIds = new Set(deterministic.mentions.flatMap((mention) =>
+    mention.candidate.kind === "KNOWN_REFERENCE" || !mention.candidate.requiresUpstreamValidation
+      ? [mention.mentionId]
+      : []));
+  return productionReferenceMentions(mentions).filter((mention) => !locallyBoundMentionIds.has(mention.mentionId));
 }
 
 export function applyReferenceValidation(

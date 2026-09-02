@@ -681,6 +681,18 @@ describe("production stage module authority boundaries", () => {
     ]);
   });
 
+  it("keeps an authoritative local map selection out of reference resolver traffic", () => {
+    const options = gdpsV032MapOptions();
+    const mapMention = options.deterministic.mentions[0]!;
+    expect(referenceMentionsRequiringResolution([{
+      mentionId: mapMention.mentionId,
+      surfaceText: mapMention.surfaceText,
+      span: mapMention.span,
+      expectedKinds: [...mapMention.expectedKinds],
+      extractionSources: [mapMention.extractionSource]
+    }], options.deterministic)).toEqual([]);
+  });
+
   it("publishes a bounded northbound lease only for a currently usable reference", () => {
     const key = { namespace: "gowm" as const, kind: "WORLD_OBJECT", id: `wrf_${"b".repeat(32)}`, version: "7" };
     const product = {
