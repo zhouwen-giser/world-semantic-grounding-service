@@ -515,6 +515,16 @@ describe("segmented world-query executor", () => {
       confidence: { kind: "LITERAL", value: 0.9, targetPath: "/minimumConfidence" }
     });
     expect(requests.every(({ submission }) => submission.plan.nodes.length === 1)).toBe(true);
+    expect(requests[0]!.submission.plan.outputs).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        binding: expect.objectContaining({ outputPort: "result", path: "/candidate/referenceKey" })
+      })
+    ]));
+    expect(requests[1]!.submission.plan.outputs).toEqual([
+      expect.objectContaining({
+        binding: expect.objectContaining({ outputPort: "result", path: "/classification" })
+      })
+    ]);
     expect(requests.every(({ submission }) => submission.snapshotPolicy.mode === "BEST_EFFORT")).toBe(true);
     expect(new Set(requests.map(({ submission }) => submission.plan.queryId)).size).toBe(2);
     expect(events).toEqual([

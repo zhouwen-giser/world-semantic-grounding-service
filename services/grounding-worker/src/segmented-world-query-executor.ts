@@ -417,14 +417,21 @@ function projectedValuePort(value: unknown): WorldQueryInputBinding["port"] {
   throw new SegmentedWorldQueryError("PROJECTED_NODE_OUTPUT_TYPE_UNSUPPORTED");
 }
 
-function segmentOutputs(plan: WorldQueryPlanV2, nodeId: string): WorldQueryPlanV2["outputs"] {
+function segmentOutputs(
+  plan: WorldQueryPlanV2,
+  nodeId: string,
+  descriptor: CapabilityDescriptor
+): WorldQueryPlanV2["outputs"] {
   const outputs = new Map<string, WorldQueryPlanV2["outputs"][number]["binding"]>();
   const add = (binding: WorldQueryPlanV2["outputs"][number]["binding"]): void => {
+    const controlledPort = descriptor.ports.outputs.find((port) => port.name === binding.outputPort);
+    if (!controlledPort) throw new SegmentedWorldQueryError("SEGMENT_OUTPUT_PORT_MISSING");
     const selector = {
       kind: binding.kind,
       port: binding.port,
       nodeId: binding.nodeId,
-      outputPort: binding.outputPort
+      outputPort: binding.outputPort,
+      ...(controlledPort.path === undefined ? {} : { path: controlledPort.path })
     } as const;
     const prior = outputs.get(binding.outputPort);
     if (prior && canonical(prior) !== canonical(selector)) {
@@ -457,6 +464,7 @@ function boundedIdentifier(prefix: string, suffix: string): string {
 function singleNodeSubmission(
   source: WorldQuerySubmission,
   node: WorldQueryNode,
+  descriptor: CapabilityDescriptor,
   index: number,
   resultByNode: ReadonlyMap<string, Readonly<JsonObject>>,
   transforms: readonly SegmentedNodeOutputTransform[]
@@ -484,7 +492,7 @@ function singleNodeSubmission(
       ...jsonClone(node, "INVALID_PLAN_NODE"),
       inputs: Object.fromEntries(inputEntries)
     }],
-    outputs: segmentOutputs(source.plan, node.nodeId),
+    outputs: segmentOutputs(source.plan, node.nodeId, descriptor),
     budgets: {
       maximumNodes: 1,
       maximumDepth: 1,
@@ -736,13 +744,19 @@ function sourcePlanHash(plan: WorldQueryPlanV2, capabilities: readonly Capabilit
   }
 }
 
-function preflightBindings(submission: WorldQuerySubmission): void {
+function preflightBindings(
+  submission: WorldQuerySubmission,
+  capabilities: readonly CapabilityDescriptor[]
+): void {
   const noResults = new Map<string, Readonly<JsonObject>>();
+  const descriptors = new Map(capabilities.map((descriptor) => [operationKey(descriptor), descriptor]));
   for (const node of submission.plan.nodes) {
     if (node.failurePolicy === "SKIP_IF_PRECONDITION_FALSE") {
       throw new SegmentedWorldQueryError("SEGMENT_PRECONDITION_POLICY_UNSUPPORTED");
     }
-    segmentOutputs(submission.plan, node.nodeId);
+    const descriptor = descriptors.get(operationKey(node.operation));
+    if (!descriptor) throw new SegmentedWorldQueryError("SEGMENT_CAPABILITY_DESCRIPTOR_MISSING");
+    segmentOutputs(submission.plan, node.nodeId, descriptor);
     for (const binding of Object.values(node.inputs)) {
       if (binding.kind === "NODE_OUTPUT") continue;
       resolveInputBinding(submission, noResults, binding);
@@ -826,7 +840,7 @@ export async function executeSegmentedWorldQuery(
   const ordered = topologicalNodes(sourceSubmission.plan);
   for (const node of ordered) operationBinding(input.authority, node);
   const sourceHash = sourcePlanHash(sourceSubmission.plan, capabilities);
-  preflightBindings(sourceSubmission);
+  preflightBindings(sourceSubmission, capabilities);
 
   let pinnedManifestHash: string | undefined;
   if (sourceSubmission.snapshotPolicy.mode === "PINNED") {
@@ -848,7 +862,7 @@ export async function executeSegmentedWorldQuery(
     const descriptor = descriptors.get(operationKey(node.operation));
     if (!descriptor) throw new SegmentedWorldQueryError("SEGMENT_CAPABILITY_DESCRIPTOR_MISSING");
     const submission = jsonFrozenClone(
-      singleNodeSubmission(sourceSubmission, node, index, resultByNode, nodeOutputTransforms),
+      singleNodeSubmission(sourceSubmission, node, descriptor, index, resultByNode, nodeOutputTransforms),
       "SEGMENT_WORLD_QUERY_SUBMISSION_INVALID"
     );
     const signed = await input.runtime.signer.sign({
