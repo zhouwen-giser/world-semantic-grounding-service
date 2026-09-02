@@ -25,6 +25,11 @@ const conceptMap: SemanticConceptMap = {
     aliases: ["排水沟", "drainage"],
     descriptorCandidates: ["DRAINAGE_NETWORK/DRAINAGE_FEATURES"],
     allowedQuerySemantics: ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
+  }, {
+    conceptCode: "ROAD_SOURCE",
+    aliases: ["道路", "road"],
+    descriptorCandidates: ["ROAD_SOURCE/ROAD_FEATURES"],
+    allowedQuerySemantics: ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
   }]
 };
 
@@ -87,6 +92,24 @@ describe("projectGeospatialProductIntent source authority", () => {
     const projected = projectGeospatialProductIntent({ frame, originalText, conceptMap });
     expect(projected).toMatchObject({ spatialConstraint: { relation: "NEAR" } });
     expect(projected?.spatialConstraint).not.toHaveProperty("distanceM");
+  });
+
+  it("projects a source-anchored road intersection onto the locked ROAD_SOURCE concept", () => {
+    const originalText = "查找与滨河路东段相交的道路要素。";
+    const frame = frameFor(originalText, "滨河路东段", {
+      spatialExpressions: [{
+        expressionId: "intersects",
+        operator: "INTERSECTS",
+        arguments: ["source-mention"],
+        approximate: false
+      }]
+    });
+
+    expect(projectGeospatialProductIntent({ frame, originalText, conceptMap })).toMatchObject({
+      targetConcept: "ROAD_SOURCE",
+      querySemantics: "FIND_INTERSECTIONS",
+      spatialConstraint: { relation: "INTERSECTS" }
+    });
   });
 
   it("accepts an explicit product only when the product id is anchored in source text", () => {

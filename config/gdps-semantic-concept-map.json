@@ -51,6 +51,12 @@
       "allowedQuerySemantics": ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
     },
     {
+      "conceptCode": "ROAD_SOURCE",
+      "aliases": ["道路", "道路要素", "road"],
+      "descriptorCandidates": ["ROAD_SOURCE/ROAD_FEATURES"],
+      "allowedQuerySemantics": ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
+    },
+    {
       "conceptCode": "BRIDGE",
       "aliases": ["桥梁", "桥", "bridge"],
       "descriptorCandidates": ["BRIDGE/BRIDGE_FEATURES"],
