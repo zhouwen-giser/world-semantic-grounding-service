@@ -21,6 +21,11 @@ const conceptMap: SemanticConceptMap = {
     descriptorCandidates: ["SLOPE/DEGREE"],
     allowedQuerySemantics: ["READ_VALUE", "READ_PROFILE", "FIND_VALUE_RANGE_AREAS"]
   }, {
+    conceptCode: "LAND_COVER",
+    aliases: ["土地覆盖", "地表类型", "land cover"],
+    descriptorCandidates: ["LAND_COVER/DEFAULT"],
+    allowedQuerySemantics: ["READ_VALUE", "FIND_CLASS_AREAS"]
+  }, {
     conceptCode: "DRAINAGE_NETWORK",
     aliases: ["排水沟", "drainage"],
     descriptorCandidates: ["DRAINAGE_NETWORK/DRAINAGE_FEATURES"],
@@ -58,6 +63,18 @@ function frameFor(
 }
 
 describe("projectGeospatialProductIntent source authority", () => {
+  it("maps task-package land-cover wording to the exact current categorical descriptor", () => {
+    const originalText = "查询测试点的地表类型。";
+    expect(projectGeospatialProductIntent({
+      frame: frameFor(originalText, "测试点"),
+      originalText,
+      conceptMap
+    })).toMatchObject({
+      targetConcept: "LAND_COVER",
+      querySemantics: "READ_VALUE"
+    });
+  });
+
   it.each([
     ["滨河路附近500米有哪些排水沟？", 500],
     ["滨河路附近1公里有哪些排水沟？", 1_000]

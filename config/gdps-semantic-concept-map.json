@@ -9,6 +9,12 @@
       "allowedQuerySemantics": ["READ_VALUE", "READ_PROFILE", "FIND_VALUE_RANGE_AREAS"]
     },
     {
+      "conceptCode": "LAND_COVER",
+      "aliases": ["土地覆盖", "地表类型", "land cover"],
+      "descriptorCandidates": ["LAND_COVER/DEFAULT"],
+      "allowedQuerySemantics": ["READ_VALUE", "FIND_CLASS_AREAS"]
+    },
+    {
       "conceptCode": "ASPECT",
       "aliases": ["坡向", "朝向坡", "aspect"],
       "descriptorCandidates": ["ASPECT/DEGREE"],
