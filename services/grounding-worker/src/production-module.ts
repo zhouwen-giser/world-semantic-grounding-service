@@ -3186,13 +3186,14 @@ export async function createPipelineStageExecutor(
       const parts = requestParts(context);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_FRAME_VALIDATE");
+      const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
       const projected = value.gdpsDescriptor ? projectGeospatialProductIntent({
         frame: model.frame,
         originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
         conceptMap: value.gdpsDescriptor.conceptMap
       }) : null;
       const descriptorResolution = projected ? value.gdpsDescriptor!.consumer.resolve(projected) : undefined;
-      const planned = planner.plan({
+      const basePlanned = planner.plan({
         groundingGraph: graph.graph,
         ...(descriptorResolution?.status === "MATCHED" && descriptorResolution.intent
           ? { groundedProductIntents: [descriptorResolution.intent] }
@@ -3207,6 +3208,17 @@ export async function createPipelineStageExecutor(
           allowApproximation: parts.policy["allowApproximation"] === true
         }
       });
+      const mapGeometry = directMapSelectionGeometry(deterministic);
+      const directRecipe = descriptorResolution?.status === "MATCHED" && descriptorResolution.intent &&
+        mapGeometry.status !== "ABSENT"
+        ? gdpsV032RecipeByQueryProfile[descriptorResolution.intent.queryProfile]
+        : undefined;
+      const planned = directRecipe ? {
+        ...basePlanned,
+        status: "PLANNED" as const,
+        selectedRecipeIds: [directRecipe],
+        capabilityGaps: []
+      } : basePlanned;
       if (descriptorResolution?.status === "MATCHED" && descriptorResolution.intent) {
         const selectedGdpsPatterns = planned.selectedRecipeIds.filter((recipeId) =>
           queryTemplateRules.some((rule) =>
