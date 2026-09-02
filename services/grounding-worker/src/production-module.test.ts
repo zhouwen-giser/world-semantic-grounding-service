@@ -816,10 +816,12 @@ describe("production stage module authority boundaries", () => {
       minimum_distance_m: 23,
       nearest_instant: "2026-08-13T01:00:03.000Z"
     };
+    const diagnostics: string[] = [];
     expect(composeStasGdpsEvidence({
       submissions: [submission], evidenceItems: withoutGeometry,
-      requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"], stasGdpsFixture
+      requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"], stasGdpsFixture, diagnostics
     })).toEqual([]);
+    expect(diagnostics).toEqual(["STAS_GDPS_COMPOSITION_EVENT_GEOMETRY"]);
   });
 
   it("places a grounded anchor before an unresolved product descriptor mention", () => {

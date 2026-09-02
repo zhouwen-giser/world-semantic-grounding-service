@@ -1800,11 +1800,16 @@ export function composeStasGdpsEvidence(input: {
   evidenceItems: readonly GroundingEvidenceItem[];
   requestedProducts: readonly string[];
   stasGdpsFixture?: LoadedStasGdpsFixtureLock;
+  diagnostics?: string[];
 }): GroundingEvidenceItem[] {
+  const reject = (code: string): GroundingEvidenceItem[] => {
+    input.diagnostics?.push(code);
+    return [];
+  };
   if (!input.requestedProducts.includes("EVENT_TIMELINES") &&
       !input.requestedProducts.includes("CORRELATION_FINDINGS")) return [];
   const candidates = input.submissions.filter(isStasGdpsSubmission);
-  if (candidates.length !== 1) return [];
+  if (candidates.length !== 1) return reject("STAS_GDPS_COMPOSITION_SUBMISSION_CARDINALITY");
   const submission = candidates[0]!;
   const stasNode = submission.plan.nodes.find((node) => node.operation.operationId === "stas.nearest-approach");
   const slopeNode = submission.plan.nodes.find((node) =>
@@ -1815,7 +1820,7 @@ export function composeStasGdpsEvidence(input: {
     node.operation.operationId === "geo-raster.sample" &&
     literalBindingValue(node, "/productType") === "LAND_COVER" &&
     literalBindingValue(node, "/productProfile") === "DEFAULT");
-  if (!stasNode || !slopeNode || !landCoverNode) return [];
+  if (!stasNode || !slopeNode || !landCoverNode) return reject("STAS_GDPS_COMPOSITION_PLAN_BINDING");
   const sourceFor = (nodeId: string, operationId: string): GroundingEvidenceItem | undefined => {
     const matches = input.evidenceItems.filter((item) =>
       item.sourceNodeId === nodeId && item.sourceOperation === operationId && item.upstreamStatus === "COMPLETED");
@@ -1824,7 +1829,7 @@ export function composeStasGdpsEvidence(input: {
   const stas = sourceFor(stasNode.nodeId, "stas.nearest-approach");
   const slope = sourceFor(slopeNode.nodeId, "geo-raster.sample");
   const landCover = sourceFor(landCoverNode.nodeId, "geo-raster.sample");
-  if (!stas || !slope || !landCover) return [];
+  if (!stas || !slope || !landCover) return reject("STAS_GDPS_COMPOSITION_SOURCE_CARDINALITY");
   const stasPayload = inlineObject(stas);
   const slopePayload = inlineObject(slope);
   const landCoverPayload = inlineObject(landCover);
@@ -1840,7 +1845,7 @@ export function composeStasGdpsEvidence(input: {
         rawEventCoordinates
       );
     } catch {
-      return [];
+      return reject("STAS_GDPS_COMPOSITION_EVENT_GEOMETRY_TRANSFORM");
     }
   }
   const nearestInstant = result?.["nearest_instant"];
@@ -1848,10 +1853,17 @@ export function composeStasGdpsEvidence(input: {
   const productEvidenceLocked = [slopePayload, landCoverPayload].every((payload) =>
     payload && /^sha256:[0-9a-f]{64}$/u.test(String(payload["contentHash"])) &&
       /^sha256:[0-9a-f]{64}$/u.test(String(payload["descriptorHash"])));
-  if (!eventCoordinates ||
-      typeof nearestInstant !== "string" || !Number.isFinite(Date.parse(nearestInstant)) ||
-      typeof minimumDistance !== "number" || !Number.isFinite(minimumDistance) || minimumDistance < 0 ||
-      !productEvidenceLocked) return [];
+  if (!stasPayload || !slopePayload || !landCoverPayload) {
+    return reject("STAS_GDPS_COMPOSITION_INLINE_SOURCE_REQUIRED");
+  }
+  if (!eventCoordinates) return reject("STAS_GDPS_COMPOSITION_EVENT_GEOMETRY");
+  if (typeof nearestInstant !== "string" || !Number.isFinite(Date.parse(nearestInstant))) {
+    return reject("STAS_GDPS_COMPOSITION_EVENT_TIME");
+  }
+  if (typeof minimumDistance !== "number" || !Number.isFinite(minimumDistance) || minimumDistance < 0) {
+    return reject("STAS_GDPS_COMPOSITION_DISTANCE");
+  }
+  if (!productEvidenceLocked) return reject("STAS_GDPS_COMPOSITION_SOURCE_CONTRACT");
 
   const sourceEvidenceIds = [stas.evidenceProductId, slope.evidenceProductId, landCover.evidenceProductId];
   const sourceItems = [stas, slope, landCover];
@@ -3528,6 +3540,7 @@ export async function createPipelineStageExecutor(
         submissions: execution.outcomes.map((outcome) => outcome.submission),
         evidenceItems,
         requestedProducts: requestParts(context).requestedProducts,
+        diagnostics: warnings,
         ...(value.stasGdpsFixture ? { stasGdpsFixture: value.stasGdpsFixture } : {})
       }));
       await persistExecutionRecords(
