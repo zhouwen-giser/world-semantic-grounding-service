@@ -715,7 +715,7 @@ describe("production stage module authority boundaries", () => {
       status: "COMPILED",
       templateId: "gdps-v032:SLOPE/DEGREE::SAMPLE_VALUE",
       submission: {
-        snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false },
+        snapshotPolicy: { mode: "BEST_EFFORT", allowDowngrade: false },
         plan: { nodes: [{ operation: { operationId: "geo-raster.sample", operationVersion: "1.0" } }] },
         parameters: {
           operationInput: {

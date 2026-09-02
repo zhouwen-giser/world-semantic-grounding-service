@@ -2042,7 +2042,11 @@ export function compileGdpsV032MapSelectionQuery(
     plan,
     parameters: { operationInput: direct.request.input },
     parameterSchemaHash: options.parameterSchemaHash,
-    snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false }
+    // The GDPS Provider attests currentness in its required dataSnapshot, but
+    // does not expose Gateway resource discovery for a strong LATEST pin.
+    // BEST_EFFORT preserves that Provider evidence without turning an
+    // unsupported Gateway resource pin into a false schema failure.
+    snapshotPolicy: PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY
   };
   return {
     status: "COMPILED",
@@ -2069,7 +2073,7 @@ export function compileGdpsV032MapSelectionQuery(
     }],
     submission,
     planHash: canonicalPlanHash(plan),
-    policy: { approximateInput: false, exactVerificationRequired: false, snapshotMode: "LATEST_AT_START" }
+    policy: { approximateInput: false, exactVerificationRequired: false, snapshotMode: "BEST_EFFORT" }
   };
 }
 
