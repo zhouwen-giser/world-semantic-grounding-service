@@ -60,6 +60,7 @@ function normalizedKind(raw: string): string | null {
 
 function inferredKind(surfaceText: string): string[] {
   if (/号车$/u.test(surfaceText)) return ["WORLD_OBJECT"];
+  if (/^RD-[A-Z0-9-]+$/iu.test(surfaceText)) return ["LAYER_FEATURE"];
   if (/[路区]$/u.test(surfaceText)) return ["LAYER_FEATURE"];
   return [];
 }

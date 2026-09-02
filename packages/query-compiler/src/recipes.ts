@@ -290,7 +290,7 @@ function genericGdpsStep(
       spatialSemantics: "EXACT",
       timeSemantics: "CURRENT",
       resultNature: semantics.resultNature,
-      inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
+      inputPorts: [requestPort()],
       outputPorts: [resultPort()]
     })
   };

@@ -63,6 +63,27 @@ describe("GDPS semantic frame vocabulary", () => {
       frame.mentions.some((mention) => mention.mentionId === id))).toBe(true);
   });
 
+  it("retains an exact road code used by a model-backed intersection relation", () => {
+    const text = "查找与RD-BH-E相交的道路要素。";
+    const surfaceText = "RD-BH-E";
+    const start = text.indexOf(surfaceText);
+    const frame = stabilizeSemanticFrame({
+      ...empty,
+      mentions: [{
+        mentionId: "road-code",
+        surfaceText,
+        span: { encoding: "UTF16_CODE_UNIT", start, end: start + surfaceText.length }
+      }],
+      relationExpressions: [{
+        expressionId: "intersection",
+        relationType: "INTERSECTS",
+        subjectMentionId: "road-code"
+      }]
+    }, text);
+    expect(frame.mentions).toEqual([expect.objectContaining({ surfaceText, expectedKinds: ["LAYER_FEATURE"] })]);
+    expect(frame.relationExpressions).toEqual([expect.objectContaining({ relationType: "INTERSECTS" })]);
+  });
+
   it.each([
     ["2号车当前位置是什么地表覆盖？", "LAND_COVER_AT_LOCATION"],
     ["A区内有哪些湿地？", "FIND_WETLANDS"],

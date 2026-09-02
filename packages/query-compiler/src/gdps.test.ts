@@ -36,7 +36,7 @@ const publishedOperationLock = JSON.parse(readFileSync(
   "utf8"
 )) as { defaultOperations: OperationLock[]; previewOperations: OperationLock[] };
 
-function usePublishedGdpsOperation(input: CompileInput, operationId: string): void {
+function usePublishedGdpsOperation(input: CompileInput, operationId: string, inputPortName?: string): void {
   const descriptor = publishedClosure.provider.manifest.capabilities.find((entry) =>
     entry.operationId === operationId && entry.operationVersion === "1.0");
   const semantic = publishedClosure.operations.find((entry) =>
@@ -45,8 +45,15 @@ function usePublishedGdpsOperation(input: CompileInput, operationId: string): vo
     .find((entry) => entry.operationId === operationId && entry.operationVersion === "1.0");
   if (!descriptor || !semantic || !lock) throw new Error(`PUBLISHED_GDPS_OPERATION_MISSING:${operationId}`);
 
+  const selectedDescriptor = inputPortName === undefined ? descriptor : {
+    ...descriptor,
+    ports: {
+      ...descriptor.ports,
+      inputs: descriptor.ports.inputs.map((port, index) => index === 0 ? { ...port, name: inputPortName } : port)
+    }
+  };
   input.capabilities = input.capabilities.map((entry) =>
-    entry.operationId === operationId && entry.operationVersion === "1.0" ? descriptor : entry);
+    entry.operationId === operationId && entry.operationVersion === "1.0" ? selectedDescriptor : entry);
   input.semanticProfiles = input.semanticProfiles.map((entry) =>
     entry.operationId === operationId && entry.operationVersion === "1.0"
       ? {
@@ -166,6 +173,21 @@ describe("GDPS typed query plans", () => {
     const domainRequirement = queryTemplateRules.find((rule) => rule.pattern === pattern)?.steps.at(-1)?.requirement;
     expect(domainRequirement?.outputPorts).toEqual([
       { name: "result", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }
+    ]);
+  });
+
+  it.each([
+    "GDPS_GENERIC_SAMPLE_VALUE",
+    "GDPS_GENERIC_PROFILE_VALUE",
+    "GDPS_GENERIC_FIND_CLASS",
+    "GDPS_GENERIC_FIND_RANGE",
+    "GDPS_GENERIC_VECTOR_IN_AREA",
+    "GDPS_GENERIC_VECTOR_NEARBY",
+    "GDPS_GENERIC_VECTOR_INTERSECTS"
+  ] as const)("matches %s against the published generic GDPS request port", (pattern) => {
+    const domainRequirement = queryTemplateRules.find((rule) => rule.pattern === pattern)?.steps.at(-1)?.requirement;
+    expect(domainRequirement?.inputPorts).toEqual([
+      { name: "request", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }
     ]);
   });
 
@@ -289,7 +311,7 @@ describe("GDPS typed query plans", () => {
   it.each(genericCases)("builds descriptor-driven generic plan %s", (pattern, operations, parameters) => {
     const input = compileInput(pattern);
     input.maturityPolicy.allowPreview = true;
-    usePublishedGdpsOperation(input, operations.at(-1)!);
+    usePublishedGdpsOperation(input, operations.at(-1)!, "request");
     authorizeGdps(input, {
       descriptorId: pattern.includes("VECTOR") ? "DRAINAGE_NETWORK/DRAINAGE_FEATURES" : "SLOPE/DEGREE",
       productType: pattern.includes("VECTOR") ? "DRAINAGE_NETWORK" : "SLOPE",
