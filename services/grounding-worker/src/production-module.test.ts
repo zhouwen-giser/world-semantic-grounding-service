@@ -26,6 +26,7 @@ import {
   compileGdpsV032MapSelectionQuery,
   composeStasGdpsEvidence,
   computeWorldQueryNodeRequestHashes,
+  deriveGroundingResultStatus,
   mergeKnownReferenceProducts,
   normalizeGdpsWorldQuerySources,
   normalizeReferenceResolution,
@@ -866,6 +867,23 @@ describe("production stage module authority boundaries", () => {
       semanticRole: "SPATIAL_SUBJECT"
     }]);
     expect(frame.mentions).toEqual([]);
+  });
+
+  it("does not let a trusted direct map selection override completed world evidence", () => {
+    expect(deriveGroundingResultStatus({
+      ambiguityCount: 0,
+      unresolvedMentionIds: ["map-1"],
+      referenceProductCount: 0,
+      trustedDirectMapMentionIds: ["map-1"],
+      partial: false
+    })).toBe("COMPLETED");
+    expect(deriveGroundingResultStatus({
+      ambiguityCount: 0,
+      unresolvedMentionIds: ["map-1", "world-object-1"],
+      referenceProductCount: 0,
+      trustedDirectMapMentionIds: ["map-1"],
+      partial: false
+    })).toBe("UNRESOLVED");
   });
 
   it("keeps the legacy reference recipe authoritative when no map geometry is present", () => {

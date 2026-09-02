@@ -1639,6 +1639,20 @@ function mappedGap(gap: CapabilityGap | JsonObject): JsonObject {
   };
 }
 
+export function deriveGroundingResultStatus(options: {
+  ambiguityCount: number;
+  unresolvedMentionIds: readonly string[];
+  referenceProductCount: number;
+  trustedDirectMapMentionIds: readonly string[];
+  partial: boolean;
+}): "AMBIGUOUS" | "UNRESOLVED" | "PARTIAL" | "COMPLETED" {
+  if (options.ambiguityCount > 0) return "AMBIGUOUS";
+  const trustedMapIds = new Set(options.trustedDirectMapMentionIds);
+  const blockingUnresolvedCount = options.unresolvedMentionIds.filter((mentionId) => !trustedMapIds.has(mentionId)).length;
+  if (blockingUnresolvedCount > 0 && options.referenceProductCount === 0) return "UNRESOLVED";
+  return options.partial ? "PARTIAL" : "COMPLETED";
+}
+
 function resultDocument(context: PipelineStageContext, evidenceItems: GroundingEvidenceItem[] = []): JsonObject {
   const parts = requestParts(context);
   const deterministic = context.state["DETERMINISTIC_PARSE"] as DeterministicParseResult | undefined;
@@ -1671,8 +1685,17 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
   const unresolved = references?.unresolvedMentions ?? [];
   const partial = semantic?.completionStatus === "PARTIAL" || graph?.completionStatus === "PARTIAL" ||
     normalized?.status === "PARTIAL" || gaps.some((gap) => gap["blocking"] === true);
-  const status = ambiguities.length > 0 ? "AMBIGUOUS" : unresolved.length > 0 && (references?.referenceProducts.length ?? 0) === 0
-    ? "UNRESOLVED" : partial ? "PARTIAL" : "COMPLETED";
+  const trustedDirectMapMentionIds = deterministic?.mentions.flatMap((mention) =>
+    mention.candidate.kind === "MAP_SELECTION" && !mention.candidate.requiresUpstreamValidation
+      ? [mention.mentionId]
+      : []) ?? [];
+  const status = deriveGroundingResultStatus({
+    ambiguityCount: ambiguities.length,
+    unresolvedMentionIds: unresolved.map((entry) => entry.mentionId),
+    referenceProductCount: references?.referenceProducts.length ?? 0,
+    trustedDirectMapMentionIds,
+    partial
+  });
   const queryRecords = executed?.outcomes.map((entry) => ({
     queryId: entry.submission.plan.queryId,
     status: ["COMPLETED", "PARTIAL", "FAILED", "CANCELLED"].includes(entry.status) ? entry.status : "FAILED",
