@@ -399,7 +399,7 @@ function validateNodeOutputTransforms(transforms: readonly SegmentedNodeOutputTr
         entry.sourcePath !== "/result/shortest_line/coordinates/0" ||
         entry.targetOperationKey !== "geo-raster.sample@1.0" ||
         entry.targetPath !== "/point/coordinates" ||
-        entry.transform.sourceCrs !== "EPSG:32650" ||
+        entry.transform.sourceCrs !== "EPSG:32618" ||
         entry.transform.targetCrs !== "EPSG:4326" ||
         entry.transform.axisOrder !== "EAST_NORTH_TO_LONGITUDE_LATITUDE" ||
         entry.transform.engine !== "PROJ4JS/2.22.0") {

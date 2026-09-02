@@ -41,7 +41,7 @@ function fixture() {
     operationInputHash: canonicalStasGdpsInputHash(operationInput),
     eventGeometryPath: "/result/shortest_line/coordinates/0",
     eventGeometryTransform: {
-      sourceCrs: "EPSG:32650",
+      sourceCrs: "EPSG:32618",
       targetCrs: "EPSG:4326",
       axisOrder: "EAST_NORTH_TO_LONGITUDE_LATITUDE",
       engine: "PROJ4JS/2.22.0"
@@ -89,10 +89,10 @@ describe("STAS plus GDPS runtime fixture lock", () => {
     expect(loaded.lock.runtimeBinding.gdpsDataScope).toBe("scope-gdps-v031-a");
     const point = transformStasGdpsEventCoordinates(
       loaded.lock.eventGeometryTransform,
-      [440_254.01, 4_416_157.22]
+      [516_896.3455135132, 4_505_474.315256105]
     );
-    expect(point[0]).toBeCloseTo(116.301156760807, 9);
-    expect(point[1]).toBeCloseTo(39.893379763710, 9);
+    expect(point[0]).toBeCloseTo(-74.8, 9);
+    expect(point[1]).toBeCloseTo(40.7, 9);
     expect(loaded.lock.allowedOperations.map((entry) => entry.operationId)).toEqual([
       "stas.nearest-approach", "geo-raster.sample"
     ]);

@@ -14,7 +14,7 @@ export interface StasGdpsRuntimeBinding {
 }
 
 export interface StasGdpsEventGeometryTransform {
-  sourceCrs: "EPSG:32650";
+  sourceCrs: "EPSG:32618";
   targetCrs: "EPSG:4326";
   axisOrder: "EAST_NORTH_TO_LONGITUDE_LATITUDE";
   engine: "PROJ4JS/2.22.0";
@@ -165,7 +165,7 @@ function validateLock(value: unknown): StasGdpsFixtureLock {
   }
   const eventGeometryTransform = value["eventGeometryTransform"];
   if (!object(eventGeometryTransform) || !exactKeys(eventGeometryTransform, eventGeometryTransformKeys) ||
-      eventGeometryTransform["sourceCrs"] !== "EPSG:32650" ||
+      eventGeometryTransform["sourceCrs"] !== "EPSG:32618" ||
       eventGeometryTransform["targetCrs"] !== "EPSG:4326" ||
       eventGeometryTransform["axisOrder"] !== "EAST_NORTH_TO_LONGITUDE_LATITUDE" ||
       eventGeometryTransform["engine"] !== "PROJ4JS/2.22.0") {

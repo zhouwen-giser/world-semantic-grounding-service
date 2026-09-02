@@ -700,7 +700,7 @@ describe("production stage module authority boundaries", () => {
     const stasGdpsFixture = {
       lock: {
         eventGeometryTransform: {
-          sourceCrs: "EPSG:32650",
+          sourceCrs: "EPSG:32618",
           targetCrs: "EPSG:4326",
           axisOrder: "EAST_NORTH_TO_LONGITUDE_LATITUDE",
           engine: "PROJ4JS/2.22.0"
@@ -770,7 +770,7 @@ describe("production stage module authority boundaries", () => {
           nearest_instant: "2026-08-13T01:00:03.000Z",
           shortest_line: {
             type: "LineString",
-            coordinates: [[440_254.01, 4_416_157.22], [441_117.92, 4_417_259.71]]
+            coordinates: [[516_896.3455135132, 4_505_474.315256105], [517_733.12, 4_506_590.44]]
           }
         }
       }),
