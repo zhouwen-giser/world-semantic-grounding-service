@@ -588,7 +588,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
         gdpsHandoffDirectory: fileURLToPath(new URL("../../../contracts/upstream/gdps-v0.2.1/", import.meta.url)),
         foundationOperations: productionLock.defaultOperations.map(gatewayLock),
         selectedDatasetOperations: selectedDatasetOperations.map(gatewayLock),
-        ...(stasGdpsFixture && gdps.recipes.length === 0 ? {
+        ...(stasGdpsFixture ? {
           selectedDatasetScopeSource: {
             dataScope: stasGdpsFixture.lock.runtimeBinding.gdpsDataScope,
             sourceLockHash: stasGdpsFixture.lockHash
