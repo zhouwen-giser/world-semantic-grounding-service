@@ -489,6 +489,64 @@ describe("production stage module authority boundaries", () => {
     }]);
   });
 
+  it("recovers v0.3.2 descriptor authority from the locked binding catalog", () => {
+    const compiled = compileGdpsV032MapSelectionQuery(gdpsV032MapOptions());
+    expect(compiled?.status).toBe("COMPILED");
+    if (!compiled || compiled.status !== "COMPILED") throw new Error("GDPS_V032_COMPILE_FAILED");
+    const operation = compiled.submission.plan.nodes[0]!.operation;
+    const recipe: GdpsLockedRecipe = {
+      schemaVersion: "wsgs-locked-gdps-recipe/2.0",
+      recipeId: "recipe-gdps-generic-sample-value",
+      semanticPattern: "GDPS_GENERIC_SAMPLE_VALUE",
+      requirementType: "READ_GEO_PRODUCT_VALUE",
+      descriptorConstraint: null,
+      queryProfile: "SAMPLE_VALUE_OR_CLASS",
+      previewAuthorizationRequired: true,
+      maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+      productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+      inputBindings: {},
+      outputSemantics: { currentOnly: true },
+      allowedOperations: [{ ...operation, semanticProfileHash: compiled.bindings[0]!.semanticProfileHash }]
+    };
+    const source = normalizeGdpsWorldQuerySources(compiled.submission, {
+      nodes: [{
+        nodeId: "Node_1",
+        result: {
+          operation: { operationId: operation.operationId, operationVersion: operation.operationVersion },
+          status: "COMPLETED",
+          output: { value: { productId: "slope-main", contentHash: digest("5"), truncated: false } },
+          dataSnapshot: { digest: digest("6") },
+          computeSnapshot: { digest: digest("7") },
+          receipts: [{ receiptId: "gdps-receipt-1" }],
+          evidenceReferences: [{ evidenceId: "gdps-evidence-1" }]
+        }
+      }]
+    }, {
+      lock: {
+        schemaVersion: "wsgs-gdps-recipe-lock/2.0",
+        providerId: "gdps.geospatial-products",
+        providerVersion: "0.2.1",
+        descriptorRegistryHash: digest("8"),
+        productTypeCount: 34,
+        profileCount: 35,
+        capabilityLockHash: digest("9"),
+        recipes: [recipe]
+      },
+      lockHash: digest("a")
+    }, gdpsV032Catalog);
+    expect(source).toMatchObject([{
+      nodeId: "Node_1",
+      evidence: {
+        descriptorId: "SLOPE/DEGREE",
+        productType: "SLOPE",
+        productProfile: "DEGREE",
+        queryProfile: "SAMPLE_VALUE",
+        productId: "slope-main",
+        normalizedStatus: "COMPLETED"
+      }
+    }]);
+  });
+
   it("publishes candidate rank without leaking provider topology", () => {
     const result = normalizeReferenceResolution({
       schemaVersion: "1.0",

@@ -2503,10 +2503,57 @@ export interface NormalizedGdpsWorldQuerySource {
   evidence: GdpsSourceEvidence;
 }
 
+function gdpsEvidenceAuthority(
+  submission: WorldQuerySubmission,
+  operation: WorldQuerySubmission["plan"]["nodes"][number]["operation"],
+  catalog?: GdpsV032BindingCatalog
+): {
+  descriptorId: string;
+  descriptorHash: `sha256:${string}`;
+  productType: string;
+  productProfile: string;
+  queryProfile: string;
+} {
+  const parameters = submission.parameters;
+  if (["descriptorId", "descriptorHash", "productType", "productProfile", "queryProfile"]
+    .every((key) => typeof parameters[key] === "string" && parameters[key] !== "")) {
+    return {
+      descriptorId: parameters["descriptorId"] as string,
+      descriptorHash: parameters["descriptorHash"] as `sha256:${string}`,
+      productType: parameters["productType"] as string,
+      productProfile: parameters["productProfile"] as string,
+      queryProfile: parameters["queryProfile"] as string
+    };
+  }
+  if (!catalog) throw new ProductionStageModuleError("GDPS_DESCRIPTOR_ID_MISSING");
+  const operationInput = object(parameters["operationInput"], "GDPS_OPERATION_INPUT_MISSING");
+  const productType = text(operationInput["productType"], "GDPS_PRODUCT_TYPE_MISSING");
+  const productProfile = text(operationInput["productProfile"], "GDPS_PRODUCT_PROFILE_MISSING");
+  const matches = catalog.bindings.filter((binding) =>
+    binding.operationId === operation.operationId &&
+    binding.operationVersion === operation.operationVersion &&
+    binding.productType === productType &&
+    binding.productProfile === productProfile);
+  if (matches.length !== 1) {
+    throw new ProductionStageModuleError(matches.length === 0
+      ? "GDPS_DESCRIPTOR_BINDING_NOT_FOUND"
+      : "GDPS_DESCRIPTOR_BINDING_AMBIGUOUS");
+  }
+  const binding = matches[0]!;
+  return {
+    descriptorId: binding.descriptorId,
+    descriptorHash: binding.descriptorHash as `sha256:${string}`,
+    productType: binding.productType,
+    productProfile: binding.productProfile,
+    queryProfile: binding.queryProfile
+  };
+}
+
 export function normalizeGdpsWorldQuerySources(
   submission: WorldQuerySubmission,
   worldValue: unknown,
-  recipeLock?: LoadedGdpsRecipeLock
+  recipeLock?: LoadedGdpsRecipeLock,
+  bindingCatalog?: GdpsV032BindingCatalog
 ): NormalizedGdpsWorldQuerySource[] {
   if (!recipeLock) return [];
   const world = object(worldValue, "WORLD_QUERY_RESULT_INVALID");
@@ -2520,7 +2567,6 @@ export function normalizeGdpsWorldQuerySources(
       recipesByOperation.set(key, recipe);
     }
   }
-  const parameters = submission.parameters;
   return nodes.flatMap((rawNode): NormalizedGdpsWorldQuerySource[] => {
     const node = object(rawNode, "WORLD_QUERY_NODE_INVALID");
     const nodeId = text(node["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
@@ -2530,11 +2576,8 @@ export function normalizeGdpsWorldQuerySources(
     const recipe = recipesByOperation.get(key);
     if (!recipe) return [];
     if (node["result"] === undefined) throw new ProductionStageModuleError("GDPS_NODE_RESULT_MISSING");
-    const descriptorId = text(parameters["descriptorId"], "GDPS_DESCRIPTOR_ID_MISSING");
-    const descriptorHash = text(parameters["descriptorHash"], "GDPS_DESCRIPTOR_HASH_MISSING") as `sha256:${string}`;
-    const productType = text(parameters["productType"], "GDPS_PRODUCT_TYPE_MISSING");
-    const productProfile = text(parameters["productProfile"], "GDPS_PRODUCT_PROFILE_MISSING");
-    const queryProfile = text(parameters["queryProfile"], "GDPS_QUERY_PROFILE_MISSING");
+    const { descriptorId, descriptorHash, productType, productProfile, queryProfile } =
+      gdpsEvidenceAuthority(submission, planned.operation, bindingCatalog);
     return [{
       nodeId,
       evidence: normalizeGdpsSourceEvidence(node["result"], {
@@ -3826,7 +3869,12 @@ export async function createPipelineStageExecutor(
             references
           ));
         }
-        const gdpsSources = normalizeGdpsWorldQuerySources(outcome.submission, findingWorld, value.gdpsRecipeLock);
+        const gdpsSources = normalizeGdpsWorldQuerySources(
+          outcome.submission,
+          findingWorld,
+          value.gdpsRecipeLock,
+          value.gdpsV032BindingCatalog
+        );
         const gdpsByNode = new Map(gdpsSources.map((entry) => [entry.nodeId, entry.evidence]));
         for (const unit of units) {
           const nodes = Array.isArray(unit.world["nodes"]) ? unit.world["nodes"] : [];

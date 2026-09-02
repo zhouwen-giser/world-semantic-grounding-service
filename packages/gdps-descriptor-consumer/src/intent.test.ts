@@ -112,6 +112,22 @@ describe("projectGeospatialProductIntent source authority", () => {
     });
   });
 
+  it.each([
+    ["查询测试点20米附近的道路要素。", "测试点", "FIND_FEATURES_NEARBY", { relation: "NEAR", distanceM: 20 }],
+    ["查询与测试线相交的道路要素。", "测试线", "FIND_INTERSECTIONS", { relation: "INTERSECTS" }]
+  ] as const)("derives spatial authority from source text without model spatial expressions: %s", (
+    originalText,
+    surfaceText,
+    querySemantics,
+    spatialConstraint
+  ) => {
+    expect(projectGeospatialProductIntent({
+      frame: frameFor(originalText, surfaceText),
+      originalText,
+      conceptMap
+    })).toMatchObject({ targetConcept: "ROAD_SOURCE", querySemantics, spatialConstraint });
+  });
+
   it("accepts an explicit product only when the product id is anchored in source text", () => {
     const anchoredText = "使用 gdps-baseline-slope 数据查询A区坡度。";
     expect(projectGeospatialProductIntent({
