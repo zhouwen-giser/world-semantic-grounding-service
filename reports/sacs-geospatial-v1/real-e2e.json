@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "wsgs-v021-n03-real-upstream/1.0",
+  "status": "PASS",
+  "evidenceClass": "REAL_UPSTREAM",
+  "qualifiedSourceSha": "dd06bc2bc9ea784ac3d1aaa9a1f1243c9744ddaf",
+  "inputSetHash": "sha256:20cc0d065abd1c5177d68b0dbaf8305b29b8749e3257b1d3366e1134deaee8d5",
+  "runtimeIdentityHash": "sha256:e5432267b1aae5e2818a5ae5ff56536022e11b0bf8f5077b6de44616a339dcb6",
+  "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+  "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+  "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
+  "gatewayOnly": true,
+  "directProviderCalls": 0,
+  "directDatabaseCalls": 0,
+  "credentialsIncluded": false,
+  "localPathsIncluded": false,
+  "requestIdentifiersIncluded": false,
+  "internalTopologyIncluded": false,
+  "operation": {
+    "operationId": "geo-product.get",
+    "operationVersion": "1.0"
+  },
+  "protocol": {
+    "submitHttpStatus": 200,
+    "terminalStatus": "COMPLETED"
+  },
+  "counts": {
+    "sourceProductCount": 1,
+    "findingCount": 1,
+    "evidenceItemCount": 1,
+    "gapCount": 0
+  },
+  "hashes": {
+    "resultHash": "sha256:86e0f7f39e4195716a6d4b244a3f0d5626cd05055e5ed31a6853b633cc9d51ed",
+    "sourceProductSetHash": "sha256:fdfe771e460d25ea926086a37008ccdf18f9501a03c2eb0f40b29e89d78ad5d7",
+    "findingSetHash": "sha256:83e004db7f7d9ffcc921741752d708c1b4b1af37af6c458f533ffd5a119a5833",
+    "evidenceItemSetHash": "sha256:f323f53dec2d75101df1d35006789b2c7f9f4c567a5d574d8827b3a9741e1a53",
+    "assemblyHash": "sha256:e589139a260455c182e5f50374aeea95400c5bcfa219a2925f60db7017b3f609",
+    "authorityClosureHash": "sha256:077f491462d1908ab7bb23c21fa1b1e6fd683ed92ca7cf8ea407529131501ece",
+    "baselineHash": "sha256:605313ec40ba50875af3ef2ef8378a650489bc95f399a1a56b3e5f6adabc690c",
+    "baselineCaseHash": "sha256:5a23e43b9be1b69db516564371baed2e7b7fabe6b854adb52aed3bed0951dbd3"
+  },
+  "generatedAt": "2026-08-31T06:01:49.960Z"
+}

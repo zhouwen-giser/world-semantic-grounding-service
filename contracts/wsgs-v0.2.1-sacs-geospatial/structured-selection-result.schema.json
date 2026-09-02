@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2.1:sacs-geospatial:structured-selection-result:1.0",
+  "title": "Resolve World Selection Result 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "selectionId",
+    "selectionKind",
+    "priorGroundingId",
+    "priorResultHash",
+    "findingId",
+    "featureId",
+    "selectionRevision",
+    "sourceHash",
+    "selectedAt",
+    "expiresAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-structured-selection-result/1.0"
+    },
+    "selectionId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "selectionKind": {
+      "const": "FINDING_FEATURE"
+    },
+    "priorGroundingId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "priorResultHash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "findingId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "featureId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "referenceKey": {
+      "$ref": "#/$defs/referenceKey"
+    },
+    "upstreamSelectionToken": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "selectionRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sourceHash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "selectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "referenceKey": {}
+      },
+      "required": [
+        "referenceKey"
+      ],
+      "not": {
+        "properties": {
+          "upstreamSelectionToken": {}
+        },
+        "required": [
+          "upstreamSelectionToken"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "upstreamSelectionToken": {}
+      },
+      "required": [
+        "upstreamSelectionToken"
+      ],
+      "not": {
+        "properties": {
+          "referenceKey": {}
+        },
+        "required": [
+          "referenceKey"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "referenceKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "namespace",
+        "kind",
+        "id",
+        "version"
+      ],
+      "properties": {
+        "namespace": {
+          "const": "gowm"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^wrf_[0-9a-f]{32}$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    }
+  }
+}

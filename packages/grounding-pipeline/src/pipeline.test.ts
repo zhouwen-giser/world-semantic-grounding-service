@@ -65,7 +65,7 @@ function runInput(overrides: Partial<PipelineRunInput> = {}): PipelineRunInput {
     deadlineAt: new Date(Date.now() + 30_000),
     initialState: { request: { text: "查询2号车" } },
     immutableLocks: {
-      gowmCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+      gowmCommit: "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
       contractRevision: "gowm-world-gateway/0.6.3"
     },
     maxResultBytes: 1_048_576,
@@ -194,6 +194,27 @@ describe("GroundingPipeline", () => {
     expect(first.resultHash).toBe(recovered.resultHash);
     expect(first.value).toMatchObject({ resultHash: first.resultHash, execution: { elapsedMs: 12 } });
     expect(recovered.value).toMatchObject({ resultHash: recovered.resultHash, execution: { elapsedMs: 987 } });
+  });
+
+  it("binds the negotiated geospatial extension into the canonical result hash", async () => {
+    const run = async (measurement: number) => new GroundingPipeline({
+      executor: new ProductionPipelineStageExecutor(handlerMap([], {
+        RESULT_PERSIST: async () => ({
+          schemaVersion: "1.0",
+          status: "COMPLETED",
+          execution: { elapsedMs: 5 },
+          geospatialFindings: {
+            profile: "sacs-wsgs-geospatial-findings/1.0",
+            findings: [{ findingId: "finding-1", measurement }]
+          }
+        })
+      })),
+      journal: new MemoryJournal()
+    }).run(runInput());
+    const first = await run(12.5);
+    const changed = await run(13.5);
+    expect(first.resultHash).not.toBe(changed.resultHash);
+    expect(first.value).toMatchObject({ geospatialFindings: { findings: [{ measurement: 12.5 }] } });
   });
 
   it("aborts and rejects a stage that ignores its per-attempt timeout", async () => {

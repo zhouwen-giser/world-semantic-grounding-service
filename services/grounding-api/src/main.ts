@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { createProductionBackendFromEnvironment } from "./production.js";
+import { parseContractNegotiationConfig } from "./contract-negotiation.js";
 import { createGroundingApi } from "./server.js";
 import type { ApiAuthConfig } from "./types.js";
 
@@ -66,6 +67,9 @@ const production = createProductionBackendFromEnvironment();
 const app = await createGroundingApi({
   auth: authFromEnvironment(),
   backend: production.backend,
+  contractNegotiation: parseContractNegotiationConfig(
+    process.env["WSGS_SACS_GEOSPATIAL_CONSUMER_PRINCIPALS_JSON"]
+  ),
   schemas: loadFrozenSchemas(),
   logger: true
 });

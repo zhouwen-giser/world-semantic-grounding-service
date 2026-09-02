@@ -1,15 +1,15 @@
 {
   "name": "@wsgs/grounding-graph",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": "./dist/index.js",
   "dependencies": {
-    "@wsgs/contracts": "0.1.0",
-    "@wsgs/deterministic-parser": "0.1.0",
-    "@wsgs/gowm-gateway-client": "0.1.0",
-    "@wsgs/semantic-frame": "0.1.0"
+    "@wsgs/contracts": "0.2.1",
+    "@wsgs/deterministic-parser": "0.2.1",
+    "@wsgs/gowm-gateway-client": "0.2.1",
+    "@wsgs/semantic-frame": "0.2.1"
   }
 }

@@ -192,6 +192,103 @@ function operationRef(descriptor: CapabilityDescriptor): JsonObject {
   };
 }
 
+function alignmentOperationProjection(value: OperationLock): JsonObject {
+  return {
+    operationId: value.operationId,
+    operationVersion: value.operationVersion,
+    inputSchemaHash: value.inputSchemaHash,
+    outputSchemaHash: value.outputSchemaHash,
+    semanticProfileHash: value.semanticProfileHash,
+    maturity: value.maturity
+  };
+}
+
+function loadAlignmentRuntimeOperationLock(
+  path: string,
+  expectedSha256: string,
+  bundledLockPath: string
+): ConsumerLock {
+  const repositoryRoot = resolve(import.meta.dirname, "..", "..");
+  const absolute = resolve(path);
+  const safePath = relative(repositoryRoot, absolute).split(sep).join("/");
+  assertion(
+    safePath === "contracts/generated/gdps-v0.2.1/wsgs-southbound-operation-lock-v2.json",
+    "ALIGNMENT_RUNTIME_OPERATION_LOCK_PATH_INVALID"
+  );
+  assertion(/^sha256:[0-9a-f]{64}$/u.test(expectedSha256), "ALIGNMENT_RUNTIME_OPERATION_LOCK_HASH_INVALID");
+  const bytes = readFileSync(absolute);
+  assertion(sha256(bytes) === expectedSha256, "ALIGNMENT_RUNTIME_OPERATION_LOCK_HASH_MISMATCH");
+  const document = object(JSON.parse(bytes.toString("utf8")) as unknown, "ALIGNMENT_RUNTIME_OPERATION_LOCK_INVALID");
+  const expectedKeys = [
+    "availabilityContractHash",
+    "consumerContractPackage",
+    "contractCatalogRevision",
+    "defaultOperations",
+    "delegationContractHash",
+    "gatewayContractVersion",
+    "previewOperations",
+    "schemaVersion",
+    "semanticCatalogHash",
+    "snapshotContractHash"
+  ];
+  assertion(
+    JSON.stringify(Object.keys(document).sort()) === JSON.stringify(expectedKeys),
+    "ALIGNMENT_RUNTIME_OPERATION_LOCK_KEYS_INVALID"
+  );
+  const consumerContractPackage = object(
+    document["consumerContractPackage"],
+    "ALIGNMENT_RUNTIME_OPERATION_LOCK_PACKAGE_INVALID"
+  );
+  assertion(
+    JSON.stringify(Object.keys(consumerContractPackage).sort()) ===
+      JSON.stringify(["integrity", "name", "version"]),
+    "ALIGNMENT_RUNTIME_OPERATION_LOCK_PACKAGE_KEYS_INVALID"
+  );
+  assertion(document["schemaVersion"] === "2.0" &&
+    document["gatewayContractVersion"] === "0.6.3" &&
+    consumerContractPackage["name"] === "@gowm/world-gateway-contracts" &&
+    consumerContractPackage["version"] === "0.6.3" &&
+    /^sha512-[A-Za-z0-9+/]+={0,2}$/u.test(text(
+      consumerContractPackage["integrity"],
+      "ALIGNMENT_RUNTIME_OPERATION_LOCK_PACKAGE_INTEGRITY_MISSING"
+    )),
+  "ALIGNMENT_RUNTIME_OPERATION_LOCK_IDENTITY_INVALID");
+  for (const key of [
+    "availabilityContractHash",
+    "contractCatalogRevision",
+    "delegationContractHash",
+    "semanticCatalogHash",
+    "snapshotContractHash"
+  ]) {
+    assertion(/^sha256:[0-9a-f]{64}$/u.test(text(document[key], `ALIGNMENT_RUNTIME_OPERATION_LOCK_${key}_MISSING`)),
+      `ALIGNMENT_RUNTIME_OPERATION_LOCK_${key}_INVALID`);
+  }
+  const defaults = array(document["defaultOperations"], "ALIGNMENT_RUNTIME_DEFAULT_OPERATIONS_INVALID");
+  const previews = array(document["previewOperations"], "ALIGNMENT_RUNTIME_PREVIEW_OPERATIONS_INVALID");
+  assertion(defaults.length === 12 && previews.length === 30, "ALIGNMENT_RUNTIME_OPERATION_COUNT_MISMATCH");
+  const lock = document as unknown as ConsumerLock;
+  const allOperations = [...lock.defaultOperations, ...lock.previewOperations];
+  const operationKeys = allOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`);
+  assertion(new Set(operationKeys).size === 42, "ALIGNMENT_RUNTIME_OPERATION_DUPLICATE");
+
+  const bundled = loadOperationalGowmLock({
+    lockPath: bundledLockPath,
+    expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+    hashMode: "EXACT_BYTES"
+  }).lock as ConsumerLock;
+  const bundledOperations = [...bundled.defaultOperations, ...bundled.previewOperations];
+  for (const expectedKey of expectedOperationKeys) {
+    const live = allOperations.find((entry) => `${entry.operationId}@${entry.operationVersion}` === expectedKey);
+    const baseline = bundledOperations.find((entry) => `${entry.operationId}@${entry.operationVersion}` === expectedKey);
+    assertion(live !== undefined && baseline !== undefined, `ALIGNMENT_RUNTIME_OPERATION_MISSING_${expectedKey}`);
+    assertion(
+      canonical(alignmentOperationProjection(live)) === canonical(alignmentOperationProjection(baseline)),
+      `ALIGNMENT_RUNTIME_OPERATION_DRIFT_${expectedKey}`
+    );
+  }
+  return lock;
+}
+
 function nodeBudget(descriptor: CapabilityDescriptor): JsonObject {
   return {
     maximumRows: descriptor.limits.maximumRows ?? 100_000,
@@ -221,9 +318,26 @@ function loadRuntimeImageBuildEvidence(imageDigest: string): JsonObject {
   const { evidenceHash: _evidenceHash, ...payload } = report;
   assertion(canonicalSha256(payload) === evidenceHash, "GOWM_RUNTIME_IMAGE_BUILD_REPORT_HASH_MISMATCH");
   assertion(report["status"] === "PASS", "GOWM_RUNTIME_IMAGE_BUILD_REPORT_NOT_PASS");
-  assertion(report["sourceCommit"] === "fceed92398a0b86c0a0121aa2188a7f1d328e577", "GOWM_RUNTIME_IMAGE_BUILD_SOURCE_MISMATCH");
+  assertion(report["sourceCommit"] === "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14", "GOWM_RUNTIME_IMAGE_BUILD_SOURCE_MISMATCH");
   assertion(report["runtimeVersion"] === "0.6.4", "GOWM_RUNTIME_IMAGE_BUILD_VERSION_MISMATCH");
-  assertion(report["imageDigest"] === imageDigest, "GOWM_RUNTIME_IMAGE_BUILD_DIGEST_MISMATCH");
+  const independentBuildImageDigest = text(
+    report["imageDigest"],
+    "GOWM_RUNTIME_IMAGE_BUILD_INDEPENDENT_DIGEST_MISSING"
+  );
+  assertion(/^sha256:[0-9a-f]{64}$/u.test(independentBuildImageDigest),
+    "GOWM_RUNTIME_IMAGE_BUILD_INDEPENDENT_DIGEST_INVALID");
+  assertion(report["runtimeImageDigest"] === imageDigest, "GOWM_RUNTIME_IMAGE_BUILD_DIGEST_MISMATCH");
+  const independentBuildContentHash = text(
+    report["independentBuildContentHash"],
+    "GOWM_RUNTIME_IMAGE_BUILD_CONTENT_HASH_MISSING"
+  );
+  const runtimeContentHash = text(report["runtimeContentHash"], "GOWM_RUNTIME_IMAGE_CONTENT_HASH_MISSING");
+  assertion(/^sha256:[0-9a-f]{64}$/u.test(independentBuildContentHash) &&
+    independentBuildContentHash === runtimeContentHash && report["tagIndependentContentMatch"] === true,
+  "GOWM_RUNTIME_IMAGE_BUILD_CONTENT_MISMATCH");
+  assertion(JSON.stringify(report["tagScopedIdentityFieldsExcluded"]) ===
+    JSON.stringify(["Descriptor", "Id", "Identity", "Metadata", "RepoDigests", "RepoTags"]),
+  "GOWM_RUNTIME_IMAGE_BUILD_CONTENT_PROJECTION_INVALID");
   const sourceTree = text(report["sourceTree"], "GOWM_RUNTIME_IMAGE_BUILD_TREE_MISSING");
   assertion(/^[0-9a-f]{40}$/u.test(sourceTree), "GOWM_RUNTIME_IMAGE_BUILD_TREE_INVALID");
   const generatedAt = text(report["generatedAt"], "GOWM_RUNTIME_IMAGE_BUILD_TIME_MISSING");
@@ -234,6 +348,8 @@ function loadRuntimeImageBuildEvidence(imageDigest: string): JsonObject {
     reportPath: safePath,
     reportFileHash: sha256(bytes),
     reportPayloadHash: evidenceHash,
+    independentBuildImageDigest,
+    tagIndependentContentHash: independentBuildContentHash,
     generatedAt
   };
 }
@@ -280,7 +396,7 @@ function observeExactRuntimeBinding(baseUrl: URL): JsonObject {
   const imageIds = [...new Set(appContainers.map((entry) => entry.Image))];
   assertion(imageIds.length === 1 && /^sha256:[0-9a-f]{64}$/u.test(imageIds[0] ?? ""), "GOWM_RUNTIME_IMAGE_ID_MISMATCH");
   assertion(appContainers.every((entry) =>
-    entry.Config?.Labels?.["org.opencontainers.image.revision"] === "fceed92398a0b86c0a0121aa2188a7f1d328e577" &&
+    entry.Config?.Labels?.["org.opencontainers.image.revision"] === "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14" &&
     entry.Config?.Labels?.["org.opencontainers.image.version"] === "0.6.4"), "GOWM_RUNTIME_IMAGE_SOURCE_LABEL_MISMATCH");
   const gateway = appContainers.find((entry) =>
     entry.Config?.Labels?.["com.docker.compose.service"] === "world-capability-gateway");
@@ -293,7 +409,7 @@ function observeExactRuntimeBinding(baseUrl: URL): JsonObject {
     schemaVersion: "wsgs-gowm-runtime-binding/1.0",
     bindingStatus: "PASS",
     observedAt: new Date().toISOString(),
-    sourceCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    sourceCommit: "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     runtimeVersion: "0.6.4",
     gatewayContractVersion: "0.6.3",
     imageDigest: imageIds[0],
@@ -348,14 +464,31 @@ function verifyWsgsSourceCommit(): string {
     assertion(/^[0-9a-f]{40}$/u.test(expected), "WSGS_EVIDENCE_SOURCE_COMMIT_INVALID");
     assertion(expected === head, "WSGS_SOURCE_HEAD_MISMATCH");
   }
+  const exactTrackedRuntimeOutputs = [
+    "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+    "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+    "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
+  ] as const;
+  const verifiedSourcePathspecs = alignmentFocused
+    ? [".", ...exactTrackedRuntimeOutputs.map((path) => `:(top,exclude,literal)${path}`)]
+    : ["."];
   try {
-    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", "."], { stdio: "ignore" });
+    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", ...verifiedSourcePathspecs], {
+      stdio: "ignore"
+    });
   } catch {
     throw new Error("WSGS_SOURCE_TRACKED_DIRTY");
   }
   const status = execFileSync("git", ["-C", repositoryRoot, "status", "--porcelain=v1", "--untracked-files=all"], {
     encoding: "utf8", maxBuffer: 8 * 1024 * 1024
-  }).trim();
+  }).replace(/(?:\r?\n)+$/u, "");
   const declaredEvidencePaths = [
     process.env["GOWM_RUNTIME_IMAGE_BUILD_REPORT"]?.trim(),
     process.env["WSGS_RUNTIME_IMAGE_BUILD_REPORT"]?.trim()
@@ -370,9 +503,23 @@ function verifyWsgsSourceCommit(): string {
     "RUNTIME_IMAGE_BUILD_REPORT_PATH_NOT_ALLOWED"
   );
   const allowedUntrackedEvidence = new Set(declaredEvidencePaths.map((entry) => `?? ${entry}`));
-  const statusLines = status.length === 0 ? [] : status.split(/\r?\n/u);
+  if (alignmentFocused) {
+    for (const path of exactTrackedRuntimeOutputs) {
+      try {
+        execFileSync("git", ["-C", repositoryRoot, "ls-files", "--error-unmatch", "--", path], {
+          stdio: "ignore"
+        });
+      } catch {
+        throw new Error("GOWM_ALIGNMENT_RUNTIME_EVIDENCE_OUTPUT_NOT_TRACKED");
+      }
+    }
+  }
+  const allowedTrackedRuntimeEvidence = new Set(
+    alignmentFocused ? exactTrackedRuntimeOutputs.map((entry) => ` M ${entry}`) : []
+  );
+  const statusLines = status.length === 0 ? [] : status.split(/\r?\n/u).filter((line) => line.length > 0);
   assertion(
-    statusLines.every((line) => allowedUntrackedEvidence.has(line)),
+    statusLines.every((line) => allowedUntrackedEvidence.has(line) || allowedTrackedRuntimeEvidence.has(line)),
     "WSGS_SOURCE_WORKTREE_NOT_CLEAN_BEFORE_DIRECT_GATE"
   );
   return head;
@@ -433,18 +580,27 @@ async function main(): Promise<void> {
     import.meta.url
   );
   const externalLockPath = process.env["GOWM_SOUTHBOUND_LOCK_FILE"]?.trim();
-  const lockAuthority = externalLockPath
-    ? loadOperationalGowmLock({
-        lockPath: externalLockPath,
-        expectedSha256: required("GOWM_SOUTHBOUND_LOCK_SHA256") as `sha256:${string}`,
-        hashMode: "EXACT_BYTES"
-      })
-    : loadOperationalGowmLock({
-        lockPath: fileURLToPath(bundledLockPath),
-        expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
-        hashMode: "EXACT_BYTES"
-      });
-  const lock = lockAuthority.lock as ConsumerLock;
+  const operationalLockHash = externalLockPath
+    ? required("GOWM_SOUTHBOUND_LOCK_SHA256")
+    : `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`;
+  assertion(!alignmentFocused || externalLockPath !== undefined, "ALIGNMENT_RUNTIME_OPERATION_LOCK_REQUIRED");
+  const lock = alignmentFocused
+    ? loadAlignmentRuntimeOperationLock(
+        externalLockPath!,
+        required("GOWM_SOUTHBOUND_LOCK_SHA256"),
+        fileURLToPath(bundledLockPath)
+      )
+    : (externalLockPath
+        ? loadOperationalGowmLock({
+            lockPath: externalLockPath,
+            expectedSha256: required("GOWM_SOUTHBOUND_LOCK_SHA256") as `sha256:${string}`,
+            hashMode: "EXACT_BYTES"
+          })
+        : loadOperationalGowmLock({
+            lockPath: fileURLToPath(bundledLockPath),
+            expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+            hashMode: "EXACT_BYTES"
+          })).lock as ConsumerLock;
   const allLocks = [...lock.defaultOperations, ...lock.previewOperations];
   const requiredLocks = expectedOperationIds.map((operationId) => {
     const operation = allLocks.find((entry) => entry.operationId === operationId && entry.operationVersion === "1.0");
@@ -1291,13 +1447,13 @@ async function main(): Promise<void> {
     wsgsSourceCommit,
     formalWsgsPipelineEvidence: false,
     runtime: {
-      sourceCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+      sourceCommit: "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
       runtimeVersion: "0.6.4",
       gatewayContractVersion: "0.6.3",
       consumerPackage: "@gowm/world-gateway-contracts@0.6.3",
       contractCatalogRevision: lock.contractCatalogRevision,
       semanticCatalogHash: lock.semanticCatalogHash,
-      operationalLockHash: lockAuthority.lockHash,
+      operationalLockHash,
       runtimeBinding
     },
     summary: {
@@ -1341,7 +1497,7 @@ async function main(): Promise<void> {
       gatewayContractVersion: "0.6.3",
       transport: baseUrl.protocol,
       exactConsumerRevision: lock.contractCatalogRevision,
-      exactOperationalLockHash: lockAuthority.lockHash,
+      exactOperationalLockHash: operationalLockHash,
       operationalLockSource: externalLockPath ? "PINNED_EXTERNAL" : "BUNDLED_SOURCE_LOCK",
       privateKeyPathHash: sha256(privateKeyPath),
       executionClassification: trustedReady ? "TRUSTED" : "DIAGNOSTIC_ONLY_AFTER_FAIL_CLOSED_CONTRACT_DRIFT"

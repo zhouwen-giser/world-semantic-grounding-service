@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sacs:world-source-product:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sourceProductId",
+    "authority",
+    "productId",
+    "productType",
+    "productProfile",
+    "contentHash",
+    "descriptorId",
+    "descriptorHash",
+    "evidenceItemIds"
+  ],
+  "properties": {
+    "sourceProductId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "authority": {
+      "const": "GDPS_CURRENT_PRODUCT"
+    },
+    "productId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "productType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "productProfile": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "descriptorId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "descriptorHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "dataTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "qualitySummary": {
+      "type": "object"
+    },
+    "evidenceItemIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+      },
+      "minItems": 1,
+      "maxItems": 128
+    }
+  }
+}

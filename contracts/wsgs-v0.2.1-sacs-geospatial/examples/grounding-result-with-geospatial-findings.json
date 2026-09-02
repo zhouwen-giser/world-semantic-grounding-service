@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request.sacs.001",
+  "groundingId": "grounding.sacs.001",
+  "status": "COMPLETED",
+  "source": {
+    "messageId": "message.sacs.001",
+    "originalTextSha256": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "mentions": [],
+  "referenceProducts": [],
+  "evidenceItems": [
+    {
+      "evidenceProductId": "evidence.slope.current",
+      "productKind": "CAPABILITY_RESULT",
+      "authority": "GOWM_WORLD_CAPABILITY_GATEWAY",
+      "sourceOperation": "slope.get-at-point@1.0",
+      "upstreamStatus": "COMPLETED",
+      "payloadSchemaUri": "urn:gdps:slope-at-point-result:1.0",
+      "payloadSchemaHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "receiptIds": [
+        "receipt.slope.001"
+      ],
+      "evidenceIds": [
+        "upstream.evidence.slope.001"
+      ],
+      "unknowns": [],
+      "warnings": []
+    }
+  ],
+  "geospatialFindings": {
+    "profile": "sacs-wsgs-geospatial-findings/1.0",
+  "profileSchemaHash": "sha256:0590ba82c33d0fe54de8f7aaec936e95614186e9033433e564a4dd81691907e1",
+    "findings": [
+      {
+        "findingId": "finding.slope.point",
+        "findingKind": "POINT_MEASUREMENT",
+        "semanticConcept": "terrain.slope",
+        "querySemantics": "POINT_VALUE",
+        "status": "COMPLETED",
+        "evidenceItemIds": [
+          "evidence.slope.current"
+        ],
+        "sourceProductIds": [
+          "source.slope.current"
+        ],
+        "point": {
+          "type": "Point",
+          "coordinates": [
+            116.391,
+            39.907
+          ]
+        },
+        "value": 12.5,
+        "unit": "degree"
+      }
+    ],
+    "sourceProducts": [
+      {
+        "sourceProductId": "source.slope.current",
+        "authority": "GDPS_CURRENT_PRODUCT",
+        "productId": "product.slope.current",
+        "productType": "GEO_RASTER",
+        "productProfile": "gdps-slope-current/1.0",
+        "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "descriptorId": "descriptor.slope",
+        "descriptorHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "dataTime": "2026-08-30T00:00:00Z",
+        "qualitySummary": {
+          "qualityClass": "VERIFIED"
+        },
+        "evidenceItemIds": [
+          "evidence.slope.current"
+        ]
+      }
+    ],
+    "gaps": [],
+    "findingSetHash": "sha256:c71a9519c24835ecb39d514afeb9198fd7dca0dadcdf4e7f8a7e654087263ec3",
+    "sourceProductSetHash": "sha256:ba9f40f33ee1bd23e17ef80ae1eab43630a717b67a0b836146553f51e4110745"
+  },
+  "ambiguities": [],
+  "unresolvedMentions": [],
+  "capabilityGaps": [],
+  "warnings": [],
+  "execution": {
+    "parserVersion": "wsgs-parser/0.2.1",
+    "semanticModelReceiptIds": [],
+    "queryCompilerVersion": "wsgs-query-compiler/0.2.1",
+    "normalizerVersion": "wsgs-geospatial-normalizer/0.2.1",
+    "elapsedMs": 42
+  },
+  "resultHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

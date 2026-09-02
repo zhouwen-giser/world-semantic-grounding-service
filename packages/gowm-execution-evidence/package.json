@@ -1,9 +1,13 @@
 {
   "name": "@wsgs/gowm-execution-evidence",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": "./dist/index.js"
+  "exports": "./dist/index.js",
+  "dependencies": {
+    "@wsgs/gdps-descriptor-consumer": "0.2.1",
+    "@wsgs/gowm-contract-intake": "0.2.1"
+  }
 }

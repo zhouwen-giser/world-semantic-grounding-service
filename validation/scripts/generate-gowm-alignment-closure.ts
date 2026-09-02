@@ -49,8 +49,8 @@ const ALIGNMENT_LOCK_RELATIVE_PATH = "contracts/upstream/gowm-runtime-contract-a
 const DEVELOPMENT_LEDGER_RELATIVE_PATH = "reports/wsgs-v0.2/development-acceptance-ledger.json";
 const DEVELOPMENT_READY_REPORT_RELATIVE_PATH = "reports/wsgs-v0.2/development-ready-report.json";
 const EXPECTED_ACCEPTANCE_SHA256 =
-  "sha256:1d81b3b5ffb8c069498e04a160499db33e795fcef092db0f9bb9c382440528e4" as const;
-const EXPECTED_RUNTIME_COMMIT = "fceed92398a0b86c0a0121aa2188a7f1d328e577" as const;
+  "sha256:7f94454794e5a0a6f3898a138de5d8ee35ae6049849849810800ffdfc08f8d9d" as const;
+const EXPECTED_RUNTIME_COMMIT = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14" as const;
 const EXPECTED_RUNTIME_VERSION = "0.6.4" as const;
 const EXPECTED_GATEWAY_CONTRACT_VERSION = "0.6.3" as const;
 const EXPECTED_PACKAGE_NAME = "@gowm/world-gateway-contracts" as const;
@@ -103,7 +103,7 @@ const REQUIRED_PR_BODY_FRAGMENTS = [
   "WSGS implementation base: `c2a71a0f455c728ae45d70067f223e1450cfa427`",
   "Qualified WSGS source head: `b3315cbb5dce9635911a90ac095b93b1efab8e70`",
   "PR delivery head: verified after push against the live Draft PR metadata",
-  "Exact GOWM source: `fceed92398a0b86c0a0121aa2188a7f1d328e577`",
+  "Exact GOWM source: `c49bf415fdb4cbe19a09f341c34b6dd825e3ca14`",
   "`runtime=0.6.4 / Gateway contract=0.6.3`",
   "`@gowm/world-gateway-contracts@0.6.3`",
   "Machine invariant / negative gate: PASS",
@@ -153,6 +153,19 @@ const EVIDENCE_PATHS = {
   prReview: `${REPORT_ROOT}/pr-review.json`,
   prBody: `${REPORT_ROOT}/PR_BODY.md`
 } as const;
+
+const FORMAL_SOURCE_RUNTIME_EVIDENCE_EXCLUSIONS = [
+  EVIDENCE_PATHS.direct,
+  EVIDENCE_PATHS.runtimeBinding,
+  EVIDENCE_PATHS.runtimeImageBuild,
+  EVIDENCE_PATHS.wsgsRuntimeImageBuild,
+  EVIDENCE_PATHS.wsgsProcessBinding,
+  EVIDENCE_PATHS.formal,
+  EVIDENCE_PATHS.referenceIdentity,
+  EVIDENCE_PATHS.r3Composability,
+  EVIDENCE_PATHS.referenceNegative,
+  EVIDENCE_PATHS.traceability
+] as const;
 
 const OUTPUT_PATHS = {
   closure: `${REPORT_ROOT}/closure-report.json`,
@@ -313,12 +326,15 @@ function readAcceptanceMatrix(root: string): { rows: AcceptanceRow[]; hash: `sha
   const path = resolve(root, ACCEPTANCE_RELATIVE_PATH);
   invariant(existsSync(path), "ALIGNMENT_ACCEPTANCE_MATRIX_MISSING", ACCEPTANCE_RELATIVE_PATH);
   const bytes = readFileSync(path);
-  const hash = sha256(bytes);
-  invariant(hash === EXPECTED_ACCEPTANCE_SHA256, "ALIGNMENT_ACCEPTANCE_MATRIX_HASH_MISMATCH", hash);
   const source = bytes.toString("utf8");
   invariant(Buffer.from(source, "utf8").equals(bytes), "ALIGNMENT_ACCEPTANCE_MATRIX_NOT_UTF8");
-  invariant(!source.includes("\r"), "ALIGNMENT_ACCEPTANCE_MATRIX_NOT_CANONICAL_LF");
-  const lines = source.endsWith("\n") ? source.slice(0, -1).split("\n") : source.split("\n");
+  invariant(!/\r(?!\n)/u.test(source), "ALIGNMENT_ACCEPTANCE_MATRIX_LINE_ENDINGS_INVALID");
+  const normalizedSource = source.replace(/\r\n/gu, "\n");
+  const hash = sha256(normalizedSource);
+  invariant(hash === EXPECTED_ACCEPTANCE_SHA256, "ALIGNMENT_ACCEPTANCE_MATRIX_HASH_MISMATCH", hash);
+  const lines = normalizedSource.endsWith("\n")
+    ? normalizedSource.slice(0, -1).split("\n")
+    : normalizedSource.split("\n");
   const header = parseCsvLine(lines[0] ?? "", 1);
   invariant(
     canonicalJson(header) === canonicalJson(["id", "phase", "requirement", "gate", "evidence", "blocking"]),
@@ -499,7 +515,15 @@ function assertDirectRuntimeBinding(root: string, runtime: JsonObject, label: st
   invariant(imageBuildReport["status"] === "PASS", "ALIGNMENT_RUNTIME_IMAGE_BUILD_NOT_PASS", label);
   invariant(imageBuildReport["sourceCommit"] === EXPECTED_RUNTIME_COMMIT, "ALIGNMENT_RUNTIME_IMAGE_BUILD_COMMIT_MISMATCH", label);
   invariant(imageBuildReport["runtimeVersion"] === EXPECTED_RUNTIME_VERSION, "ALIGNMENT_RUNTIME_IMAGE_BUILD_VERSION_MISMATCH", label);
-  invariant(imageBuildReport["imageDigest"] === binding["imageDigest"], "ALIGNMENT_RUNTIME_IMAGE_BUILD_IMAGE_MISMATCH", label);
+  invariant(imageBuildReport["runtimeImageDigest"] === binding["imageDigest"], "ALIGNMENT_RUNTIME_IMAGE_BUILD_IMAGE_MISMATCH", label);
+  invariant(
+    /^sha256:[0-9a-f]{64}$/u.test(String(imageBuildReport["imageDigest"] ?? "")) &&
+      /^sha256:[0-9a-f]{64}$/u.test(String(imageBuildReport["independentBuildContentHash"] ?? "")) &&
+      imageBuildReport["independentBuildContentHash"] === imageBuildReport["runtimeContentHash"] &&
+      imageBuildReport["tagIndependentContentMatch"] === true,
+    "ALIGNMENT_RUNTIME_IMAGE_BUILD_CONTENT_MISMATCH",
+    label
+  );
   invariant(
     imageBuildReport["buildMethod"] === "DOCKER_BUILD_FROM_CLEAN_EXACT_GIT_TREE_WITH_OCI_LABELS",
     "ALIGNMENT_RUNTIME_IMAGE_BUILD_METHOD_MISMATCH",
@@ -1206,7 +1230,11 @@ function validateRuntimeEvidence(root: string, evidence: Map<string, EvidenceDoc
       wsgsSourceBinding["evidenceSourceCommit"] === formalSourceCommit &&
       wsgsSourceBinding["sourceTree"] === formalProcessBinding["sourceTree"] &&
       wsgsSourceBinding["trackedSourceClean"] === true &&
-      wsgsSourceBinding["verification"] === "GIT_HEAD_AND_TRACKED_DIFF",
+      wsgsSourceBinding["untrackedSourceClean"] === true &&
+      canonicalJson(wsgsSourceBinding["excludedRuntimeEvidenceOutputs"]) ===
+        canonicalJson(FORMAL_SOURCE_RUNTIME_EVIDENCE_EXCLUSIONS) &&
+      wsgsSourceBinding["verification"] ===
+        "GIT_HEAD_AND_WORKTREE_STATUS_EXCLUDING_EXACT_RUNTIME_EVIDENCE_OUTPUTS",
     "ALIGNMENT_FORMAL_WSGS_SOURCE_BINDING_MISMATCH"
   );
   invariant(

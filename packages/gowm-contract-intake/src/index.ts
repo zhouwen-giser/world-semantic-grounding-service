@@ -9,7 +9,7 @@ import addFormatsModule from "ajv-formats";
 
 export const GOWM_INTAKE_VERSION = "gowm-contract-intake/2.0" as const;
 export const GOWM_SOURCE_REPOSITORY = "zhouwen-giser/geospatial-operational-world-model" as const;
-export const GOWM_RUNTIME_SOURCE_COMMIT = "fceed92398a0b86c0a0121aa2188a7f1d328e577" as const;
+export const GOWM_RUNTIME_SOURCE_COMMIT = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14" as const;
 export const GOWM_RUNTIME_VERSION = "0.6.4" as const;
 export const GOWM_GATEWAY_CONTRACT_VERSION = "0.6.3" as const;
 export const GOWM_CONSUMER_PACKAGE_NAME = "@gowm/world-gateway-contracts" as const;
@@ -743,3 +743,5 @@ export function expectedGowmPackageIntegrityEvidence(): Readonly<PackageIntegrit
 
 export * from "./schema-registry.js";
 export * from "./operational-lock.js";
+export * from "./gdps-v021-finding-contract.generated.js";
+export * from "./gdps-schema-registry.js";

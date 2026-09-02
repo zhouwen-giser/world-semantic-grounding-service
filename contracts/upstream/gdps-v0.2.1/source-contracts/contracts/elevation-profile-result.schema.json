@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gdps:elevation-profile-result:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "productId", "contentHash", "lengthMetres", "samples"],
+  "properties": {
+    "schemaVersion": {"const": "gdps-elevation-profile/1.0"},
+    "productId": {"type": "string", "pattern": "^[a-z][a-z0-9-]{2,63}$"},
+    "contentHash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "lengthMetres": {"type": "number", "minimum": 0},
+    "samples": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["distanceMetres", "point", "value", "noData"],
+        "properties": {
+          "distanceMetres": {"type": "number", "minimum": 0},
+          "point": {"$ref": "urn:gdps:geojson:1.0#/$defs/point"},
+          "value": {"type": ["number", "null"]},
+          "noData": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gdps:result-feature:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "geometry", "properties"],
+  "properties": {
+    "type": {"const": "Feature"},
+    "id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "geometry": {"$ref": "urn:gdps:geojson:1.0#/$defs/geometry"},
+    "properties": {
+      "type": "object",
+      "maxProperties": 64,
+      "additionalProperties": {"type": ["string", "number", "boolean", "null"]}
+    }
+  }
+}

@@ -1,4 +1,7 @@
 import type { GroundingIdentityV2 } from "@wsgs/delegated-identity";
+import type { GroundingContractSelection } from "@wsgs/grounding-pipeline";
+
+import type { ContractNegotiationConfig } from "./contract-negotiation.js";
 
 export type GroundingIdentity = GroundingIdentityV2;
 
@@ -16,21 +19,31 @@ export type ApiAuthConfig =
 
 export interface GroundingApiBackend {
   readiness(): Promise<{ ready: boolean; reasons: string[] }>;
-  capabilities(identity: GroundingIdentity): Promise<unknown>;
+  capabilities(identity: GroundingIdentity, contractSelection?: GroundingContractSelection): Promise<unknown>;
   create(
     identity: GroundingIdentity,
     idempotencyKey: string,
     request: Record<string, unknown>,
-    preferAsync: boolean
+    preferAsync: boolean,
+    contractSelection?: GroundingContractSelection
   ): Promise<{ kind: "RESULT"; value: unknown } | { kind: "JOB"; value: unknown }>;
-  get(identity: GroundingIdentity, groundingId: string): Promise<unknown | null>;
-  cancel(identity: GroundingIdentity, groundingId: string): Promise<unknown | null>;
+  get(
+    identity: GroundingIdentity,
+    groundingId: string,
+    contractSelection?: GroundingContractSelection
+  ): Promise<unknown | null>;
+  cancel(
+    identity: GroundingIdentity,
+    groundingId: string,
+    contractSelection?: GroundingContractSelection
+  ): Promise<unknown | null>;
 }
 
 export interface GroundingApiConfig {
   auth: ApiAuthConfig;
   backend: GroundingApiBackend;
   schemas: Record<string, unknown>;
+  contractNegotiation?: ContractNegotiationConfig;
   bodyLimitBytes?: number;
   logger?: boolean;
   rateBudget?: {

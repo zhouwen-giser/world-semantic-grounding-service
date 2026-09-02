@@ -1,0 +1,23 @@
+{
+  "findingId": "finding.traversability.explanation",
+  "findingKind": "QUALIFIED_EXPLANATION",
+  "semanticConcept": "traversability.class",
+  "querySemantics": "QUALIFIED_EXPLANATION",
+  "status": "COMPLETED",
+  "evidenceItemIds": [
+    "evidence.traversability"
+  ],
+  "sourceProductIds": [
+    "source.traversability.current"
+  ],
+  "explanationCode": "TRAVERSABILITY_CLASS_FROM_PUBLISHED_FACTS",
+  "summary": "The published slope and land-cover facts satisfy the frozen traversability rule.",
+  "reasonCodes": [
+    "SLOPE_WITHIN_LIMIT",
+    "LANDCOVER_ALLOWED"
+  ],
+  "publishedFacts": {
+    "slopeDegrees": 8.2,
+    "landcoverClass": "GRASSLAND"
+  }
+}

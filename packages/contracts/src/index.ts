@@ -1,5 +1,12 @@
-export const WSGS_VERSION = "0.1.0" as const;
-export const WSGS_CONTRACT_VERSION = "sacs-wsgs-grounding/1.0" as const;
+export const WSGS_VERSION = "0.2.1" as const;
+export const WSGS_CONTRACT_VERSION = "sacs-wsgs-grounding/1.1" as const;
+export const WSGS_LEGACY_CONTRACT_VERSION = "sacs-wsgs-grounding/1.0" as const;
+export const SACS_GEOSPATIAL_FINDINGS_PROFILE = "sacs-wsgs-geospatial-findings/1.0" as const;
+export const SACS_GEOSPATIAL_TRANSPORT_MODE = "RESULT_EXTENSION" as const;
+export const SACS_GEOSPATIAL_CURRENTNESS_MODE = "DEDICATED_OPERATION" as const;
+export const SACS_GEOSPATIAL_CURRENTNESS_OPERATION = "VALIDATE_SOURCE_CURRENTNESS" as const;
+export const SACS_GEOSPATIAL_MAX_FINDINGS = 128 as const;
+export const supportedResultProfiles = [SACS_GEOSPATIAL_FINDINGS_PROFILE] as const;
 
 export {
   GOWM_CONSUMER_PACKAGE_NAME,
@@ -30,7 +37,9 @@ export const groundingOperations = [
   "GROUND_REFERENCES",
   "COMPILE_WORLD_QUERY",
   "EXECUTE_WORLD_QUERY",
-  "VALIDATE_REFERENCES"
+  "VALIDATE_REFERENCES",
+  "RESOLVE_WORLD_SELECTION",
+  "VALIDATE_SOURCE_CURRENTNESS"
 ] as const;
 
 export type GroundingOperation = (typeof groundingOperations)[number];
@@ -41,6 +50,42 @@ export type { GroundingJob } from "./generated/grounding-job.js";
 export type { WSGSCapabilitiesResponse } from "./generated/capabilities-response.js";
 export type { WorldSemanticFrame } from "./generated/world-semantic-frame.js";
 export type { GroundingGraph } from "./generated/grounding-graph.js";
+
+export {
+  defaultSacsGeospatialSchemaRegistry,
+  SACS_GEOSPATIAL_SCHEMA_NAMES,
+  SacsGeospatialSchemaRegistry,
+  SacsGeospatialSchemaValidationError
+} from "./sacs-geospatial-schema-registry.js";
+export type {
+  SacsGeospatialSchemaIssue,
+  SacsGeospatialSchemaName
+} from "./sacs-geospatial-schema-registry.js";
+export type {
+  WSGSCapabilitiesResponseForGroundingContract11,
+  WSGSCapabilitiesResponseForGroundingContract11 as WSGSCapabilitiesResponseV11
+} from "./generated-sacs-geospatial/capabilities-response-v1.1.js";
+export type {
+  SACSGeospatialFindingsProfile10,
+  SACSGeospatialFindingsProfile10 as SacsGeospatialFindings
+} from "./generated-sacs-geospatial/geospatial-findings.js";
+export type {
+  GroundingResult11WithSACSGeospatialFindings,
+  GroundingResult11WithSACSGeospatialFindings as GroundingResultV11
+} from "./generated-sacs-geospatial/grounding-result-extension.js";
+export type { ValidateSourceCurrentnessRequest10 } from "./generated-sacs-geospatial/source-currentness-request.js";
+export type { SACSSourceCurrentnessResult10 } from "./generated-sacs-geospatial/source-currentness-result.js";
+export type {
+  UrnWsgsV021SacsGeospatialSourceProduct10,
+  UrnWsgsV021SacsGeospatialSourceProduct10 as SacsGeospatialSourceProduct
+} from "./generated-sacs-geospatial/source-product.js";
+export type { ResolveWorldSelectionRequest10 } from "./generated-sacs-geospatial/structured-selection-request.js";
+export type { ResolveWorldSelectionResult10 } from "./generated-sacs-geospatial/structured-selection-result.js";
+export type { SACSGeospatialTypedGap10 } from "./generated-sacs-geospatial/typed-gap.js";
+export type {
+  UrnWsgsV021SacsGeospatialWorldFinding10,
+  UrnWsgsV021SacsGeospatialWorldFinding10 as SacsWorldFinding
+} from "./generated-sacs-geospatial/world-finding.js";
 
 export type { CapabilityBinding } from "./generated-internal-v02/capability-binding.js";
 export type { ContractIntakeReport } from "./generated-internal-v02/contract-intake-report.js";

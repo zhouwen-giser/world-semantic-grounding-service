@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "wsgs-gdps-consumer-lock/1.0",
+  "sources": {
+    "gdpsSha": "d9238d19bae98e387d390c936300358a30b024cb",
+    "gdpsImplementationTreeHash": "sha256:55504ba9d5c0ba856c3d9ae3c60ca60ece689084328bf5980616fc9c37d11da5",
+    "gdpsSourceFileCount": 445,
+    "gdpsEvidenceOnlyPaths": [
+      "handoff/**",
+      "reports/**"
+    ],
+    "gdpsSourceFingerprint": "sha256:acd52c0d7eb8f59cac16928a51cfb00db41badbd232d8cd3f341899f8b9c90b0",
+    "gowmSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "wsgsSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb",
+    "nativeContractSchemas": {
+      "capabilityBinding": "sha256:f96773ef90ba158911b5976af3e9cd711316979a5a864b812fc56ed7be55b385",
+      "recipeCatalog": "sha256:7ef8b1bba74116079171ebf4ff22996f2e8842a47d4350b59da25c7ab09e1276",
+      "consumerIntake": "sha256:52b30b7bc8309b36f6104221fbffc1abb40812f3c7ef32558d7bbf50b9f586af"
+    }
+  },
+  "gateway": {
+    "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+    "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+    "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
+    "instanceFingerprint": "sha256:d86aa82d760076f3dc5a5fbcb617555f7c7fb4a011b7f49a4d4b1d849cc61350",
+    "runningConfigFingerprint": "sha256:c8c6518162f61eb9a1dc9bb73a051a3d2a5cba32f39197a1c7820fb5a7fdfe9f",
+    "runningConfigEvidence": {
+      "overlayHash": "sha256:2660eebac2839bf78d4025ae609b9d65713d6684dc728177a0bb009460260018",
+      "gatewayImageFingerprint": "sha256:69a90b5d6e6e20a5f8b4f48ec75d0e3c68dc6329aa105435292af3cad3b68527",
+      "composeConfigFingerprint": "sha256:3376b99518004c79df0de02dd25a2a1a67ac5a9273fe651ab5b9cf3651008813"
+    }
+  },
+  "provider": {
+    "providerId": "gdps.geospatial-products",
+    "providerVersion": "0.2.1",
+    "providerManifestHash": "sha256:e33fe3e114f74ba285caffdfcfe0cfeca1a7103497d20f834eb0d821fa435a18"
+  },
+  "descriptorRegistry": {
+    "hash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
+    "productTypeCount": 34,
+    "profileCount": 35
+  },
+  "capabilityLockHash": "sha256:791a268736f1e62904e374838f4f3395904bc87cf4f68b50a8454bcf0677f87d",
+  "sampleDatasetLockHash": "sha256:825a1bed2829c59c9a9606674f7b2952a4ebbfeceb65d9586db59978bb71791f"
+}

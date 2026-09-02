@@ -6,11 +6,11 @@
     "GATEWAY_CONTRACT_0_6_3_LOCKED",
     "RUNTIME_CONTRACT_VERSION_INVARIANT_READY"
   ],
-  "alignmentLockHash": "sha256:951a7d7ba83f5e1cbec0c0fa4817ba461438462729b2de32e75405a696ecc2aa",
+  "alignmentLockHash": "sha256:de0d7368c8d82836b96f84eceb3e3633daf5098d910135eff5fa159563e73ed4",
   "invariant": {
     "status": "PASS",
     "invariant": "GOWM_RUNTIME_0_6_4__GATEWAY_CONTRACT_0_6_3",
-    "runtimeCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "runtimeCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "runtimeVersion": "0.6.4",
     "gatewayPackage": "@gowm/world-gateway-contracts@0.6.3",
     "gatewayContractVersion": "0.6.3",
@@ -19,9 +19,9 @@
   },
   "exactSourceVerification": {
     "status": "PASS",
-    "sourceCommit": "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+    "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
     "liveOperationCount": 120,
     "sourceDirectoryIncluded": false
   },
-  "evidenceHash": "sha256:1bfa4427f9966ed88512764e9ed9ba0f5065f0db1f0cc2861c4ff8835a29c8d4"
+  "evidenceHash": "sha256:06f194d78c8b24a84818ca28fa4bf4b0206096915e7de5653026408adce01e79"
 }

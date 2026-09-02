@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "wsgs-v021-n01-sacs-schema-compatibility/1.0",
+  "phase": "N01",
+  "generator": {
+    "name": "generate-sacs-geospatial-contract-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:3f875b407eef469d9ccd0c323ad4762a60c6dfe3435f6dba8948b4067c4abe7f",
+  "verificationRecipe": {
+    "writeCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
+    "checkCommand": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
+    "expectedSuccessMarker": "WSGS_V021_GEOSPATIAL_CONTRACT_READY",
+    "embeddedExecutionClaim": false,
+    "exitCode": null
+  },
+  "executionEvidence": {
+    "status": "RECORDED_EXTERNALLY_IN_PHASE_REPORT_AND_CI",
+    "phaseReportPath": "reports/sacs-geospatial-v1/N01-phase-report.md"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "consumerRuntimeQualification": "BLOCKED_UPSTREAM",
+  "productionQualified": false,
+  "versionSurfaces": {
+    "sourceAndWorkspace": {
+      "version": "0.2.1",
+      "workspaceManifestCount": 19,
+      "surfaceHash": "sha256:75599640f40960abdf794cfcdd98d9bfa85f6da16127f331c04132f2aebf3ab9",
+      "status": "PASS"
+    },
+    "releaseSourceFiles": {
+      "status": "PASS",
+      "paths": [
+        "Dockerfile",
+        "compose.yaml",
+        "README.md",
+        "CHANGELOG.md"
+      ]
+    },
+    "runtimeCapabilities": {
+      "status": "NOT_RUN",
+      "ownerPhase": "N04"
+    },
+    "authoritativeHandoffMetadata": {
+      "status": "NOT_RUN",
+      "ownerPhase": "N08"
+    },
+    "crossPhaseAcceptanceGate": "NOT_RUN"
+  },
+  "status": "SCHEMA_COMPATIBILITY_PASS_CONSUMER_BLOCKED",
+  "consumer": {
+    "repository": "zhouwen-giser/single-agent-chat-server",
+    "pullRequest": 17,
+    "headSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+    "worldFindingSnapshotNormalizedLfSha256": "sha256:c8c6e5392f266ba56bf525fd09cf0167373e2616b059bb4d262d99c644b3aafe",
+    "sourceProductSnapshotNormalizedLfSha256": "sha256:ec0076a8bf292acc0a0798148704c2380a17074d6b8e257e102f4d24c5560b66",
+    "resultParserSourceNormalizedLfSha256": "sha256:d415c044e7f7273a5a38f961b811a64bc5ea4d376427bda01157b6c82164795c",
+    "consumerSourceNormalizedLfSha256": "sha256:64cf7340f90fe74ad1111845c9f7fe97c36ffcb08aa2756f31695756c0f65800",
+    "consumerFixtureSource": {
+      "path": "tests/world-explanation-fixtures.ts",
+      "normalizedLfSha256": "sha256:f9ce9a1ecc6d01a9fbb4e8843e69d0f5063c4b3fdbecc8111321d67c72bb9ffc",
+      "canonicalProjectionHash": "sha256:1490de261dd8e45ddbf8604c8da6cbb2e08b3fa57bf0c7a415bf4a1ce6c182df",
+      "projectedFindingCount": 6,
+      "projectedSourceProductCount": 1
+    }
+  },
+  "bidirectionalSchemaCases": {
+    "findingCaseCount": 6,
+    "sourceProductCaseCount": 1,
+    "wsgsToSacsCaseCount": 7,
+    "sacsToWsgsCaseCount": 7,
+    "wsgsToSacs": "PASS",
+    "sacsFixtureToWsgs": "PASS"
+  },
+  "explicitProjectionBoundary": {
+    "structuredSelection": "ADAPTER_PROJECTION_REQUIRED",
+    "reason": "SACS internal persisted selection includes principal context; WSGS request derives authority from authentication and rejects body principal fields."
+  },
+  "provisionalHashDisposition": "CURRENT_PR17_GIT_BLOBS_OVERRIDE_STALE_PROVISIONAL_INTAKE_HASHES",
+  "blockersNotResolvedByN01SchemaCompatibility": [
+    "SACS_OPERATION_ENUM_MISSING_VALIDATE_SOURCE_CURRENTNESS",
+    "SACS_CAPABILITY_PREFLIGHT_EXACT_SET_MISMATCH",
+    "SACS_AUTHORITATIVE_HANDOFF_INTAKE_NOT_IMPLEMENTED",
+    "SACS_REAL_18_CASE_RUNNER_NOT_IMPLEMENTED"
+  ],
+  "consumerCompatible": false,
+  "realConsumerCasesRun": 0
+}

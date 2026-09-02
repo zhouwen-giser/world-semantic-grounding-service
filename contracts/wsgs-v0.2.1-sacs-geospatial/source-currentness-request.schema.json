@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2.1:sacs-geospatial:source-currentness-request:1.0",
+  "title": "Validate Source Currentness Request 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sourceProductId",
+    "productId",
+    "previousContentHash"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wsgs-source-currentness-request/1.0"
+    },
+    "sourceProductId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "productId": {
+      "$ref": "#/$defs/identifier"
+    },
+    "previousContentHash": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

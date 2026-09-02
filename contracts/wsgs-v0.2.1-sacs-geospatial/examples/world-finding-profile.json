@@ -1,0 +1,39 @@
+{
+  "findingId": "finding.elevation.profile",
+  "findingKind": "PROFILE",
+  "semanticConcept": "terrain.elevation",
+  "querySemantics": "PROFILE",
+  "status": "COMPLETED",
+  "evidenceItemIds": [
+    "evidence.elevation.profile"
+  ],
+  "sourceProductIds": [
+    "source.elevation.current"
+  ],
+  "unit": "m",
+  "samples": [
+    {
+      "distanceM": 0,
+      "value": 38.2,
+      "point": {
+        "type": "Point",
+        "coordinates": [
+          116.391,
+          39.907
+        ]
+      }
+    },
+    {
+      "distanceM": 25,
+      "value": 39.1,
+      "point": {
+        "type": "Point",
+        "coordinates": [
+          116.3912,
+          39.9071
+        ]
+      }
+    }
+  ],
+  "truncated": false
+}

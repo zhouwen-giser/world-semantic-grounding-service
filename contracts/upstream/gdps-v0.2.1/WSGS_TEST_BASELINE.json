@@ -1,0 +1,1682 @@
+{
+  "schemaVersion": "wsgs-gdps-test-baseline/1.0",
+  "consumerLockHash": "sha256:0cad7d644a85c4489c4b0c5f4137c4633ee75276b25a0518fc9e083ad10b3c0a",
+  "recipeLockHash": "sha256:b0e0a7688ce800c7cda50d107279211a050a89b960a396e9aa2ee216e8a00b68",
+  "sampleDatasetLockHash": "sha256:825a1bed2829c59c9a9606674f7b2952a4ebbfeceb65d9586db59978bb71791f",
+  "queryCorpusHash": "sha256:4f60e2ceb8ff96dcea76952b3bc3369bada54ddbcc12bc755b2ed2ae56a6559a",
+  "canarySpatialInputHash": "sha256:a02f3c254495a6f173e49cacda22739fa116f63aec138a6ac5694da6fb6c93a1",
+  "negativeDriverContractHash": "sha256:4bc457721b0934362529d863aa1062c719e447b1eb7900d7a6f7da6f0d94d69a",
+  "w43CurrentnessContractHash": "sha256:8b684f1f669cb2be50f4be7ffce854ffd3a97dd73563784179345aa7121e30a3",
+  "w43Readiness": {
+    "driverAvailability": "AVAILABLE_NOT_EXECUTED",
+    "driverSourcePath": "scripts/v021_w43_barrier.py",
+    "driverSourceHash": "sha256:249930ea8ecdf0a4740f6917b9321cb74f5fce20a57afd8d1d1166a3a5194efd",
+    "attestationSchemaPath": "contracts/v021-w43-barrier-attestation.schema.json",
+    "attestationSchemaHash": "sha256:9e5e2b77ffa40f699678c4fdeed57d7d946b76829457ecff1d6ead2c030a6097",
+    "currentnessContractHash": "sha256:8b684f1f669cb2be50f4be7ffce854ffd3a97dd73563784179345aa7121e30a3",
+    "runtimeQualification": "NOT_RUN",
+    "runtimeEvidenceIncluded": false,
+    "transitionAttestationSemantics": "FIXTURE_TRANSITION_ONLY_NOT_W43_RUNTIME_PASS"
+  },
+  "gatewayCanaryAttestation": {
+    "status": "PASS",
+    "executionPath": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY",
+    "authenticationMode": "SIGNED_DELEGATION_V1",
+    "requiredCapabilityCount": 30,
+    "availableCapabilityCount": 30,
+    "passedCaseCount": 30,
+    "directProviderCalls": 0,
+    "datasetState": "FINAL_B",
+    "datasetHash": "sha256:1d217891aa5355bda2f27bda7b1ad02877d00e7006d98c24cc3b997d6a4bfd6b",
+    "spatialInputHash": "sha256:a02f3c254495a6f173e49cacda22739fa116f63aec138a6ac5694da6fb6c93a1",
+    "truthContractHash": "sha256:a1b11f9f0c84cffe35940450df1ac2d4e83ea89245a2f8c69df7425eeddcf3e9",
+    "expectedTruthHash": "sha256:c33b52d3982a9ba2c0d105137f9f55aea51d7cb424758761076e76235f34fe2e",
+    "negativeDriverContractHash": "sha256:4bc457721b0934362529d863aa1062c719e447b1eb7900d7a6f7da6f0d94d69a",
+    "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+    "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+    "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
+    "gatewayBaseUrlHash": "sha256:327c5e3e90c30ac3b0b0986ff4a4de5b851f53bbc46e4d1715b0d061fa1a8752",
+    "gatewayInstanceFingerprint": "sha256:d86aa82d760076f3dc5a5fbcb617555f7c7fb4a011b7f49a4d4b1d849cc61350",
+    "runningConfigFingerprint": "sha256:c8c6518162f61eb9a1dc9bb73a051a3d2a5cba32f39197a1c7820fb5a7fdfe9f",
+    "onboardingEvidenceHash": "sha256:20e4394ed66db4d7c6d8f0b398c93e9bf8ec80d1d0e9cd446011cfaa21f330e5",
+    "onboardingGeneratedAt": "2026-08-31T05:27:16.035138+00:00",
+    "canaryGeneratedAt": "2026-08-31T05:29:13.465Z",
+    "runEvidenceHash": "sha256:446a57714f90d5fb072f32578e9f2347d2193d327d62004105799a8f30bbfa62",
+    "protocolEvidenceHash": "sha256:3416aba7a255d32a51afaff9c6d02ac6615262426966fae52b80f8bec50d2a8a",
+    "negativeDriverAttestations": {
+      "CURRENT_PRODUCT_ABSENT": {
+        "status": "PASS",
+        "executionPath": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY",
+        "operationId": "geo-vector.find-in-area",
+        "operationVersion": "1.0",
+        "descriptorId": "UAV_RESTRICTION/RESTRICTION_ZONES",
+        "inputHash": "sha256:46eb5bb94878f69dfa467f255e448922f46ae93d41817c48725a2230e6f43fba",
+        "matchingCurrentProductCount": 0,
+        "upstreamStatus": "NO_DATA",
+        "reasonCode": "PRODUCT_NOT_AVAILABLE",
+        "mustNotInferFalse": true,
+        "directProviderCalls": 0
+      },
+      "UPSTREAM_TRUNCATED_TRUE": {
+        "status": "PASS",
+        "executionPath": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY",
+        "operationId": "geo-vector.find-in-area",
+        "operationVersion": "1.0",
+        "descriptorId": "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+        "inputHash": "sha256:da8df08af2a06a883a3e8c8a5893d0853c77756ebebbf3cd7092c3d7aaf21cf6",
+        "productId": "gdps-baseline-drainage",
+        "contentHash": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7",
+        "upstreamStatus": "COMPLETED",
+        "authoritativeFeatureCount": 3,
+        "returnedFeatureCount": 1,
+        "truncated": true,
+        "requestedLimit": 1,
+        "directProviderCalls": 0
+      }
+    },
+    "credentialMaterialRecorded": false
+  },
+  "gatewayCanaryEvidencePayload": {
+    "datasetState": "FINAL_B",
+    "datasetHash": "sha256:1d217891aa5355bda2f27bda7b1ad02877d00e7006d98c24cc3b997d6a4bfd6b",
+    "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+    "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+    "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
+    "spatialInputHash": "sha256:a02f3c254495a6f173e49cacda22739fa116f63aec138a6ac5694da6fb6c93a1",
+    "truthContractHash": "sha256:a1b11f9f0c84cffe35940450df1ac2d4e83ea89245a2f8c69df7425eeddcf3e9",
+    "expectedTruthHash": "sha256:c33b52d3982a9ba2c0d105137f9f55aea51d7cb424758761076e76235f34fe2e",
+    "negativeDriverContractHash": "sha256:4bc457721b0934362529d863aa1062c719e447b1eb7900d7a6f7da6f0d94d69a",
+    "emptyVsNoProduct": {
+      "status": "PASS",
+      "emptyQueryStatus": "COMPLETED",
+      "emptyFeatureCount": 0,
+      "missingProductStatus": "NO_DATA",
+      "missingProductCode": "PRODUCT_NOT_AVAILABLE"
+    },
+    "negativeDriverAttestations": {
+      "CURRENT_PRODUCT_ABSENT": {
+        "status": "PASS",
+        "executionPath": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY",
+        "operationId": "geo-vector.find-in-area",
+        "operationVersion": "1.0",
+        "descriptorId": "UAV_RESTRICTION/RESTRICTION_ZONES",
+        "inputHash": "sha256:46eb5bb94878f69dfa467f255e448922f46ae93d41817c48725a2230e6f43fba",
+        "matchingCurrentProductCount": 0,
+        "upstreamStatus": "NO_DATA",
+        "reasonCode": "PRODUCT_NOT_AVAILABLE",
+        "mustNotInferFalse": true,
+        "directProviderCalls": 0
+      },
+      "UPSTREAM_TRUNCATED_TRUE": {
+        "status": "PASS",
+        "executionPath": "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY",
+        "operationId": "geo-vector.find-in-area",
+        "operationVersion": "1.0",
+        "descriptorId": "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+        "inputHash": "sha256:da8df08af2a06a883a3e8c8a5893d0853c77756ebebbf3cd7092c3d7aaf21cf6",
+        "productId": "gdps-baseline-drainage",
+        "contentHash": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7",
+        "upstreamStatus": "COMPLETED",
+        "authoritativeFeatureCount": 3,
+        "returnedFeatureCount": 1,
+        "truncated": true,
+        "requestedLimit": 1,
+        "directProviderCalls": 0
+      }
+    },
+    "scopeIsolation": {
+      "status": "PASS",
+      "foreignHttpStatus": 403,
+      "errorCode": "SCOPE_DENIED"
+    },
+    "cases": [
+      {
+        "caseId": "CAP-01",
+        "operationId": "geo-product.get",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:86e0f7f39e4195716a6d4b244a3f0d5626cd05055e5ed31a6853b633cc9d51ed",
+        "productId": "gdps-baseline-dtm",
+        "contentHash": "sha256:993fd49c23153e6c91262ba9da1b25ff8e4860a9a679e1ade0f7a0ea93d1b6c5",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_PRODUCT_METADATA_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:c683bbe2cc85b2acc8e0c6ca1a61446ff4016f8e4cb5cf737d05607c88d773ef",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:86e0f7f39e4195716a6d4b244a3f0d5626cd05055e5ed31a6853b633cc9d51ed"
+        }
+      },
+      {
+        "caseId": "CAP-02",
+        "operationId": "geo-product.search",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:a65d265fc3f2915b4111c479d85fc44d8a06e7dd5f3d26ea6177bba1a2181142",
+        "productId": null,
+        "contentHash": null,
+        "truthAssertions": [
+          "CATALOG_EXACT_DATASET_LOCK",
+          "CATALOG_PRODUCT_TYPES_AND_PROFILES",
+          "CATALOG_NOT_TRUNCATED"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:05599e1c4b02a30d407ccd1a30967e0c3990d982032be1912dd9da8db2058798",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:a65d265fc3f2915b4111c479d85fc44d8a06e7dd5f3d26ea6177bba1a2181142"
+        }
+      },
+      {
+        "caseId": "CAP-03",
+        "operationId": "geo-product.check-current",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:8f7084e6d84f1a8d9cf5dd4bc778735546aeed58fdb52a8b86d2d4e41a88348a",
+        "productId": "gdps-baseline-dtm",
+        "contentHash": "sha256:993fd49c23153e6c91262ba9da1b25ff8e4860a9a679e1ade0f7a0ea93d1b6c5",
+        "truthAssertions": [
+          "CURRENTNESS_PRODUCT_ID",
+          "CURRENTNESS_IS_CURRENT",
+          "CURRENTNESS_CONTENT_HASH"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:bc3c958bfe150ea94c6b7a3b8f8e6f27d494d0659f9e96b82a63c46aa14ad205",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:8f7084e6d84f1a8d9cf5dd4bc778735546aeed58fdb52a8b86d2d4e41a88348a"
+        }
+      },
+      {
+        "caseId": "CAP-04",
+        "operationId": "elevation.sample",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:b3ee22b1fec77aa60656826a3550491e7c5fe249e870f0fc96e10fbbece0f60e",
+        "productId": "gdps-baseline-dtm",
+        "contentHash": "sha256:993fd49c23153e6c91262ba9da1b25ff8e4860a9a679e1ade0f7a0ea93d1b6c5",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_VALUE_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:11ac837a1a0efbf45130135e7522fd9b2a4e6316cc371447273ad5aad7c1e95d",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:993fd49c23153e6c91262ba9da1b25ff8e4860a9a679e1ade0f7a0ea93d1b6c5"
+        }
+      },
+      {
+        "caseId": "CAP-05",
+        "operationId": "elevation.profile",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:3b025688f129154c603235b959e5c8f4af7f0dbf18b89c0fb8bbda816cc50b7b",
+        "productId": "gdps-baseline-dtm",
+        "contentHash": "sha256:993fd49c23153e6c91262ba9da1b25ff8e4860a9a679e1ade0f7a0ea93d1b6c5",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PROFILE_VALUES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:11ac837a1a0efbf45130135e7522fd9b2a4e6316cc371447273ad5aad7c1e95d",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:993fd49c23153e6c91262ba9da1b25ff8e4860a9a679e1ade0f7a0ea93d1b6c5"
+        }
+      },
+      {
+        "caseId": "CAP-06",
+        "operationId": "elevation.sample-surface",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:f6bd8e0361f797f0008ebc92adc49fa67cfb064af10281c9543ef0a945caf997",
+        "productId": "gdps-baseline-dsm",
+        "contentHash": "sha256:a6d164a040052c1dbb009f83599518c98f78b96eb899436226d4a6f53272f81c",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_VALUE_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:b04eb8f5423cb016fadcc810cf0f8a3a5e7a486ef5e83ef7c9dad00fcadee8dd",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:a6d164a040052c1dbb009f83599518c98f78b96eb899436226d4a6f53272f81c"
+        }
+      },
+      {
+        "caseId": "CAP-07",
+        "operationId": "terrain.get-class",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:2282c01927a99873f18e007b46d3ee3ffb9918dde087dfb7da8dadf6bc0c0076",
+        "productId": "gdps-baseline-terrain",
+        "contentHash": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_CLASS_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:c8a21c961497b6d8eb5573abcc683eac065264e2760fc5beada477b692f4a45b",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1"
+        }
+      },
+      {
+        "caseId": "CAP-08",
+        "operationId": "terrain.find-by-class",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:b4a906057072b43d30bd3c8d6333f5d26edd387dc7d001731b0c6dfb7aa2d2fb",
+        "productId": "gdps-baseline-terrain",
+        "contentHash": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:c8a21c961497b6d8eb5573abcc683eac065264e2760fc5beada477b692f4a45b",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1"
+        }
+      },
+      {
+        "caseId": "CAP-09",
+        "operationId": "terrain.find-high-ground",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:b4a906057072b43d30bd3c8d6333f5d26edd387dc7d001731b0c6dfb7aa2d2fb",
+        "productId": "gdps-baseline-terrain",
+        "contentHash": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:c8a21c961497b6d8eb5573abcc683eac065264e2760fc5beada477b692f4a45b",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1"
+        }
+      },
+      {
+        "caseId": "CAP-10",
+        "operationId": "terrain.find-depressions",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:d7b1d0a2516b2d95ad4ae67d80c228788bc607f0c0bf7c32765070a7918b7bcf",
+        "productId": "gdps-baseline-terrain",
+        "contentHash": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:c8a21c961497b6d8eb5573abcc683eac065264e2760fc5beada477b692f4a45b",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:7b3aba910d85c9736a55463fe132a9993530f92a482cd8390a9da129d8f59ba1"
+        }
+      },
+      {
+        "caseId": "CAP-11",
+        "operationId": "landcover.get-class",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:06f0b22ad4ec6267329084a464f5278eed6b6cdb7bf56e04bb2c53a8861d53ee",
+        "productId": "gdps-baseline-landcover",
+        "contentHash": "sha256:c37576c7d8f9a48c7875db54cd5904a0f21807958b80d9e30f7492c6ff81211c",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_CLASS_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:36ff3c5e5d8ada374fcc010015416231123fadac1e0bf8189a1c981aa31351fb",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:c37576c7d8f9a48c7875db54cd5904a0f21807958b80d9e30f7492c6ff81211c"
+        }
+      },
+      {
+        "caseId": "CAP-12",
+        "operationId": "landcover.find-by-class",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:7f155b312e794559c359c007657aad2a4455d2732c26b3c9bdbdc8adf5a2b039",
+        "productId": "gdps-baseline-landcover",
+        "contentHash": "sha256:c37576c7d8f9a48c7875db54cd5904a0f21807958b80d9e30f7492c6ff81211c",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:36ff3c5e5d8ada374fcc010015416231123fadac1e0bf8189a1c981aa31351fb",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:c37576c7d8f9a48c7875db54cd5904a0f21807958b80d9e30f7492c6ff81211c"
+        }
+      },
+      {
+        "caseId": "CAP-13",
+        "operationId": "hydrology.find-water",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:ec5fea79d8f1fe71e6004e5cf1a3f7ef30338a79d388b393c198507e3c1404ec",
+        "productId": "gdps-baseline-water",
+        "contentHash": "sha256:73ba5a891d6d9c72bf43fa9f123540012c667888ffbf63bacaaa25139f157cb8",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:7b9e1065ef632a7549c19cb6faaf4524967919264ee803ecafac74a87385b63e",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:73ba5a891d6d9c72bf43fa9f123540012c667888ffbf63bacaaa25139f157cb8"
+        }
+      },
+      {
+        "caseId": "CAP-14",
+        "operationId": "hydrology.find-wetlands",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:922715b7e712d28efad644126d810933165ab56404fd0597e0e7e75cfb012cbb",
+        "productId": "gdps-baseline-wetland",
+        "contentHash": "sha256:c73f58d4ddbab800c986e3f5ac8d12a778872464dd9fbf32b5e15ac447fa345f",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:ae9b83ee5e54b27954c3f3b4f10743978f5158d865d0fe714869fe5a1f6e3e08",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:c73f58d4ddbab800c986e3f5ac8d12a778872464dd9fbf32b5e15ac447fa345f"
+        }
+      },
+      {
+        "caseId": "CAP-15",
+        "operationId": "surface-material.get",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:e2ba0504212bf8bbaf32b6ef95567531e00388e3aea6baac249c0a774db3115f",
+        "productId": "gdps-baseline-surface-material",
+        "contentHash": "sha256:1fee3b4e4a0a5dde5a1b6d0368bb5414531ab7297df5cc006d24ea1d85ea1c2e",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_CLASS_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:48b8d0a4d7455dae2cda36362ccc641e74feba55ef1e95e9b6643a35fd4ed11a",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:1fee3b4e4a0a5dde5a1b6d0368bb5414531ab7297df5cc006d24ea1d85ea1c2e"
+        }
+      },
+      {
+        "caseId": "CAP-16",
+        "operationId": "surface-material.find-by-class",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:ba3e3de2dd4c5ff2ec3b140224db725d85806c0ad5c2fcf50b8b0f629793804b",
+        "productId": "gdps-baseline-surface-material",
+        "contentHash": "sha256:1fee3b4e4a0a5dde5a1b6d0368bb5414531ab7297df5cc006d24ea1d85ea1c2e",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:48b8d0a4d7455dae2cda36362ccc641e74feba55ef1e95e9b6643a35fd4ed11a",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:1fee3b4e4a0a5dde5a1b6d0368bb5414531ab7297df5cc006d24ea1d85ea1c2e"
+        }
+      },
+      {
+        "caseId": "CAP-17",
+        "operationId": "obstacle.find-buildings",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:79f11c283631493c210612dbe65a7911fa0a1dd7a47cc5e901ca5112435b4d8b",
+        "productId": "gdps-baseline-buildings",
+        "contentHash": "sha256:8c8a6360e597f94abc401156f4d31ef4870b13525238ea9ce7557012485a2fc8",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_VECTOR_FEATURES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:be402dbd35a6fde85c2c8964a85d3ddebb5d19f8139a75c1e7fc3d757e6b953c",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:8c8a6360e597f94abc401156f4d31ef4870b13525238ea9ce7557012485a2fc8"
+        }
+      },
+      {
+        "caseId": "CAP-18",
+        "operationId": "obstacle.find-nearby",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:78c445e4072636c3784ef05d2de37f31b0982864cab6d2f77435ce3f737127e9",
+        "productId": "gdps-baseline-obstacles",
+        "contentHash": "sha256:c48d07ee5d6fa689132a066d057983bb840f734d503eb6f66fd6c4f9a6dedfa9",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_VECTOR_FEATURES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:bc98069a286dd537f2162f6c29702e718fa109bb201eab7aa828858321a0a5df",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:c48d07ee5d6fa689132a066d057983bb840f734d503eb6f66fd6c4f9a6dedfa9"
+        }
+      },
+      {
+        "caseId": "CAP-19",
+        "operationId": "obstacle.find-intersections",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:eccab641ca10a4388b19e70aa86a2a36b16388b4852dce3cb839fd868fa25708",
+        "productId": "gdps-baseline-obstacles",
+        "contentHash": "sha256:c48d07ee5d6fa689132a066d057983bb840f734d503eb6f66fd6c4f9a6dedfa9",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_VECTOR_FEATURES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:bc98069a286dd537f2162f6c29702e718fa109bb201eab7aa828858321a0a5df",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:c48d07ee5d6fa689132a066d057983bb840f734d503eb6f66fd6c4f9a6dedfa9"
+        }
+      },
+      {
+        "caseId": "CAP-20",
+        "operationId": "traversability.get",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:15abe826b59d478e5fbb63787d38b5a0c789ddce7dd71bb19f5e8ef7555a5024",
+        "productId": "gdps-baseline-ugv-traversability",
+        "contentHash": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_CLASS_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:99c6a1ddb5834bea69a14ae0fbed042db6e494f84f3db9d8b2300ddb1a6874ca",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a"
+        }
+      },
+      {
+        "caseId": "CAP-21",
+        "operationId": "traversability.find-passable",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:cbbef593ad090a9f5335850b8b82590f1dca1a7d1d0a9e9c41aecdcf436a12d4",
+        "productId": "gdps-baseline-ugv-traversability",
+        "contentHash": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:99c6a1ddb5834bea69a14ae0fbed042db6e494f84f3db9d8b2300ddb1a6874ca",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a"
+        }
+      },
+      {
+        "caseId": "CAP-22",
+        "operationId": "traversability.find-blocked",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:de2247342555f8c5a91badf1d97fd181f203fc4521aca470597de6bb940d089c",
+        "productId": "gdps-baseline-ugv-traversability",
+        "contentHash": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:99c6a1ddb5834bea69a14ae0fbed042db6e494f84f3db9d8b2300ddb1a6874ca",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a"
+        }
+      },
+      {
+        "caseId": "CAP-23",
+        "operationId": "traversability.explain",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:581b342d16962df23b1e5508edb24bb5de0a7286d808f527b044316a326b635a",
+        "productId": "gdps-baseline-ugv-traversability",
+        "contentHash": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "DOMAIN_RASTER_CLASS_MATCH",
+          "DOMAIN_EXPLANATION_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:99c6a1ddb5834bea69a14ae0fbed042db6e494f84f3db9d8b2300ddb1a6874ca",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a"
+        }
+      },
+      {
+        "caseId": "CAP-24",
+        "operationId": "geo-raster.sample",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:750fc28ca15154e38cea87ecd3f172e152b725c970947917779b24b7fdfcaa66",
+        "productId": "gdps-baseline-ugv-traversability",
+        "contentHash": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "GENERIC_PRODUCT_TYPE",
+          "GENERIC_PRODUCT_PROFILE",
+          "GENERIC_DESCRIPTOR",
+          "GENERIC_RESULT_BINDING",
+          "GENERIC_PLATFORM_PROFILE_FILTERED_SELECTION",
+          "DOMAIN_RASTER_CLASS_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:99c6a1ddb5834bea69a14ae0fbed042db6e494f84f3db9d8b2300ddb1a6874ca",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:6aa1678a4a5a34f66cc556e0e84ea4bfd5d70cf7781f030f4b3290e05c207f5a"
+        }
+      },
+      {
+        "caseId": "CAP-25",
+        "operationId": "geo-raster.profile",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:4e592acbd5d9a14b9c62eb3017197f4c19ec163725b93dcfb4c0a6ffffbf2c9b",
+        "productId": "gdps-baseline-slope",
+        "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "GENERIC_PRODUCT_TYPE",
+          "GENERIC_PRODUCT_PROFILE",
+          "GENERIC_DESCRIPTOR",
+          "GENERIC_RESULT_BINDING",
+          "DOMAIN_RASTER_PROFILE_VALUES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:d40fc428e3da167b47c76b9ce8dcfcfe42d04fb5cde540091942759bcc6e0dbd",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623"
+        }
+      },
+      {
+        "caseId": "CAP-26",
+        "operationId": "geo-raster.find-by-class",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:ac69759fbaeca73e90c364883a5cb6f46a04ab4acc14a2a56747adb3cf42377d",
+        "productId": "gdps-baseline-flood-risk",
+        "contentHash": "sha256:61f4fa83d539aaa7f0a321caa608a42069c635bd7b49cdfa9e7f1f7885464538",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "GENERIC_PRODUCT_TYPE",
+          "GENERIC_PRODUCT_PROFILE",
+          "GENERIC_DESCRIPTOR",
+          "GENERIC_RESULT_BINDING",
+          "DOMAIN_RASTER_PATCH_CLASSES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:d719c22e90ba6eddaf5e529c3aa6d94c8ef0146c7f894aaf1149825827aff857",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:61f4fa83d539aaa7f0a321caa608a42069c635bd7b49cdfa9e7f1f7885464538"
+        }
+      },
+      {
+        "caseId": "CAP-27",
+        "operationId": "geo-raster.find-by-range",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:f3173f7ffcf7733ad15266d2302d52fb413dda3867630b2f33ff25d8d621f788",
+        "productId": "gdps-baseline-slope",
+        "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "GENERIC_PRODUCT_TYPE",
+          "GENERIC_PRODUCT_PROFILE",
+          "GENERIC_DESCRIPTOR",
+          "GENERIC_RESULT_BINDING",
+          "DOMAIN_RASTER_RANGE_FEATURES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:d40fc428e3da167b47c76b9ce8dcfcfe42d04fb5cde540091942759bcc6e0dbd",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623"
+        }
+      },
+      {
+        "caseId": "CAP-28",
+        "operationId": "geo-vector.find-in-area",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:6f5b58103f05f530f9a3ae2b1c1ec232023a27b4124abeb2d125676ae821a994",
+        "productId": "gdps-baseline-drainage",
+        "contentHash": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "GENERIC_PRODUCT_TYPE",
+          "GENERIC_PRODUCT_PROFILE",
+          "GENERIC_DESCRIPTOR",
+          "GENERIC_RESULT_BINDING",
+          "DOMAIN_VECTOR_FEATURES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:ec9538c8a63871a3c716b268ce5f1125a6456f777c4f43da9e238bdadd2f0d08",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7"
+        }
+      },
+      {
+        "caseId": "CAP-29",
+        "operationId": "geo-vector.find-nearby",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:6d9ea88cc7d926b2d537479fc510018e5cff8d41dde9d27ef1b3955964b4d8b8",
+        "productId": "gdps-baseline-drainage",
+        "contentHash": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "GENERIC_PRODUCT_TYPE",
+          "GENERIC_PRODUCT_PROFILE",
+          "GENERIC_DESCRIPTOR",
+          "GENERIC_RESULT_BINDING",
+          "DOMAIN_VECTOR_FEATURES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:ec9538c8a63871a3c716b268ce5f1125a6456f777c4f43da9e238bdadd2f0d08",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7"
+        }
+      },
+      {
+        "caseId": "CAP-30",
+        "operationId": "geo-vector.find-intersections",
+        "normalizedStatus": "COMPLETED",
+        "resultHash": "sha256:03b66def9db954ff66575a369ed8a1983866fd585442816e80b911dd662f015d",
+        "productId": "gdps-baseline-drainage",
+        "contentHash": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7",
+        "truthAssertions": [
+          "PRODUCT_ID_MATCH",
+          "CONTENT_HASH_MATCH",
+          "GENERIC_PRODUCT_TYPE",
+          "GENERIC_PRODUCT_PROFILE",
+          "GENERIC_DESCRIPTOR",
+          "GENERIC_RESULT_BINDING",
+          "DOMAIN_VECTOR_FEATURES_MATCH",
+          "CURRENT_ONLY_NO_HISTORY_FIELDS"
+        ],
+        "dataSnapshotAssertions": [
+          "SNAPSHOT_CONSISTENCY",
+          "SNAPSHOT_SCOPE",
+          "SNAPSHOT_RESOURCE_IDENTITY",
+          "SNAPSHOT_DIGEST"
+        ],
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:ec9538c8a63871a3c716b268ce5f1125a6456f777c4f43da9e238bdadd2f0d08",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7"
+        }
+      }
+    ]
+  },
+  "gatewayProtocolEvidencePayload": {
+    "sourceRuntimeBinding": {
+      "approvedManifestHash": "sha256:e33fe3e114f74ba285caffdfcfe0cfeca1a7103497d20f834eb0d821fa435a18",
+      "approvedImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f",
+      "providerRuntimeIdentityHash": "sha256:257f1b2d8c4f8874f69c9fa6a80c9e324b187e392fc3258f901eba1b4cf846b8",
+      "providerRuntimeEvidenceHash": "sha256:e43e98a133c50314610968af004629733a69034ff990e748e4f4a7b010b4e888",
+      "onboardingEvidenceHash": "sha256:20e4394ed66db4d7c6d8f0b398c93e9bf8ec80d1d0e9cd446011cfaa21f330e5",
+      "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+      "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+      "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66"
+    },
+    "cases": [
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:c4013a08a4d591cccf1387af2bd313dc153e3eab79eee35e2203d20d9189b6b3",
+        "responseOutputHash": "sha256:86e0f7f39e4195716a6d4b244a3f0d5626cd05055e5ed31a6853b633cc9d51ed",
+        "computeSnapshotHash": "sha256:1c86d2874d4cea6a54b61d06307a629a48cb42ab90fb0dab9a02f494968132e3",
+        "receiptInputHash": "sha256:c4013a08a4d591cccf1387af2bd313dc153e3eab79eee35e2203d20d9189b6b3",
+        "receiptOutputHash": "sha256:86e0f7f39e4195716a6d4b244a3f0d5626cd05055e5ed31a6853b633cc9d51ed",
+        "receiptComputeSnapshotHash": "sha256:1c86d2874d4cea6a54b61d06307a629a48cb42ab90fb0dab9a02f494968132e3",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "responseOutputHash": "sha256:a65d265fc3f2915b4111c479d85fc44d8a06e7dd5f3d26ea6177bba1a2181142",
+        "computeSnapshotHash": "sha256:0f9813faac8c324f6ba06c1f0d4dfc39f340847f46cfd30b2ee310fd229709ff",
+        "receiptInputHash": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "receiptOutputHash": "sha256:a65d265fc3f2915b4111c479d85fc44d8a06e7dd5f3d26ea6177bba1a2181142",
+        "receiptComputeSnapshotHash": "sha256:0f9813faac8c324f6ba06c1f0d4dfc39f340847f46cfd30b2ee310fd229709ff",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:0e11d022a48ac8f6218ee4235fed0e1dadaac8753384294db4b39ce3838b3487",
+        "responseOutputHash": "sha256:8f7084e6d84f1a8d9cf5dd4bc778735546aeed58fdb52a8b86d2d4e41a88348a",
+        "computeSnapshotHash": "sha256:f77130eca294156a12cc4255a5c56fa8fe347ddf0167b7f7acc86a75eedee487",
+        "receiptInputHash": "sha256:0e11d022a48ac8f6218ee4235fed0e1dadaac8753384294db4b39ce3838b3487",
+        "receiptOutputHash": "sha256:8f7084e6d84f1a8d9cf5dd4bc778735546aeed58fdb52a8b86d2d4e41a88348a",
+        "receiptComputeSnapshotHash": "sha256:f77130eca294156a12cc4255a5c56fa8fe347ddf0167b7f7acc86a75eedee487",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:bd537d6116d1232b7174a84193bccd55e47faf6878a5cf85f118cf0d3539c8f8",
+        "responseOutputHash": "sha256:b3ee22b1fec77aa60656826a3550491e7c5fe249e870f0fc96e10fbbece0f60e",
+        "computeSnapshotHash": "sha256:fa7dd8c9fca7a8f30faa785270ee0cd10af51563b13d4ba1c2459264d0bbec8d",
+        "receiptInputHash": "sha256:bd537d6116d1232b7174a84193bccd55e47faf6878a5cf85f118cf0d3539c8f8",
+        "receiptOutputHash": "sha256:b3ee22b1fec77aa60656826a3550491e7c5fe249e870f0fc96e10fbbece0f60e",
+        "receiptComputeSnapshotHash": "sha256:fa7dd8c9fca7a8f30faa785270ee0cd10af51563b13d4ba1c2459264d0bbec8d",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:e7c719c0b12074b7c1ab8ec9cafc0638c2c3eab39454c8882d55e2bf7f06954a",
+        "responseOutputHash": "sha256:3b025688f129154c603235b959e5c8f4af7f0dbf18b89c0fb8bbda816cc50b7b",
+        "computeSnapshotHash": "sha256:3d4d1e487dd67dd4c89b28fda5ba99bdffa6c409f58aea03644f462b33cc3986",
+        "receiptInputHash": "sha256:e7c719c0b12074b7c1ab8ec9cafc0638c2c3eab39454c8882d55e2bf7f06954a",
+        "receiptOutputHash": "sha256:3b025688f129154c603235b959e5c8f4af7f0dbf18b89c0fb8bbda816cc50b7b",
+        "receiptComputeSnapshotHash": "sha256:3d4d1e487dd67dd4c89b28fda5ba99bdffa6c409f58aea03644f462b33cc3986",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:34e1e1b6c5186913222c08d2968ac74fc955e38e5a44dfb41d8da361452855d5",
+        "responseOutputHash": "sha256:f6bd8e0361f797f0008ebc92adc49fa67cfb064af10281c9543ef0a945caf997",
+        "computeSnapshotHash": "sha256:f04dde786a2eaff615ecde009540eb95cd2f3be07749dd2081cd1c39c0e55eee",
+        "receiptInputHash": "sha256:34e1e1b6c5186913222c08d2968ac74fc955e38e5a44dfb41d8da361452855d5",
+        "receiptOutputHash": "sha256:f6bd8e0361f797f0008ebc92adc49fa67cfb064af10281c9543ef0a945caf997",
+        "receiptComputeSnapshotHash": "sha256:f04dde786a2eaff615ecde009540eb95cd2f3be07749dd2081cd1c39c0e55eee",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:d4523e20ad3ca8fd77df4ff2e8bb94fa5aeb617762fa2fec5650f39b523d81e5",
+        "responseOutputHash": "sha256:2282c01927a99873f18e007b46d3ee3ffb9918dde087dfb7da8dadf6bc0c0076",
+        "computeSnapshotHash": "sha256:5654d9067cfbe16b941b5dfd9fc5fe9764de1ae7a3e87b9eaf799fd421702241",
+        "receiptInputHash": "sha256:d4523e20ad3ca8fd77df4ff2e8bb94fa5aeb617762fa2fec5650f39b523d81e5",
+        "receiptOutputHash": "sha256:2282c01927a99873f18e007b46d3ee3ffb9918dde087dfb7da8dadf6bc0c0076",
+        "receiptComputeSnapshotHash": "sha256:5654d9067cfbe16b941b5dfd9fc5fe9764de1ae7a3e87b9eaf799fd421702241",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:02db48f48f364b5353ff5cedfdfe028faefdb371ada5832383ab0303a3ca750d",
+        "responseOutputHash": "sha256:b4a906057072b43d30bd3c8d6333f5d26edd387dc7d001731b0c6dfb7aa2d2fb",
+        "computeSnapshotHash": "sha256:5fe781222819cf3ff2422093940f915efa61afe21522d89d054200c4adda9991",
+        "receiptInputHash": "sha256:02db48f48f364b5353ff5cedfdfe028faefdb371ada5832383ab0303a3ca750d",
+        "receiptOutputHash": "sha256:b4a906057072b43d30bd3c8d6333f5d26edd387dc7d001731b0c6dfb7aa2d2fb",
+        "receiptComputeSnapshotHash": "sha256:5fe781222819cf3ff2422093940f915efa61afe21522d89d054200c4adda9991",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:1aea58dbfd21d9d66ca56296d6c9d4546f56a01dcf6aa1075a42ac4be9ee503c",
+        "responseOutputHash": "sha256:b4a906057072b43d30bd3c8d6333f5d26edd387dc7d001731b0c6dfb7aa2d2fb",
+        "computeSnapshotHash": "sha256:4fb86bff646bb23f9d33790c501085ca889638cb2005e4392ef13ec8740704d9",
+        "receiptInputHash": "sha256:1aea58dbfd21d9d66ca56296d6c9d4546f56a01dcf6aa1075a42ac4be9ee503c",
+        "receiptOutputHash": "sha256:b4a906057072b43d30bd3c8d6333f5d26edd387dc7d001731b0c6dfb7aa2d2fb",
+        "receiptComputeSnapshotHash": "sha256:4fb86bff646bb23f9d33790c501085ca889638cb2005e4392ef13ec8740704d9",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:1aea58dbfd21d9d66ca56296d6c9d4546f56a01dcf6aa1075a42ac4be9ee503c",
+        "responseOutputHash": "sha256:d7b1d0a2516b2d95ad4ae67d80c228788bc607f0c0bf7c32765070a7918b7bcf",
+        "computeSnapshotHash": "sha256:11b08a2cca2d556d12128a7827dccb930e7f838b86cd525c2d6b34b1f8c8ed44",
+        "receiptInputHash": "sha256:1aea58dbfd21d9d66ca56296d6c9d4546f56a01dcf6aa1075a42ac4be9ee503c",
+        "receiptOutputHash": "sha256:d7b1d0a2516b2d95ad4ae67d80c228788bc607f0c0bf7c32765070a7918b7bcf",
+        "receiptComputeSnapshotHash": "sha256:11b08a2cca2d556d12128a7827dccb930e7f838b86cd525c2d6b34b1f8c8ed44",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:b9aa624abd3baa8b1d4e3124c8aa55e40b6094534073d844611174f6119f77b0",
+        "responseOutputHash": "sha256:06f0b22ad4ec6267329084a464f5278eed6b6cdb7bf56e04bb2c53a8861d53ee",
+        "computeSnapshotHash": "sha256:1713ff68a93b531fece5fd866775f7cad2eb43ab09ffdb24f8ee70b04898c4e5",
+        "receiptInputHash": "sha256:b9aa624abd3baa8b1d4e3124c8aa55e40b6094534073d844611174f6119f77b0",
+        "receiptOutputHash": "sha256:06f0b22ad4ec6267329084a464f5278eed6b6cdb7bf56e04bb2c53a8861d53ee",
+        "receiptComputeSnapshotHash": "sha256:1713ff68a93b531fece5fd866775f7cad2eb43ab09ffdb24f8ee70b04898c4e5",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:e046a8fcaabd70495324d88693cf4772527a47addb215d34679d398fb9452a7f",
+        "responseOutputHash": "sha256:7f155b312e794559c359c007657aad2a4455d2732c26b3c9bdbdc8adf5a2b039",
+        "computeSnapshotHash": "sha256:4c1671082b1c94d9ad578629a133ec63ab21836129686c0b0dad398a9250dc43",
+        "receiptInputHash": "sha256:e046a8fcaabd70495324d88693cf4772527a47addb215d34679d398fb9452a7f",
+        "receiptOutputHash": "sha256:7f155b312e794559c359c007657aad2a4455d2732c26b3c9bdbdc8adf5a2b039",
+        "receiptComputeSnapshotHash": "sha256:4c1671082b1c94d9ad578629a133ec63ab21836129686c0b0dad398a9250dc43",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:ec7e4c2100cbc337f1d5ab91150b093efbf1ec31fb87662229121a8cb85c7f18",
+        "responseOutputHash": "sha256:ec5fea79d8f1fe71e6004e5cf1a3f7ef30338a79d388b393c198507e3c1404ec",
+        "computeSnapshotHash": "sha256:c0c5a1e56b45637dd74a57f13f751e0e86e0edc93d2f69873eede833e140d60f",
+        "receiptInputHash": "sha256:ec7e4c2100cbc337f1d5ab91150b093efbf1ec31fb87662229121a8cb85c7f18",
+        "receiptOutputHash": "sha256:ec5fea79d8f1fe71e6004e5cf1a3f7ef30338a79d388b393c198507e3c1404ec",
+        "receiptComputeSnapshotHash": "sha256:c0c5a1e56b45637dd74a57f13f751e0e86e0edc93d2f69873eede833e140d60f",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:5d4981a09b2832b78b0b457ce51bb1faf4dda15f893d425411b10cf14e8a0db3",
+        "responseOutputHash": "sha256:922715b7e712d28efad644126d810933165ab56404fd0597e0e7e75cfb012cbb",
+        "computeSnapshotHash": "sha256:93f4809082cdd4c9b2ed8c4815d2b83869e9acfe5110d62a150014a9d78dfbe9",
+        "receiptInputHash": "sha256:5d4981a09b2832b78b0b457ce51bb1faf4dda15f893d425411b10cf14e8a0db3",
+        "receiptOutputHash": "sha256:922715b7e712d28efad644126d810933165ab56404fd0597e0e7e75cfb012cbb",
+        "receiptComputeSnapshotHash": "sha256:93f4809082cdd4c9b2ed8c4815d2b83869e9acfe5110d62a150014a9d78dfbe9",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:33b54d8c97f2bbe7dc73dfcb62e4c8d5ca009ec43469a3b6dd1b38fd48d423cb",
+        "responseOutputHash": "sha256:e2ba0504212bf8bbaf32b6ef95567531e00388e3aea6baac249c0a774db3115f",
+        "computeSnapshotHash": "sha256:57f2982c66872c1755abe22880ad239e691cb4154c72eb17581a38ff0d7b001b",
+        "receiptInputHash": "sha256:33b54d8c97f2bbe7dc73dfcb62e4c8d5ca009ec43469a3b6dd1b38fd48d423cb",
+        "receiptOutputHash": "sha256:e2ba0504212bf8bbaf32b6ef95567531e00388e3aea6baac249c0a774db3115f",
+        "receiptComputeSnapshotHash": "sha256:57f2982c66872c1755abe22880ad239e691cb4154c72eb17581a38ff0d7b001b",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:e93b8512c250845cbd54da6f65aa795729af703769ed7a97d189b0a6a344a14a",
+        "responseOutputHash": "sha256:ba3e3de2dd4c5ff2ec3b140224db725d85806c0ad5c2fcf50b8b0f629793804b",
+        "computeSnapshotHash": "sha256:eb413feaa004513750bba5681d3b7b27a53342d859c03f7af70f9a3dc75cd6f3",
+        "receiptInputHash": "sha256:e93b8512c250845cbd54da6f65aa795729af703769ed7a97d189b0a6a344a14a",
+        "receiptOutputHash": "sha256:ba3e3de2dd4c5ff2ec3b140224db725d85806c0ad5c2fcf50b8b0f629793804b",
+        "receiptComputeSnapshotHash": "sha256:eb413feaa004513750bba5681d3b7b27a53342d859c03f7af70f9a3dc75cd6f3",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:d5c8d2a537ade8e9150f65528c66864a242baca18eb53f442490397e4b77cf89",
+        "responseOutputHash": "sha256:79f11c283631493c210612dbe65a7911fa0a1dd7a47cc5e901ca5112435b4d8b",
+        "computeSnapshotHash": "sha256:722793ac58129cd2d55af74b6bd3b99197b8c0cd17e55f9fe713f4100a702093",
+        "receiptInputHash": "sha256:d5c8d2a537ade8e9150f65528c66864a242baca18eb53f442490397e4b77cf89",
+        "receiptOutputHash": "sha256:79f11c283631493c210612dbe65a7911fa0a1dd7a47cc5e901ca5112435b4d8b",
+        "receiptComputeSnapshotHash": "sha256:722793ac58129cd2d55af74b6bd3b99197b8c0cd17e55f9fe713f4100a702093",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:5f1534751c46f1bfb93031614ead2cf22e13c3778f0411b2ca6ca7cba3cc7ec0",
+        "responseOutputHash": "sha256:78c445e4072636c3784ef05d2de37f31b0982864cab6d2f77435ce3f737127e9",
+        "computeSnapshotHash": "sha256:c0b8de342328cd63e46f59388786cd11c60795bad41341279ffea4649cb6b889",
+        "receiptInputHash": "sha256:5f1534751c46f1bfb93031614ead2cf22e13c3778f0411b2ca6ca7cba3cc7ec0",
+        "receiptOutputHash": "sha256:78c445e4072636c3784ef05d2de37f31b0982864cab6d2f77435ce3f737127e9",
+        "receiptComputeSnapshotHash": "sha256:c0b8de342328cd63e46f59388786cd11c60795bad41341279ffea4649cb6b889",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:fd68715d825eb7cd0a6c6b58f444ee1cc8d0e8fac016752270f582bee52b65e6",
+        "responseOutputHash": "sha256:eccab641ca10a4388b19e70aa86a2a36b16388b4852dce3cb839fd868fa25708",
+        "computeSnapshotHash": "sha256:aa567a420f6d75ed498665119ddb7b88788fee8e9e80a6e2e13c05399d7779c3",
+        "receiptInputHash": "sha256:fd68715d825eb7cd0a6c6b58f444ee1cc8d0e8fac016752270f582bee52b65e6",
+        "receiptOutputHash": "sha256:eccab641ca10a4388b19e70aa86a2a36b16388b4852dce3cb839fd868fa25708",
+        "receiptComputeSnapshotHash": "sha256:aa567a420f6d75ed498665119ddb7b88788fee8e9e80a6e2e13c05399d7779c3",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:2b3d414d49e8c5abd6c29149c2b7b1ef8ab83609de4d2cfff54d9f0b3e8d3967",
+        "responseOutputHash": "sha256:15abe826b59d478e5fbb63787d38b5a0c789ddce7dd71bb19f5e8ef7555a5024",
+        "computeSnapshotHash": "sha256:892f6d5a9fff7e5a7592b20f4c0969e6a078a3e999c0952927378fbdaf3fabe8",
+        "receiptInputHash": "sha256:2b3d414d49e8c5abd6c29149c2b7b1ef8ab83609de4d2cfff54d9f0b3e8d3967",
+        "receiptOutputHash": "sha256:15abe826b59d478e5fbb63787d38b5a0c789ddce7dd71bb19f5e8ef7555a5024",
+        "receiptComputeSnapshotHash": "sha256:892f6d5a9fff7e5a7592b20f4c0969e6a078a3e999c0952927378fbdaf3fabe8",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:2e490d20780d516f0f01ab127dbb386bb297ffc098f13be8e8203e799e665623",
+        "responseOutputHash": "sha256:cbbef593ad090a9f5335850b8b82590f1dca1a7d1d0a9e9c41aecdcf436a12d4",
+        "computeSnapshotHash": "sha256:3f8f0029fde2a6b9eda75e088118b61ef708a5fd2fa7011b7f787f2c054861f7",
+        "receiptInputHash": "sha256:2e490d20780d516f0f01ab127dbb386bb297ffc098f13be8e8203e799e665623",
+        "receiptOutputHash": "sha256:cbbef593ad090a9f5335850b8b82590f1dca1a7d1d0a9e9c41aecdcf436a12d4",
+        "receiptComputeSnapshotHash": "sha256:3f8f0029fde2a6b9eda75e088118b61ef708a5fd2fa7011b7f787f2c054861f7",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:2e490d20780d516f0f01ab127dbb386bb297ffc098f13be8e8203e799e665623",
+        "responseOutputHash": "sha256:de2247342555f8c5a91badf1d97fd181f203fc4521aca470597de6bb940d089c",
+        "computeSnapshotHash": "sha256:9a920082e5cb83899830102a45d7ffce9073bc6144cda1fad6a2f7801cffc18d",
+        "receiptInputHash": "sha256:2e490d20780d516f0f01ab127dbb386bb297ffc098f13be8e8203e799e665623",
+        "receiptOutputHash": "sha256:de2247342555f8c5a91badf1d97fd181f203fc4521aca470597de6bb940d089c",
+        "receiptComputeSnapshotHash": "sha256:9a920082e5cb83899830102a45d7ffce9073bc6144cda1fad6a2f7801cffc18d",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:2b3d414d49e8c5abd6c29149c2b7b1ef8ab83609de4d2cfff54d9f0b3e8d3967",
+        "responseOutputHash": "sha256:581b342d16962df23b1e5508edb24bb5de0a7286d808f527b044316a326b635a",
+        "computeSnapshotHash": "sha256:d05f34c7d17b79073cc1c576fcd027e3c35b911fa9aa4995363dedea7a318a91",
+        "receiptInputHash": "sha256:2b3d414d49e8c5abd6c29149c2b7b1ef8ab83609de4d2cfff54d9f0b3e8d3967",
+        "receiptOutputHash": "sha256:581b342d16962df23b1e5508edb24bb5de0a7286d808f527b044316a326b635a",
+        "receiptComputeSnapshotHash": "sha256:d05f34c7d17b79073cc1c576fcd027e3c35b911fa9aa4995363dedea7a318a91",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:f651a8e9244339ca92d392802dd7fb225647258df2e5f0da74cb6d588a342a4b",
+        "responseOutputHash": "sha256:750fc28ca15154e38cea87ecd3f172e152b725c970947917779b24b7fdfcaa66",
+        "computeSnapshotHash": "sha256:713e846ea57a130eb28a30ccbdbdf3a0160f0d2effae3eaca6c07c0e549e8ca7",
+        "receiptInputHash": "sha256:f651a8e9244339ca92d392802dd7fb225647258df2e5f0da74cb6d588a342a4b",
+        "receiptOutputHash": "sha256:750fc28ca15154e38cea87ecd3f172e152b725c970947917779b24b7fdfcaa66",
+        "receiptComputeSnapshotHash": "sha256:713e846ea57a130eb28a30ccbdbdf3a0160f0d2effae3eaca6c07c0e549e8ca7",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:f21dea6622e12fbf54ee55dc5f06cf5fa123d4a545421304a6b8d9e4e23238a1",
+        "responseOutputHash": "sha256:4e592acbd5d9a14b9c62eb3017197f4c19ec163725b93dcfb4c0a6ffffbf2c9b",
+        "computeSnapshotHash": "sha256:38f660166baecb2740f632abc0f89f534f1b19a5662611313d9b66104dfd6e20",
+        "receiptInputHash": "sha256:f21dea6622e12fbf54ee55dc5f06cf5fa123d4a545421304a6b8d9e4e23238a1",
+        "receiptOutputHash": "sha256:4e592acbd5d9a14b9c62eb3017197f4c19ec163725b93dcfb4c0a6ffffbf2c9b",
+        "receiptComputeSnapshotHash": "sha256:38f660166baecb2740f632abc0f89f534f1b19a5662611313d9b66104dfd6e20",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:5e8c08f5b8ac68c61f3c7cac33a7bf8a35fee46292857cdb146ba150a6d07df6",
+        "responseOutputHash": "sha256:ac69759fbaeca73e90c364883a5cb6f46a04ab4acc14a2a56747adb3cf42377d",
+        "computeSnapshotHash": "sha256:d0f25cef5a01e567667424b6eacbaf2671fa124cfbdc6c2fd6c4329ea62e9197",
+        "receiptInputHash": "sha256:5e8c08f5b8ac68c61f3c7cac33a7bf8a35fee46292857cdb146ba150a6d07df6",
+        "receiptOutputHash": "sha256:ac69759fbaeca73e90c364883a5cb6f46a04ab4acc14a2a56747adb3cf42377d",
+        "receiptComputeSnapshotHash": "sha256:d0f25cef5a01e567667424b6eacbaf2671fa124cfbdc6c2fd6c4329ea62e9197",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:c4d57da514b0680801591c59880dd7d67ceb4791ddfae7df3980abdbb5cd2b6a",
+        "responseOutputHash": "sha256:f3173f7ffcf7733ad15266d2302d52fb413dda3867630b2f33ff25d8d621f788",
+        "computeSnapshotHash": "sha256:f6b93aebef910d6db34efc4569361702b05f7b930524a1bd8a4af98956220e29",
+        "receiptInputHash": "sha256:c4d57da514b0680801591c59880dd7d67ceb4791ddfae7df3980abdbb5cd2b6a",
+        "receiptOutputHash": "sha256:f3173f7ffcf7733ad15266d2302d52fb413dda3867630b2f33ff25d8d621f788",
+        "receiptComputeSnapshotHash": "sha256:f6b93aebef910d6db34efc4569361702b05f7b930524a1bd8a4af98956220e29",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:f7bac29ef71443f51697d469939350bc301533a707f0a9750e6c45bf71378ef7",
+        "responseOutputHash": "sha256:6f5b58103f05f530f9a3ae2b1c1ec232023a27b4124abeb2d125676ae821a994",
+        "computeSnapshotHash": "sha256:c47244816f3566eda49102edcaf7c5fd4061fd015fc5e401bddcea66acf57bee",
+        "receiptInputHash": "sha256:f7bac29ef71443f51697d469939350bc301533a707f0a9750e6c45bf71378ef7",
+        "receiptOutputHash": "sha256:6f5b58103f05f530f9a3ae2b1c1ec232023a27b4124abeb2d125676ae821a994",
+        "receiptComputeSnapshotHash": "sha256:c47244816f3566eda49102edcaf7c5fd4061fd015fc5e401bddcea66acf57bee",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:84ac91270d68d38529ce1d73e72efb603e6fdf3c012cf2f87a41ebb2e0ef0d02",
+        "responseOutputHash": "sha256:6d9ea88cc7d926b2d537479fc510018e5cff8d41dde9d27ef1b3955964b4d8b8",
+        "computeSnapshotHash": "sha256:1ded5a07f13af07269a13850177af405c9ac1cc5bf6efb6d7a4985852b7c694d",
+        "receiptInputHash": "sha256:84ac91270d68d38529ce1d73e72efb603e6fdf3c012cf2f87a41ebb2e0ef0d02",
+        "receiptOutputHash": "sha256:6d9ea88cc7d926b2d537479fc510018e5cff8d41dde9d27ef1b3955964b4d8b8",
+        "receiptComputeSnapshotHash": "sha256:1ded5a07f13af07269a13850177af405c9ac1cc5bf6efb6d7a4985852b7c694d",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      {
+        "assertions": [
+          "RESPONSE_REQUEST_BINDING",
+          "RESPONSE_OPERATION_BINDING",
+          "OUTPUT_SCHEMA_BINDING",
+          "OUTPUT_PRODUCT_BINDING",
+          "COMPUTE_PROVIDER_BINDING",
+          "COMPUTE_SCHEMA_BINDING",
+          "EXECUTION_RESULT_HASH_BINDING",
+          "RECEIPT_HASH_BINDING"
+        ],
+        "requestInputHash": "sha256:e946c59f5c2713417fe9ef49d68eec33b7baf72fc50c7033da9a7598cf381e9d",
+        "responseOutputHash": "sha256:03b66def9db954ff66575a369ed8a1983866fd585442816e80b911dd662f015d",
+        "computeSnapshotHash": "sha256:bdc5152db6cb87248f875b5bdfcae1e55534e85cc4521ae308eb62e03862936d",
+        "receiptInputHash": "sha256:e946c59f5c2713417fe9ef49d68eec33b7baf72fc50c7033da9a7598cf381e9d",
+        "receiptOutputHash": "sha256:03b66def9db954ff66575a369ed8a1983866fd585442816e80b911dd662f015d",
+        "receiptComputeSnapshotHash": "sha256:bdc5152db6cb87248f875b5bdfcae1e55534e85cc4521ae308eb62e03862936d",
+        "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      }
+    ],
+    "negativeDrivers": {
+      "CURRENT_PRODUCT_ABSENT": {
+        "protocolEvidence": {
+          "assertions": [
+            "RESPONSE_REQUEST_BINDING",
+            "RESPONSE_OPERATION_BINDING",
+            "OUTPUT_SCHEMA_BINDING",
+            "OUTPUT_PRODUCT_BINDING",
+            "COMPUTE_PROVIDER_BINDING",
+            "COMPUTE_SCHEMA_BINDING",
+            "EXECUTION_RESULT_HASH_BINDING",
+            "RECEIPT_HASH_BINDING"
+          ],
+          "requestInputHash": "sha256:46eb5bb94878f69dfa467f255e448922f46ae93d41817c48725a2230e6f43fba",
+          "responseOutputHash": "sha256:70f07b977624f9b29a974ef50be5c57c0512ba14c503a026658c59999ff52be9",
+          "computeSnapshotHash": "sha256:c47244816f3566eda49102edcaf7c5fd4061fd015fc5e401bddcea66acf57bee",
+          "receiptInputHash": "sha256:46eb5bb94878f69dfa467f255e448922f46ae93d41817c48725a2230e6f43fba",
+          "receiptOutputHash": "sha256:70f07b977624f9b29a974ef50be5c57c0512ba14c503a026658c59999ff52be9",
+          "receiptComputeSnapshotHash": "sha256:c47244816f3566eda49102edcaf7c5fd4061fd015fc5e401bddcea66acf57bee",
+          "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+        },
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:14b545ef3b0429181d83993ff700ff9c6cc13388e6aa5f7cb7ba28e10a27faa2",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:70f07b977624f9b29a974ef50be5c57c0512ba14c503a026658c59999ff52be9"
+        },
+        "dataSnapshotHash": "sha256:89d6b03b6e6da0f112c0aefe3a24ad3aa19cc6587a662f3ef54ef808e431340a"
+      },
+      "UPSTREAM_TRUNCATED_TRUE": {
+        "protocolEvidence": {
+          "assertions": [
+            "RESPONSE_REQUEST_BINDING",
+            "RESPONSE_OPERATION_BINDING",
+            "OUTPUT_SCHEMA_BINDING",
+            "OUTPUT_PRODUCT_BINDING",
+            "COMPUTE_PROVIDER_BINDING",
+            "COMPUTE_SCHEMA_BINDING",
+            "EXECUTION_RESULT_HASH_BINDING",
+            "RECEIPT_HASH_BINDING"
+          ],
+          "requestInputHash": "sha256:da8df08af2a06a883a3e8c8a5893d0853c77756ebebbf3cd7092c3d7aaf21cf6",
+          "responseOutputHash": "sha256:6f9bcea8f97cde9e91091445ceee24b6be9917828bb82228c604d05ca19f7ea4",
+          "computeSnapshotHash": "sha256:c47244816f3566eda49102edcaf7c5fd4061fd015fc5e401bddcea66acf57bee",
+          "receiptInputHash": "sha256:da8df08af2a06a883a3e8c8a5893d0853c77756ebebbf3cd7092c3d7aaf21cf6",
+          "receiptOutputHash": "sha256:6f9bcea8f97cde9e91091445ceee24b6be9917828bb82228c604d05ca19f7ea4",
+          "receiptComputeSnapshotHash": "sha256:c47244816f3566eda49102edcaf7c5fd4061fd015fc5e401bddcea66acf57bee",
+          "providerImplementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+        },
+        "dataSnapshotEvidence": {
+          "consistency": "CONSISTENT_AT_START",
+          "scopeDigest": "sha256:32297b149eafab0ffbb2b2089150fdc175cb4a34522e713dfc1d4304992dd434",
+          "resourceCount": 1,
+          "referenceKeyHash": "sha256:ec9538c8a63871a3c716b268ce5f1125a6456f777c4f43da9e238bdadd2f0d08",
+          "authority": "gdps.geospatial-products",
+          "pinning": "PINNED",
+          "digest": "sha256:5eebc38effd67050a993bac025119bb8f3067c253f9b0a378ecc2f98d18d41f7"
+        },
+        "dataSnapshotHash": "sha256:06967fd276b52226e72875cff1e78d65bd19e8e4e2adac97470329b8b4554321"
+      }
+    }
+  },
+  "status": "READY"
+}

@@ -5,6 +5,7 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/.tsbuildinfo",
     "paths": {
+      "@wsgs/contracts": ["./../../packages/contracts/dist/index.d.ts"],
       "@wsgs/delegated-identity": ["./../../packages/delegated-identity/dist/index.d.ts"],
       "@wsgs/deterministic-parser": ["./../../packages/deterministic-parser/dist/index.d.ts"],
       "@wsgs/evidence-normalizer": ["./../../packages/evidence-normalizer/dist/index.d.ts"],
@@ -14,6 +15,8 @@
       "@wsgs/gowm-gateway-client": ["./../../packages/gowm-gateway-client/dist/index.d.ts"],
       "@wsgs/grounding-graph": ["./../../packages/grounding-graph/dist/index.d.ts"],
       "@wsgs/grounding-pipeline": ["./../../packages/grounding-pipeline/dist/index.d.ts"],
+      "@wsgs/northbound-geospatial-findings": ["./../../packages/northbound-geospatial-findings/dist/index.d.ts"],
+      "@wsgs/northbound-geospatial-findings/internal/runtime-assembly": ["./../../packages/northbound-geospatial-findings/dist/runtime-assembly.d.ts"],
       "@wsgs/query-compiler": ["./../../packages/query-compiler/dist/index.d.ts"],
       "@wsgs/requirement-planner": ["./../../packages/requirement-planner/dist/index.d.ts"],
       "@wsgs/semantic-frame": ["./../../packages/semantic-frame/dist/index.d.ts"],
@@ -24,6 +27,7 @@
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts"],
   "references": [
+    { "path": "../../packages/contracts" },
     { "path": "../../packages/delegated-identity" },
     { "path": "../../packages/deterministic-parser" },
     { "path": "../../packages/evidence-normalizer" },
@@ -33,6 +37,7 @@
     { "path": "../../packages/gowm-gateway-client" },
     { "path": "../../packages/grounding-graph" },
     { "path": "../../packages/grounding-pipeline" },
+    { "path": "../../packages/northbound-geospatial-findings" },
     { "path": "../../packages/query-compiler" },
     { "path": "../../packages/requirement-planner" },
     { "path": "../../packages/semantic-frame" },

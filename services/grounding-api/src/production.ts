@@ -1,7 +1,9 @@
 import {
   Aes256GcmPayloadCodec,
+  isSacsGeospatialContract,
   PostgresProductionGroundingStore,
   ProductionGroundingBackend,
+  type GroundingContractSelection,
   type ProductionAdmissionSnapshot,
   type ScopedGroundingIdentity
 } from "@wsgs/grounding-pipeline";
@@ -83,6 +85,118 @@ function readinessProbeFromEnvironment(): ProductionReadinessProbe {
   };
 }
 
+const authorityIdentifierPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/u;
+
+/**
+ * Reads the server-owned primary data scope used when an authenticated
+ * principal carries more than one authorized scope. The request body never
+ * participates in this selection.
+ */
+export function primaryDataScopeFromEnvironment(
+  environment: Readonly<NodeJS.ProcessEnv> = process.env
+): string | undefined {
+  const value = environment["WSGS_PRIMARY_DATA_SCOPE"];
+  if (value === undefined) return undefined;
+  if (!authorityIdentifierPattern.test(value)) {
+    throw new Error("WSGS_PRIMARY_DATA_SCOPE must be one exact authority identifier");
+  }
+  return value;
+}
+
+/**
+ * Builds the exact public capability projection selected at the authenticated
+ * API boundary. Keeping this pure makes both the legacy freeze and the staged
+ * 1.1 readiness boundary independently testable without a database.
+ */
+export function groundingCapabilitiesForSelection(
+  contractSelection: GroundingContractSelection,
+  currentReadiness: Readonly<{ ready: boolean; reasons: readonly string[] }>
+): Readonly<Record<string, unknown>> {
+  if (isSacsGeospatialContract(contractSelection)) {
+    return Object.freeze({
+      service: "world-semantic-grounding-service",
+      version: "0.2.1",
+      contractVersion: "sacs-wsgs-grounding/1.1",
+      supportedOperations: Object.freeze([
+        "GROUND_REFERENCES",
+        "COMPILE_WORLD_QUERY",
+        "EXECUTE_WORLD_QUERY",
+        "VALIDATE_REFERENCES",
+        "RESOLVE_WORLD_SELECTION",
+        "VALIDATE_SOURCE_CURRENTNESS"
+      ]),
+      supportedProducts: Object.freeze([
+        "MENTIONS",
+        "REFERENCE_PRODUCTS",
+        "WORLD_EVIDENCE",
+        "AMBIGUITIES",
+        "CAPABILITY_GAPS",
+        "GEOSPATIAL_FINDINGS",
+        "SOURCE_PRODUCTS",
+        "TYPED_GAPS"
+      ]),
+      supportedResultProfiles: Object.freeze(["sacs-wsgs-geospatial-findings/1.0"]),
+      geospatialTransportMode: "RESULT_EXTENSION",
+      currentness: Object.freeze({
+        mode: "DEDICATED_OPERATION",
+        operation: "VALIDATE_SOURCE_CURRENTNESS"
+      }),
+      gowmContract: Object.freeze({
+        softwareVersion: "0.6.4",
+        gatewayContractVersion: "0.6.3",
+        commit: "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+        sourcePackageArtifacts: 58,
+        contractCatalogRevision: "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
+        semanticCatalogHash: "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
+        operationLockHash: "sha256:765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686"
+      }),
+      // N04 advertises the frozen 1.1 surface, but the complete release is
+      // intentionally not ready until N05 and N06 implement both added operations.
+      requiredCapabilitiesReady: false,
+      optionalCapabilities: Object.freeze([
+        Object.freeze({
+          operationId: "RESOLVE_WORLD_SELECTION",
+          available: false,
+          reason: "IMPLEMENTATION_PENDING_N05"
+        }),
+        Object.freeze({
+          operationId: "VALIDATE_SOURCE_CURRENTNESS",
+          available: false,
+          reason: "IMPLEMENTATION_PENDING_N06"
+        })
+      ])
+    });
+  }
+  // These values are the immutable v0.1 northbound capability contract.
+  // WSGS v0.2's GOWM lock is persisted inside execution records and must not
+  // silently rewrite the frozen public response schema.
+  return Object.freeze({
+    service: "world-semantic-grounding-service",
+    version: "0.1.0",
+    contractVersion: "sacs-wsgs-grounding/1.0",
+    supportedOperations: Object.freeze([
+      "GROUND_REFERENCES",
+      "COMPILE_WORLD_QUERY",
+      "EXECUTE_WORLD_QUERY",
+      "VALIDATE_REFERENCES"
+    ]),
+    supportedProducts: Object.freeze([
+      "MENTIONS",
+      "REFERENCE_PRODUCTS",
+      "WORLD_EVIDENCE",
+      "AMBIGUITIES",
+      "CAPABILITY_GAPS"
+    ]),
+    gowmContract: Object.freeze({
+      softwareVersion: "0.4.0",
+      commit: "db575f79c874a69f65a2043a7e463338524b713d",
+      sourcePackageArtifacts: 33
+    }),
+    requiredCapabilitiesReady: currentReadiness.ready,
+    optionalCapabilities: Object.freeze([])
+  });
+}
+
 export function createProductionBackendFromEnvironment(
   options: ProductionBackendEnvironmentOptions = {}
 ): ProductionBackendResources {
@@ -96,6 +210,7 @@ export function createProductionBackendFromEnvironment(
     pollIntervalMs: integerEnvironment("WSGS_SYNC_POLL_INTERVAL_MS", 50, 1, 5_000)
   });
   const requiredReadiness = options.readinessProbe ?? readinessProbeFromEnvironment();
+  const primaryDataScope = primaryDataScopeFromEnvironment();
   const readiness = async (): Promise<{ ready: boolean; reasons: string[] }> => {
     const [database, capabilities] = await Promise.all([
       store.readiness(),
@@ -109,37 +224,9 @@ export function createProductionBackendFromEnvironment(
     sealer: codec,
     readiness,
     captureAdmissionSnapshot: (context) => requiredReadiness.captureAdmissionSnapshot(context),
-    capabilities: async () => {
-      const currentReadiness = await readiness();
-      // These values are the immutable v0.1 northbound capability contract.
-      // WSGS v0.2's GOWM 0.6.3 lock is persisted inside execution records and
-      // must not silently rewrite the frozen public response schema.
-      return {
-        service: "world-semantic-grounding-service",
-        version: "0.1.0",
-        contractVersion: "sacs-wsgs-grounding/1.0",
-        supportedOperations: [
-          "GROUND_REFERENCES",
-          "COMPILE_WORLD_QUERY",
-          "EXECUTE_WORLD_QUERY",
-          "VALIDATE_REFERENCES"
-        ],
-        supportedProducts: [
-          "MENTIONS",
-          "REFERENCE_PRODUCTS",
-          "WORLD_EVIDENCE",
-          "AMBIGUITIES",
-          "CAPABILITY_GAPS"
-        ],
-        gowmContract: {
-          softwareVersion: "0.4.0",
-          commit: "db575f79c874a69f65a2043a7e463338524b713d",
-          sourcePackageArtifacts: 33
-        },
-        requiredCapabilitiesReady: currentReadiness.ready,
-        optionalCapabilities: []
-      };
-    },
+    capabilities: async (_identity, contractSelection) =>
+      groundingCapabilitiesForSelection(contractSelection, await readiness()),
+    ...(primaryDataScope === undefined ? {} : { selectDataScope: () => primaryDataScope }),
     sourceRetentionMs: integerEnvironment("WSGS_SOURCE_RETENTION_MS", 3_600_000, 1_000, 604_800_000)
   });
   return { backend, close: () => pool.end() };

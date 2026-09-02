@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "wsgs-v021-n03-scope-negative-cases/1.0",
+  "phase": "N03",
+  "version": "0.2.1",
+  "profile": "sacs-wsgs-geospatial-findings/1.0",
+  "transportMode": "RESULT_EXTENSION",
+  "inputSetHash": "sha256:20cc0d065abd1c5177d68b0dbaf8305b29b8749e3257b1d3366e1134deaee8d5",
+  "inputHashes": {
+    "PACKAGE_MANIFEST": "sha256:6847ee8aae6f86d0ad5521622f732ea943365e7d4efe2b356f620b2101790c76",
+    "N03_EVIDENCE_GENERATOR": "sha256:3532e184051b781eb3c61b0ae92eba322f066577bd59737a9e8648868c6507ab",
+    "N03_REAL_GATE": "sha256:2f3f27e33f8e80d8c29b4225117f4775da541ab84b21bfa21d8f60a4695d79df",
+    "GDPS_FINDING_CONTRACT_CLOSURE": "sha256:cae599a37dee703c166f8f0f4f8ddda61e90bb2eb97a93797178cf5296cdd770",
+    "VALIDATED_GOWM_ENVELOPE": "sha256:35f98bdc1d002de5709ace9c0f71862a3499c6200bbd63a3d86e8ef0e0d8b66b",
+    "SOURCE_NORMALIZER": "sha256:264ac622b9f2d2910e7a1213c85a008233c749fc161cd51ed103685c4041710c",
+    "SOURCE_NORMALIZER_TEST": "sha256:0aab66d9af920798b83687bf55c325ae9d6ca7e3b048ec2c15899b3980fb1d83",
+    "GAP_NORMALIZER": "sha256:a1861b1b5ac404fd3e75ace9534492333dbe36f0050f7121c336bbadabb25474",
+    "GAP_NORMALIZER_TEST": "sha256:538ee96e6d937b0332337fc6bb3ae3f8bc40723c269c387037f87cf41900ea8b",
+    "RESULT_NORMALIZER": "sha256:0ebc4babf15dc5b10360db1068619f4c2c6c9713d475256b06b7880ef8fa7530",
+    "RESULT_NORMALIZER_TEST": "sha256:03597d27a95efb21a2dc1f3fa231836dcb04f0de7e8c639768d38ee7d7dea747",
+    "VALIDATION_BOUNDARY": "sha256:4a3d43a80b8341d6c69571a15943591fcc721e115e380a27d6a74fc1fdbe107b",
+    "DECODER_REGISTRY": "sha256:4f380d75ccf1dc7b5b8654e28438eb8514664fa09f532ef84d1c590e6ba6646a",
+    "PUBLIC_INDEX": "sha256:4616624de5771e17fecf59c699ce51198949798a3d0a8c15ff0d975831a2c830",
+    "NORTHBOUND_TYPES": "sha256:6157aad8bd62ff2b25fccc5ee4d46455a6915bd0378cc587a68b1d7e2d2dc016",
+    "SOURCE_PRODUCT_SCHEMA": "sha256:f44839fad6b6bc4ad9fc2ff54957a3ef012e603bb0dd3a2d034f3112b394a5cd",
+    "TYPED_GAP_SCHEMA": "sha256:07a7fe050b83fd5df13161bf69538ee05151fec180a3211e0bab4f5c978da02c",
+    "WORLD_FINDING_SCHEMA": "sha256:90d12a8b7810e66960d71745dff4bf0a94bb0bd4aa70f69862c34de6f6d524a0",
+    "GEOSPATIAL_FINDINGS_SCHEMA": "sha256:0590ba82c33d0fe54de8f7aaec936e95614186e9033433e564a4dd81691907e1",
+    "GROUNDING_RESULT_EXTENSION_SCHEMA": "sha256:793d3106b2ba6b0abf0a928c910a538cff72f9ad8bb263c26a3f4831e23894d7"
+  },
+  "schemaLocks": {
+    "sourceProduct": "sha256:b761f61c4d901d7653a312cb9baf85c6c21b7af02e44a920dadbdbf45073cc87",
+    "typedGap": "sha256:821a51ea3ed7a20e432c46c91de3ffbea94e3ae5b662430922af1331481b4200",
+    "worldFinding": "sha256:988831dc3c869712fbc5e49a017c707e124ead4fea0cf87d02ea9337f0f7bb12",
+    "geospatialFindings": "sha256:f25b55e0d2877406e0ef791acaa4b9ffd4cfc2741a3b6cdd7ce090a1d667af5c",
+    "groundingResultExtension": "sha256:8875bc727eadefef8fa8797c1d862e56f4601323941f635ba1c341cf1f4d1a6c"
+  },
+  "testInventory": {
+    "focusedExecutedCases": 120,
+    "focusedExpectedCases": 120,
+    "focusedSuiteCount": 4,
+    "focusedExecutionEvidenceHash": "sha256:60d186987e5c5972899ffaed5d1fcf591a4e0abdb9b42a0c5184b6487b4f6cc9",
+    "focusedExecutionClaimEmbedded": true
+  },
+  "canonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
+  "credentialsIncluded": false,
+  "localPathsIncluded": false,
+  "requestIdentifiersIncluded": false,
+  "internalTopologyIncluded": false,
+  "status": "PASS",
+  "cases": [
+    {
+      "caseId": "N03-NEG-FORGED-CONTEXT",
+      "expectedCode": "SOURCE_TRUSTED_CONTEXT_FORGED"
+    },
+    {
+      "caseId": "N03-NEG-AUTH-HASH",
+      "expectedCode": "SOURCE_AUTHORIZATION_CONTEXT_HASH_MISMATCH"
+    },
+    {
+      "caseId": "N03-NEG-SCOPE-NOT-AUTHORIZED",
+      "expectedCode": "SOURCE_TRUSTED_SCOPE_NOT_AUTHORIZED"
+    },
+    {
+      "caseId": "N03-NEG-MIXED-SCOPE",
+      "expectedCode": "SOURCE_DATA_SCOPE_MISMATCH"
+    },
+    {
+      "caseId": "N03-NEG-FOREIGN-SNAPSHOT",
+      "expectedCode": "SOURCE_PRODUCT_SNAPSHOT_BINDING_MISMATCH"
+    },
+    {
+      "caseId": "N03-NEG-FOREIGN-EVIDENCE",
+      "expectedCode": "SOURCE_EVIDENCE_PRODUCT_BINDING_MISMATCH"
+    },
+    {
+      "caseId": "N03-NEG-CLONED-BINDING",
+      "expectedCode": "SOURCE_PROVENANCE_BINDING_FORGED"
+    },
+    {
+      "caseId": "N03-NEG-SENSITIVE-PROJECTION",
+      "expectedCode": "SENSITIVE_RESULT_PROJECTION_FORBIDDEN"
+    }
+  ],
+  "foreignFactsProjected": 0,
+  "requestBodyAuthorityAccepted": false,
+  "embeddedExecutionClaim": false
+}

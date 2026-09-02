@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "wsgs-structured-selection-result/1.0",
+  "selectionId": "selection.catalog.item.1",
+  "selectionKind": "FINDING_FEATURE",
+  "priorGroundingId": "grounding.sacs.001",
+  "priorResultHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "findingId": "finding.product.catalog",
+  "featureId": "item.product.slope",
+  "selectionRevision": 1,
+  "sourceHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "selectedAt": "2026-08-30T00:00:00Z",
+  "expiresAt": "2026-08-30T00:05:00Z",
+  "upstreamSelectionToken": "opaque-selection-token.example"
+}

@@ -1,6 +1,14 @@
 import { createHash } from "node:crypto";
-import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
+import { isSacsGeospatialContract, type GroundingContractSelection } from "@wsgs/grounding-pipeline";
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { ApiAuthError, authenticate } from "./auth.js";
+import {
+  ContractNegotiationError,
+  WSGS_CONTRACT_VERSION_HEADER,
+  WSGS_RESULT_PROFILE_HEADER,
+  negotiateGroundingContract,
+  normalizeContractNegotiationConfig
+} from "./contract-negotiation.js";
 import { compileApiSchemas, type ApiSchemaValidators } from "./schemas.js";
 import { ApiSecurityError, assertSafeUnicodeText, ScopedRateBudget } from "./security.js";
 import type { GroundingApiConfig, GroundingIdentity } from "./types.js";
@@ -77,6 +85,22 @@ function validateResponse(validator: (value: unknown) => boolean, value: unknown
   if (!validator(value)) throw new ApiProtocolError("BACKEND_CONTRACT_VIOLATION", 500);
 }
 
+function negotiatedResponseValidator(
+  validators: ApiSchemaValidators,
+  selection: GroundingContractSelection,
+  kind: "CAPABILITIES" | "RESULT" | "JOB"
+): (value: unknown) => boolean {
+  const geospatial = isSacsGeospatialContract(selection);
+  if (kind === "CAPABILITIES") return geospatial ? validators.capabilities11 : validators.capabilities;
+  if (kind === "RESULT") return geospatial ? validators.groundingResult11 : validators.groundingResult;
+  return geospatial ? validators.groundingJob11 : validators.groundingJob;
+}
+
+function exposeNegotiation(reply: FastifyReply, selection: GroundingContractSelection): void {
+  reply.header(WSGS_CONTRACT_VERSION_HEADER, selection.contractVersion);
+  if (selection.resultProfile !== null) reply.header(WSGS_RESULT_PROFILE_HEADER, selection.resultProfile);
+}
+
 function requestId(request: FastifyRequest): string {
   const body = request.body;
   if (body && typeof body === "object" && !Array.isArray(body)) {
@@ -134,6 +158,9 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
   const validators: ApiSchemaValidators = compileApiSchemas(config.schemas);
   const metrics = new Metrics();
   const rateBudget = new ScopedRateBudget(config.rateBudget ?? { requests: 120, windowMs: 60_000 });
+  const contractNegotiation = normalizeContractNegotiationConfig(
+    config.contractNegotiation ?? { sacsGeospatialServicePrincipals: [] }
+  );
   const app = Fastify({
     logger: config.logger
       ? {
@@ -153,6 +180,11 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
       void reply.code(401).send(checkedProtocolError(validators, request, error.code));
       return;
     }
+    if (error instanceof ContractNegotiationError) {
+      metrics.increment("contract_negotiation_rejected");
+      void reply.code(error.statusCode).send(checkedProtocolError(validators, request, error.code));
+      return;
+    }
     if (error instanceof ApiProtocolError) {
       metrics.increment("request_rejected");
       void reply.code(error.statusCode).send(checkedProtocolError(validators, request, error.code));
@@ -166,6 +198,12 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
     if (error && typeof error === "object" && "code" in error && error.code === "IDEMPOTENCY_CONFLICT") {
       metrics.increment("idempotency_conflict");
       void reply.code(409).send(checkedProtocolError(validators, request, "IDEMPOTENCY_CONFLICT"));
+      return;
+    }
+    if (error && typeof error === "object" && "code" in error
+      && error.code === "WSGS_CONSUMER_CONTRACT_MISMATCH") {
+      metrics.increment("contract_selection_mismatch");
+      void reply.code(406).send(checkedProtocolError(validators, request, "WSGS_CONSUMER_CONTRACT_MISMATCH"));
       return;
     }
     if (error && typeof error === "object" && "code" in error && error.code === "DATA_SCOPE_SELECTION_REQUIRED") {
@@ -193,16 +231,19 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
   });
   app.get("/metrics", async (_request, reply) => reply.type("text/plain; version=0.0.4").send(metrics.render()));
 
-  app.get("/v1/capabilities", async (request) => {
+  app.get("/v1/capabilities", async (request, reply) => {
     const caller = await identity(request, config);
-    const value = await config.backend.capabilities(caller);
-    validateResponse(validators.capabilities, value);
+    const selection = negotiateGroundingContract(request, caller, contractNegotiation);
+    const value = await config.backend.capabilities(caller, selection);
+    validateResponse(negotiatedResponseValidator(validators, selection, "CAPABILITIES"), value);
+    exposeNegotiation(reply, selection);
     metrics.increment("capabilities");
-    return value;
+    return reply.code(200).send(value);
   });
 
   app.post("/v1/groundings", async (request, reply) => {
     const caller = await identity(request, config);
+    const selection = negotiateGroundingContract(request, caller, contractNegotiation);
     rateBudget.consume(caller);
     const body = requestObject(request);
     assertNoAuthority(body);
@@ -217,31 +258,37 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
     if (!idempotencyKey || idempotencyKey.length > 256) throw new ApiProtocolError("MISSING_OR_INVALID_IDEMPOTENCY_KEY", 400);
     const prefer = request.headers["prefer"];
     const preferAsync = typeof prefer === "string" && prefer.split(",").some((value) => value.trim().toLowerCase() === "respond-async");
-    const outcome = await config.backend.create(caller, idempotencyKey, body, preferAsync);
+    const outcome = await config.backend.create(caller, idempotencyKey, body, preferAsync, selection);
     if (outcome.kind === "RESULT") {
-      validateResponse(validators.groundingResult, outcome.value);
+      validateResponse(negotiatedResponseValidator(validators, selection, "RESULT"), outcome.value);
+      exposeNegotiation(reply, selection);
       metrics.increment("grounding_sync");
       return reply.code(200).send(outcome.value);
     }
-    validateResponse(validators.groundingJob, outcome.value);
+    validateResponse(negotiatedResponseValidator(validators, selection, "JOB"), outcome.value);
+    exposeNegotiation(reply, selection);
     metrics.increment("grounding_async");
     return reply.code(202).send(outcome.value);
   });
 
   app.get("/v1/groundings/:groundingId", async (request, reply) => {
     const caller = await identity(request, config);
-    const value = await config.backend.get(caller, groundingId(request));
+    const selection = negotiateGroundingContract(request, caller, contractNegotiation);
+    const value = await config.backend.get(caller, groundingId(request), selection);
     if (value === null) return reply.code(404).send(checkedProtocolError(validators, request, "GROUNDING_NOT_FOUND"));
-    validateResponse(validators.groundingJob, value);
+    validateResponse(negotiatedResponseValidator(validators, selection, "JOB"), value);
+    exposeNegotiation(reply, selection);
     metrics.increment("grounding_get");
     return reply.code(200).send(value);
   });
 
   app.post("/v1/groundings/*", async (request, reply) => {
     const caller = await identity(request, config);
-    const value = await config.backend.cancel(caller, cancellationGroundingId(request));
+    const selection = negotiateGroundingContract(request, caller, contractNegotiation);
+    const value = await config.backend.cancel(caller, cancellationGroundingId(request), selection);
     if (value === null) return reply.code(404).send(checkedProtocolError(validators, request, "GROUNDING_NOT_FOUND"));
-    validateResponse(validators.groundingJob, value);
+    validateResponse(negotiatedResponseValidator(validators, selection, "JOB"), value);
+    exposeNegotiation(reply, selection);
     metrics.increment("grounding_cancel");
     return reply.code(200).send(value);
   });

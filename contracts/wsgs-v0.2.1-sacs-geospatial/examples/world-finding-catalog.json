@@ -1,0 +1,22 @@
+{
+  "findingId": "finding.product.catalog",
+  "findingKind": "CATALOG",
+  "semanticConcept": "geospatial.product",
+  "querySemantics": "CATALOG",
+  "status": "COMPLETED",
+  "evidenceItemIds": [
+    "evidence.product.catalog"
+  ],
+  "sourceProductIds": [
+    "source.catalog.current"
+  ],
+  "returnedCount": 1,
+  "truncated": false,
+  "items": [
+    {
+      "itemId": "product.slope.current",
+      "productType": "GEO_RASTER",
+      "displayName": "Current slope"
+    }
+  ]
+}

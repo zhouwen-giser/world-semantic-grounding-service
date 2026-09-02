@@ -14,6 +14,8 @@ const forbiddenGdpsSql = /\b(?:FROM|JOIN|INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+(
 const forbiddenDirectGdpsFetch = /\bfetch\s*\(\s*(?:process\.env\.)?(?:GDPS_[A-Z0-9_]*URL|gdps(?:Provider|Base|Endpoint)Url)\b/u;
 const forbiddenAgentCode = /\b(?:bindTools|tool_choice|function_call)\b/u;
 const forbiddenPrefixAuthorization = /\.startsWith\(\s*["']GDPS_/u;
+const internalFindingRuntimeAdapter = "@wsgs/northbound-geospatial-findings/internal/runtime-assembly";
+const allowedFindingRuntimeImporter = "services/grounding-worker/src/production-module.ts";
 
 function files(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -31,6 +33,9 @@ for (const path of sourceRoots.flatMap(files)) {
     const specifier = match[1] ?? "";
     if (forbiddenDependency.test(specifier)) failures.push(`${label}: forbidden dependency ${specifier}`);
     if (forbiddenGdpsDependency.test(specifier)) failures.push(`${label}: forbidden direct GDPS dependency ${specifier}`);
+    if (specifier === internalFindingRuntimeAdapter && label !== allowedFindingRuntimeImporter) {
+      failures.push(`${label}: internal finding runtime adapter importer is not allowlisted`);
+    }
   }
   if (forbiddenConfiguration.test(text)) failures.push(`${label}: forbidden direct provider/GOWM DB/MCP configuration`);
   if (forbiddenGdpsConfiguration.test(text)) failures.push(`${label}: forbidden direct GDPS endpoint/database configuration`);
@@ -70,5 +75,5 @@ for (const path of descriptorConsumerProduction) {
 }
 
 if (failures.length > 0) throw new Error(`Architecture boundary violations:\n${failures.join("\n")}`);
-console.log("ARCHITECTURE_BOUNDARY_PASS no_sdar=true no_a2a=true no_smpp=true no_gowm_db=true gateway_only=true no_direct_gdps=true no_prefix_auth=true planner_operation_free=true descriptor_consumer_pure=true no_langgraph=true");
+console.log("ARCHITECTURE_BOUNDARY_PASS no_sdar=true no_a2a=true no_smpp=true no_gowm_db=true gateway_only=true no_direct_gdps=true no_prefix_auth=true planner_operation_free=true descriptor_consumer_pure=true finding_runtime_importer_locked=true no_langgraph=true");
 

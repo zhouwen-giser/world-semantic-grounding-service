@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "sacs-pr17-geospatial-fixture-projection/1.0",
+  "source": {
+    "headSha": "951a1d81d640d24de60ce6eacc8bb6f95eb6ac35",
+    "path": "tests/world-explanation-fixtures.ts",
+    "normalizedLfSha256": "sha256:f9ce9a1ecc6d01a9fbb4e8843e69d0f5063c4b3fdbecc8111321d67c72bb9ffc",
+    "projection": "STATIC_JSON_PROJECTION_OF_EXPORTED_SIX_FINDINGS_AND_SOURCE_PRODUCT"
+  },
+  "findings": [
+    {
+      "findingId": "finding-slope-1",
+      "findingKind": "POINT_MEASUREMENT",
+      "semanticConcept": "SLOPE",
+      "querySemantics": "READ_VALUE",
+      "status": "COMPLETED",
+      "subjectReferenceProductIds": ["reference-vehicle-2"],
+      "evidenceItemIds": ["evidence-1"],
+      "sourceProductIds": ["source-slope-current"],
+      "point": { "type": "Point", "coordinates": [113.934, 22.544] },
+      "value": 12.6,
+      "unit": "degree"
+    },
+    {
+      "findingId": "finding-class-1",
+      "findingKind": "POINT_CLASSIFICATION",
+      "semanticConcept": "LAND_COVER",
+      "querySemantics": "POINT_CLASSIFICATION",
+      "status": "COMPLETED",
+      "evidenceItemIds": ["evidence-1"],
+      "sourceProductIds": ["source-slope-current"],
+      "point": { "type": "Point", "coordinates": [113.934, 22.544] },
+      "classCode": "WETLAND",
+      "classLabel": "湿地"
+    },
+    {
+      "findingId": "finding-features-1",
+      "findingKind": "SPATIAL_FEATURE_COLLECTION",
+      "semanticConcept": "HIGH_GROUND",
+      "querySemantics": "FEATURES_IN_AREA",
+      "status": "COMPLETED",
+      "evidenceItemIds": ["evidence-1"],
+      "sourceProductIds": ["source-slope-current"],
+      "returnedCount": 1,
+      "truncated": false,
+      "features": [
+        {
+          "featureId": "feature-high-1",
+          "displayName": "高地候选1",
+          "referenceKey": {
+            "namespace": "gowm",
+            "kind": "DERIVED_REFERENCE",
+            "id": "wrf_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "version": "1"
+          },
+          "geometry": { "type": "Point", "coordinates": [113.935, 22.545] }
+        }
+      ]
+    },
+    {
+      "findingId": "finding-profile-1",
+      "findingKind": "PROFILE",
+      "semanticConcept": "ELEVATION",
+      "querySemantics": "PROFILE",
+      "status": "COMPLETED",
+      "evidenceItemIds": ["evidence-1"],
+      "sourceProductIds": ["source-slope-current"],
+      "unit": "m",
+      "samples": [
+        { "distanceM": 0, "value": 10 },
+        { "distanceM": 100, "value": 12 }
+      ],
+      "truncated": false
+    },
+    {
+      "findingId": "finding-explanation-1",
+      "findingKind": "QUALIFIED_EXPLANATION",
+      "semanticConcept": "PASSABILITY_CLASS",
+      "querySemantics": "QUALIFIED_EXPLANATION",
+      "status": "COMPLETED",
+      "evidenceItemIds": ["evidence-1"],
+      "sourceProductIds": ["source-slope-current"],
+      "explanationCode": "PUBLISHED_CLASS_FACTORS",
+      "summary": "上游发布的分类说明。",
+      "reasonCodes": ["SLOPE_FACTOR"]
+    },
+    {
+      "findingId": "finding-catalog-1",
+      "findingKind": "CATALOG",
+      "semanticConcept": "AVAILABLE_PRODUCTS",
+      "querySemantics": "REFERENCE_RESOLUTION",
+      "status": "COMPLETED",
+      "evidenceItemIds": ["evidence-1"],
+      "sourceProductIds": ["source-slope-current"],
+      "returnedCount": 1,
+      "truncated": false,
+      "items": [{ "productType": "SLOPE" }]
+    }
+  ],
+  "sourceProducts": [
+    {
+      "sourceProductId": "source-slope-current",
+      "authority": "GDPS_CURRENT_PRODUCT",
+      "productId": "gdps-baseline-slope",
+      "productType": "SLOPE",
+      "productProfile": "DEGREE",
+      "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "descriptorId": "SLOPE:DEGREE",
+      "descriptorHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "dataTime": "2026-08-29T00:00:00Z",
+      "qualitySummary": { "valueAccuracyDegree": 1.5 },
+      "evidenceItemIds": ["evidence-1"]
+    }
+  ]
+}

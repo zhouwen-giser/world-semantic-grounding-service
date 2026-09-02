@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "wsgs-structured-selection-result/1.0",
+  "selectionId": "selection.vehicle.2",
+  "selectionKind": "FINDING_FEATURE",
+  "priorGroundingId": "grounding.sacs.001",
+  "priorResultHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "findingId": "finding.vehicles.area",
+  "featureId": "feature.vehicle.2",
+  "referenceKey": {
+    "namespace": "gowm",
+    "kind": "WORLD_OBJECT",
+    "id": "wrf_0123456789abcdef0123456789abcdef",
+    "version": "1.0.0"
+  },
+  "selectionRevision": 1,
+  "sourceHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "selectedAt": "2026-08-30T00:00:00Z",
+  "expiresAt": "2026-08-30T00:05:00Z"
+}

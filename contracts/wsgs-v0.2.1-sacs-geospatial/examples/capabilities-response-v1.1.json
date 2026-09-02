@@ -1,0 +1,33 @@
+{
+  "service": "world-semantic-grounding-service",
+  "version": "0.2.1",
+  "contractVersion": "sacs-wsgs-grounding/1.1",
+  "supportedOperations": [
+    "GROUND_REFERENCES",
+    "COMPILE_WORLD_QUERY",
+    "EXECUTE_WORLD_QUERY",
+    "VALIDATE_REFERENCES",
+    "RESOLVE_WORLD_SELECTION",
+    "VALIDATE_SOURCE_CURRENTNESS"
+  ],
+  "supportedProducts": [],
+  "supportedResultProfiles": [
+    "sacs-wsgs-geospatial-findings/1.0"
+  ],
+  "geospatialTransportMode": "RESULT_EXTENSION",
+  "currentness": {
+    "mode": "DEDICATED_OPERATION",
+    "operation": "VALIDATE_SOURCE_CURRENTNESS"
+  },
+  "gowmContract": {
+    "softwareVersion": "0.6.4",
+    "gatewayContractVersion": "0.6.3",
+    "commit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "sourcePackageArtifacts": 58,
+    "contractCatalogRevision": "sha256:efd0395dbd05c884c781f964b22147efcb38c4cef91704597706ec4b8332075a",
+    "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
+    "operationLockHash": "sha256:765714690fc2192138f925526cc6bf0215c2481fa234c566756c26b891649686"
+  },
+  "requiredCapabilitiesReady": true,
+  "optionalCapabilities": []
+}

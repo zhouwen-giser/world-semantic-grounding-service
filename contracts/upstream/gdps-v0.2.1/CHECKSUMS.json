@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "wsgs-gdps-v021-checksums/1.0",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "path": "GDPS_CAPABILITY_LOCK.json",
+      "sha256": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9"
+    },
+    {
+      "path": "GDPS_CONSUMER_LOCK.json",
+      "sha256": "sha256:fe7e5b8ec76e7eaac61b0df084e99efa3dff59ddac99fe279922f40abc732740"
+    },
+    {
+      "path": "GDPS_PRODUCT_DESCRIPTOR_LOCK.json",
+      "sha256": "sha256:b5695bb3322dcd1a39279cfb02248b22d764199d8e8f506085dbc7970550a191"
+    },
+    {
+      "path": "GDPS_RECIPE_LOCK.json",
+      "sha256": "sha256:fde020db21aae9158a420725b322aa0cd1baa8bac83b35ba795eb252502b2994"
+    },
+    {
+      "path": "GDPS_SAMPLE_DATASET_LOCK.json",
+      "sha256": "sha256:f9b85a90fbc025658ccf4cd742e54f0d411fe9dec33f31e4cd5a2de34c07f6cf"
+    },
+    {
+      "path": "GOWM_GATEWAY_BINDING_LOCK.json",
+      "sha256": "sha256:1f47abdc29e977ee01969e2d0daf2e68891260b8d978bb6148ebe88dd777918f"
+    },
+    {
+      "path": "WSGS_QUERY_CORPUS.json",
+      "sha256": "sha256:a0fa13fdee57e2cd7e9f3eb539d1e904a875c4d08d86ea10aae140ee899e5b3a"
+    },
+    {
+      "path": "WSGS_TEST_BASELINE.json",
+      "sha256": "sha256:d93813bb3c6878b5d61382c64ba8b36d56111ce1732f86060b8d41a46022736c"
+    }
+  ],
+  "bundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab"
+}

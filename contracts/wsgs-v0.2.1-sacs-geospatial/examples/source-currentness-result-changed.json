@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "sacs-source-currentness/1.0",
+  "productId": "product.slope.current",
+  "previousContentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "currentContentHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "status": "CHANGED",
+  "checkedAt": "2026-08-30T00:01:00Z",
+  "validationGroundingId": "grounding.currentness.002",
+  "validationResultHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+}

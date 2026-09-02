@@ -1,6 +1,7 @@
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import type { ValidateFunction } from "ajv";
+import { defaultSacsGeospatialSchemaRegistry } from "@wsgs/contracts";
 
 function normalized(name: string, schema: unknown): Record<string, unknown> {
   if (!schema || typeof schema !== "object" || Array.isArray(schema)) throw new Error(`Invalid API schema: ${name}`);
@@ -10,9 +11,28 @@ function normalized(name: string, schema: unknown): Record<string, unknown> {
 export interface ApiSchemaValidators {
   groundingRequest: ValidateFunction;
   groundingResult: ValidateFunction;
+  groundingResult11: ValidateFunction;
   groundingJob: ValidateFunction;
+  groundingJob11: ValidateFunction;
   capabilities: ValidateFunction;
+  capabilities11: ValidateFunction;
   protocolError: ValidateFunction;
+}
+
+function registryValidator(
+  schemaName: "grounding-result-extension.schema.json" | "capabilities-response-v1.1.schema.json"
+): ValidateFunction {
+  const registry = defaultSacsGeospatialSchemaRegistry();
+  const validator = ((value: unknown): boolean => {
+    try {
+      registry.validate(schemaName, value);
+      return true;
+    } catch {
+      return false;
+    }
+  }) as ValidateFunction;
+  validator.errors = null;
+  return validator;
 }
 
 export function compileApiSchemas(documents: Record<string, unknown>): ApiSchemaValidators {
@@ -24,11 +44,26 @@ export function compileApiSchemas(documents: Record<string, unknown>): ApiSchema
     if (!validator) throw new Error(`Missing compiled API schema: ${name}`);
     return validator;
   };
+  const groundingResult = get("grounding-result.schema.json");
+  const groundingJob = get("grounding-job.schema.json");
+  const groundingResult11 = registryValidator("grounding-result-extension.schema.json");
+  const groundingJob11 = ((value: unknown): boolean => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const candidate = value as Record<string, unknown>;
+    const shell = { ...candidate };
+    delete shell["result"];
+    if (!groundingJob(shell)) return false;
+    return candidate["result"] === undefined || groundingResult11(candidate["result"]);
+  }) as ValidateFunction;
+  groundingJob11.errors = null;
   return {
     groundingRequest: get("grounding-request.schema.json"),
-    groundingResult: get("grounding-result.schema.json"),
-    groundingJob: get("grounding-job.schema.json"),
+    groundingResult,
+    groundingResult11,
+    groundingJob,
+    groundingJob11,
     capabilities: get("capabilities-response.schema.json"),
+    capabilities11: registryValidator("capabilities-response-v1.1.schema.json"),
     protocolError: get("protocol-error.schema.json")
   };
 }

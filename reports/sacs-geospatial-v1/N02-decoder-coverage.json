@@ -1,0 +1,764 @@
+{
+  "schemaVersion": "wsgs-v021-n02-decoder-coverage/1.0",
+  "phase": "N02",
+  "generator": {
+    "name": "generate-sacs-geospatial-decoder-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_CONTENT_ADDRESSED_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:aabeba70deca6b340cea370d2946463595d85cf3d1542a8363ffe94419f1b60d",
+  "inputHashCanonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
+  "verificationRecipe": {
+    "writeCommand": "npm run findings:decoder:write",
+    "checkCommand": "npm run findings:decoder:check",
+    "expectedSuccessMarker": "WSGS_V021_FINDING_DECODER_READY",
+    "embeddedExecutionClaim": false,
+    "exitCode": null
+  },
+  "executionEvidence": {
+    "status": "RECORDED_EXTERNALLY_IN_PHASE_REPORT_AND_CI",
+    "phaseReportPath": "reports/sacs-geospatial-v1/N02-phase-report.md"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "consumerRuntimeQualification": "BLOCKED_UPSTREAM",
+  "consumerCompatible": false,
+  "realConsumerCases": {
+    "passed": 0,
+    "total": 18,
+    "status": "NOT_RUN"
+  },
+  "g1": "NOT_RUN",
+  "v03ContentAllowed": false,
+  "productionQualified": false,
+  "status": "PASS",
+  "authority": {
+    "fixtureClass": "TEST_VECTOR",
+    "shapeImplementationSourceSha": "d9238d19bae98e387d390c936300358a30b024cb",
+    "shapeDeliveryEvidenceSha": "8646ded17d03a627305727f92e09c801ff63491f",
+    "sourceLocks": {
+      "bundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab",
+      "capabilityLockRawSha256": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
+      "gdpsDeliveryEvidenceSha": "8646ded17d03a627305727f92e09c801ff63491f",
+      "gdpsImplementationSha": "d9238d19bae98e387d390c936300358a30b024cb",
+      "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+      "wsgsSourceSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb"
+    },
+    "finalBClosure": {
+      "closureHash": "sha256:077f491462d1908ab7bb23c21fa1b1e6fd683ed92ca7cf8ea407529131501ece",
+      "sources": {
+        "gdpsSha": "d9238d19bae98e387d390c936300358a30b024cb",
+        "gdpsImplementationTreeHash": "sha256:55504ba9d5c0ba856c3d9ae3c60ca60ece689084328bf5980616fc9c37d11da5",
+        "gdpsSourceFingerprint": "sha256:acd52c0d7eb8f59cac16928a51cfb00db41badbd232d8cd3f341899f8b9c90b0",
+        "gdpsSourceFileCount": 445,
+        "gowmSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+        "wsgsSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb"
+      },
+      "handoff": {
+        "bundleHash": "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab",
+        "checksumsHash": "sha256:1aeb68955da57c0a8ab1367685dee6263978cacaab33d6039c6aaaf33b4b26dc",
+        "consumerLockHash": "sha256:0cad7d644a85c4489c4b0c5f4137c4633ee75276b25a0518fc9e083ad10b3c0a",
+        "capabilityLockHash": "sha256:791a268736f1e62904e374838f4f3395904bc87cf4f68b50a8454bcf0677f87d",
+        "descriptorLockHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
+        "providerRecipeLockHash": "sha256:b0e0a7688ce800c7cda50d107279211a050a89b960a396e9aa2ee216e8a00b68",
+        "runtimeRecipeLockHash": "sha256:807f536ad3493e5823c1c04c15d634d74d3fac8f7c81f0985ae148878d11f92b",
+        "sampleDatasetLockHash": "sha256:825a1bed2829c59c9a9606674f7b2952a4ebbfeceb65d9586db59978bb71791f",
+        "queryCorpusHash": "sha256:4f60e2ceb8ff96dcea76952b3bc3369bada54ddbcc12bc755b2ed2ae56a6559a",
+        "testBaselineHash": "sha256:605313ec40ba50875af3ef2ef8378a650489bc95f399a1a56b3e5f6adabc690c"
+      },
+      "gateway": {
+        "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+        "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+        "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66",
+        "instanceFingerprint": "sha256:d86aa82d760076f3dc5a5fbcb617555f7c7fb4a011b7f49a4d4b1d849cc61350",
+        "runningConfigFingerprint": "sha256:c8c6518162f61eb9a1dc9bb73a051a3d2a5cba32f39197a1c7820fb5a7fdfe9f"
+      },
+      "provider": {
+        "providerId": "gdps.geospatial-products",
+        "providerVersion": "0.2.1",
+        "manifestHash": "sha256:e33fe3e114f74ba285caffdfcfe0cfeca1a7103497d20f834eb0d821fa435a18",
+        "implementationDigest": "sha256:bfac4412ab4c8ac0a4dc62e038f990669b7c8615b4b4cd0533758af551f19f4f"
+      },
+      "descriptorRegistryHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
+      "vocabularyRegistryHash": "sha256:8d24ff313d74a72d176175f5c99d571edca6d30048b18d82219ae7ba2d8b41c7",
+      "operationCount": 30,
+      "outputSchemaCount": 30
+    },
+    "inputHashes": {
+      "packages/northbound-geospatial-findings/fixtures/gdps-real-result-shapes.json": "sha256:f054c4b459fa27d7a20d0d3de6985c162657ce8018915483e86ea05457fa199c",
+      "packages/northbound-geospatial-findings/fixtures/gdps-v021-capability-decoder-coverage.json": "sha256:8f185e9c3a5fa583d324d12c4a7a6d70eb632765056fb752acd3a6b02f9b60d5",
+      "packages/northbound-geospatial-findings/package.json": "sha256:de69c85779486d2493f8c22d86af2d11c5fa133241407128fa2a5c4008f964ce",
+      "packages/northbound-geospatial-findings/src/canonical.ts": "sha256:8dc240d61ed63f9fed548f62b804f29bcaa44cdf17796e4ce7d54e2ed70953f7",
+      "packages/northbound-geospatial-findings/src/decoders.ts": "sha256:08ffb95162677caf8f66c216375904ea10e7ec93a0a1a252ae45110c27967aef",
+      "packages/northbound-geospatial-findings/src/index.ts": "sha256:4616624de5771e17fecf59c699ce51198949798a3d0a8c15ff0d975831a2c830",
+      "packages/northbound-geospatial-findings/src/registry.ts": "sha256:4f380d75ccf1dc7b5b8654e28438eb8514664fa09f532ef84d1c590e6ba6646a",
+      "packages/northbound-geospatial-findings/src/registry.test.ts": "sha256:d0fa7c62c0c40344d77cde80a1c680c05fce58370ddce61c890b7fbfd08d98d1",
+      "packages/northbound-geospatial-findings/src/types.ts": "sha256:6157aad8bd62ff2b25fccc5ee4d46455a6915bd0378cc587a68b1d7e2d2dc016",
+      "packages/northbound-geospatial-findings/src/validation.ts": "sha256:4a3d43a80b8341d6c69571a15943591fcc721e115e380a27d6a74fc1fdbe107b",
+      "packages/northbound-geospatial-findings/src/source-normalizer.ts": "sha256:264ac622b9f2d2910e7a1213c85a008233c749fc161cd51ed103685c4041710c",
+      "packages/gdps-descriptor-consumer/src/decoder-authority.ts": "sha256:41f776eeede0ed8f6a674bdc83a052fa61e9e76de5def4b30d2da211d3333d93",
+      "packages/gdps-descriptor-consumer/src/index.ts": "sha256:dd2c19e1a88d046743ddbef294f30f67c07229b6e87a5121ebd6a452224b8f27",
+      "packages/gowm-contract-intake/src/gdps-v021-finding-contract.generated.ts": "sha256:65a02116a6a338e445738ab4b67c52f82a585ce465c6b33a08a4173d9906c7fc",
+      "packages/gowm-execution-evidence/src/validated-envelope.ts": "sha256:35f98bdc1d002de5709ace9c0f71862a3499c6200bbd63a3d86e8ef0e0d8b66b",
+      "validation/scripts/generate-sacs-geospatial-decoder-evidence.ts": "sha256:6a70f448cefb2d427a824f47fc5fe0b135357d9058a8d155e410f21a87817ec9"
+    }
+  },
+  "coverageHash": "sha256:e1655926bf1e79101f4deb35890b11f5467c4465554a7232145b6e76701ce5fa",
+  "independentCoverageHash": "sha256:e1655926bf1e79101f4deb35890b11f5467c4465554a7232145b6e76701ce5fa",
+  "counts": {
+    "total": 30,
+    "supported": 29,
+    "intentionallyGap": 0,
+    "unsupportedSchema": 0,
+    "notApplicable": 1
+  },
+  "rows": [
+    {
+      "capabilityId": "elevation.profile@1.0",
+      "operationId": "elevation.profile",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.elevation.profile@1.0.PROFILE_VALUE",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "PROFILE_VALUE",
+      "lock": {
+        "capabilityId": "elevation.profile@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "PROFILE_VALUE",
+        "findingKind": "PROFILE",
+        "operationId": "elevation.profile",
+        "outputSchemaHash": "sha256:fe3d09fa23e62cbb9b8fd07861367a53950c0cfab5c225484394fea5b95999ba",
+        "outputSchemaUri": "urn:gdps:operation:elevation.profile:output:1.0",
+        "queryProfile": "PROFILE_VALUE",
+        "semanticProfileHash": "sha256:4b66751fc5c358f5bda824493b693aec827fdd97ba9ad16319ab59e5efd3b3e3",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "elevation.sample-surface@1.0",
+      "operationId": "elevation.sample-surface",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.elevation.sample-surface@1.0.SAMPLE_VALUE",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "SAMPLE_VALUE",
+      "lock": {
+        "capabilityId": "elevation.sample-surface@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "SAMPLE_VALUE",
+        "findingKind": "POINT_MEASUREMENT",
+        "operationId": "elevation.sample-surface",
+        "outputSchemaHash": "sha256:c863accb9873f01431205eedbaa9fd0ca53c39c0b0d96146e790b6ec5b45bee2",
+        "outputSchemaUri": "urn:gdps:operation:elevation.sample-surface:output:1.0",
+        "queryProfile": "SAMPLE_VALUE",
+        "semanticProfileHash": "sha256:af2b429ae0e5a714ad678d523601f3f80549255d6097f3de392ac830d692e02c",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "elevation.sample@1.0",
+      "operationId": "elevation.sample",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.elevation.sample@1.0.SAMPLE_VALUE",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "SAMPLE_VALUE",
+      "lock": {
+        "capabilityId": "elevation.sample@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "SAMPLE_VALUE",
+        "findingKind": "POINT_MEASUREMENT",
+        "operationId": "elevation.sample",
+        "outputSchemaHash": "sha256:03b2019c95ac57880d4453d78188a2f9b9ea51f1d7bd2f5de65b194cae8f2a58",
+        "outputSchemaUri": "urn:gdps:operation:elevation.sample:output:1.0",
+        "queryProfile": "SAMPLE_VALUE",
+        "semanticProfileHash": "sha256:af2b429ae0e5a714ad678d523601f3f80549255d6097f3de392ac830d692e02c",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-product.check-current@1.0",
+      "operationId": "geo-product.check-current",
+      "operationVersion": "1.0",
+      "classification": "NOT_APPLICABLE",
+      "reason": "NON_FINDING_CAPABILITY",
+      "lock": {
+        "capabilityId": "geo-product.check-current@1.0",
+        "classification": "NOT_APPLICABLE",
+        "decoderPattern": null,
+        "findingKind": null,
+        "operationId": "geo-product.check-current",
+        "outputSchemaHash": "sha256:67ef7be1d9057705654ce3a17f91c6c76b96dd176384b86e2a2eb269cdf0c475",
+        "outputSchemaUri": "urn:gdps:operation:geo-product.check-current:output:1.0",
+        "queryProfile": null,
+        "semanticProfileHash": "sha256:69f1a115e6dcb55d6c5dbe589c9b486fb5ac708aeeec03282c6b665905182034",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-product.get@1.0",
+      "operationId": "geo-product.get",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.geo-product.get@1.0.CATALOG",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "CATALOG",
+      "lock": {
+        "capabilityId": "geo-product.get@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "CATALOG",
+        "findingKind": "CATALOG",
+        "operationId": "geo-product.get",
+        "outputSchemaHash": "sha256:8c20cfba8a4f7d54ad043e2a8e949441b92b34771cffced562c5c090df2f93a3",
+        "outputSchemaUri": "urn:gdps:operation:geo-product.get:output:1.0",
+        "queryProfile": null,
+        "semanticProfileHash": "sha256:8ec1455b0ecd48325fbc30e37ddc445f2f9fcf26d0b7fc1472b2a33b2f839ce8",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-product.search@1.0",
+      "operationId": "geo-product.search",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.geo-product.search@1.0.CATALOG",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "CATALOG",
+      "lock": {
+        "capabilityId": "geo-product.search@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "CATALOG",
+        "findingKind": "CATALOG",
+        "operationId": "geo-product.search",
+        "outputSchemaHash": "sha256:bac750f1d3772e12cab7894794f61bd75a70e6de0d8aeadcfe2c0efd864d6d86",
+        "outputSchemaUri": "urn:gdps:operation:geo-product.search:output:1.0",
+        "queryProfile": null,
+        "semanticProfileHash": "sha256:a2a5a88a5028adddebc3e13f897b6306db1b96e47bbc367e66e057b7f09d8651",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-raster.find-by-class@1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.geo-raster.find-by-class@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "geo-raster.find-by-class@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "geo-raster.find-by-class",
+        "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+        "outputSchemaUri": "urn:gdps:geo-raster.find-by-class:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-raster.find-by-range@1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.geo-raster.find-by-range@1.0.FIND_VALUE_RANGE",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_VALUE_RANGE",
+      "lock": {
+        "capabilityId": "geo-raster.find-by-range@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_VALUE_RANGE",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "geo-raster.find-by-range",
+        "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+        "outputSchemaUri": "urn:gdps:geo-raster.find-by-range:output:1.0",
+        "queryProfile": "FIND_VALUE_RANGE",
+        "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-raster.profile@1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.geo-raster.profile@1.0.PROFILE_VALUE",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "PROFILE_VALUE",
+      "lock": {
+        "capabilityId": "geo-raster.profile@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "PROFILE_VALUE",
+        "findingKind": "PROFILE",
+        "operationId": "geo-raster.profile",
+        "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+        "outputSchemaUri": "urn:gdps:geo-raster.profile:output:1.0",
+        "queryProfile": "PROFILE_VALUE",
+        "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-raster.sample@1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "findingKindOptions": [
+        "POINT_CLASSIFICATION",
+        "POINT_MEASUREMENT"
+      ],
+      "reason": "LOCKED_DESCRIPTOR_VALUE_SEMANTICS_RESOLVES_PATTERN",
+      "lock": {
+        "capabilityId": "geo-raster.sample@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "SAMPLE_VALUE_OR_CLASS",
+        "findingKindOptions": [
+          "POINT_CLASSIFICATION",
+          "POINT_MEASUREMENT"
+        ],
+        "operationId": "geo-raster.sample",
+        "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+        "outputSchemaUri": "urn:gdps:geo-raster.sample:output:1.0",
+        "queryProfile": "SAMPLE_VALUE_OR_CLASS",
+        "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-vector.find-in-area@1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.geo-vector.find-in-area@1.0.VECTOR_IN_AREA",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "VECTOR_IN_AREA",
+      "lock": {
+        "capabilityId": "geo-vector.find-in-area@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "VECTOR_IN_AREA",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "geo-vector.find-in-area",
+        "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+        "outputSchemaUri": "urn:gdps:geo-vector.find-in-area:output:1.0",
+        "queryProfile": "VECTOR_IN_AREA",
+        "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-vector.find-intersections@1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.geo-vector.find-intersections@1.0.VECTOR_INTERSECTS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "VECTOR_INTERSECTS",
+      "lock": {
+        "capabilityId": "geo-vector.find-intersections@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "VECTOR_INTERSECTS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "geo-vector.find-intersections",
+        "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+        "outputSchemaUri": "urn:gdps:geo-vector.find-intersections:output:1.0",
+        "queryProfile": "VECTOR_INTERSECTS",
+        "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "geo-vector.find-nearby@1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.geo-vector.find-nearby@1.0.VECTOR_NEARBY",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "VECTOR_NEARBY",
+      "lock": {
+        "capabilityId": "geo-vector.find-nearby@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "VECTOR_NEARBY",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "geo-vector.find-nearby",
+        "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+        "outputSchemaUri": "urn:gdps:geo-vector.find-nearby:output:1.0",
+        "queryProfile": "VECTOR_NEARBY",
+        "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "hydrology.find-water@1.0",
+      "operationId": "hydrology.find-water",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.hydrology.find-water@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "hydrology.find-water@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "hydrology.find-water",
+        "outputSchemaHash": "sha256:33d3fd240b8b067c9cf31ee791bb3a364d32f6be47a87a8cd5015495bb60d884",
+        "outputSchemaUri": "urn:gdps:operation:hydrology.find-water:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:ef3e693da1770e1fa4293eb910eb855407569073e22642cef6c3f7112bb1e0e6",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "hydrology.find-wetlands@1.0",
+      "operationId": "hydrology.find-wetlands",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.hydrology.find-wetlands@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "hydrology.find-wetlands@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "hydrology.find-wetlands",
+        "outputSchemaHash": "sha256:fe04bcaf65a8cb4c76d41101c555883da93d60aa57d6453f41401bed65fdb289",
+        "outputSchemaUri": "urn:gdps:operation:hydrology.find-wetlands:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:ef3e693da1770e1fa4293eb910eb855407569073e22642cef6c3f7112bb1e0e6",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "landcover.find-by-class@1.0",
+      "operationId": "landcover.find-by-class",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.landcover.find-by-class@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "landcover.find-by-class@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "landcover.find-by-class",
+        "outputSchemaHash": "sha256:6e5a2d045377b5e2893cb029f6fa08f2d829b29f9b7441e13a23abbbebc97cbf",
+        "outputSchemaUri": "urn:gdps:operation:landcover.find-by-class:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:b2c164e64aad6e39281c47ac5583ba507cc2734d46ea906366f5eac7ec2eaeac",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "landcover.get-class@1.0",
+      "operationId": "landcover.get-class",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.landcover.get-class@1.0.SAMPLE_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "SAMPLE_CLASS",
+      "lock": {
+        "capabilityId": "landcover.get-class@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "SAMPLE_CLASS",
+        "findingKind": "POINT_CLASSIFICATION",
+        "operationId": "landcover.get-class",
+        "outputSchemaHash": "sha256:873583ca27a06a82757d9e44476c0da989e1e94787af3c9a9ca9b012acf7e6dd",
+        "outputSchemaUri": "urn:gdps:operation:landcover.get-class:output:1.0",
+        "queryProfile": "SAMPLE_CLASS",
+        "semanticProfileHash": "sha256:a78ca1f114e3c4de0ad4f497257bcd5a35f3b20789bb997c52a16e6b53a7d6eb",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "obstacle.find-buildings@1.0",
+      "operationId": "obstacle.find-buildings",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.obstacle.find-buildings@1.0.VECTOR_IN_AREA",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "VECTOR_IN_AREA",
+      "lock": {
+        "capabilityId": "obstacle.find-buildings@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "VECTOR_IN_AREA",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "obstacle.find-buildings",
+        "outputSchemaHash": "sha256:55ddfa0bb0839dfc0407b3616f79c4b32dd876dc7252590ad21065c4b5906935",
+        "outputSchemaUri": "urn:gdps:operation:obstacle.find-buildings:output:1.0",
+        "queryProfile": "VECTOR_IN_AREA",
+        "semanticProfileHash": "sha256:b0a06ffaef3af99b4838dd63836a2cb2643185528bdfc7c42dc9634bfb295326",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "obstacle.find-intersections@1.0",
+      "operationId": "obstacle.find-intersections",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.obstacle.find-intersections@1.0.VECTOR_INTERSECTS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "VECTOR_INTERSECTS",
+      "lock": {
+        "capabilityId": "obstacle.find-intersections@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "VECTOR_INTERSECTS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "obstacle.find-intersections",
+        "outputSchemaHash": "sha256:67cf077d06a988996b22645d084c18262114d931cb5f43f95edb02e06021d2aa",
+        "outputSchemaUri": "urn:gdps:operation:obstacle.find-intersections:output:1.0",
+        "queryProfile": "VECTOR_INTERSECTS",
+        "semanticProfileHash": "sha256:89c90da31d59c5c69fa80ef72c6f5f3d70bac82b7e7de30998111bf12a40ecd3",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "obstacle.find-nearby@1.0",
+      "operationId": "obstacle.find-nearby",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.obstacle.find-nearby@1.0.VECTOR_NEARBY",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "VECTOR_NEARBY",
+      "lock": {
+        "capabilityId": "obstacle.find-nearby@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "VECTOR_NEARBY",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "obstacle.find-nearby",
+        "outputSchemaHash": "sha256:e5cff958e7e0f84e88bc600126462fc29ed97ce2f60cff8ef76c97ecfd46ef41",
+        "outputSchemaUri": "urn:gdps:operation:obstacle.find-nearby:output:1.0",
+        "queryProfile": "VECTOR_NEARBY",
+        "semanticProfileHash": "sha256:50666af6121815d14b47be71e5969f759dd57eadc496a977e94ad6e8e46a2d5c",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "surface-material.find-by-class@1.0",
+      "operationId": "surface-material.find-by-class",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.surface-material.find-by-class@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "surface-material.find-by-class@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "surface-material.find-by-class",
+        "outputSchemaHash": "sha256:5fbedabcd0ab35efa5d952b44f70828ce365888383d68316da26ea7104e08147",
+        "outputSchemaUri": "urn:gdps:operation:surface-material.find-by-class:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:b2c164e64aad6e39281c47ac5583ba507cc2734d46ea906366f5eac7ec2eaeac",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "surface-material.get@1.0",
+      "operationId": "surface-material.get",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.surface-material.get@1.0.SAMPLE_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "SAMPLE_CLASS",
+      "lock": {
+        "capabilityId": "surface-material.get@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "SAMPLE_CLASS",
+        "findingKind": "POINT_CLASSIFICATION",
+        "operationId": "surface-material.get",
+        "outputSchemaHash": "sha256:53f0ca95d19fd7517ab4b4e6ddb174575920ad37519ecee302736886bb684678",
+        "outputSchemaUri": "urn:gdps:operation:surface-material.get:output:1.0",
+        "queryProfile": "SAMPLE_CLASS",
+        "semanticProfileHash": "sha256:a78ca1f114e3c4de0ad4f497257bcd5a35f3b20789bb997c52a16e6b53a7d6eb",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "terrain.find-by-class@1.0",
+      "operationId": "terrain.find-by-class",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.terrain.find-by-class@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "terrain.find-by-class@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "terrain.find-by-class",
+        "outputSchemaHash": "sha256:69fb094270a8cd99405a056273e8a498e3227af26f95e6721b770aaeb7dfa14c",
+        "outputSchemaUri": "urn:gdps:operation:terrain.find-by-class:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:b2c164e64aad6e39281c47ac5583ba507cc2734d46ea906366f5eac7ec2eaeac",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "terrain.find-depressions@1.0",
+      "operationId": "terrain.find-depressions",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.terrain.find-depressions@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "terrain.find-depressions@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "terrain.find-depressions",
+        "outputSchemaHash": "sha256:db936c68d06b9463a94866606ea9777902e7b1936fa1f763b6778964a17ed0e0",
+        "outputSchemaUri": "urn:gdps:operation:terrain.find-depressions:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:ef3e693da1770e1fa4293eb910eb855407569073e22642cef6c3f7112bb1e0e6",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "terrain.find-high-ground@1.0",
+      "operationId": "terrain.find-high-ground",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.terrain.find-high-ground@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "terrain.find-high-ground@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "terrain.find-high-ground",
+        "outputSchemaHash": "sha256:b71c4881c6f4b8107dd287f3608230b75cbe23073f1ab674fad0397240525f19",
+        "outputSchemaUri": "urn:gdps:operation:terrain.find-high-ground:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:ef3e693da1770e1fa4293eb910eb855407569073e22642cef6c3f7112bb1e0e6",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "terrain.get-class@1.0",
+      "operationId": "terrain.get-class",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.terrain.get-class@1.0.SAMPLE_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "SAMPLE_CLASS",
+      "lock": {
+        "capabilityId": "terrain.get-class@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "SAMPLE_CLASS",
+        "findingKind": "POINT_CLASSIFICATION",
+        "operationId": "terrain.get-class",
+        "outputSchemaHash": "sha256:d115748a599961fe8137047f5b5f5ff6aed05de95118c5106c76c33ad83b7790",
+        "outputSchemaUri": "urn:gdps:operation:terrain.get-class:output:1.0",
+        "queryProfile": "SAMPLE_CLASS",
+        "semanticProfileHash": "sha256:a78ca1f114e3c4de0ad4f497257bcd5a35f3b20789bb997c52a16e6b53a7d6eb",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "traversability.explain@1.0",
+      "operationId": "traversability.explain",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.traversability.explain@1.0.QUALIFIED_EXPLANATION",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "SAMPLE_CLASS",
+      "lock": {
+        "capabilityId": "traversability.explain@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "QUALIFIED_EXPLANATION",
+        "findingKind": "QUALIFIED_EXPLANATION",
+        "operationId": "traversability.explain",
+        "outputSchemaHash": "sha256:681ad9732de478d69c1a227e0b586666e32d107fbe848435593036c5d5370d3c",
+        "outputSchemaUri": "urn:gdps:operation:traversability.explain:output:1.0",
+        "queryProfile": "SAMPLE_CLASS",
+        "semanticProfileHash": "sha256:d6eb99ab7fa2f3eb231e77c35e0ce02f0c3edfec411ea24f2b0094ca40b3a945",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "traversability.find-blocked@1.0",
+      "operationId": "traversability.find-blocked",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.traversability.find-blocked@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "traversability.find-blocked@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "traversability.find-blocked",
+        "outputSchemaHash": "sha256:27fdc31a5f2949f81c63e0e51646a34adeda4047172da4a5d5f05ed3086ef683",
+        "outputSchemaUri": "urn:gdps:operation:traversability.find-blocked:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:7ef17a329e54a881b86a61614d8978304cc4189d43ffd80f20f0b9d7c4968d18",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "traversability.find-passable@1.0",
+      "operationId": "traversability.find-passable",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.traversability.find-passable@1.0.FIND_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "FIND_CLASS",
+      "lock": {
+        "capabilityId": "traversability.find-passable@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "FIND_CLASS",
+        "findingKind": "SPATIAL_FEATURE_COLLECTION",
+        "operationId": "traversability.find-passable",
+        "outputSchemaHash": "sha256:60bbbe2541ac69f3cc0cc28f2510b2e13e3cdc22a3e9983419cdf0f909c5d466",
+        "outputSchemaUri": "urn:gdps:operation:traversability.find-passable:output:1.0",
+        "queryProfile": "FIND_CLASS",
+        "semanticProfileHash": "sha256:7ef17a329e54a881b86a61614d8978304cc4189d43ffd80f20f0b9d7c4968d18",
+        "version": "1.0"
+      }
+    },
+    {
+      "capabilityId": "traversability.get@1.0",
+      "operationId": "traversability.get",
+      "operationVersion": "1.0",
+      "classification": "SUPPORTED",
+      "decoderId": "final-b.traversability.get@1.0.SAMPLE_CLASS",
+      "priority": "EXACT_OPERATION_SCHEMA",
+      "resolvedQueryProfile": "SAMPLE_CLASS",
+      "lock": {
+        "capabilityId": "traversability.get@1.0",
+        "classification": "SUPPORTED",
+        "decoderPattern": "SAMPLE_CLASS",
+        "findingKind": "POINT_CLASSIFICATION",
+        "operationId": "traversability.get",
+        "outputSchemaHash": "sha256:78601c845cc825f2a17f1ab144a4dc6e26f6ece3eeeb621f3830811690a0cf95",
+        "outputSchemaUri": "urn:gdps:operation:traversability.get:output:1.0",
+        "queryProfile": "SAMPLE_CLASS",
+        "semanticProfileHash": "sha256:af2b429ae0e5a714ad678d523601f3f80549255d6097f3de392ac830d692e02c",
+        "version": "1.0"
+      }
+    }
+  ],
+  "dynamicCapabilityPolicy": {
+    "capabilityId": "geo-raster.sample@1.0",
+    "dispatchAuthority": "LOCKED_DESCRIPTOR_VALUE_SEMANTICS",
+    "findingKindOptions": [
+      "POINT_CLASSIFICATION",
+      "POINT_MEASUREMENT"
+    ],
+    "capabilityCount": 1
+  },
+  "currentnessBoundary": {
+    "capabilityId": "geo-product.check-current@1.0",
+    "classification": "NOT_APPLICABLE",
+    "ownerPhase": "N06"
+  },
+  "noSilentOmission": true
+}

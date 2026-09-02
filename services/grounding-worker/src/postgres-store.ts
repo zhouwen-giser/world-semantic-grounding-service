@@ -3,9 +3,13 @@ import { randomUUID } from "node:crypto";
 import {
   Aes256GcmPayloadCodec,
   GROUNDING_OPERATIONS,
+  LEGACY_GROUNDING_CONTRACT_SELECTION,
   canonicalSha256,
+  parseGroundingContractSelection,
+  type GroundingContractSelection,
   type PipelineStage
 } from "@wsgs/grounding-pipeline";
+import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import type { Notification, Pool, PoolClient } from "pg";
 
 import type { GroundingWorker } from "./worker.js";
@@ -18,7 +22,7 @@ import type {
   WorkerSettlement,
   WorkerSettlementOutcome
 } from "./types.js";
-import { assertFrozenGroundingResult } from "./result-schema.js";
+import { assertNegotiatedGroundingResult } from "./result-schema.js";
 
 interface ClaimRow {
   job_id: string;
@@ -111,7 +115,8 @@ function jobError(code: string, retryable: boolean, pipelineStage?: PipelineStag
 
 function assertResult(
   settlement: Extract<WorkerSettlement, { kind: "RESULT" }>,
-  maximumBytes: number
+  maximumBytes: number,
+  contractSelection: GroundingContractSelection
 ): Readonly<Record<string, unknown>> {
   if (!/^sha256:[0-9a-f]{64}$/u.test(settlement.resultHash)) {
     throw new PostgresWorkerStoreError("Worker result hash is not a tagged SHA-256 digest");
@@ -123,8 +128,63 @@ function assertResult(
   if (result["resultHash"] !== settlement.resultHash || result["status"] !== settlement.status) {
     throw new PostgresWorkerStoreError("Worker result bytes do not match their settlement metadata");
   }
-  assertFrozenGroundingResult(result);
+  assertNegotiatedGroundingResult(result, contractSelection);
   return result;
+}
+
+function storedContractSelection(metadata: Record<string, unknown>): GroundingContractSelection {
+  const selected = metadata["contractSelection"];
+  if (selected === undefined) return LEGACY_GROUNDING_CONTRACT_SELECTION;
+  try {
+    return parseGroundingContractSelection(selected);
+  } catch {
+    throw new PostgresWorkerStoreError("Stored grounding contract selection is invalid");
+  }
+}
+
+function storedAuthorityList(
+  value: unknown,
+  label: string,
+  allowEmpty: boolean
+): string[] {
+  if (!Array.isArray(value) || (!allowEmpty && value.length === 0) ||
+    value.some((entry) => typeof entry !== "string" || entry.length === 0) ||
+    new Set(value).size !== value.length) {
+    throw new PostgresWorkerStoreError(`Stored trusted identity ${label} are invalid`);
+  }
+  return [...value] as string[];
+}
+
+function restoredIdentity(row: ClaimRow, metadata: Record<string, unknown>): Readonly<Record<string, unknown>> {
+  // Pre-v0.2.1 rows did not persist the complete list. Their one selected
+  // scope remains recoverable without weakening new multi-scope rows.
+  const dataScopes = metadata["dataScopes"] === undefined
+    ? [row.data_scope]
+    : storedAuthorityList(metadata["dataScopes"], "data scopes", false);
+  const datasetScopes = storedAuthorityList(row.dataset_scopes, "dataset scopes", true);
+  const permissions = storedAuthorityList(metadata["permissions"], "permissions", false);
+  if (!dataScopes.includes(row.data_scope)) {
+    throw new PostgresWorkerStoreError("Stored selected data scope is not authorized by the trusted identity");
+  }
+  let restored;
+  try {
+    restored = createGroundingIdentity({
+      servicePrincipalId: row.principal_id,
+      actorId: row.actor_id,
+      dataScopes,
+      datasetScopes,
+      permissions
+    });
+  } catch {
+    throw new PostgresWorkerStoreError("Stored trusted identity authority is invalid");
+  }
+  if (restored.authorizationContextHash !== row.authorization_context_hash) {
+    throw new PostgresWorkerStoreError("Stored trusted identity authorization context hash is inconsistent");
+  }
+  return {
+    ...restored,
+    dataScope: row.data_scope,
+  };
 }
 
 async function persistResultProducts(
@@ -252,17 +312,8 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
       !Array.isArray(claimed.row.request_metadata)
       ? claimed.row.request_metadata as Record<string, unknown>
       : {};
-    const datasetScopes = Array.isArray(claimed.row.dataset_scopes) &&
-      claimed.row.dataset_scopes.every((entry) => typeof entry === "string")
-      ? claimed.row.dataset_scopes as string[]
-      : [];
-    const permissions = Array.isArray(metadata["permissions"]) &&
-      metadata["permissions"].every((entry) => typeof entry === "string")
-      ? metadata["permissions"] as string[]
-      : [];
-    if (permissions.length === 0) {
-      throw new PostgresWorkerStoreError("Stored trusted identity permissions are missing");
-    }
+    const identity = restoredIdentity(claimed.row, metadata);
+    const contractSelection = storedContractSelection(metadata);
     return {
       jobId: claimed.row.job_id,
       groundingId: claimed.row.grounding_id,
@@ -275,15 +326,8 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
       initialState: {
         request: jsonObject(plaintext),
         idempotencyKey: claimed.row.idempotency_key,
-        identity: {
-          servicePrincipalId: claimed.row.principal_id,
-          actorId: claimed.row.actor_id,
-          dataScopes: [claimed.row.data_scope],
-          dataScope: claimed.row.data_scope,
-          datasetScopes,
-          permissions,
-          authorizationContextHash: claimed.row.authorization_context_hash
-        }
+        contractSelection,
+        identity
       },
       immutableLocks: claimed.immutableLocks
     };
@@ -322,10 +366,13 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
         lease_token: string | null;
         stage_generation: number;
         max_result_bytes: number;
+        request_metadata: unknown;
       }>(
-        `SELECT grounding_id, data_scope, actor_id, status, cancel_requested_at,
-                lease_token, stage_generation, max_result_bytes
-           FROM wsgs.grounding_job WHERE job_id = $1 FOR UPDATE`,
+        `SELECT job.grounding_id, job.data_scope, job.actor_id, job.status, job.cancel_requested_at,
+                job.lease_token, job.stage_generation, job.max_result_bytes, request.request_metadata
+           FROM wsgs.grounding_job AS job
+           JOIN wsgs.grounding_request AS request ON request.grounding_id = job.grounding_id
+          WHERE job.job_id = $1 FOR UPDATE OF job`,
         [fence.jobId]
       );
       const job = locked.rows[0];
@@ -335,7 +382,11 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
       }
 
       if (settlement.kind === "RESULT") {
-        const result = assertResult(settlement, job.max_result_bytes);
+        const metadata = job.request_metadata && typeof job.request_metadata === "object"
+          && !Array.isArray(job.request_metadata)
+          ? job.request_metadata as Record<string, unknown>
+          : {};
+        const result = assertResult(settlement, job.max_result_bytes, storedContractSelection(metadata));
         await client.query(
           `INSERT INTO wsgs.grounding_result(
              grounding_id, data_scope, actor_id, status, result_hash, result_bytes

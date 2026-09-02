@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gdps:geo-raster.profile:output:1.0",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "productId",
+        "productType",
+        "productProfile",
+        "contentHash",
+        "descriptorId",
+        "descriptorHash",
+        "result"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "gdps-geo-raster-profile-result/1.0"
+        },
+        "productId": {
+          "type": "string"
+        },
+        "productType": {
+          "type": "string"
+        },
+        "productProfile": {
+          "type": "string"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "descriptorId": {
+          "type": "string"
+        },
+        "descriptorHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "result": {
+          "type": "object"
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "$ref": "urn:gdps:domain-error:1.0"
+    }
+  ],
+  "x-gdps-generated-from": "config/product-type-descriptors.json"
+}

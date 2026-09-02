@@ -9,6 +9,11 @@ import type {
   ProductionGroundingStore,
   ScopedGroundingIdentity
 } from "./backend.js";
+import {
+  LEGACY_GROUNDING_CONTRACT_SELECTION,
+  parseGroundingContractSelection,
+  type GroundingContractSelection
+} from "./contract-selection.js";
 
 const TERMINAL_STATUSES = new Set([
   "COMPLETED",
@@ -30,6 +35,7 @@ interface GroundingJobRow {
   finished_at: Date | null;
   error: unknown | null;
   result_bytes: Buffer | null;
+  request_metadata: unknown;
 }
 
 export class PostgresGroundingStoreError extends Error {
@@ -42,6 +48,15 @@ export class PostgresIdempotencyConflictError extends Error {
 
   constructor() {
     super("The idempotency key was already used with a different payload");
+  }
+}
+
+export class PostgresGroundingContractMismatchError extends Error {
+  readonly code = "WSGS_CONSUMER_CONTRACT_MISMATCH";
+  readonly statusCode = 406;
+
+  constructor() {
+    super("The requested presentation does not match the persisted grounding contract");
   }
 }
 
@@ -94,6 +109,33 @@ function resultPresentation(row: GroundingJobRow): GroundingPresentation {
   return { kind: "JOB", value: presentation(row) };
 }
 
+function selectionFromMetadata(metadata: unknown): GroundingContractSelection {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    throw new PostgresGroundingContractMismatchError();
+  }
+  const stored = (metadata as Record<string, unknown>)["contractSelection"];
+  // Rows created before v0.2.1 have no selection and are byte-locked legacy resources.
+  if (stored === undefined) return LEGACY_GROUNDING_CONTRACT_SELECTION;
+  try {
+    return parseGroundingContractSelection(stored);
+  } catch {
+    throw new PostgresGroundingContractMismatchError();
+  }
+}
+
+function assertPersistedSelection(row: GroundingJobRow, expected: GroundingContractSelection): void {
+  assertMetadataSelection(row.request_metadata, expected);
+}
+
+function assertMetadataSelection(metadata: unknown, expected: GroundingContractSelection): void {
+  const actual = selectionFromMetadata(metadata);
+  if (actual.contractVersion !== expected.contractVersion
+    || actual.resultProfile !== expected.resultProfile
+    || actual.transportMode !== expected.transportMode) {
+    throw new PostgresGroundingContractMismatchError();
+  }
+}
+
 function abortableDelay(ms: number, signal?: AbortSignal): Promise<void> {
   if (signal?.aborted) return Promise.reject(signal.reason);
   return new Promise((resolve, reject) => {
@@ -123,19 +165,25 @@ function advisoryLockKey(submission: DurableGroundingSubmission): string {
 
 async function readJob(
   client: Pick<Pool, "query"> | Pick<PoolClient, "query">,
-  dataScope: string,
-  actorId: string,
+  identity: ScopedGroundingIdentity,
   groundingId: string
 ): Promise<GroundingJobRow | null> {
   const found = await client.query<GroundingJobRow>(
     `SELECT job.job_id, job.grounding_id, request.request_id, job.status,
             job.created_at, job.updated_at, job.started_at,
-            job.finished_at, job.error, result.result_bytes
+            job.finished_at, job.error, result.result_bytes, request.request_metadata
        FROM wsgs.grounding_job AS job
        JOIN wsgs.grounding_request AS request ON request.grounding_id = job.grounding_id
        LEFT JOIN wsgs.grounding_result AS result ON result.grounding_id = job.grounding_id
-      WHERE job.data_scope = $1 AND job.actor_id = $2 AND job.grounding_id = $3`,
-    [dataScope, actorId, groundingId]
+      WHERE job.data_scope = $1 AND job.actor_id = $2 AND job.grounding_id = $3
+        AND request.principal_id = $4 AND request.authorization_context_hash = $5`,
+    [
+      identity.dataScope,
+      identity.actorId,
+      groundingId,
+      identity.servicePrincipalId,
+      identity.authorizationContextHash
+    ]
   );
   return found.rows[0] ?? null;
 }
@@ -178,6 +226,11 @@ export class PostgresProductionGroundingStore implements ProductionGroundingStor
       const replay = existing.rows[0];
       if (replay) {
         if (replay.payload_hash !== submission.payloadHash) throw new PostgresIdempotencyConflictError();
+        const job = await readJob(client, submission.identity, replay.grounding_id);
+        // The historical idempotency key does not include principal_id. Never
+        // replay across principals that happen to share actor and data scope.
+        if (!job) throw new PostgresIdempotencyConflictError();
+        assertPersistedSelection(job, submission.contractSelection);
         if (replay.result_bytes) {
           return {
             kind: "REPLAY_RESULT",
@@ -185,13 +238,6 @@ export class PostgresProductionGroundingStore implements ProductionGroundingStor
             result: parseJsonObject(replay.result_bytes, "Idempotent grounding result")
           };
         }
-        const job = await readJob(
-          client,
-          submission.identity.dataScope,
-          submission.identity.actorId,
-          replay.grounding_id
-        );
-        if (!job) throw new PostgresGroundingStoreError("Idempotency record references a missing grounding job");
         return {
           kind: "REPLAY_JOB",
           groundingId: replay.grounding_id,
@@ -254,12 +300,7 @@ export class PostgresProductionGroundingStore implements ProductionGroundingStor
           submission.groundingId
         ]
       );
-      const job = await readJob(
-        client,
-        submission.identity.dataScope,
-        submission.identity.actorId,
-        submission.groundingId
-      );
+      const job = await readJob(client, submission.identity, submission.groundingId);
       if (!job) throw new PostgresGroundingStoreError("Newly inserted grounding job could not be read");
       return {
         kind: "CREATED",
@@ -274,11 +315,13 @@ export class PostgresProductionGroundingStore implements ProductionGroundingStor
     identity: ScopedGroundingIdentity,
     groundingId: string,
     deadlineAt: Date,
+    contractSelection: GroundingContractSelection,
     signal?: AbortSignal
   ): Promise<GroundingPresentation> {
     while (true) {
-      const job = await readJob(this.pool, identity.dataScope, identity.actorId, groundingId);
+      const job = await readJob(this.pool, identity, groundingId);
       if (!job) throw new PostgresGroundingStoreError("Grounding job disappeared while awaiting completion");
+      assertPersistedSelection(job, contractSelection);
       if (TERMINAL_STATUSES.has(job.status)) return resultPresentation(job);
       const remaining = deadlineAt.getTime() - Date.now();
       if (remaining <= 0) return { kind: "JOB", value: presentation(job) };
@@ -286,24 +329,40 @@ export class PostgresProductionGroundingStore implements ProductionGroundingStor
     }
   }
 
-  async get(identity: ScopedGroundingIdentity, groundingId: string): Promise<unknown | null> {
-    const job = await readJob(this.pool, identity.dataScope, identity.actorId, groundingId);
-    return job ? presentation(job) : null;
+  async get(
+    identity: ScopedGroundingIdentity,
+    groundingId: string,
+    contractSelection: GroundingContractSelection
+  ): Promise<unknown | null> {
+    const job = await readJob(this.pool, identity, groundingId);
+    if (!job) return null;
+    assertPersistedSelection(job, contractSelection);
+    return presentation(job);
   }
 
   async cancel(
     identity: ScopedGroundingIdentity,
-    groundingId: string
+    groundingId: string,
+    contractSelection: GroundingContractSelection
   ): Promise<{ jobId: string; value: unknown } | null> {
     return transaction(this.pool, async (client) => {
-      const current = await client.query<{ job_id: string; status: string }>(
-        `SELECT job_id, status FROM wsgs.grounding_job
-          WHERE data_scope = $1 AND actor_id = $2 AND grounding_id = $3
+      const current = await client.query<{ job_id: string; status: string; request_metadata: unknown }>(
+        `SELECT job.job_id, job.status, request.request_metadata FROM wsgs.grounding_job AS job
+          JOIN wsgs.grounding_request AS request ON request.grounding_id = job.grounding_id
+          WHERE job.data_scope = $1 AND job.actor_id = $2 AND job.grounding_id = $3
+            AND request.principal_id = $4 AND request.authorization_context_hash = $5
           FOR UPDATE`,
-        [identity.dataScope, identity.actorId, groundingId]
+        [
+          identity.dataScope,
+          identity.actorId,
+          groundingId,
+          identity.servicePrincipalId,
+          identity.authorizationContextHash
+        ]
       );
       const row = current.rows[0];
       if (!row) return null;
+      assertMetadataSelection(row.request_metadata, contractSelection);
       if (!TERMINAL_STATUSES.has(row.status)) {
         await client.query(
           `UPDATE wsgs.grounding_job
@@ -315,7 +374,7 @@ export class PostgresProductionGroundingStore implements ProductionGroundingStor
         );
         await client.query("SELECT pg_notify('wsgs_grounding_cancel', $1)", [row.job_id]);
       }
-      const job = await readJob(client, identity.dataScope, identity.actorId, groundingId);
+      const job = await readJob(client, identity, groundingId);
       if (!job) throw new PostgresGroundingStoreError("Cancelled grounding job could not be read");
       return { jobId: row.job_id, value: presentation(job) };
     });

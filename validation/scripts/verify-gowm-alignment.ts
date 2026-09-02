@@ -33,7 +33,7 @@ const DEFAULT_CANDIDATE_LOCK = resolve(
 );
 
 const EXPECTED = Object.freeze({
-  runtimeCommit: "fceed92398a0b86c0a0121aa2188a7f1d328e577",
+  runtimeCommit: "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
   runtimeVersion: "0.6.4",
   gatewayPackageName: "@gowm/world-gateway-contracts",
   gatewayPackageVersion: "0.6.3",

@@ -7,14 +7,16 @@ import {
   GOWM_RUNTIME_SOURCE_COMMIT,
   GOWM_RUNTIME_VERSION,
   WSGS_CONTRACT_VERSION,
+  WSGS_LEGACY_CONTRACT_VERSION,
   WSGS_VERSION
 } from "../packages/contracts/src/index.js";
 
 describe("workspace baseline", () => {
   it("pins the service and contract versions", () => {
-    expect(WSGS_VERSION).toBe("0.1.0");
-    expect(WSGS_CONTRACT_VERSION).toBe("sacs-wsgs-grounding/1.0");
-    expect(GOWM_RUNTIME_SOURCE_COMMIT).toBe("fceed92398a0b86c0a0121aa2188a7f1d328e577");
+    expect(WSGS_VERSION).toBe("0.2.1");
+    expect(WSGS_CONTRACT_VERSION).toBe("sacs-wsgs-grounding/1.1");
+    expect(WSGS_LEGACY_CONTRACT_VERSION).toBe("sacs-wsgs-grounding/1.0");
+    expect(GOWM_RUNTIME_SOURCE_COMMIT).toBe("c49bf415fdb4cbe19a09f341c34b6dd825e3ca14");
     expect(GOWM_RUNTIME_VERSION).toBe("0.6.4");
     expect(GOWM_GATEWAY_CONTRACT_VERSION).toBe("0.6.3");
     expect(GOWM_CONSUMER_PACKAGE_VERSION).toBe("0.6.3");

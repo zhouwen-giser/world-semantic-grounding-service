@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { basename, join, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import Ajv2020 from "ajv/dist/2020.js";
@@ -18,10 +19,51 @@ const requiredFiles = [
   "WSGS_QUERY_CORPUS.json",
   "CHECKSUMS.json"
 ];
-const argument = process.argv.indexOf("--handoff");
-const handoff = argument >= 0 ? process.argv[argument + 1] : process.env.GDPS_V021_HANDOFF_DIR;
 const check = process.argv.includes("--check");
+const argument = process.argv.indexOf("--handoff");
+const handoff = argument >= 0
+  ? process.argv[argument + 1]
+  : process.env.GDPS_V021_HANDOFF_DIR
+    ?? (check ? resolve(root, "contracts", "upstream", "gdps-v0.2.1") : undefined);
+const sourceArgument = process.argv.indexOf("--gdps-source");
+const gdpsSourceRepository = sourceArgument >= 0
+  ? process.argv[sourceArgument + 1]
+  : process.env.GDPS_V021_SOURCE_REPOSITORY;
 const digestPattern = /^sha256:[0-9a-f]{64}$/u;
+const sourcePathPattern = /^(?:contracts|integration)\/[A-Za-z0-9._/-]+$/u;
+const approvedManifestSourcePath = "integration/GDPS_GOWM_V021_APPROVED_MANIFEST.json";
+const findingBindingPlan = Object.freeze({
+  "geo-product.get": ["CATALOG", null, "CATALOG", "CATALOG"],
+  "geo-product.search": ["CATALOG", null, "CATALOG", "CATALOG"],
+  "geo-product.check-current": ["NOT_APPLICABLE", null, "CURRENTNESS", null],
+  "elevation.sample": ["FINDING", "SAMPLE_VALUE", "READ_VALUE", "SAMPLE_VALUE"],
+  "elevation.profile": ["FINDING", "PROFILE_VALUE", "READ_PROFILE", "PROFILE_VALUE"],
+  "elevation.sample-surface": ["FINDING", "SAMPLE_VALUE", "READ_VALUE", "SAMPLE_VALUE"],
+  "terrain.get-class": ["FINDING", "SAMPLE_CLASS", "READ_VALUE", "SAMPLE_CLASS"],
+  "terrain.find-by-class": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "terrain.find-high-ground": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "terrain.find-depressions": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "landcover.get-class": ["FINDING", "SAMPLE_CLASS", "READ_VALUE", "SAMPLE_CLASS"],
+  "landcover.find-by-class": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "hydrology.find-water": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "hydrology.find-wetlands": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "surface-material.get": ["FINDING", "SAMPLE_CLASS", "READ_VALUE", "SAMPLE_CLASS"],
+  "surface-material.find-by-class": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "obstacle.find-buildings": ["FINDING", "VECTOR_IN_AREA", "FIND_FEATURES_IN_AREA", "VECTOR_IN_AREA"],
+  "obstacle.find-nearby": ["FINDING", "VECTOR_NEARBY", "FIND_FEATURES_NEARBY", "VECTOR_NEARBY"],
+  "obstacle.find-intersections": ["FINDING", "VECTOR_INTERSECTS", "FIND_INTERSECTIONS", "VECTOR_INTERSECTS"],
+  "traversability.get": ["FINDING", "SAMPLE_CLASS", "READ_VALUE", "SAMPLE_CLASS"],
+  "traversability.find-passable": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "traversability.find-blocked": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "traversability.explain": ["FINDING", "SAMPLE_CLASS", "READ_VALUE", "QUALIFIED_EXPLANATION"],
+  "geo-raster.sample": ["FINDING", "SAMPLE_VALUE_OR_CLASS", "READ_VALUE", "SAMPLE_VALUE"],
+  "geo-raster.profile": ["FINDING", "PROFILE_VALUE", "READ_PROFILE", "PROFILE_VALUE"],
+  "geo-raster.find-by-class": ["FINDING", "FIND_CLASS", "FIND_CLASS_AREAS", "FIND_CLASS"],
+  "geo-raster.find-by-range": ["FINDING", "FIND_VALUE_RANGE", "FIND_VALUE_RANGE_AREAS", "FIND_VALUE_RANGE"],
+  "geo-vector.find-in-area": ["FINDING", "VECTOR_IN_AREA", "FIND_FEATURES_IN_AREA", "VECTOR_IN_AREA"],
+  "geo-vector.find-nearby": ["FINDING", "VECTOR_NEARBY", "FIND_FEATURES_NEARBY", "VECTOR_NEARBY"],
+  "geo-vector.find-intersections": ["FINDING", "VECTOR_INTERSECTS", "FIND_INTERSECTIONS", "VECTOR_INTERSECTS"]
+});
 
 function fail(code, details = "") {
   console.error(`${code}${details ? ` ${details}` : ""}`);
@@ -67,6 +109,55 @@ function guardedWrite(path, content) {
   }
   mkdirSync(resolve(path, ".."), { recursive: true });
   writeFileSync(path, content, "utf8");
+}
+
+function assertSourcePath(path) {
+  assert(sourcePathPattern.test(path) && !path.split("/").includes(".."),
+    `WSGS_GDPS_SOURCE_PATH_INVALID path=${path}`);
+  return path;
+}
+
+function gitBytes(repository, commit, path) {
+  assert(repository && existsSync(repository), "WSGS_GDPS_SOURCE_REPOSITORY_REQUIRED");
+  const exactCommit = execFileSync("git", ["-C", repository, "rev-parse", `${commit}^{commit}`], {
+    encoding: "utf8"
+  }).trim();
+  assert(exactCommit === commit, "WSGS_GDPS_SOURCE_COMMIT_MISMATCH");
+  return execFileSync("git", ["-C", repository, "show", `${commit}:${assertSourcePath(path)}`], {
+    encoding: "buffer",
+    maxBuffer: 16 * 1024 * 1024
+  });
+}
+
+function gitContractSchemaPaths(repository, commit) {
+  assert(repository && existsSync(repository), "WSGS_GDPS_SOURCE_REPOSITORY_REQUIRED");
+  const exactCommit = execFileSync("git", ["-C", repository, "rev-parse", `${commit}^{commit}`], {
+    encoding: "utf8"
+  }).trim();
+  assert(exactCommit === commit, "WSGS_GDPS_SOURCE_COMMIT_MISMATCH");
+  return execFileSync("git", ["-C", repository, "ls-tree", "-r", "--name-only", commit, "--", "contracts"], {
+    encoding: "utf8"
+  }).split(/\r?\n/u).filter((path) => path.endsWith(".schema.json")).map(assertSourcePath).sort();
+}
+
+function collectRefs(value, refs = new Set()) {
+  if (Array.isArray(value)) {
+    for (const entry of value) collectRefs(entry, refs);
+  } else if (value && typeof value === "object") {
+    for (const [key, entry] of Object.entries(value)) {
+      if (key === "$ref" && typeof entry === "string") refs.add(entry);
+      else collectRefs(entry, refs);
+    }
+  }
+  return refs;
+}
+
+function refDocument(ref, sourcePath, byUri, byPath) {
+  const documentRef = ref.split("#", 1)[0];
+  if (!documentRef || documentRef === "https://json-schema.org/draft/2020-12/schema") return undefined;
+  if (documentRef.startsWith("urn:")) return byUri.get(documentRef);
+  const path = posix.normalize(posix.join(posix.dirname(sourcePath), documentRef));
+  return byPath.get(path);
 }
 
 const taskSchemaRoot = resolve(root, "contracts", "wsgs-v0.2-gdps", "contracts");
@@ -302,34 +393,273 @@ assertTaskContract("urn:wsgs:gdps-handoff-intake:1.0", intake,
   "WSGS_GDPS_HANDOFF_INTAKE_CONTRACT_INVALID");
 
 const upstream = resolve(root, "contracts", "upstream", "gdps-v0.2.1");
+const generated = resolve(root, "contracts", "generated", "gdps-v0.2.1");
+const sourceMaterialization = resolve(upstream, "source-contracts");
+const closurePath = resolve(generated, "gdps-finding-contract-closure.json");
+const dependencyPath = resolve(generated, "gdps-output-schema-dependencies.json");
+const sourceCommit = sources.gdpsSha;
+assert(sourceCommit === "d9238d19bae98e387d390c936300358a30b024cb",
+  "WSGS_GDPS_FINDING_SOURCE_COMMIT_UNAUTHORIZED");
+
+function materializedBytes(path) {
+  return readFileSync(join(sourceMaterialization, ...assertSourcePath(path).split("/")));
+}
+
+function sourceBytes(path) {
+  return check
+    ? materializedBytes(path)
+    : gitBytes(gdpsSourceRepository, sourceCommit, path);
+}
+
+function parseSourceJson(path, bytes = sourceBytes(path)) {
+  const text = bytes.toString("utf8");
+  assert(Buffer.from(text, "utf8").equals(bytes), `WSGS_GDPS_SOURCE_NOT_UTF8 path=${path}`);
+  try {
+    return JSON.parse(text);
+  } catch {
+    fail("WSGS_GDPS_SOURCE_JSON_INVALID", `path=${path}`);
+  }
+}
+
+const expectedClosure = check
+  ? parseSourceJson("contracts/generated-placeholder.schema.json", readFileSync(closurePath))
+  : undefined;
+const expectedDependencies = check
+  ? parseSourceJson("contracts/generated-dependencies-placeholder.schema.json", readFileSync(dependencyPath))
+  : undefined;
+const candidateSchemaPaths = check
+  ? [
+      ...(Array.isArray(expectedClosure?.outputSchemas) ? expectedClosure.outputSchemas : []),
+      ...(Array.isArray(expectedDependencies?.schemas) ? expectedDependencies.schemas : [])
+    ].map((entry) => assertSourcePath(entry.sourcePath)).sort()
+  : gitContractSchemaPaths(gdpsSourceRepository, sourceCommit);
+assert(candidateSchemaPaths.length >= 30 && new Set(candidateSchemaPaths).size === candidateSchemaPaths.length,
+  "WSGS_GDPS_SCHEMA_SOURCE_INVENTORY_INVALID");
+
+const candidateSchemas = candidateSchemaPaths.map((sourcePath) => {
+  const bytes = sourceBytes(sourcePath);
+  const document = parseSourceJson(sourcePath, bytes);
+  assert(typeof document?.$id === "string" && document.$id.length > 0,
+    `WSGS_GDPS_SCHEMA_ID_MISSING path=${sourcePath}`);
+  return {
+    sourcePath,
+    schemaUri: document.$id,
+    schemaHash: canonicalHash(document),
+    document,
+    bytes
+  };
+});
+const schemaByUri = new Map(candidateSchemas.map((entry) => [entry.schemaUri, entry]));
+const schemaByPath = new Map(candidateSchemas.map((entry) => [entry.sourcePath, entry]));
+assert(schemaByUri.size === candidateSchemas.length && schemaByPath.size === candidateSchemas.length,
+  "WSGS_GDPS_SCHEMA_ID_OR_PATH_DUPLICATE");
+
+const approvedManifestBytes = sourceBytes(approvedManifestSourcePath);
+const approvedManifest = parseSourceJson(approvedManifestSourcePath, approvedManifestBytes);
+assert(canonicalHash(approvedManifest) === manifestHash, "WSGS_GDPS_APPROVED_MANIFEST_HASH_DRIFT");
+assert(approvedManifest?.provider?.providerId === providerId
+  && approvedManifest?.provider?.providerVersion === providerVersion
+  && digestPattern.test(approvedManifest?.provider?.implementationDigest),
+"WSGS_GDPS_APPROVED_MANIFEST_PROVIDER_DRIFT");
+assert(Array.isArray(approvedManifest.capabilities) && approvedManifest.capabilities.length === 30,
+  "WSGS_GDPS_APPROVED_MANIFEST_CAPABILITY_COUNT_INVALID");
+const manifestCapabilityByKey = new Map(approvedManifest.capabilities.map((entry) =>
+  [`${entry.operationId}@${entry.operationVersion}`, entry]));
+assert(manifestCapabilityByKey.size === 30, "WSGS_GDPS_APPROVED_MANIFEST_CAPABILITY_DUPLICATE");
+
+const operationClosure = operations.map((operation) => {
+  const key = `${operation.operationId}@${operation.operationVersion}`;
+  const manifestCapability = manifestCapabilityByKey.get(key);
+  const providerRecipe = providerRecipeByOperation.get(key);
+  const plan = findingBindingPlan[operation.operationId];
+  assert(manifestCapability && providerRecipe && plan,
+    `WSGS_GDPS_FINDING_OPERATION_AUTHORITY_MISSING operation=${key}`);
+  assert(manifestCapability.inputSchemaHash === operation.inputSchemaHash
+    && manifestCapability.outputSchemaHash === operation.outputSchemaHash
+    && manifestCapability.maturity === operation.maturity
+    && canonicalHash(manifestCapability.semanticProfile) === operation.semanticProfileHash,
+  `WSGS_GDPS_APPROVED_MANIFEST_OPERATION_DRIFT operation=${key}`);
+  assert(manifestCapability.inputSchemaUri === manifestCapability.ports?.inputs?.[0]?.schemaUri
+    && manifestCapability.inputSchemaHash === manifestCapability.ports?.inputs?.[0]?.schemaHash
+    && manifestCapability.outputSchemaUri === manifestCapability.ports?.outputs?.[0]?.schemaUri
+    && manifestCapability.outputSchemaHash === manifestCapability.ports?.outputs?.[0]?.schemaHash,
+  `WSGS_GDPS_APPROVED_MANIFEST_PORT_DRIFT operation=${key}`);
+  const outputSchema = schemaByUri.get(manifestCapability.outputSchemaUri);
+  assert(outputSchema && outputSchema.schemaHash === operation.outputSchemaHash,
+    `WSGS_GDPS_OUTPUT_SCHEMA_SOURCE_DRIFT operation=${key}`);
+
+  const [applicability, queryProfile, querySemantics, decoderPattern] = plan;
+  const productType = providerRecipe.inputBindings?.productTypeConstraint;
+  const productProfile = providerRecipe.inputBindings?.productProfileConstraint;
+  let descriptorConstraint = null;
+  if (typeof productType === "string" || typeof productProfile === "string") {
+    assert(typeof productType === "string" && typeof productProfile === "string",
+      `WSGS_GDPS_DESCRIPTOR_CONSTRAINT_PARTIAL operation=${key}`);
+    const matches = descriptorRegistry.descriptors.filter((entry) =>
+      entry.productType === productType && entry.productProfile === productProfile);
+    assert(matches.length === 1, `WSGS_GDPS_DESCRIPTOR_CONSTRAINT_AMBIGUOUS operation=${key}`);
+    const descriptor = matches[0];
+    const descriptorHash = canonicalHash(descriptor);
+    if (queryProfile !== "SAMPLE_VALUE_OR_CLASS") {
+      assert(descriptor.queryProfiles.includes(queryProfile),
+        `WSGS_GDPS_DESCRIPTOR_QUERY_PROFILE_UNSUPPORTED operation=${key}`);
+    }
+    descriptorConstraint = { descriptorId: descriptor.descriptorId, descriptorHash };
+  }
+  if (applicability !== "FINDING") {
+    assert(descriptorConstraint === null && queryProfile === null,
+      `WSGS_GDPS_NON_FINDING_DESCRIPTOR_FORBIDDEN operation=${key}`);
+  }
+  return {
+    operationId: operation.operationId,
+    operationVersion: operation.operationVersion,
+    inputSchemaUri: manifestCapability.inputSchemaUri,
+    inputSchemaHash: operation.inputSchemaHash,
+    outputSchemaUri: manifestCapability.outputSchemaUri,
+    outputSchemaHash: operation.outputSchemaHash,
+    semanticProfile: structuredClone(manifestCapability.semanticProfile),
+    semanticProfileHash: operation.semanticProfileHash,
+    maturity: operation.maturity,
+    availability: operation.availability,
+    findingBinding: { applicability, descriptorConstraint, queryProfile, querySemantics, decoderPattern }
+  };
+}).sort((left, right) =>
+  `${left.operationId}@${left.operationVersion}`.localeCompare(`${right.operationId}@${right.operationVersion}`));
+assert(operationClosure.length === 30 && Object.keys(findingBindingPlan).length === 30,
+  "WSGS_GDPS_FINDING_BINDING_COVERAGE_INVALID");
+
+const outputSchemaUris = new Set(operationClosure.map((entry) => entry.outputSchemaUri));
+assert(outputSchemaUris.size === 30, "WSGS_GDPS_OUTPUT_SCHEMA_URI_DUPLICATE");
+const reachableSchemas = new Map();
+const queue = [...outputSchemaUris].map((uri) => schemaByUri.get(uri));
+while (queue.length > 0) {
+  const current = queue.shift();
+  assert(current, "WSGS_GDPS_OUTPUT_SCHEMA_CLOSURE_MISSING");
+  if (reachableSchemas.has(current.schemaUri)) continue;
+  reachableSchemas.set(current.schemaUri, current);
+  for (const ref of collectRefs(current.document)) {
+    const dependency = refDocument(ref, current.sourcePath, schemaByUri, schemaByPath);
+    if (dependency !== undefined && !reachableSchemas.has(dependency.schemaUri)) queue.push(dependency);
+    else if (dependency === undefined && !ref.startsWith("#")
+      && !ref.startsWith("https://json-schema.org/")) {
+      fail("WSGS_GDPS_OUTPUT_SCHEMA_REFERENCE_UNRESOLVED", `schema=${current.schemaUri} ref=${ref}`);
+    }
+  }
+}
+const rootOutputSchemas = [...outputSchemaUris].map((uri) => reachableSchemas.get(uri)).sort((left, right) =>
+  left.sourcePath.localeCompare(right.sourcePath));
+const dependencySchemas = [...reachableSchemas.values()].filter((entry) => !outputSchemaUris.has(entry.schemaUri))
+  .sort((left, right) => left.sourcePath.localeCompare(right.sourcePath));
+assert(rootOutputSchemas.length === 30, "WSGS_GDPS_OUTPUT_SCHEMA_ROOT_COUNT_INVALID");
+if (check) {
+  assert(candidateSchemas.length === reachableSchemas.size,
+    "WSGS_GDPS_OUTPUT_SCHEMA_MATERIALIZATION_HAS_UNREACHABLE_DOCUMENTS");
+}
+
+for (const entry of [...rootOutputSchemas, ...dependencySchemas]) {
+  guardedWrite(join(sourceMaterialization, ...entry.sourcePath.split("/")), entry.bytes.toString("utf8"));
+}
+guardedWrite(join(sourceMaterialization, ...approvedManifestSourcePath.split("/")),
+  approvedManifestBytes.toString("utf8"));
+
+const sampleDataset = json("GDPS_SAMPLE_DATASET_LOCK.json");
+const queryCorpus = json("WSGS_QUERY_CORPUS.json");
+const testBaseline = json("WSGS_TEST_BASELINE.json");
+const consumerLockHash = canonicalHash(consumer);
+const capabilityLockHash = canonicalHash(capabilities);
+const providerRecipeLockHash = canonicalHash(recipes);
+const sampleDatasetLockHash = canonicalHash(sampleDataset);
+const queryCorpusHash = canonicalHash(queryCorpus);
+const testBaselineHash = canonicalHash(testBaseline);
+assert(consumerLockHash === testBaseline.consumerLockHash
+  && providerRecipeLockHash === testBaseline.recipeLockHash
+  && sampleDatasetLockHash === testBaseline.sampleDatasetLockHash
+  && queryCorpusHash === testBaseline.queryCorpusHash,
+"WSGS_GDPS_BASELINE_LOCK_BINDING_DRIFT");
+assert(capabilityLockHash === consumer.capabilityLockHash
+  && sampleDatasetLockHash === consumer.sampleDatasetLockHash,
+"WSGS_GDPS_CONSUMER_LOCK_BINDING_DRIFT");
+const vocabularyRegistryHash = canonicalHash(vocabularyRegistry);
+const closureBody = {
+  schemaVersion: "wsgs-gdps-finding-contract-closure/1.0",
+  sources: {
+    gdpsSha: sources.gdpsSha,
+    gdpsImplementationTreeHash: sources.gdpsImplementationTreeHash,
+    gdpsSourceFingerprint: sources.gdpsSourceFingerprint,
+    gdpsSourceFileCount: sources.gdpsSourceFileCount,
+    gowmSha: sources.gowmSha,
+    wsgsSha: sources.wsgsSha
+  },
+  handoff: {
+    bundleHash: checksums.bundleHash,
+    checksumsHash: checksumHash,
+    consumerLockHash,
+    capabilityLockHash,
+    descriptorLockHash,
+    providerRecipeLockHash,
+    runtimeRecipeLockHash,
+    sampleDatasetLockHash,
+    queryCorpusHash,
+    testBaselineHash
+  },
+  gateway: {
+    contractCatalogRevision: gatewayBinding.contractCatalogRevision,
+    semanticCatalogHash: gatewayBinding.semanticCatalogHash,
+    bindingRevision: gatewayBinding.bindingRevision,
+    instanceFingerprint: gatewayBinding.instanceFingerprint,
+    runningConfigFingerprint: gatewayBinding.runningConfigFingerprint
+  },
+  provider: {
+    providerId,
+    providerVersion,
+    manifestHash,
+    implementationDigest: approvedManifest.provider.implementationDigest,
+    manifest: approvedManifest
+  },
+  descriptorAuthority: {
+    registryHash: descriptorLockHash,
+    registry: descriptorRegistry,
+    vocabularyRegistryHash,
+    vocabularyRegistry
+  },
+  operations: operationClosure,
+  outputSchemas: rootOutputSchemas.map(({ sourcePath, schemaUri, schemaHash, document }) =>
+    ({ schemaUri, schemaHash, sourcePath, document }))
+};
+const findingContractClosure = { ...closureBody, closureHash: canonicalHash(closureBody) };
+const dependencyBody = {
+  schemaVersion: "wsgs-gdps-output-schema-dependencies/1.0",
+  sourceCommit,
+  schemas: dependencySchemas.map(({ sourcePath, schemaUri, schemaHash, document }) =>
+    ({ schemaUri, schemaHash, sourcePath, document }))
+};
+const outputSchemaDependencies = { ...dependencyBody, closureHash: canonicalHash(dependencyBody) };
+
 for (const name of requiredFiles) {
   const content = readFileSync(join(handoff, name), "utf8");
   guardedWrite(join(upstream, name), content);
 }
-guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "gdps-handoff-intake.json"), stableJson(intake));
-guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "wsgs-gdps-recipe-lock.json"),
+guardedWrite(resolve(generated, "gdps-handoff-intake.json"), stableJson(intake));
+guardedWrite(resolve(generated, "wsgs-gdps-recipe-lock.json"),
   runtimeRecipeLockContent);
-guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "product-type-descriptors.json"),
+guardedWrite(resolve(generated, "product-type-descriptors.json"),
   stableJson(descriptorRegistry));
-guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "product-vocabularies.json"),
+guardedWrite(resolve(generated, "product-vocabularies.json"),
   stableJson(vocabularyRegistry));
-guardedWrite(resolve(root, "contracts", "generated", "gdps-v0.2.1", "gdps-consumer-snapshot.json"),
+guardedWrite(resolve(generated, "gdps-consumer-snapshot.json"),
   stableJson(consumerSnapshot));
-guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "handoff.ts"),
+guardedWrite(closurePath, stableJson(findingContractClosure));
+guardedWrite(dependencyPath, stableJson(outputSchemaDependencies));
+guardedWrite(resolve(root, "packages", "gowm-contract-intake", "src", "gdps-v021-finding-contract.generated.ts"),
   `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
-  `export const gdpsV021HandoffIntake = ${JSON.stringify(intake, null, 2)} as const;\n`);
-guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "descriptors.ts"),
-  `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
-  `export const gdpsV021DescriptorRegistry = ${JSON.stringify(descriptorRegistry, null, 2)} as const;\n` +
-  `export const gdpsV021VocabularyRegistry = ${JSON.stringify(vocabularyRegistry, null, 2)} as const;\n`);
-guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "recipes.ts"),
-  `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
-  `export const gdpsV021RuntimeRecipeLock = ${JSON.stringify(runtimeRecipeLock, null, 2)} as const;\n`);
-guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "hashes.ts"),
-  `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
-  `export const gdpsV021LockHashes = ${JSON.stringify(intake.locks, null, 2)} as const;\n`);
-guardedWrite(resolve(root, "packages", "contracts", "src", "generated-internal-v02", "gdps", "snapshot.ts"),
-  `// Generated by validation/scripts/intake-gdps-v021-handoff.mjs. Do not edit.\n` +
-  `export const gdpsV021ConsumerSnapshot = ${JSON.stringify(consumerSnapshot, null, 2)} as const;\n`);
+  `function deepFreeze<T>(value: T): T {\n` +
+  `  if (value !== null && typeof value === "object" && !Object.isFrozen(value)) {\n` +
+  `    for (const child of Object.values(value as Record<string, unknown>)) deepFreeze(child);\n` +
+  `    Object.freeze(value);\n` +
+  `  }\n` +
+  `  return value;\n` +
+  `}\n\n` +
+  `export const gdpsV021FindingContractClosure = deepFreeze(${JSON.stringify(findingContractClosure, null, 2)} as const);\n\n` +
+  `export const gdpsV021OutputSchemaDependencies = deepFreeze(${JSON.stringify(outputSchemaDependencies, null, 2)} as const);\n`);
 
-console.log(`WSGS_GDPS_CONSUMER_LOCK_READY mode=${check ? "check" : "generate"} operations=30 productTypes=34 profiles=35`);
+console.log(`WSGS_GDPS_CONSUMER_LOCK_READY mode=${check ? "check" : "generate"} operations=30 productTypes=34 profiles=35 outputSchemas=30 dependencies=${dependencySchemas.length} closureHash=${findingContractClosure.closureHash}`);

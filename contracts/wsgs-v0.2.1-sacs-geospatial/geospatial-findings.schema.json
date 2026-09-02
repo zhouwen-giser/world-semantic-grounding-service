@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2.1:sacs-geospatial:geospatial-findings:1.0",
+  "title": "SACS Geospatial Findings Profile 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "profileSchemaHash",
+    "findings",
+    "sourceProducts",
+    "gaps",
+    "findingSetHash",
+    "sourceProductSetHash"
+  ],
+  "properties": {
+    "profile": {
+      "const": "sacs-wsgs-geospatial-findings/1.0"
+    },
+    "profileSchemaHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "$ref": "urn:wsgs:v0.2.1:sacs-geospatial:world-finding:1.0"
+      }
+    },
+    "sourceProducts": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "urn:wsgs:v0.2.1:sacs-geospatial:source-product:1.0"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "$ref": "urn:wsgs:v0.2.1:sacs-geospatial:typed-gap:1.0"
+      }
+    },
+    "findingSetHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "sourceProductSetHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

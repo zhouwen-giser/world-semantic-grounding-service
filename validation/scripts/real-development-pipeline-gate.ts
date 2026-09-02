@@ -2,12 +2,15 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
+import { URL } from "node:url";
 
 import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import {
   Aes256GcmPayloadCodec,
   GroundingPipeline,
+  LEGACY_GROUNDING_CONTRACT_SELECTION,
   PostgresPipelineJournal,
+  SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
   canonicalSha256,
   pipelinePlanForOperation,
   type PipelineStage,
@@ -28,6 +31,11 @@ import {
 import { productionPipelinePolicyFromEnvironment } from "../../services/grounding-worker/src/pipeline-policy.js";
 import { PostgresGroundingWorkerStore } from "../../services/grounding-worker/src/postgres-store.js";
 import { GroundingWorker } from "../../services/grounding-worker/src/worker.js";
+import {
+  fetchJsonWithTimeout,
+  formalHttpRequestTimeoutMs,
+  type FormalHttpRequestOptions
+} from "./formal-http-client.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -101,8 +109,17 @@ const formalReportDirectory = resolve(repositoryRoot, process.env["WSGS_FORMAL_R
   "reports/wsgs-gowm-0.6.4-alignment");
 const formalR1R5Only = process.env["WSGS_GOWM_R1_R5_ONLY"] === "YES";
 const formalExternalProcessMode = process.env["WSGS_FORMAL_EXTERNAL_PROCESS_MODE"] === "YES";
+const commandArguments = process.argv.slice(2);
+const allowedCommandArguments = new Set(["--n04-result-extension-only"]);
+const unsupportedCommandArgument = commandArguments.find((argument) => !allowedCommandArguments.has(argument));
+if (unsupportedCommandArgument) throw new Error("WSGS_REAL_DEVELOPMENT_PIPELINE_ARGUMENT_INVALID");
+const n04ResultExtensionOnly = process.env["WSGS_N04_RESULT_EXTENSION_ONLY"] === "YES" ||
+  commandArguments.includes("--n04-result-extension-only");
 if (formalR1R5Only && !formalExternalProcessMode) throw new Error("WSGS_FORMAL_EXTERNAL_PROCESS_MODE_REQUIRED");
 if (formalExternalProcessMode && !formalR1R5Only) throw new Error("WSGS_FORMAL_EXTERNAL_PROCESS_MODE_REQUIRES_R1_R5_ONLY");
+if (n04ResultExtensionOnly && (formalR1R5Only || formalExternalProcessMode)) {
+  throw new Error("WSGS_N04_RESULT_EXTENSION_MODE_CONFLICT");
+}
 if (formalR1R5Only) {
   if (!process.env["WSGS_FORMAL_API_BASE_URL"]?.trim()) throw new Error("WSGS_FORMAL_API_BASE_URL_REQUIRED");
   if (!process.env["WSGS_RUNTIME_COMPOSE_PROJECT"]?.trim()) throw new Error("WSGS_RUNTIME_COMPOSE_PROJECT_REQUIRED");
@@ -111,17 +128,26 @@ if (formalR1R5Only) {
     throw new Error("WSGS_FORMAL_ISOLATED_DATABASE_REQUIRED");
   }
 }
-const expectedGowmRuntimeSourceCommit = "fceed92398a0b86c0a0121aa2188a7f1d328e577";
+const expectedGowmRuntimeSourceCommit = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14";
+const expectedSharedExecutionGowmSourceLock = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14";
+const expectedGdpsImplementationSourceCommit = "d9238d19bae98e387d390c936300358a30b024cb";
+const expectedGdpsFinalBBundleHash =
+  "sha256:0cefdafb63aafc01da7ce62148fcf83f40267ec86d73fca78b18eb6af3155fab" as const;
 const expectedGowmRuntimeVersion = "0.6.4";
 const expectedGatewayContractVersion = "0.6.3";
 const expectedWsgsRuntimeVersion = "0.2.1";
 const apiBearerToken = process.env["WSGS_FORMAL_API_BEARER_TOKEN"]?.trim();
+const formalHttpTimeoutMs = formalHttpRequestTimeoutMs();
 const encryptionKey = required("WSGS_REQUEST_ENCRYPTION_KEY_BASE64");
 const payloadCodec = Aes256GcmPayloadCodec.fromBase64(encryptionKey);
+const configuredIdentityDataScopes = process.env["WSGS_READINESS_DATA_SCOPES"]
+  ?.split(/[ ,]+/u).map((entry) => entry.trim()).filter(Boolean) ?? [];
 const identity = createGroundingIdentity({
   servicePrincipalId: required("GOWM_DELEGATION_SERVICE_PRINCIPAL_ID"),
   actorId: required("WSGS_READINESS_ACTOR_ID"),
-  dataScopes: [required("WSGS_READINESS_DATA_SCOPE")],
+  dataScopes: configuredIdentityDataScopes.length > 0
+    ? configuredIdentityDataScopes
+    : [required("WSGS_READINESS_DATA_SCOPE")],
   datasetScopes: list("WSGS_READINESS_DATASET_SCOPES"),
   permissions: [...new Set([...list("WSGS_READINESS_PERMISSIONS"), "grounding.read"])]
 });
@@ -132,8 +158,39 @@ interface VerifiedWsgsSourceBinding {
   sourceTree: string;
   evidenceSourceCommit: string;
   trackedSourceClean: true;
-  verification: "GIT_HEAD_AND_TRACKED_DIFF";
+  untrackedSourceClean: true;
+  excludedRuntimeEvidenceOutputs: readonly [
+    "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+    "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+    "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
+  ];
+  verification: "GIT_HEAD_AND_WORKTREE_STATUS_EXCLUDING_EXACT_RUNTIME_EVIDENCE_OUTPUTS";
 }
+
+const excludedRuntimeEvidenceOutputs = [
+  "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+  "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+  "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+  "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+  "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
+] as const;
+
+const verifiedSourcePathspecs = [
+  ".",
+  ...excludedRuntimeEvidenceOutputs.map((path) => `:(top,exclude,literal)${path}`)
+];
 
 function verifyWsgsSourceBinding(): VerifiedWsgsSourceBinding {
   const packageDocument = object(
@@ -155,19 +212,27 @@ function verifyWsgsSourceBinding(): VerifiedWsgsSourceBinding {
   }
   if (head !== sourceCommit || !/^[0-9a-f]{40}$/u.test(sourceTree)) throw new Error("WSGS_SOURCE_HEAD_MISMATCH");
   try {
-    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", "."], {
+    execFileSync("git", ["-C", repositoryRoot, "diff", "--quiet", "HEAD", "--", ...verifiedSourcePathspecs], {
       stdio: "ignore"
     });
   } catch {
     throw new Error("WSGS_SOURCE_TRACKED_DIRTY");
   }
+  const worktreeStatus = execFileSync(
+    "git",
+    ["-C", repositoryRoot, "status", "--porcelain=v1", "--untracked-files=all", "--", ...verifiedSourcePathspecs],
+    { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+  ).trim();
+  if (worktreeStatus) throw new Error("WSGS_SOURCE_WORKTREE_DIRTY");
   return {
     status: "PASS",
     headCommit: head,
     sourceTree,
     evidenceSourceCommit: sourceCommit,
     trackedSourceClean: true,
-    verification: "GIT_HEAD_AND_TRACKED_DIFF"
+    untrackedSourceClean: true,
+    excludedRuntimeEvidenceOutputs,
+    verification: "GIT_HEAD_AND_WORKTREE_STATUS_EXCLUDING_EXACT_RUNTIME_EVIDENCE_OUTPUTS"
   };
 }
 
@@ -202,6 +267,253 @@ function repositoryRelativePath(path: string, code: string): string {
   const candidate = relative(repositoryRoot, path);
   if (candidate === ".." || candidate.startsWith(`..${sep}`) || isAbsolute(candidate)) throw new Error(code);
   return candidate.split(sep).join("/");
+}
+
+interface N04GatewayTuple {
+  contractCatalogRevision: `sha256:${string}`;
+  semanticCatalogHash: `sha256:${string}`;
+  bindingRevision: `sha256:${string}`;
+}
+
+interface VerifiedN04SharedExecutionGatewayBinding {
+  executionSourceLockSha: string;
+  sourceBindingMethod: "CHECKSUMMED_FINAL_B_SOURCE_LOCK_PLUS_LIVE_GATEWAY_LOCK_MATCH";
+  gdpsSourceCommit: string;
+  handoffBundleHash: `sha256:${string}`;
+  checksumsFileHash: `sha256:${string}`;
+  consumerLockHash: `sha256:${string}`;
+  gatewayBindingLockHash: `sha256:${string}`;
+  capabilityLockHash: `sha256:${string}`;
+  foundationInstanceBindingHash: `sha256:${string}`;
+  foundationOperationLockHash: `sha256:${string}`;
+  foundationDataScopeHash: `sha256:${string}`;
+  selectedDatasetDataScopeHash: `sha256:${string}`;
+  endpointHash: `sha256:${string}`;
+  lockedGatewayTuple: N04GatewayTuple & {
+    instanceFingerprint: `sha256:${string}`;
+    runningConfigFingerprint: `sha256:${string}`;
+  };
+}
+
+const n04GdpsHandoffInventory = [
+  "GDPS_CAPABILITY_LOCK.json",
+  "GDPS_CONSUMER_LOCK.json",
+  "GDPS_PRODUCT_DESCRIPTOR_LOCK.json",
+  "GDPS_RECIPE_LOCK.json",
+  "GDPS_SAMPLE_DATASET_LOCK.json",
+  "GOWM_GATEWAY_BINDING_LOCK.json",
+  "WSGS_QUERY_CORPUS.json",
+  "WSGS_TEST_BASELINE.json"
+] as const;
+
+function n04JsonFile(path: string, code: string): { bytes: Buffer; value: JsonObject } {
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(path);
+  } catch {
+    throw new Error(`${code}_MISSING`);
+  }
+  try {
+    return { bytes, value: object(JSON.parse(bytes.toString("utf8")) as unknown, `${code}_INVALID`) };
+  } catch (error) {
+    if (error instanceof Error && error.message === `${code}_INVALID`) throw error;
+    throw new Error(`${code}_INVALID`);
+  }
+}
+
+function n04GatewayTuple(value: JsonObject, code: string): N04GatewayTuple {
+  return {
+    contractCatalogRevision: digest(value["contractCatalogRevision"], `${code}_CATALOG_REVISION_INVALID`),
+    semanticCatalogHash: digest(value["semanticCatalogHash"], `${code}_SEMANTIC_HASH_INVALID`),
+    bindingRevision: digest(value["bindingRevision"], `${code}_BINDING_REVISION_INVALID`)
+  };
+}
+
+function n04GatewayOrigin(value: string, code: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(code);
+  }
+  if ((parsed.protocol !== "http:" && parsed.protocol !== "https:") || parsed.username || parsed.password ||
+      parsed.search || parsed.hash || (parsed.pathname !== "" && parsed.pathname !== "/")) {
+    throw new Error(code);
+  }
+  return parsed.origin;
+}
+
+function loadVerifiedN04SharedExecutionGatewayBinding(): VerifiedN04SharedExecutionGatewayBinding {
+  const handoffDirectory = resolve(repositoryRoot, "contracts", "upstream", "gdps-v0.2.1");
+  const checksumsFile = n04JsonFile(resolve(handoffDirectory, "CHECKSUMS.json"), "N04_GDPS_CHECKSUMS");
+  const checksums = checksumsFile.value;
+  if (checksums["schemaVersion"] !== "wsgs-gdps-v021-checksums/1.0" || checksums["algorithm"] !== "SHA-256" ||
+      checksums["bundleHash"] !== expectedGdpsFinalBBundleHash || !Array.isArray(checksums["files"])) {
+    throw new Error("N04_GDPS_CHECKSUMS_CONTRACT_MISMATCH");
+  }
+  const entries = new Map<string, `sha256:${string}`>();
+  for (const raw of checksums["files"]) {
+    const entry = object(raw, "N04_GDPS_CHECKSUM_ENTRY_INVALID");
+    const path = string(entry["path"], "N04_GDPS_CHECKSUM_PATH_INVALID");
+    if (path.includes("/") || path.includes("\\") || entries.has(path)) {
+      throw new Error("N04_GDPS_CHECKSUM_INVENTORY_INVALID");
+    }
+    entries.set(path, digest(entry["sha256"], "N04_GDPS_CHECKSUM_HASH_INVALID"));
+  }
+  const actualInventory = [...entries.keys()].sort();
+  const expectedInventory = [...n04GdpsHandoffInventory].sort();
+  if (evidenceCanonicalJson(actualInventory) !== evidenceCanonicalJson(expectedInventory)) {
+    throw new Error("N04_GDPS_CHECKSUM_INVENTORY_INVALID");
+  }
+  const files = new Map<string, { bytes: Buffer; value: JsonObject }>();
+  for (const path of n04GdpsHandoffInventory) {
+    const file = n04JsonFile(resolve(handoffDirectory, path), `N04_GDPS_${path.replace(/[^A-Za-z0-9]/gu, "_")}`);
+    if (sha256(file.bytes) !== entries.get(path)) throw new Error(`N04_GDPS_CHECKSUM_DRIFT_${path}`);
+    files.set(path, file);
+  }
+  if (evidenceCanonicalSha256(Object.fromEntries(entries)) !== expectedGdpsFinalBBundleHash) {
+    throw new Error("N04_GDPS_BUNDLE_HASH_MISMATCH");
+  }
+
+  const consumerFile = files.get("GDPS_CONSUMER_LOCK.json")!;
+  const capabilityFile = files.get("GDPS_CAPABILITY_LOCK.json")!;
+  const datasetFile = files.get("GDPS_SAMPLE_DATASET_LOCK.json")!;
+  const gatewayFile = files.get("GOWM_GATEWAY_BINDING_LOCK.json")!;
+  const baselineFile = files.get("WSGS_TEST_BASELINE.json")!;
+  const consumer = consumerFile.value;
+  const sources = object(consumer["sources"], "N04_GDPS_CONSUMER_SOURCES_INVALID");
+  if (sources["gowmSha"] !== expectedSharedExecutionGowmSourceLock ||
+      sources["gdpsSha"] !== expectedGdpsImplementationSourceCommit) {
+    throw new Error("N04_SHARED_EXECUTION_SOURCE_LOCK_MISMATCH");
+  }
+  const consumerGateway = n04GatewayTuple(
+    object(consumer["gateway"], "N04_GDPS_CONSUMER_GATEWAY_INVALID"),
+    "N04_GDPS_CONSUMER_GATEWAY"
+  );
+  const gatewayDocument = gatewayFile.value;
+  if (gatewayDocument["schemaVersion"] !== "gowm-gateway-binding-lock/1.0") {
+    throw new Error("N04_GDPS_GATEWAY_BINDING_SCHEMA_MISMATCH");
+  }
+  const gateway = object(gatewayDocument["gateway"], "N04_GDPS_GATEWAY_BINDING_INVALID");
+  const lockedGatewayTuple = {
+    ...n04GatewayTuple(gateway, "N04_GDPS_GATEWAY_BINDING"),
+    instanceFingerprint: digest(gateway["instanceFingerprint"], "N04_GDPS_GATEWAY_INSTANCE_INVALID"),
+    runningConfigFingerprint: digest(gateway["runningConfigFingerprint"], "N04_GDPS_GATEWAY_CONFIG_INVALID")
+  };
+  if (evidenceCanonicalJson(consumerGateway) !== evidenceCanonicalJson({
+    contractCatalogRevision: lockedGatewayTuple.contractCatalogRevision,
+    semanticCatalogHash: lockedGatewayTuple.semanticCatalogHash,
+    bindingRevision: lockedGatewayTuple.bindingRevision
+  })) {
+    throw new Error("N04_GDPS_GATEWAY_LOCK_CROSS_BINDING_MISMATCH");
+  }
+
+  const baseline = baselineFile.value;
+  const attestation = object(baseline["gatewayCanaryAttestation"], "N04_GDPS_BASELINE_ATTESTATION_INVALID");
+  const baselineTuple = n04GatewayTuple(attestation, "N04_GDPS_BASELINE_GATEWAY");
+  if (baseline["schemaVersion"] !== "wsgs-gdps-test-baseline/1.0" || attestation["status"] !== "PASS" ||
+      attestation["executionPath"] !== "RUNNING_GOWM_WORLD_CAPABILITY_GATEWAY" ||
+      attestation["authenticationMode"] !== "SIGNED_DELEGATION_V1" || attestation["datasetState"] !== "FINAL_B" ||
+      attestation["requiredCapabilityCount"] !== 30 || attestation["availableCapabilityCount"] !== 30 ||
+      attestation["passedCaseCount"] !== 30 || attestation["directProviderCalls"] !== 0 ||
+      evidenceCanonicalJson(baselineTuple) !== evidenceCanonicalJson(consumerGateway)) {
+    throw new Error("N04_GDPS_FINAL_B_BASELINE_MISMATCH");
+  }
+
+  const endpointOrigin = n04GatewayOrigin(required("GOWM_GATEWAY_BASE_URL"), "N04_GATEWAY_BASE_URL_INVALID");
+  const endpointHash = safeId(endpointOrigin);
+  if (digest(attestation["gatewayBaseUrlHash"], "N04_GDPS_GATEWAY_ENDPOINT_HASH_INVALID") !== endpointHash ||
+      attestation["gatewayInstanceFingerprint"] !== lockedGatewayTuple.instanceFingerprint ||
+      attestation["runningConfigFingerprint"] !== lockedGatewayTuple.runningConfigFingerprint) {
+    throw new Error("N04_GDPS_LIVE_ENDPOINT_LOCK_MISMATCH");
+  }
+
+  const foundationDirectory = required("GOWM_SAMPLE_HANDOFF_DIR");
+  const foundationManifestFile = n04JsonFile(resolve(foundationDirectory, "INSTANCE_MANIFEST.json"),
+    "N04_GOWM_INSTANCE_MANIFEST");
+  const foundationBindingFile = n04JsonFile(resolve(foundationDirectory, "INSTANCE_BINDING.json"),
+    "N04_GOWM_INSTANCE_BINDING");
+  const foundationManifest = foundationManifestFile.value;
+  const foundationBinding = foundationBindingFile.value;
+  if (foundationManifest["schemaVersion"] !== "1.0" || foundationBinding["schemaVersion"] !== "1.0" ||
+      foundationManifest["authMode"] !== "SIGNED_DELEGATION_V1" ||
+      foundationManifest["runtimeInstanceId"] !== foundationBinding["runtimeInstanceId"] ||
+      foundationManifest["instanceId"] !== foundationBinding["instanceId"] ||
+      foundationManifest["fixtureId"] !== foundationBinding["fixtureId"] ||
+      foundationManifest["fixtureVersion"] !== foundationBinding["fixtureVersion"] ||
+      n04GatewayOrigin(string(foundationManifest["gatewayBaseUrl"], "N04_GOWM_INSTANCE_ENDPOINT_MISSING"),
+        "N04_GOWM_INSTANCE_ENDPOINT_INVALID") !== endpointOrigin) {
+    throw new Error("N04_GOWM_INSTANCE_HANDOFF_MISMATCH");
+  }
+  const foundationDataScope = string(foundationManifest["dataScope"], "N04_GOWM_FOUNDATION_SCOPE_INVALID");
+  const foundationOperationLockHash = digest(
+    foundationManifest["operationLockHash"],
+    "N04_GOWM_FOUNDATION_OPERATION_LOCK_INVALID"
+  );
+  const committedFoundationOperationLockHash = sha256(readFileSync(resolve(
+    repositoryRoot,
+    "contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json"
+  )));
+  if (foundationOperationLockHash !== committedFoundationOperationLockHash) {
+    throw new Error("N04_GOWM_FOUNDATION_OPERATION_LOCK_DRIFT");
+  }
+  const dataset = datasetFile.value;
+  const selectedDatasetDataScope = string(dataset["scope"], "N04_GDPS_DATASET_SCOPE_INVALID");
+  if (foundationDataScope.includes("*") || selectedDatasetDataScope.includes("*") ||
+      foundationDataScope === selectedDatasetDataScope) {
+    throw new Error("N04_SEGMENTED_DATA_SCOPE_AUTHORITY_INVALID");
+  }
+
+  return {
+    executionSourceLockSha: expectedSharedExecutionGowmSourceLock,
+    sourceBindingMethod: "CHECKSUMMED_FINAL_B_SOURCE_LOCK_PLUS_LIVE_GATEWAY_LOCK_MATCH",
+    gdpsSourceCommit: expectedGdpsImplementationSourceCommit,
+    handoffBundleHash: expectedGdpsFinalBBundleHash,
+    checksumsFileHash: sha256(checksumsFile.bytes),
+    consumerLockHash: sha256(consumerFile.bytes),
+    gatewayBindingLockHash: sha256(gatewayFile.bytes),
+    capabilityLockHash: sha256(capabilityFile.bytes),
+    foundationInstanceBindingHash: sha256(foundationBindingFile.bytes),
+    foundationOperationLockHash,
+    foundationDataScopeHash: safeId(foundationDataScope),
+    selectedDatasetDataScopeHash: safeId(selectedDatasetDataScope),
+    endpointHash,
+    lockedGatewayTuple
+  };
+}
+
+const n04OperationLockRelativePath =
+  "contracts/generated/gdps-v0.2.1/wsgs-southbound-operation-lock-v2.json" as const;
+
+interface VerifiedN04OperationLockBinding {
+  operationLockHash: `sha256:${string}`;
+  operationLockPathHash: `sha256:${string}`;
+}
+
+function verifyN04OperationLockBinding(
+  sourceBinding: VerifiedWsgsSourceBinding
+): VerifiedN04OperationLockBinding {
+  const configuredPath = resolve(repositoryRoot, required("GOWM_SOUTHBOUND_LOCK_FILE"));
+  const relativePath = repositoryRelativePath(configuredPath, "N04_OPERATION_LOCK_OUTSIDE_REPOSITORY");
+  if (relativePath !== n04OperationLockRelativePath) throw new Error("N04_OPERATION_LOCK_PATH_MISMATCH");
+  const expectedHash = digest(required("GOWM_SOUTHBOUND_LOCK_SHA256"), "N04_OPERATION_LOCK_HASH_INVALID");
+  const runtimeBytes = readFileSync(configuredPath);
+  if (sha256(runtimeBytes) !== expectedHash) throw new Error("N04_OPERATION_LOCK_HASH_MISMATCH");
+  let committedBytes: Buffer;
+  try {
+    committedBytes = execFileSync(
+      "git",
+      ["-C", repositoryRoot, "show", `${sourceBinding.headCommit}:${relativePath}`],
+      { maxBuffer: 16 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] }
+    );
+  } catch {
+    throw new Error("N04_OPERATION_LOCK_NOT_IN_QUALIFIED_SOURCE");
+  }
+  if (!committedBytes.equals(runtimeBytes)) throw new Error("N04_OPERATION_LOCK_SOURCE_BYTES_MISMATCH");
+  return {
+    operationLockHash: expectedHash,
+    operationLockPathHash: safeId(relativePath)
+  };
 }
 
 function loadVerifiedRuntimeBinding(): VerifiedRuntimeBinding {
@@ -336,7 +648,11 @@ function loadVerifiedRuntimeBinding(): VerifiedRuntimeBinding {
       imageBuildReport["schemaVersion"] !== "wsgs-gowm-runtime-image-build/1.0" ||
       imageBuildReport["status"] !== "PASS" ||
       imageBuildReport["sourceCommit"] !== runtimeSourceCommit || imageBuildReport["runtimeVersion"] !== runtimeVersion ||
-      imageBuildReport["sourceTree"] !== sourceTree || imageBuildReport["imageDigest"] !== imageDigest) {
+      imageBuildReport["sourceTree"] !== sourceTree || imageBuildReport["runtimeImageDigest"] !== imageDigest ||
+      imageBuildReport["tagIndependentContentMatch"] !== true ||
+      imageBuildReport["independentBuildContentHash"] !== imageBuildReport["runtimeContentHash"] ||
+      !/^sha256:[0-9a-f]{64}$/u.test(String(imageBuildReport["imageDigest"] ?? "")) ||
+      !/^sha256:[0-9a-f]{64}$/u.test(String(imageBuildReport["independentBuildContentHash"] ?? ""))) {
     throw new Error("GOWM_RUNTIME_IMAGE_BUILD_EVIDENCE_BINDING_MISMATCH");
   }
   if (instanceImageBuild["reportPath"] !== imageBuildEvidencePath ||
@@ -600,7 +916,7 @@ async function observeExternalWsgsProcessBinding(
     sourceTree: sourceBinding.sourceTree,
     runtimeVersion: expectedWsgsRuntimeVersion as "0.2.1",
     composeProjectHash: safeId(composeProject),
-    serviceSetHash: canonicalSha256(expectedServices),
+    serviceSetHash: canonicalSha256(expectedServices) as `sha256:${string}`,
     apiEndpointHash: safeId(apiUrl.origin),
     distinctContainerCount: 3 as const,
     apiWorkerImageDigest: apiImageDigest,
@@ -641,6 +957,33 @@ interface CaseEvidence {
   upstreamResultHashes: `sha256:${string}`[];
   modelReceiptCount: number;
   worldQueryCount: number;
+  segmentedWorldQueryCount: number;
+  gatewaySegmentCount: number;
+  segmentManifestHashes: `sha256:${string}`[];
+  segmentPlanHashes: `sha256:${string}`[];
+  segmentScopeHashes: `sha256:${string}`[];
+  segmentBindings: Array<{
+    operationKey: string;
+    dataScopeHash: `sha256:${string}`;
+    sourceLockHash: `sha256:${string}`;
+    scopeAuthorityHash: `sha256:${string}`;
+    upstreamResultHash: `sha256:${string}`;
+    worldResultHash: `sha256:${string}`;
+  }>;
+  segmentDelegationBindingCount: number;
+  segmentDelegationBindingsHash: `sha256:${string}`;
+  admissionGatewayBinding: {
+    contractCatalogRevision: `sha256:${string}`;
+    semanticCatalogHash: `sha256:${string}`;
+    bindingRevision: `sha256:${string}`;
+    operationLockHash: `sha256:${string}`;
+  };
+  admissionSegmentedScopeAuthorityBinding: {
+    schemaVersion: "1.0";
+    authorityHash: `sha256:${string}`;
+    foundationInstanceBindingHash: `sha256:${string}`;
+    gdpsChecksumsHash: `sha256:${string}`;
+  };
   gatewayExecutionCount: number;
   spatialExecutionCount: number;
   operationKeys: string[];
@@ -684,7 +1027,7 @@ interface CaseEvidence {
   };
   traceability: {
     status: "PASS";
-    api: { postHttpStatus: 202; getHttpStatus: 200; requestHash: `sha256:${string}` };
+    api: { postHttpStatus: 200 | 202; getHttpStatus: 200; requestHash: `sha256:${string}` };
     postgres: {
       requestPayloadHash: `sha256:${string}`;
       checkpointStateHash: `sha256:${string}`;
@@ -704,6 +1047,8 @@ interface CaseEvidence {
     };
     gateway: {
       persistedWorldQueryCount: number;
+      persistedSegmentCount: number;
+      segmentedWorldQueryCount: number;
       persistedExecutionCount: number;
       planHashesMatchCheckpoint: true;
       upstreamHashesMatchCheckpoint: true;
@@ -716,6 +1061,7 @@ interface PrivateCaseRuntime {
   groundingId: string;
   terminalResult: JsonObject;
   checkpointState: Readonly<Record<string, unknown>>;
+  runFingerprint: string;
 }
 
 const privateCaseRuntime = new WeakMap<CaseEvidence, PrivateCaseRuntime>();
@@ -1097,11 +1443,26 @@ function worker(executor: PipelineStageExecutor, workerId: string): GroundingWor
   });
 }
 
-async function fetchJson(baseUrl: string, path: string, init?: RequestInit): Promise<{ status: number; body: JsonObject }> {
+async function fetchJson(
+  baseUrl: string,
+  path: string,
+  init?: RequestInit,
+  timeoutOptions: Partial<FormalHttpRequestOptions> = {}
+): Promise<{ status: number; body: JsonObject; headers: Headers }> {
   const headers = new Headers(init?.headers);
   if (apiBearerToken) headers.set("authorization", `Bearer ${apiBearerToken}`);
-  const response = await fetch(`${baseUrl}${path}`, { ...init, headers });
-  return { status: response.status, body: object(await response.json(), "API_RESPONSE_INVALID") };
+  const { response, body } = await fetchJsonWithTimeout(`${baseUrl}${path}`, { ...init, headers }, {
+    timeoutMs: timeoutOptions.timeoutMs ?? formalHttpTimeoutMs,
+    ...(timeoutOptions.deadlineAt === undefined ? {} : { deadlineAt: timeoutOptions.deadlineAt }),
+    ...(timeoutOptions.deadlineTimeoutCode === undefined
+      ? {}
+      : { deadlineTimeoutCode: timeoutOptions.deadlineTimeoutCode })
+  });
+  return {
+    status: response.status,
+    body: object(body, "API_RESPONSE_INVALID"),
+    headers: response.headers
+  };
 }
 
 async function pollExternalGrounding(baseUrl: string, groundingId: string): Promise<{ status: number; body: JsonObject }> {
@@ -1114,11 +1475,17 @@ async function pollExternalGrounding(baseUrl: string, groundingId: string): Prom
   ]);
   const deadline = Date.now() + configuredTimeout;
   while (Date.now() < deadline) {
-    const fetched = await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`);
+    const fetched = await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`, undefined, {
+      deadlineAt: deadline,
+      deadlineTimeoutCode: "EXTERNAL_WORKER_GROUNDING_TIMEOUT"
+    });
     if (fetched.status !== 200) throw new Error(`PUBLIC_API_GET_POLL_FAILED_${fetched.status}`);
     const status = string(fetched.body["status"], "GROUNDING_POLL_STATUS_MISSING");
     if (terminalStatuses.has(status)) return fetched;
-    await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
+    const remainingMs = deadline - Date.now();
+    if (remainingMs > 0) {
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, Math.min(250, remainingMs)));
+    }
   }
   throw new Error("EXTERNAL_WORKER_GROUNDING_TIMEOUT");
 }
@@ -1394,19 +1761,32 @@ function gatewayWorldQueryFacts(value: unknown): {
     if (typeof outcome["resultHash"] === "string" && /^sha256:[0-9a-f]{64}$/u.test(outcome["resultHash"])) {
       upstreamResultHashes.push(outcome["resultHash"] as `sha256:${string}`);
     }
-    const material = outcome["encryptedCheckpointEvidenceMaterial"];
-    if (!material || typeof material !== "object" || Array.isArray(material)) continue;
-    const protectedMaterial = material as JsonObject;
-    const terminal = protectedMaterial["terminal"];
-    const world = protectedMaterial["responseStatus"] === 200
-      ? protectedMaterial["response"]
-      : terminal && typeof terminal === "object" && !Array.isArray(terminal)
-        ? (terminal as JsonObject)["result"]
-        : undefined;
-    if (!world || typeof world !== "object" || Array.isArray(world)) continue;
-    const nodes = (world as JsonObject)["nodes"];
-    if (!Array.isArray(nodes)) continue;
-    for (const rawNode of nodes) {
+    const worlds: unknown[] = [];
+    const segmented = outcome["segmentedExecution"];
+    if (segmented && typeof segmented === "object" && !Array.isArray(segmented) &&
+        (segmented as JsonObject)["executionMode"] === "GATEWAY_SEGMENTED_BY_TRUSTED_DATA_SCOPE") {
+      const segments = (segmented as JsonObject)["segments"];
+      if (Array.isArray(segments)) {
+        worlds.push(...segments.flatMap((raw) => raw && typeof raw === "object" && !Array.isArray(raw)
+          ? [(raw as JsonObject)["worldResult"]] : []));
+      }
+    } else {
+      const material = outcome["encryptedCheckpointEvidenceMaterial"];
+      if (material && typeof material === "object" && !Array.isArray(material)) {
+        const protectedMaterial = material as JsonObject;
+        const terminal = protectedMaterial["terminal"];
+        worlds.push(protectedMaterial["responseStatus"] === 200
+          ? protectedMaterial["response"]
+          : terminal && typeof terminal === "object" && !Array.isArray(terminal)
+            ? (terminal as JsonObject)["result"]
+            : undefined);
+      }
+    }
+    for (const world of worlds) {
+      if (!world || typeof world !== "object" || Array.isArray(world)) continue;
+      const nodes = (world as JsonObject)["nodes"];
+      if (!Array.isArray(nodes)) continue;
+      for (const rawNode of nodes) {
       if (!rawNode || typeof rawNode !== "object" || Array.isArray(rawNode)) continue;
       const node = rawNode as JsonObject;
       const operation = node["operation"];
@@ -1422,11 +1802,12 @@ function gatewayWorldQueryFacts(value: unknown): {
         worldFactHashes.push(...worldFacts.referenceKeyHashes);
         worldFactObjectHashes.push(...worldFacts.referenceObjectHashes);
       }
-      if (operationId.startsWith("spatial.")) {
-        const spatialValue = gatewayEnvelopeOutputValue(node["result"]);
-        if (spatialValue && typeof spatialValue === "object" && !Array.isArray(spatialValue) &&
-            Array.isArray((spatialValue as JsonObject)["objects"])) {
-          spatialResultCount += ((spatialValue as JsonObject)["objects"] as unknown[]).length;
+        if (operationId.startsWith("spatial.")) {
+          const spatialValue = gatewayEnvelopeOutputValue(node["result"]);
+          if (spatialValue && typeof spatialValue === "object" && !Array.isArray(spatialValue) &&
+              Array.isArray((spatialValue as JsonObject)["objects"])) {
+            spatialResultCount += ((spatialValue as JsonObject)["objects"] as unknown[]).length;
+          }
         }
       }
     }
@@ -1439,6 +1820,41 @@ function gatewayWorldQueryFacts(value: unknown): {
     upstreamResultHashes: uniqueDigests(upstreamResultHashes),
     spatialResultCount
   };
+}
+
+function checkpointSegmentBindings(value: unknown): CaseEvidence["segmentBindings"] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const outcomes = (value as JsonObject)["outcomes"];
+  if (!Array.isArray(outcomes)) return [];
+  const bindings: CaseEvidence["segmentBindings"] = [];
+  for (const rawOutcome of outcomes) {
+    if (!rawOutcome || typeof rawOutcome !== "object" || Array.isArray(rawOutcome)) continue;
+    const segmentedValue = (rawOutcome as JsonObject)["segmentedExecution"];
+    if (segmentedValue === undefined) continue;
+    const segmented = object(segmentedValue, "SEGMENTED_CHECKPOINT_INVALID");
+    if (segmented["schemaVersion"] !== "wsgs-segmented-world-query-execution/1.0" ||
+        segmented["executionMode"] !== "GATEWAY_SEGMENTED_BY_TRUSTED_DATA_SCOPE" ||
+        !Array.isArray(segmented["segments"])) {
+      throw new Error("SEGMENTED_CHECKPOINT_INVALID");
+    }
+    const scopeAuthorityHash = digest(segmented["scopeAuthorityHash"], "SEGMENTED_CHECKPOINT_AUTHORITY_INVALID");
+    for (const rawSegment of segmented["segments"]) {
+      const segment = object(rawSegment, "SEGMENTED_CHECKPOINT_SEGMENT_INVALID");
+      const worldResult = object(segment["worldResult"], "SEGMENTED_CHECKPOINT_WORLD_RESULT_INVALID");
+      bindings.push({
+        operationKey: string(segment["operationKey"], "SEGMENTED_CHECKPOINT_OPERATION_INVALID"),
+        dataScopeHash: safeId(string(segment["dataScope"], "SEGMENTED_CHECKPOINT_SCOPE_INVALID")),
+        sourceLockHash: digest(segment["sourceLockHash"], "SEGMENTED_CHECKPOINT_SOURCE_LOCK_INVALID"),
+        scopeAuthorityHash,
+        upstreamResultHash: digest(worldResult["outputHash"], "SEGMENTED_CHECKPOINT_RESULT_HASH_INVALID"),
+        worldResultHash: digest(
+          canonicalSha256(worldResult),
+          "SEGMENTED_CHECKPOINT_WORLD_RESULT_HASH_INVALID"
+        )
+      });
+    }
+  }
+  return bindings;
 }
 
 function compositionProof(
@@ -1523,7 +1939,9 @@ function compositionProof(
 async function collect(
   groundingId: string,
   requestHash: `sha256:${string}`,
-  terminalResult: JsonObject
+  terminalResult: JsonObject,
+  persistedPayloadHash: `sha256:${string}` = requestHash,
+  postHttpStatus: 200 | 202 = 202
 ): Promise<CaseEvidence> {
   const job = await pool.query<{
     job_id: string;
@@ -1538,12 +1956,18 @@ async function collect(
     result_status: string | null;
     result_hash: `sha256:${string}` | null;
     result_bytes: Buffer | null;
+    immutable_locks: unknown;
+    gowm_contract_catalog_revision: `sha256:${string}` | null;
+    gowm_semantic_catalog_hash: `sha256:${string}` | null;
+    gowm_operation_lock_hash: `sha256:${string}` | null;
   }>(
     `SELECT job.job_id, request.request_id, job.status AS job_status, job.stage_generation,
             checkpoint.run_fingerprint, checkpoint.state_hash,
             checkpoint.previous_record_hash AS checkpoint_record_hash,
             checkpoint.last_completed_stage, request.payload_hash,
-            result.status AS result_status, result.result_hash, result.result_bytes
+            result.status AS result_status, result.result_hash, result.result_bytes,
+            job.immutable_locks, request.gowm_contract_catalog_revision,
+            request.gowm_semantic_catalog_hash, request.gowm_operation_lock_hash
        FROM wsgs.grounding_job AS job
        JOIN wsgs.grounding_request AS request ON request.grounding_id = job.grounding_id
        LEFT JOIN wsgs.pipeline_checkpoint AS checkpoint ON checkpoint.job_id = job.job_id
@@ -1553,6 +1977,56 @@ async function collect(
   );
   const jobRow = job.rows[0];
   if (!jobRow) throw new Error("GROUNDING_JOB_MISSING");
+  const immutableLocks = object(jobRow.immutable_locks, "PERSISTED_IMMUTABLE_LOCKS_MISSING");
+  const trustedCapabilitySnapshot = object(
+    immutableLocks["trustedCapabilitySnapshot"],
+    "PERSISTED_TRUSTED_CAPABILITY_SNAPSHOT_MISSING"
+  );
+  const admissionGatewayBinding: CaseEvidence["admissionGatewayBinding"] = {
+    contractCatalogRevision: digest(
+      trustedCapabilitySnapshot["contractCatalogRevision"],
+      "PERSISTED_GATEWAY_CATALOG_REVISION_INVALID"
+    ),
+    semanticCatalogHash: digest(
+      trustedCapabilitySnapshot["semanticCatalogHash"],
+      "PERSISTED_GATEWAY_SEMANTIC_HASH_INVALID"
+    ),
+    bindingRevision: digest(
+      trustedCapabilitySnapshot["bindingRevision"],
+      "PERSISTED_GATEWAY_BINDING_REVISION_INVALID"
+    ),
+    operationLockHash: digest(
+      trustedCapabilitySnapshot["southboundLockHash"],
+      "PERSISTED_GATEWAY_OPERATION_LOCK_INVALID"
+    )
+  };
+  if (jobRow.gowm_contract_catalog_revision !== admissionGatewayBinding.contractCatalogRevision ||
+      jobRow.gowm_semantic_catalog_hash !== admissionGatewayBinding.semanticCatalogHash ||
+      jobRow.gowm_operation_lock_hash !== admissionGatewayBinding.operationLockHash) {
+    throw new Error("PERSISTED_GATEWAY_ADMISSION_BINDING_MISMATCH");
+  }
+  const rawSegmentedScopeAuthorityBinding = object(
+    immutableLocks["segmentedScopeAuthorityBinding"],
+    "PERSISTED_SEGMENTED_SCOPE_AUTHORITY_BINDING_MISSING"
+  );
+  if (rawSegmentedScopeAuthorityBinding["schemaVersion"] !== "1.0") {
+    throw new Error("PERSISTED_SEGMENTED_SCOPE_AUTHORITY_BINDING_VERSION_INVALID");
+  }
+  const admissionSegmentedScopeAuthorityBinding: CaseEvidence["admissionSegmentedScopeAuthorityBinding"] = {
+    schemaVersion: "1.0",
+    authorityHash: digest(
+      rawSegmentedScopeAuthorityBinding["authorityHash"],
+      "PERSISTED_SEGMENTED_SCOPE_AUTHORITY_HASH_INVALID"
+    ),
+    foundationInstanceBindingHash: digest(
+      rawSegmentedScopeAuthorityBinding["foundationInstanceBindingHash"],
+      "PERSISTED_SEGMENTED_FOUNDATION_BINDING_HASH_INVALID"
+    ),
+    gdpsChecksumsHash: digest(
+      rawSegmentedScopeAuthorityBinding["gdpsChecksumsHash"],
+      "PERSISTED_SEGMENTED_GDPS_CHECKSUMS_HASH_INVALID"
+    )
+  };
   const events = await pool.query<{
     stage: string; status: string; output_hash: `sha256:${string}` | null;
     previous_record_hash: `sha256:${string}` | null; record_hash: `sha256:${string}`;
@@ -1566,8 +2040,30 @@ async function collect(
   const terminalEvents = events.rows.filter((event) => event.status !== "STARTED");
   const queries = await pool.query<{
     plan_hash: `sha256:${string}`; upstream_result_hash: `sha256:${string}` | null;
+    execution_mode: "SINGLE_GATEWAY_QUERY" | "SEGMENTED_GATEWAY_QUERIES";
+    segment_manifest_hash: `sha256:${string}` | null;
   }>(
-    "SELECT plan_hash, upstream_result_hash FROM wsgs.world_query WHERE grounding_id = $1 ORDER BY query_id",
+    `SELECT plan_hash, upstream_result_hash, execution_mode, segment_manifest_hash
+       FROM wsgs.world_query WHERE grounding_id = $1 ORDER BY query_id`,
+    [groundingId]
+  );
+  const segments = await pool.query<{
+    operation_key: string;
+    plan_hash: `sha256:${string}`;
+    data_scope: string;
+    source_lock_hash: `sha256:${string}`;
+    scope_authority_hash: `sha256:${string}`;
+    delegated_identity_hash: `sha256:${string}`;
+    completion_delegated_identity_hash: `sha256:${string}` | null;
+    upstream_result_hash: `sha256:${string}` | null;
+    world_result_hash: `sha256:${string}` | null;
+    response_status: number | null;
+    finished_at: Date | null;
+  }>(
+    `SELECT operation_key, plan_hash, data_scope, source_lock_hash, scope_authority_hash,
+             delegated_identity_hash, completion_delegated_identity_hash,
+             upstream_result_hash, world_result_hash, response_status, finished_at
+       FROM wsgs.world_query_segment WHERE grounding_id = $1 ORDER BY query_id, segment_index`,
     [groundingId]
   );
   const executions = await pool.query<{
@@ -1613,7 +2109,7 @@ async function collect(
     throw new Error("PIPELINE_CHECKPOINT_HASH_OR_STAGE_MISMATCH");
   }
   const resultBytesHash = sha256(jobRow.result_bytes);
-  if (jobRow.payload_hash !== requestHash || resultBytesHash !== canonicalSha256(terminalResult) ||
+  if (jobRow.payload_hash !== persistedPayloadHash || resultBytesHash !== canonicalSha256(terminalResult) ||
       jobRow.result_hash !== terminalResult["resultHash"] || jobRow.result_status !== terminalResult["status"] ||
       jobRow.job_status !== terminalResult["status"]) {
     throw new Error("POSTGRES_PERSISTED_RESULT_TRACE_MISMATCH");
@@ -1626,6 +2122,39 @@ async function collect(
   if (!sameDigests(gateway.upstreamResultHashes, persistedUpstreamHashes)) {
     throw new Error("PERSISTED_GATEWAY_RESULT_HASH_MISMATCH");
   }
+  const segmentedQueries = queries.rows.filter((row) => row.execution_mode === "SEGMENTED_GATEWAY_QUERIES");
+  if (segmentedQueries.some((row) => row.segment_manifest_hash === null) ||
+      segments.rows.some((row) => row.upstream_result_hash === null || row.world_result_hash === null ||
+        row.finished_at === null ||
+        !/^sha256:[0-9a-f]{64}$/u.test(row.delegated_identity_hash) ||
+        !row.completion_delegated_identity_hash ||
+        !/^sha256:[0-9a-f]{64}$/u.test(row.completion_delegated_identity_hash) ||
+        (row.response_status !== 200 && row.response_status !== 202))) {
+    throw new Error("PERSISTED_SEGMENTED_GATEWAY_TRACE_INCOMPLETE");
+  }
+  if ((segmentedQueries.length === 0) !== (segments.rowCount === 0)) {
+    throw new Error("PERSISTED_SEGMENTED_GATEWAY_TRACE_ORPHANED");
+  }
+  const persistedSegmentBindings: CaseEvidence["segmentBindings"] = segments.rows.map((row) => ({
+    operationKey: row.operation_key,
+    dataScopeHash: safeId(row.data_scope),
+    sourceLockHash: digest(row.source_lock_hash, "PERSISTED_SEGMENT_SOURCE_LOCK_INVALID"),
+    scopeAuthorityHash: digest(row.scope_authority_hash, "PERSISTED_SEGMENT_AUTHORITY_INVALID"),
+    upstreamResultHash: digest(row.upstream_result_hash, "PERSISTED_SEGMENT_RESULT_HASH_INVALID"),
+    worldResultHash: digest(row.world_result_hash, "PERSISTED_SEGMENT_WORLD_RESULT_HASH_INVALID")
+  }));
+  const checkpointBindings = checkpointSegmentBindings(checkpoint.state["GOWM_EXECUTE"]);
+  if (evidenceCanonicalJson(persistedSegmentBindings) !== evidenceCanonicalJson(checkpointBindings)) {
+    throw new Error("PERSISTED_SEGMENTED_GATEWAY_BINDING_MISMATCH");
+  }
+  const segmentDelegationBindings = segments.rows.map((row) => ({
+    operationKey: row.operation_key,
+    delegatedIdentityHash: digest(row.delegated_identity_hash, "PERSISTED_SEGMENT_DELEGATED_IDENTITY_INVALID"),
+    completionDelegatedIdentityHash: digest(
+      row.completion_delegated_identity_hash,
+      "PERSISTED_SEGMENT_COMPLETION_IDENTITY_INVALID"
+    )
+  }));
   const named = collectNamedStrings(terminalResult, new Set(["productId", "contentHash"]));
   const planning = checkpoint.state["REQUIREMENT_PLAN"];
   const selectedRecipeValues = planning && typeof planning === "object" && !Array.isArray(planning)
@@ -1662,6 +2191,16 @@ async function collect(
     upstreamResultHashes: persistedUpstreamHashes,
     modelReceiptCount: Number(model.rows[0]?.count ?? 0),
     worldQueryCount: queries.rowCount ?? 0,
+    segmentedWorldQueryCount: segmentedQueries.length,
+    gatewaySegmentCount: segments.rowCount ?? 0,
+    segmentManifestHashes: segmentedQueries.flatMap((row) => row.segment_manifest_hash ? [row.segment_manifest_hash] : []),
+    segmentPlanHashes: segments.rows.map((row) => row.plan_hash),
+    segmentScopeHashes: [...new Set(segments.rows.map((row) => safeId(row.data_scope)))],
+    segmentBindings: persistedSegmentBindings,
+    segmentDelegationBindingCount: segmentDelegationBindings.length,
+    segmentDelegationBindingsHash: evidenceCanonicalSha256(segmentDelegationBindings),
+    admissionGatewayBinding,
+    admissionSegmentedScopeAuthorityBinding,
     gatewayExecutionCount: executions.rowCount ?? 0,
     spatialExecutionCount: executions.rows.filter((row) => row.operation_id?.startsWith("spatial.")).length,
     operationKeys: [...new Set(executions.rows.flatMap((row) =>
@@ -1688,7 +2227,7 @@ async function collect(
     compositionProof: compositionProof(checkpoint.state, terminalResult),
     traceability: {
       status: "PASS",
-      api: { postHttpStatus: 202, getHttpStatus: 200, requestHash },
+      api: { postHttpStatus, getHttpStatus: 200, requestHash },
       postgres: {
         requestPayloadHash: jobRow.payload_hash,
         checkpointStateHash: jobRow.state_hash,
@@ -1711,6 +2250,8 @@ async function collect(
       },
       gateway: {
         persistedWorldQueryCount: queries.rowCount ?? 0,
+        persistedSegmentCount: segments.rowCount ?? 0,
+        segmentedWorldQueryCount: segmentedQueries.length,
         persistedExecutionCount: executions.rowCount ?? 0,
         planHashesMatchCheckpoint: true,
         upstreamHashesMatchCheckpoint: true
@@ -1718,7 +2259,12 @@ async function collect(
       persistence: { jobStatus: jobRow.job_status, getMatchesPersistedResult: true }
     }
   };
-  privateCaseRuntime.set(evidence, { groundingId, terminalResult, checkpointState: checkpoint.state });
+  privateCaseRuntime.set(evidence, {
+    groundingId,
+    terminalResult,
+    checkpointState: checkpoint.state,
+    runFingerprint: checkpoint.runFingerprint
+  });
   return evidence;
 }
 
@@ -1727,7 +2273,9 @@ async function submitAndRun(
   executor: PipelineStageExecutor | undefined,
   recipeId: string,
   body: JsonObject,
-  acceptedStatuses: readonly string[]
+  acceptedStatuses: readonly string[],
+  contractHeaders: Readonly<Record<string, string>> = {},
+  persistedPayloadHash?: `sha256:${string}`
 ): Promise<CaseEvidence> {
   const requestHash = canonicalSha256(body) as `sha256:${string}`;
   const submitted = await fetchJson(baseUrl, "/v1/groundings", {
@@ -1735,7 +2283,8 @@ async function submitAndRun(
     headers: {
       "content-type": "application/json",
       "idempotency-key": `development-${recipeId.toLowerCase()}-${requestHash.slice(-20)}`,
-      prefer: "respond-async"
+      prefer: "respond-async",
+      ...contractHeaders
     },
     body: JSON.stringify(body)
   });
@@ -1777,7 +2326,9 @@ async function submitAndRun(
   }
   const fetched = formalExternalProcessMode
     ? await pollExternalGrounding(baseUrl, groundingId)
-    : await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`);
+    : await fetchJson(baseUrl, `/v1/groundings/${encodeURIComponent(groundingId)}`, {
+        headers: contractHeaders
+      });
   if (fetched.status !== 200) throw new Error(`PUBLIC_API_GET_FAILED_${recipeId}_${fetched.status}`);
   const terminalStatus = string(fetched.body["status"], "GROUNDING_STATUS_MISSING");
   const terminalResult = object(fetched.body["result"], "GROUNDING_RESULT_MISSING");
@@ -1827,7 +2378,7 @@ async function submitAndRun(
       `_ALLOWED_${allowedOperationKeys}_EXEC_${executionTrace}`
     );
   }
-  const evidence = await collect(groundingId, requestHash, terminalResult);
+  const evidence = await collect(groundingId, requestHash, terminalResult, persistedPayloadHash ?? requestHash);
   if (evidence.resultHash !== terminalResult["resultHash"]) throw new Error(`RESULT_HASH_MISMATCH_${recipeId}`);
   const boundEvidence = { ...evidence, recipeId };
   const privateRuntime = privateCaseRuntime.get(evidence);
@@ -2280,6 +2831,572 @@ async function recoveryCase(baseUrl: string, productionExecutor: PipelineStageEx
   };
 }
 
+const n04LegacyHeaders = Object.freeze({
+  "wsgs-contract-version": "sacs-wsgs-grounding/1.0"
+});
+
+const n04GeospatialHeaders = Object.freeze({
+  "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
+  "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0"
+});
+
+function canonicalResultHash(runFingerprint: string, result: JsonObject): `sha256:${string}` {
+  const material = Object.fromEntries(Object.entries(result).filter(([key]) => key !== "resultHash"));
+  const execution = material["execution"];
+  if (execution && typeof execution === "object" && !Array.isArray(execution)) {
+    material["execution"] = Object.fromEntries(
+      Object.entries(execution as JsonObject).filter(([key]) => key !== "elapsedMs")
+    );
+  }
+  return canonicalSha256({
+    runFingerprint,
+    status: string(result["status"], "N04_RESULT_STATUS_MISSING"),
+    value: material
+  }) as `sha256:${string}`;
+}
+
+function n04ResultSemanticProjection(result: JsonObject): JsonObject {
+  const withoutRuntimeFields = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(withoutRuntimeFields);
+    if (!value || typeof value !== "object") return value;
+    return Object.fromEntries(Object.entries(value as JsonObject)
+      .filter(([key]) => ![
+        "validUntil",
+        "evaluatedAt",
+        "receiptIds",
+        "evidenceIds"
+      ].includes(key))
+      .map(([key, entry]) => [key, withoutRuntimeFields(entry)]));
+  };
+  const source = object(result["source"], "N04_RESULT_SOURCE_MISSING");
+  const execution = object(result["execution"], "N04_RESULT_EXECUTION_MISSING");
+  return {
+    schemaVersion: result["schemaVersion"],
+    status: result["status"],
+    source: { originalTextSha256: source["originalTextSha256"] },
+    mentions: withoutRuntimeFields(result["mentions"]),
+    referenceProducts: withoutRuntimeFields(result["referenceProducts"]),
+    evidenceItems: withoutRuntimeFields(result["evidenceItems"]),
+    geospatialFindings: withoutRuntimeFields(result["geospatialFindings"]),
+    ambiguities: withoutRuntimeFields(result["ambiguities"]),
+    unresolvedMentions: withoutRuntimeFields(result["unresolvedMentions"]),
+    capabilityGaps: withoutRuntimeFields(result["capabilityGaps"]),
+    warnings: withoutRuntimeFields(result["warnings"]),
+    execution: Object.fromEntries(Object.entries(execution)
+      .filter(([key]) => key !== "elapsedMs" && key !== "semanticModelReceiptIds")
+      .map(([key, entry]) => [key, withoutRuntimeFields(entry)]))
+  };
+}
+
+function n04ExtensionSummary(evidence: CaseEvidence): {
+  findingCount: number;
+  sourceProductCount: number;
+  evidenceItemCount: number;
+  gapCount: number;
+  subjectReferenceCount: number;
+  extensionIncludedInResultHash: true;
+  elapsedMsExcludedFromResultHash: true;
+} {
+  const runtime = privateCaseRuntime.get(evidence);
+  if (!runtime) throw new Error("N04_PRIVATE_RUNTIME_MISSING");
+  const result = runtime.terminalResult;
+  const profile = object(result["geospatialFindings"], "N04_GEOSPATIAL_FINDINGS_MISSING");
+  if (profile["profile"] !== "sacs-wsgs-geospatial-findings/1.0") {
+    throw new Error("N04_GEOSPATIAL_PROFILE_MISMATCH");
+  }
+  const findings = Array.isArray(profile["findings"]) ? profile["findings"] : [];
+  const sourceProducts = Array.isArray(profile["sourceProducts"]) ? profile["sourceProducts"] : [];
+  const gaps = Array.isArray(profile["gaps"]) ? profile["gaps"] : [];
+  const evidenceItems = Array.isArray(result["evidenceItems"]) ? result["evidenceItems"] : [];
+  if (findings.length < 1 || sourceProducts.length < 1 || evidenceItems.length < 1) {
+    throw new Error("N04_GEOSPATIAL_PROFILE_EMPTY");
+  }
+
+  const referenceProducts = Array.isArray(result["referenceProducts"]) ? result["referenceProducts"] : [];
+  const referenceProductIds = new Set(referenceProducts.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+    const productId = (entry as JsonObject)["productId"];
+    return typeof productId === "string" && productId.length > 0 ? [productId] : [];
+  }));
+  const subjectReferenceIds = findings.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+    const subjects = (entry as JsonObject)["subjectReferenceProductIds"];
+    return Array.isArray(subjects)
+      ? subjects.filter((subject): subject is string => typeof subject === "string" && subject.length > 0)
+      : [];
+  });
+  if (subjectReferenceIds.length < 1 || subjectReferenceIds.some((subject) => !referenceProductIds.has(subject))) {
+    throw new Error("N04_SUBJECT_REFERENCE_PRODUCT_FK_INVALID");
+  }
+
+  const storedResultHash = string(result["resultHash"], "N04_RESULT_HASH_MISSING") as `sha256:${string}`;
+  if (canonicalResultHash(runtime.runFingerprint, result) !== storedResultHash) {
+    throw new Error("N04_RESULT_HASH_RECOMPUTE_MISMATCH");
+  }
+  const withoutExtension = { ...result };
+  delete withoutExtension["geospatialFindings"];
+  if (canonicalResultHash(runtime.runFingerprint, withoutExtension) === storedResultHash) {
+    throw new Error("N04_RESULT_HASH_EXCLUDES_EXTENSION");
+  }
+  const execution = object(result["execution"], "N04_RESULT_EXECUTION_MISSING");
+  const elapsedMs = execution["elapsedMs"];
+  if (typeof elapsedMs !== "number" || !Number.isFinite(elapsedMs)) throw new Error("N04_RESULT_ELAPSED_MS_MISSING");
+  const changedElapsed = {
+    ...result,
+    execution: { ...execution, elapsedMs: elapsedMs + 10_000 }
+  };
+  if (canonicalResultHash(runtime.runFingerprint, changedElapsed) !== storedResultHash) {
+    throw new Error("N04_RESULT_HASH_INCLUDES_ELAPSED_MS");
+  }
+  return {
+    findingCount: findings.length,
+    sourceProductCount: sourceProducts.length,
+    evidenceItemCount: evidenceItems.length,
+    gapCount: gaps.length,
+    subjectReferenceCount: new Set(subjectReferenceIds).size,
+    extensionIncludedInResultHash: true,
+    elapsedMsExcludedFromResultHash: true
+  };
+}
+
+async function assertPersistedN04ContractSelection(
+  groundingId: string,
+  expected: typeof LEGACY_GROUNDING_CONTRACT_SELECTION | typeof SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+): Promise<void> {
+  const persisted = await pool.query<{ request_metadata: unknown }>(
+    "SELECT request_metadata FROM wsgs.grounding_request WHERE grounding_id = $1",
+    [groundingId]
+  );
+  const metadata = object(persisted.rows[0]?.request_metadata, "N04_REQUEST_METADATA_MISSING");
+  if (evidenceCanonicalJson(metadata["contractSelection"]) !== evidenceCanonicalJson(expected)) {
+    throw new Error("N04_PERSISTED_CONTRACT_SELECTION_MISMATCH");
+  }
+}
+
+function assertN04SegmentedGatewayTrace(
+  evidence: CaseEvidence,
+  sharedBinding: VerifiedN04SharedExecutionGatewayBinding,
+  operationLockBinding: VerifiedN04OperationLockBinding
+): void {
+  if (evidence.segmentedWorldQueryCount !== 1 || evidence.gatewaySegmentCount !== 3 ||
+      evidence.segmentManifestHashes.length !== 1 || evidence.segmentPlanHashes.length !== 3 ||
+      new Set(evidence.segmentPlanHashes).size !== 3 || evidence.segmentScopeHashes.length !== 2 ||
+      evidence.segmentDelegationBindingCount !== 3 ||
+      !/^sha256:[0-9a-f]{64}$/u.test(evidence.segmentDelegationBindingsHash)) {
+    throw new Error("N04_SEGMENTED_GATEWAY_TRACE_MISMATCH");
+  }
+  const required = [
+    "reference.resolve@1.0",
+    "world.get-current-state@1.0",
+    "geo-raster.sample@1.0"
+  ];
+  if (evidence.operationKeys.length !== required.length ||
+      required.some((operationKey) => !evidence.operationKeys.includes(operationKey)) ||
+      evidenceCanonicalJson(evidence.segmentBindings.map((entry) => entry.operationKey)) !== evidenceCanonicalJson(required)) {
+    throw new Error("N04_SEGMENTED_GATEWAY_OPERATION_CHAIN_MISMATCH");
+  }
+  const expectedGatewayBinding = {
+    contractCatalogRevision: sharedBinding.lockedGatewayTuple.contractCatalogRevision,
+    semanticCatalogHash: sharedBinding.lockedGatewayTuple.semanticCatalogHash,
+    bindingRevision: sharedBinding.lockedGatewayTuple.bindingRevision,
+    operationLockHash: operationLockBinding.operationLockHash
+  };
+  if (evidenceCanonicalJson(evidence.admissionGatewayBinding) !== evidenceCanonicalJson(expectedGatewayBinding)) {
+    throw new Error("N04_SHARED_GATEWAY_LIVE_TUPLE_MISMATCH");
+  }
+  const expectedSegmentAuthorities = [{
+    operationKey: "reference.resolve@1.0",
+    dataScopeHash: sharedBinding.foundationDataScopeHash,
+    sourceLockHash: sharedBinding.foundationOperationLockHash
+  }, {
+    operationKey: "world.get-current-state@1.0",
+    dataScopeHash: sharedBinding.foundationDataScopeHash,
+    sourceLockHash: sharedBinding.foundationOperationLockHash
+  }, {
+    operationKey: "geo-raster.sample@1.0",
+    dataScopeHash: sharedBinding.selectedDatasetDataScopeHash,
+    sourceLockHash: sharedBinding.capabilityLockHash
+  }];
+  const actualSegmentAuthorities = evidence.segmentBindings.map(({ operationKey, dataScopeHash, sourceLockHash }) => ({
+    operationKey,
+    dataScopeHash,
+    sourceLockHash
+  }));
+  if (evidenceCanonicalJson(actualSegmentAuthorities) !== evidenceCanonicalJson(expectedSegmentAuthorities) ||
+      new Set(evidence.segmentBindings.map((entry) => entry.scopeAuthorityHash)).size !== 1 ||
+      evidence.segmentBindings.some((entry) => !/^sha256:[0-9a-f]{64}$/u.test(entry.upstreamResultHash) ||
+        !/^sha256:[0-9a-f]{64}$/u.test(entry.worldResultHash))) {
+    throw new Error("N04_SEGMENTED_GATEWAY_SOURCE_AUTHORITY_MISMATCH");
+  }
+  const expectedAdmissionScopeAuthorityBinding = {
+    schemaVersion: "1.0",
+    authorityHash: evidence.segmentBindings[0]?.scopeAuthorityHash,
+    foundationInstanceBindingHash: sharedBinding.foundationInstanceBindingHash,
+    gdpsChecksumsHash: sharedBinding.checksumsFileHash
+  };
+  if (!expectedAdmissionScopeAuthorityBinding.authorityHash ||
+      evidenceCanonicalJson(evidence.admissionSegmentedScopeAuthorityBinding) !==
+        evidenceCanonicalJson(expectedAdmissionScopeAuthorityBinding)) {
+    throw new Error("N04_SEGMENTED_GATEWAY_ADMISSION_AUTHORITY_MISMATCH");
+  }
+}
+
+async function runN04ResultExtensionGate(
+  baseUrl: string,
+  productionExecutor: PipelineStageExecutor | undefined,
+  wsgsSourceBinding: VerifiedWsgsSourceBinding,
+  runtimeBinding: VerifiedRuntimeBinding
+): Promise<void> {
+  if (!productionExecutor) throw new Error("N04_PRODUCTION_EXECUTOR_REQUIRED");
+  const operationLockBinding = verifyN04OperationLockBinding(wsgsSourceBinding);
+  const sharedExecutionGatewayBinding = loadVerifiedN04SharedExecutionGatewayBinding();
+  const legacyCapabilities = await fetchJson(baseUrl, "/v1/capabilities", { headers: n04LegacyHeaders });
+  if (legacyCapabilities.status !== 200 ||
+      legacyCapabilities.headers.get("wsgs-contract-version") !== "sacs-wsgs-grounding/1.0" ||
+      legacyCapabilities.body["contractVersion"] !== "sacs-wsgs-grounding/1.0" ||
+      "supportedResultProfiles" in legacyCapabilities.body) {
+    throw new Error("N04_LEGACY_CAPABILITIES_MISMATCH");
+  }
+  const geospatialCapabilities = await fetchJson(baseUrl, "/v1/capabilities", { headers: n04GeospatialHeaders });
+  const supportedOperations = Array.isArray(geospatialCapabilities.body["supportedOperations"])
+    ? geospatialCapabilities.body["supportedOperations"] : [];
+  if (geospatialCapabilities.status !== 200 ||
+      geospatialCapabilities.headers.get("wsgs-contract-version") !== "sacs-wsgs-grounding/1.1" ||
+      geospatialCapabilities.headers.get("wsgs-result-profile") !== "sacs-wsgs-geospatial-findings/1.0" ||
+      geospatialCapabilities.body["contractVersion"] !== "sacs-wsgs-grounding/1.1" ||
+      geospatialCapabilities.body["geospatialTransportMode"] !== "RESULT_EXTENSION" ||
+      supportedOperations.length !== 6 || new Set(supportedOperations).size !== 6) {
+    throw new Error("N04_GEOSPATIAL_CAPABILITIES_MISMATCH");
+  }
+
+  const gdpsSuite = loadFrozenGdpsCaseSuite();
+  const definition = gdpsSuite.cases.find((entry) => entry.id === "E2E-SLOPE-POINT");
+  if (!definition) throw new Error("N04_REAL_GDPS_CASE_MISSING");
+  const gdpsRuntime = loadGdpsRuntimeExpectations(gdpsSuite);
+
+  const synchronousBody = requestBody(
+    "N04-V11-SYNC",
+    definition.message,
+    "EXECUTE_WORLD_QUERY",
+    ["WORLD_EVIDENCE"]
+  );
+  const synchronousRequestHash = canonicalSha256(synchronousBody) as `sha256:${string}`;
+  const synchronousPayloadHash = canonicalSha256({
+    request: synchronousBody,
+    contractSelection: SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+  }) as `sha256:${string}`;
+  const synchronousWorker = worker(productionExecutor, "development-n04-v11-sync");
+  const synchronousWorkerLoop = synchronousWorker.start();
+  let synchronousResponse: Awaited<ReturnType<typeof fetchJson>>;
+  try {
+    const synchronousPolicy = object(synchronousBody["executionPolicy"], "N04_SYNC_EXECUTION_POLICY_MISSING");
+    const synchronousDeadlineMs = synchronousPolicy["deadlineMs"];
+    if (!Number.isSafeInteger(synchronousDeadlineMs) || (synchronousDeadlineMs as number) < 1_000) {
+      throw new Error("N04_SYNC_EXECUTION_DEADLINE_INVALID");
+    }
+    const synchronousTransportTimeoutMs = (synchronousDeadlineMs as number) + 5_000;
+    synchronousResponse = await fetchJson(baseUrl, "/v1/groundings", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": `development-n04-v11-sync-${synchronousRequestHash.slice(-20)}`,
+        ...n04GeospatialHeaders
+      },
+      body: JSON.stringify(synchronousBody)
+    }, {
+      timeoutMs: synchronousTransportTimeoutMs,
+      deadlineAt: Date.now() + synchronousTransportTimeoutMs,
+      deadlineTimeoutCode: "FORMAL_HTTP_REQUEST_TIMEOUT"
+    });
+  } finally {
+    await synchronousWorker.stop(10_000);
+    await synchronousWorkerLoop;
+  }
+  if (synchronousResponse.status !== 200 || synchronousResponse.body["status"] !== "COMPLETED" ||
+      synchronousResponse.headers.get("wsgs-contract-version") !== "sacs-wsgs-grounding/1.1" ||
+      synchronousResponse.headers.get("wsgs-result-profile") !== "sacs-wsgs-geospatial-findings/1.0") {
+    throw new Error("N04_FRESH_SYNC_SUBMISSION_FAILED");
+  }
+  const synchronousGroundingId = string(
+    synchronousResponse.body["groundingId"],
+    "N04_SYNC_GROUNDING_ID_MISSING"
+  );
+  const synchronousGet = await fetchJson(
+    baseUrl,
+    `/v1/groundings/${encodeURIComponent(synchronousGroundingId)}`,
+    { headers: n04GeospatialHeaders }
+  );
+  const synchronousGetResult = object(synchronousGet.body["result"], "N04_SYNC_GET_RESULT_MISSING");
+  if (synchronousGet.status !== 200 ||
+      evidenceCanonicalJson(synchronousGetResult) !== evidenceCanonicalJson(synchronousResponse.body)) {
+    throw new Error("N04_SYNC_GET_RESULT_MISMATCH");
+  }
+  const synchronousEvidence = await collect(
+    synchronousGroundingId,
+    synchronousRequestHash,
+    synchronousResponse.body,
+    synchronousPayloadHash,
+    200
+  );
+  await assertPersistedN04ContractSelection(
+    synchronousGroundingId,
+    SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+  );
+  validateGdpsCaseEvidence(
+    definition,
+    { ...synchronousEvidence, recipeId: definition.id },
+    gdpsSuite,
+    gdpsRuntime
+  );
+  assertN04SegmentedGatewayTrace(synchronousEvidence, sharedExecutionGatewayBinding, operationLockBinding);
+  const synchronousExtension = n04ExtensionSummary(synchronousEvidence);
+
+  const geospatialBody = requestBody(
+    "N04-V11-ASYNC",
+    definition.message,
+    "EXECUTE_WORLD_QUERY",
+    ["WORLD_EVIDENCE"]
+  );
+  const geospatialPayloadHash = canonicalSha256({
+    request: geospatialBody,
+    contractSelection: SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+  }) as `sha256:${string}`;
+  const geospatialEvidence = await submitAndRun(
+    baseUrl,
+    productionExecutor,
+    "N04-V11-ASYNC",
+    geospatialBody,
+    ["COMPLETED"],
+    n04GeospatialHeaders,
+    geospatialPayloadHash
+  );
+  validateGdpsCaseEvidence(definition, { ...geospatialEvidence, recipeId: definition.id }, gdpsSuite, gdpsRuntime);
+  assertN04SegmentedGatewayTrace(geospatialEvidence, sharedExecutionGatewayBinding, operationLockBinding);
+  if (evidenceCanonicalJson(synchronousEvidence.admissionGatewayBinding) !==
+        evidenceCanonicalJson(geospatialEvidence.admissionGatewayBinding) ||
+      evidenceCanonicalJson(synchronousEvidence.segmentBindings) !== evidenceCanonicalJson(geospatialEvidence.segmentBindings)) {
+    throw new Error("N04_SYNC_ASYNC_SHARED_GATEWAY_BINDING_MISMATCH");
+  }
+  const extension = n04ExtensionSummary(geospatialEvidence);
+  const geospatialRuntime = privateCaseRuntime.get(geospatialEvidence);
+  if (!geospatialRuntime) throw new Error("N04_PRIVATE_RUNTIME_MISSING");
+  await assertPersistedN04ContractSelection(
+    geospatialRuntime.groundingId,
+    SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+  );
+  const mismatchedRead = await fetchJson(
+    baseUrl,
+    `/v1/groundings/${encodeURIComponent(geospatialRuntime.groundingId)}`,
+    { headers: n04LegacyHeaders }
+  );
+  const mismatchedError = mismatchedRead.body["error"];
+  if (mismatchedRead.status !== 406 || !mismatchedError || typeof mismatchedError !== "object" ||
+      Array.isArray(mismatchedError) ||
+      (mismatchedError as JsonObject)["code"] !== "WSGS_CONSUMER_CONTRACT_MISMATCH") {
+    throw new Error("N04_CROSS_CONTRACT_READ_NOT_REJECTED");
+  }
+  const synchronousRuntime = privateCaseRuntime.get(synchronousEvidence);
+  if (!synchronousRuntime) throw new Error("N04_SYNC_PRIVATE_RUNTIME_MISSING");
+  const synchronousSemanticHash = evidenceCanonicalSha256(
+    n04ResultSemanticProjection(synchronousRuntime.terminalResult)
+  );
+  const asynchronousSemanticProjection = n04ResultSemanticProjection(geospatialRuntime.terminalResult);
+  const asynchronousSemanticHash = evidenceCanonicalSha256(asynchronousSemanticProjection);
+  if (synchronousSemanticHash !== asynchronousSemanticHash) {
+    throw new Error("N04_SYNC_ASYNC_RESULT_SEMANTICS_MISMATCH");
+  }
+  const gapMutation = structuredClone(asynchronousSemanticProjection);
+  const gapProfile = object(gapMutation["geospatialFindings"], "N04_ASYNC_PROFILE_MISSING");
+  const priorGaps = Array.isArray(gapProfile["gaps"]) ? gapProfile["gaps"] : [];
+  gapProfile["gaps"] = [...priorGaps, { gapId: "semantic-projection-self-check" }];
+  if (evidenceCanonicalSha256(gapMutation) === asynchronousSemanticHash) {
+    throw new Error("N04_SEMANTIC_PROJECTION_GAP_INSENSITIVE");
+  }
+  const executionCountBeforeReplay = await pool.query<{ count: string }>(
+    "SELECT count(*)::text AS count FROM wsgs.gowm_execution WHERE grounding_id = $1",
+    [geospatialRuntime.groundingId]
+  );
+  const geospatialRequestHash = canonicalSha256(geospatialBody) as `sha256:${string}`;
+  const replay = await fetchJson(baseUrl, "/v1/groundings", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "idempotency-key": `development-n04-v11-async-${geospatialRequestHash.slice(-20)}`,
+      ...n04GeospatialHeaders
+    },
+    body: JSON.stringify(geospatialBody)
+  });
+  if (replay.status !== 200 ||
+      replay.headers.get("wsgs-contract-version") !== "sacs-wsgs-grounding/1.1" ||
+      replay.headers.get("wsgs-result-profile") !== "sacs-wsgs-geospatial-findings/1.0" ||
+      evidenceCanonicalJson(replay.body) !== evidenceCanonicalJson(geospatialRuntime.terminalResult)) {
+    throw new Error("N04_SYNC_REPLAY_RESULT_MISMATCH");
+  }
+  const executionCountAfterReplay = await pool.query<{ count: string }>(
+    "SELECT count(*)::text AS count FROM wsgs.gowm_execution WHERE grounding_id = $1",
+    [geospatialRuntime.groundingId]
+  );
+  if (executionCountAfterReplay.rows[0]?.count !== executionCountBeforeReplay.rows[0]?.count) {
+    throw new Error("N04_SYNC_REPLAY_REEXECUTED_UPSTREAM");
+  }
+
+  const legacyBody = requestBody(
+    "N04-LEGACY",
+    definition.message,
+    "EXECUTE_WORLD_QUERY",
+    ["WORLD_EVIDENCE"]
+  );
+  const legacyEvidence = await submitAndRun(
+    baseUrl,
+    productionExecutor,
+    "N04-LEGACY",
+    legacyBody,
+    ["COMPLETED"],
+    n04LegacyHeaders,
+    canonicalSha256(legacyBody) as `sha256:${string}`
+  );
+  const legacyRuntime = privateCaseRuntime.get(legacyEvidence);
+  if (!legacyRuntime || "geospatialFindings" in legacyRuntime.terminalResult) {
+    throw new Error("N04_LEGACY_UNNEGOTIATED_EXTENSION");
+  }
+  await assertPersistedN04ContractSelection(
+    legacyRuntime.groundingId,
+    LEGACY_GROUNDING_CONTRACT_SELECTION
+  );
+
+  const reportPayload = {
+    schemaVersion: "wsgs-v021-result-extension-real-runtime/1.1",
+    sourceCommit,
+    qualifiedSourceSha: sourceCommit,
+    sourceTree: wsgsSourceBinding.sourceTree,
+    sourceBinding: wsgsSourceBinding,
+    isolatedFoundationQualification: {
+      sourceCommit: runtimeBinding.sourceCommit,
+      runtimeBindingHash: runtimeBinding.runtimeBindingHash,
+      gatewayContractVersion: runtimeBinding.gatewayContractVersion,
+      evidenceLayer: "DIRECT_WSGS_CONSUMER_TO_ISOLATED_GOWM_GATEWAY",
+      usedByN04Execution: false
+    },
+    sharedExecutionGatewayBinding: {
+      ...sharedExecutionGatewayBinding,
+      gatewayContractVersion: expectedGatewayContractVersion,
+      operationLockHash: operationLockBinding.operationLockHash,
+      operationLockPathHash: operationLockBinding.operationLockPathHash,
+      liveGatewayTuple: geospatialEvidence.admissionGatewayBinding,
+      admissionSegmentedScopeAuthorityBinding: geospatialEvidence.admissionSegmentedScopeAuthorityBinding,
+      segmentAuthorityHashes: [...new Set(geospatialEvidence.segmentBindings.map((entry) => entry.scopeAuthorityHash))],
+      segmentSourceLockHashes: [...new Set(geospatialEvidence.segmentBindings.map((entry) => entry.sourceLockHash))].sort(),
+      segmentBindings: geospatialEvidence.segmentBindings,
+      segmentBindingsHash: evidenceCanonicalSha256(geospatialEvidence.segmentBindings),
+      segmentDelegationBindingCount: geospatialEvidence.segmentDelegationBindingCount,
+      segmentDelegationBindingsHash: geospatialEvidence.segmentDelegationBindingsHash
+    },
+    negotiation: {
+      legacyContractVersion: "sacs-wsgs-grounding/1.0",
+      contractVersion: "sacs-wsgs-grounding/1.1",
+      profile: "sacs-wsgs-geospatial-findings/1.0",
+      transportMode: "RESULT_EXTENSION",
+      noHeaderDefault: "sacs-wsgs-grounding/1.0",
+      explicitResponseHeadersVerified: true,
+      crossContractPersistedReadHttpStatus: mismatchedRead.status
+    },
+    capabilities: {
+      legacyHash: evidenceCanonicalSha256(legacyCapabilities.body),
+      geospatialHash: evidenceCanonicalSha256(geospatialCapabilities.body),
+      supportedOperationCount: supportedOperations.length,
+      requiredCapabilitiesReady: geospatialCapabilities.body["requiredCapabilitiesReady"],
+      n05N06RemainUnavailable: true
+    },
+    realExecution: {
+      caseId: definition.id,
+      freshSyncPostHttpStatus: synchronousEvidence.traceability.api.postHttpStatus,
+      freshSyncGetHttpStatus: synchronousEvidence.traceability.api.getHttpStatus,
+      asyncPostHttpStatus: 202,
+      persistedGetHttpStatus: 200,
+      syncReplayHttpStatus: replay.status,
+      terminalStatus: geospatialEvidence.terminalStatus,
+      pipelineStageCount: geospatialEvidence.completedStages.length,
+      gatewayExecutionCount: geospatialEvidence.gatewayExecutionCount,
+      segmentedWorldQueryCount: geospatialEvidence.segmentedWorldQueryCount,
+      gatewaySegmentCount: geospatialEvidence.gatewaySegmentCount,
+      segmentManifestHashes: geospatialEvidence.segmentManifestHashes,
+      segmentPlanHashes: geospatialEvidence.segmentPlanHashes,
+      segmentDelegationBindingCount: geospatialEvidence.segmentDelegationBindingCount,
+      segmentDelegationBindingsHash: geospatialEvidence.segmentDelegationBindingsHash,
+      exactSegmentedGatewayOperationChainVerified: true,
+      exactTrustedDataScopeCount: geospatialEvidence.segmentScopeHashes.length,
+      resultHash: geospatialEvidence.resultHash,
+      persistedResultBytesHash: geospatialEvidence.traceability.postgres.resultBytesHash,
+      persistedBytesAndHashMatchGet: true,
+      persistedContractSelectionVerified: true,
+      syncAndAsyncResultSemanticsMatch: true,
+      syncAndAsyncSemanticProjectionHash: asynchronousSemanticHash,
+      semanticProjectionIncludesGapsEvidenceAndSubjects: true,
+      syncReplayAddedGatewayExecutions: 0,
+      ...extension
+    },
+    synchronousExecution: {
+      terminalStatus: synchronousEvidence.terminalStatus,
+      resultHash: synchronousEvidence.resultHash,
+      persistedResultBytesHash: synchronousEvidence.traceability.postgres.resultBytesHash,
+      ...synchronousExtension
+    },
+    legacyCompatibility: {
+      asyncPostHttpStatus: legacyEvidence.traceability.api.postHttpStatus,
+      persistedGetHttpStatus: legacyEvidence.traceability.api.getHttpStatus,
+      terminalStatus: legacyEvidence.terminalStatus,
+      geospatialFindingsAbsent: true,
+      resultHash: legacyEvidence.resultHash
+    },
+    executionBoundary: {
+      publicApi: true,
+      productionPipeline: true,
+      isolatedPostgresqlPersistence: true,
+      signedGowmGatewayOnly: true,
+      wsgsDirectProviderCalls: 0,
+      wsgsDirectUpstreamDatabaseCalls: 0,
+      testHarnessPersistenceInspection: true,
+      sharedInstanceModified: false
+    },
+    qualification: {
+      contractAuthority: "AUTHORITATIVE",
+      implementationQualified: true,
+      runtimeQualified: true,
+      consumerCompatible: false,
+      productionQualified: false,
+      g1: "NOT_RUN"
+    },
+    redaction: {
+      credentialsIncluded: false,
+      rawGroundingIdsIncluded: false,
+      rawReferenceIdsIncluded: false,
+      internalProviderUrlsIncluded: false,
+      databaseIdentifiersIncluded: false,
+      localPathsIncluded: false
+    },
+    status: "PASS"
+  };
+  const report = {
+    ...reportPayload,
+    reportHash: evidenceCanonicalSha256(reportPayload)
+  };
+  const n04ReportDirectory = resolve(repositoryRoot, "reports", "sacs-geospatial-v1");
+  mkdirSync(n04ReportDirectory, { recursive: true });
+  writeFileSync(resolve(n04ReportDirectory, "N04-real-runtime.json"), `${JSON.stringify(report, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({
+    marker: "WSGS_V021_RESULT_EXTENSION_RUNTIME_PASS",
+    sourceCommit,
+    contractVersion: "sacs-wsgs-grounding/1.1",
+    profile: "sacs-wsgs-geospatial-findings/1.0",
+    asyncPost: 202,
+    persistedGet: 200,
+    freshSync: 200,
+    syncReplay: 200,
+    legacyExtensionAbsent: true,
+    reportHash: report.reportHash
+  }, null, 2)}\n`);
+}
+
 try {
   const wsgsSourceBinding = verifyWsgsSourceBinding();
   const runtimeBinding = loadVerifiedRuntimeBinding();
@@ -2300,6 +3417,9 @@ try {
       auth: { mode: "STATIC_TRUSTED", identity },
       backend: resources.backend,
       schemas: loadSchemas(),
+      ...(n04ResultExtensionOnly
+        ? { contractNegotiation: { sacsGeospatialServicePrincipals: [identity.servicePrincipalId] } }
+        : {}),
       logger: false
     });
     await app.listen({ host: "127.0.0.1", port: 0 });
@@ -2317,6 +3437,10 @@ try {
     throw new Error(`CURRENT_LOCK_READINESS_FAILED_${ready.status}_${String(ready.body["status"])}_${reasons}`);
   }
 
+  if (n04ResultExtensionOnly) {
+    await runN04ResultExtensionGate(baseUrl, productionExecutor, wsgsSourceBinding, runtimeBinding);
+    exitCode = 0;
+  } else {
   const cases: CaseEvidence[] = [];
   const gdpsCaseIds = new Set<string>();
   const gdpsSuite: GdpsCaseSuite = formalR1R5Only
@@ -2610,6 +3734,7 @@ try {
     gdpsCases: gdpsCaseIds.size
   }, null, 2)}\n`);
   exitCode = 0;
+  }
   }
 } catch (error) {
   const code = error instanceof Error ? error.message.replace(/[^A-Za-z0-9_:-]/gu, "_").slice(0, 240) : "UNKNOWN_ERROR";

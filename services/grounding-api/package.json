@@ -1,6 +1,6 @@
 {
   "name": "@wsgs/grounding-api",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
@@ -10,8 +10,10 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
-    "@wsgs/delegated-identity": "0.2.0",
-    "@wsgs/grounding-pipeline": "0.2.0",
+    "@wsgs/contracts": "0.2.1",
+    "@wsgs/delegated-identity": "0.2.1",
+    "@wsgs/grounding-pipeline": "0.2.1",
+    "@wsgs/runtime": "0.2.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "fastify": "5.12.1",

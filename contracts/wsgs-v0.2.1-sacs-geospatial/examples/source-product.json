@@ -1,0 +1,17 @@
+{
+  "sourceProductId": "source.slope.current",
+  "authority": "GDPS_CURRENT_PRODUCT",
+  "productId": "product.slope.current",
+  "productType": "GEO_RASTER",
+  "productProfile": "gdps-slope-current/1.0",
+  "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "descriptorId": "descriptor.slope",
+  "descriptorHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "dataTime": "2026-08-30T00:00:00Z",
+  "qualitySummary": {
+    "qualityClass": "VERIFIED"
+  },
+  "evidenceItemIds": [
+    "evidence.slope.current"
+  ]
+}

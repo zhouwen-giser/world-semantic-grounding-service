@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gdps:raster-sample-result:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "productId", "contentHash", "point", "value", "noData"],
+  "properties": {
+    "schemaVersion": {"const": "gdps-raster-sample-result/1.0"},
+    "productId": {"type": "string", "pattern": "^[a-z][a-z0-9-]{2,63}$"},
+    "contentHash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "point": {"$ref": "urn:gdps:geojson:1.0#/$defs/point"},
+    "value": {"type": ["number", "null"]},
+    "classCode": {"type": "string", "minLength": 1, "maxLength": 128},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "noData": {"type": "boolean"},
+    "explanation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "basis", "quality"],
+      "properties": {
+        "classification": {"type": ["string", "null"]},
+        "basis": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "quality": {"type": "object"}
+      }
+    }
+  }
+}

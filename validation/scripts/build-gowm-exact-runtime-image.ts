@@ -3,8 +3,9 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
 
-const EXPECTED_COMMIT = "fceed92398a0b86c0a0121aa2188a7f1d328e577";
+const EXPECTED_COMMIT = "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14";
 const EXPECTED_VERSION = "0.6.4";
+const TAG_SCOPED_IDENTITY_FIELDS = ["Descriptor", "Id", "Identity", "Metadata", "RepoDigests", "RepoTags"] as const;
 
 function required(name: string): string {
   const value = process.env[name]?.trim();
@@ -52,14 +53,40 @@ execFileSync("docker", [
   "."
 ], { cwd: sourceDirectory, stdio: "inherit", maxBuffer: 64 * 1024 * 1024 });
 
+type ImageInspection = Record<string, unknown> & {
+  Id?: string;
+  Config?: { Labels?: Record<string, string> };
+};
+
 const inspected = JSON.parse(execFileSync("docker", ["image", "inspect", imageTag], {
   encoding: "utf8", maxBuffer: 4 * 1024 * 1024
-})) as Array<{ Id?: string; Config?: { Labels?: Record<string, string> } }>;
+})) as ImageInspection[];
 const image = inspected[0];
 if (!image || !/^sha256:[0-9a-f]{64}$/u.test(image.Id ?? "")) throw new Error("GOWM_RUNTIME_IMAGE_INSPECT_INVALID");
 if (image.Config?.Labels?.["org.opencontainers.image.revision"] !== EXPECTED_COMMIT ||
     image.Config?.Labels?.["org.opencontainers.image.version"] !== EXPECTED_VERSION) {
   throw new Error("GOWM_RUNTIME_IMAGE_LABEL_MISMATCH");
+}
+const expectedRuntimeImageDigest = required("GOWM_EXPECTED_RUNTIME_IMAGE_DIGEST");
+if (!/^sha256:[0-9a-f]{64}$/u.test(expectedRuntimeImageDigest)) {
+  throw new Error("GOWM_EXPECTED_RUNTIME_IMAGE_DIGEST_INVALID");
+}
+const runtimeImages = JSON.parse(execFileSync("docker", ["image", "inspect", expectedRuntimeImageDigest], {
+  encoding: "utf8", maxBuffer: 4 * 1024 * 1024
+})) as ImageInspection[];
+const runtimeImage = runtimeImages[0];
+if (!runtimeImage || runtimeImage.Id !== expectedRuntimeImageDigest ||
+    runtimeImage.Config?.Labels?.["org.opencontainers.image.revision"] !== EXPECTED_COMMIT ||
+    runtimeImage.Config?.Labels?.["org.opencontainers.image.version"] !== EXPECTED_VERSION) {
+  throw new Error("GOWM_EXPECTED_RUNTIME_IMAGE_IDENTITY_MISMATCH");
+}
+const tagScopedFields = new Set<string>(TAG_SCOPED_IDENTITY_FIELDS);
+const contentProjection = (candidate: ImageInspection): Record<string, unknown> =>
+  Object.fromEntries(Object.entries(candidate).filter(([key]) => !tagScopedFields.has(key)));
+const independentBuildContentHash = sha256(canonical(contentProjection(image)));
+const runtimeContentHash = sha256(canonical(contentProjection(runtimeImage)));
+if (independentBuildContentHash !== runtimeContentHash) {
+  throw new Error("GOWM_RUNTIME_IMAGE_TAG_INDEPENDENT_CONTENT_MISMATCH");
 }
 const dockerServerVersion = execFileSync("docker", ["version", "--format", "{{.Server.Version}}"], { encoding: "utf8" }).trim();
 const payload = {
@@ -70,6 +97,11 @@ const payload = {
   sourceTree: tree,
   runtimeVersion: EXPECTED_VERSION,
   imageDigest: image.Id,
+  runtimeImageDigest: expectedRuntimeImageDigest,
+  independentBuildContentHash,
+  runtimeContentHash,
+  tagIndependentContentMatch: true,
+  tagScopedIdentityFieldsExcluded: TAG_SCOPED_IDENTITY_FIELDS,
   imageTagHash: sha256(imageTag),
   dockerServerVersion,
   buildMethod: "DOCKER_BUILD_FROM_CLEAN_EXACT_GIT_TREE_WITH_OCI_LABELS",
@@ -89,6 +121,8 @@ process.stdout.write(`${JSON.stringify({
   sourceCommit: EXPECTED_COMMIT,
   runtimeVersion: EXPECTED_VERSION,
   imageDigest: image.Id,
+  runtimeImageDigest: expectedRuntimeImageDigest,
+  tagIndependentContentHash: independentBuildContentHash,
   reportPath: relativePath,
   evidenceHash: report.evidenceHash
 })}\n`);

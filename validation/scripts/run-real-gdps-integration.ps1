@@ -1,6 +1,8 @@
 param(
   [string]$SampleRoot = $env:GOWM_SAMPLE_ROOT,
-  [string]$GatewayBaseUrl = "http://127.0.0.1:18063",
+  [string]$FoundationHandoffDirectory = $env:GOWM_SAMPLE_HANDOFF_DIR,
+  [string]$ConsumerEnvironmentFile = $env:GOWM_CONSUMER_ENV_FILE,
+  [string]$GatewayBaseUrl = $env:GOWM_GATEWAY_BASE_URL,
   [int]$DatabaseHostPort = 55464,
   [string]$GdpsArtifactRoot,
   [string]$DataScope,
@@ -17,6 +19,13 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if ($LegacyV02Evidence) {
+  throw "This wrapper is restricted to the N04 v0.2.1 RESULT_EXTENSION real gate"
+}
+if ($GdpsCaseId -and $GdpsCaseId -ne "E2E-SLOPE-POINT") {
+  throw "This wrapper is restricted to the exact N04 E2E-SLOPE-POINT case"
+}
+$GdpsCaseId = "E2E-SLOPE-POINT"
 $databaseContainer = "wsgs-gdps-postgres"
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $evidenceDirectory = Join-Path $repositoryRoot $(if ($LegacyV02Evidence) {
@@ -26,6 +35,16 @@ $evidenceDirectory = Join-Path $repositoryRoot $(if ($LegacyV02Evidence) {
 })
 if (-not $GdpsArtifactRoot) {
   $GdpsArtifactRoot = Join-Path $repositoryRoot "contracts\generated\gdps-v0.2.1"
+}
+if (-not $LegacyV02Evidence) {
+  $canonicalGdpsArtifactRoot = (Resolve-Path -LiteralPath (
+    Join-Path $repositoryRoot "contracts\generated\gdps-v0.2.1"
+  )).Path
+  if (-not (Test-Path -LiteralPath $GdpsArtifactRoot -PathType Container) -or
+      (Resolve-Path -LiteralPath $GdpsArtifactRoot).Path -ne $canonicalGdpsArtifactRoot) {
+    throw "GDPS v0.2.1 real integration must consume the repository-qualified generated artifact root"
+  }
+  $GdpsArtifactRoot = $canonicalGdpsArtifactRoot
 }
 $operationLock = if ($LegacyV02Evidence) {
   Join-Path $repositoryRoot "reports\wsgs-v0.2-gdps\w26-combined-southbound-operation-lock.json"
@@ -41,6 +60,7 @@ $gdpsRecipePlan = Join-Path $repositoryRoot "config\gdps-recipe-plan.json"
 $gdpsE2eCorpus = Join-Path $repositoryRoot "config\gdps-e2e-corpus.json"
 $gdpsCapabilityLock = Join-Path $repositoryRoot "contracts\upstream\gdps-v0.2.1\GDPS_CAPABILITY_LOCK.json"
 $gdpsGatewayBindingLock = Join-Path $repositoryRoot "contracts\upstream\gdps-v0.2.1\GOWM_GATEWAY_BINDING_LOCK.json"
+$gdpsTestBaseline = Join-Path $repositoryRoot "contracts\upstream\gdps-v0.2.1\WSGS_TEST_BASELINE.json"
 $legacyGdpsCaseIds = @("E2E-01", "E2E-02", "E2E-03", "E2E-04", "E2E-05", "E2E-06", "E2E-07")
 $expectedGdpsPatterns = @(
   "GDPS_LAND_COVER_AT_REFERENCE",
@@ -114,9 +134,9 @@ function Assert-V021OperationLock([string]$path) {
     throw "The authoritative GOWM Gateway binding lock is missing; run the approved handoff intake first"
   }
   try {
-    $consumerLock = Get-Content -Raw -LiteralPath $path | ConvertFrom-Json
-    $providerLock = Get-Content -Raw -LiteralPath $gdpsCapabilityLock | ConvertFrom-Json
-    $gatewayDocument = Get-Content -Raw -LiteralPath $gdpsGatewayBindingLock | ConvertFrom-Json
+    $consumerLock = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+    $providerLock = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsCapabilityLock | ConvertFrom-Json
+    $gatewayDocument = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsGatewayBindingLock | ConvertFrom-Json
   } catch {
     throw "The GDPS v0.2.1 operation, capability, or Gateway binding lock is invalid JSON"
   }
@@ -173,7 +193,7 @@ function Assert-ExactGdpsPatternPlan {
     throw "The locked WSGS GDPS recipe plan is missing"
   }
   try {
-    $plan = Get-Content -Raw -LiteralPath $gdpsRecipePlan | ConvertFrom-Json
+    $plan = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsRecipePlan | ConvertFrom-Json
   } catch {
     throw "The locked WSGS GDPS recipe plan is invalid JSON"
   }
@@ -199,7 +219,7 @@ function Assert-ExactGdpsCaseSelection {
     throw "The frozen GDPS v0.2.1 E2E corpus is missing"
   }
   try {
-    $corpus = Get-Content -Raw -LiteralPath $gdpsE2eCorpus | ConvertFrom-Json
+    $corpus = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsE2eCorpus | ConvertFrom-Json
   } catch {
     throw "The frozen GDPS v0.2.1 E2E corpus is invalid JSON"
   }
@@ -222,9 +242,36 @@ function Assert-ExactGdpsCaseSelection {
 }
 
 function Get-CleanSourceCommit {
-  $dirty = @(git -C $repositoryRoot status --porcelain=v1 --untracked-files=normal)
+  $allowedRuntimeEvidence = @(
+    "reports/wsgs-gowm-0.6.4-alignment/direct-r1-r5-smoke.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-binding-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-runtime-image-build-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/wsgs-process-binding.json",
+    "reports/wsgs-gowm-0.6.4-alignment/formal-pipeline-r1-r5.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-identity-report.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-composability-r3.json",
+    "reports/wsgs-gowm-0.6.4-alignment/reference-negative-cases.json",
+    "reports/wsgs-gowm-0.6.4-alignment/pipeline-traceability.json"
+  )
+  $allowedRuntimeEvidenceSet = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+  foreach ($path in $allowedRuntimeEvidence) { [void]$allowedRuntimeEvidenceSet.Add($path) }
+  foreach ($path in $allowedRuntimeEvidence) {
+    git -C $repositoryRoot ls-files --error-unmatch -- $path 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "The declared runtime evidence output must remain tracked: $path" }
+  }
+  $dirty = @(git -C $repositoryRoot status --porcelain=v1 --untracked-files=all)
   if ($LASTEXITCODE -ne 0) { throw "Unable to inspect WSGS source provenance" }
-  if ($dirty.Count -ne 0) { throw "WSGS source must be clean before recording real GDPS evidence" }
+  $seenRuntimeEvidence = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+  foreach ($line in $dirty) {
+    if ($line -notmatch '^ M (.+)$') {
+      throw "WSGS source must be clean except for unstaged exact runtime evidence outputs"
+    }
+    $path = $Matches[1].Replace("\", "/")
+    if (-not $allowedRuntimeEvidenceSet.Contains($path) -or -not $seenRuntimeEvidence.Add($path)) {
+      throw "WSGS source contains an unauthorized or duplicate runtime evidence modification"
+    }
+  }
   $commit = (git -C $repositoryRoot rev-parse HEAD).Trim()
   if ($LASTEXITCODE -ne 0 -or $commit -notmatch '^[a-f0-9]{40}$') {
     throw "Unable to resolve exact WSGS source commit"
@@ -248,11 +295,99 @@ $gdpsVocabularyRegistryArtifact = Get-RequiredArtifactSha256 $gdpsVocabularyRegi
 $gdpsConceptMapArtifact = Get-RequiredArtifactSha256 $gdpsConceptMap "The locked WSGS GDPS semantic concept map"
 Assert-V021OperationLock $operationLock
 
-$consumerEnvironment = Join-Path $SampleRoot ".runtime\wsgs-sample\wsgs-consumer-host.env"
-$handoffDirectory = Join-Path $SampleRoot "output\wsgs-sample-handoff"
-if (-not (Test-Path -LiteralPath $consumerEnvironment -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $handoffDirectory -PathType Container)) {
-  throw "The authorized Sample World consumer handoff is incomplete"
+$resolvedSampleRoot = (Resolve-Path -LiteralPath $SampleRoot).Path.TrimEnd(
+  [IO.Path]::DirectorySeparatorChar,
+  [IO.Path]::AltDirectorySeparatorChar
+)
+if (-not $ConsumerEnvironmentFile -or
+    -not (Test-Path -LiteralPath $ConsumerEnvironmentFile -PathType Leaf)) {
+  throw "GOWM_CONSUMER_ENV_FILE must explicitly identify the authorized Sample World consumer environment"
+}
+$consumerEnvironment = (Resolve-Path -LiteralPath $ConsumerEnvironmentFile).Path
+$authorizedRuntimeRoot = Join-Path $resolvedSampleRoot ".runtime"
+if (-not $consumerEnvironment.StartsWith(
+    $authorizedRuntimeRoot + [IO.Path]::DirectorySeparatorChar,
+    [StringComparison]::OrdinalIgnoreCase
+  )) {
+  throw "GOWM_CONSUMER_ENV_FILE must remain inside the authorized Sample World runtime directory"
+}
+if (-not $FoundationHandoffDirectory -or
+    -not (Test-Path -LiteralPath $FoundationHandoffDirectory -PathType Container)) {
+  throw "GOWM_SAMPLE_HANDOFF_DIR must explicitly identify the authorized foundation handoff"
+}
+$handoffDirectory = (Resolve-Path -LiteralPath $FoundationHandoffDirectory).Path
+if (-not (Test-Path -LiteralPath $consumerEnvironment -PathType Leaf)) {
+  throw "The authorized Sample World consumer environment is incomplete"
+}
+
+function Get-GatewayOrigin([string]$value, [string]$label) {
+  try {
+    $uri = [Uri]$value
+  } catch {
+    throw "$label must be an absolute HTTP(S) origin"
+  }
+  if (-not $uri.IsAbsoluteUri -or ($uri.Scheme -ne "http" -and $uri.Scheme -ne "https") -or
+      $uri.UserInfo -or ($uri.AbsolutePath -ne "/" -and $uri.AbsolutePath -ne "") -or
+      $uri.Query -or $uri.Fragment) {
+    throw "$label must be an absolute HTTP(S) origin"
+  }
+  return $uri.GetLeftPart([UriPartial]::Authority).TrimEnd("/")
+}
+
+function Get-Utf8StringSha256([string]$value) {
+  $algorithm = [Security.Cryptography.SHA256]::Create()
+  try {
+    $bytes = [Text.Encoding]::UTF8.GetBytes($value)
+    $hash = $algorithm.ComputeHash($bytes)
+    return "sha256:" + ([BitConverter]::ToString($hash).Replace("-", "").ToLowerInvariant())
+  } finally {
+    $algorithm.Dispose()
+  }
+}
+$instanceManifestPath = Join-Path $handoffDirectory "INSTANCE_MANIFEST.json"
+$instanceBindingPath = Join-Path $handoffDirectory "INSTANCE_BINDING.json"
+try {
+  $instanceManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $instanceManifestPath | ConvertFrom-Json
+  $instanceBinding = Get-Content -Raw -Encoding UTF8 -LiteralPath $instanceBindingPath | ConvertFrom-Json
+} catch {
+  throw "The authorized Sample World foundation handoff is invalid"
+}
+$foundationDataScope = [string]$instanceManifest.dataScope
+if ($instanceManifest.schemaVersion -ne "1.0" -or $instanceBinding.schemaVersion -ne "1.0" -or
+    $instanceManifest.authMode -ne "SIGNED_DELEGATION_V1" -or
+    -not $foundationDataScope -or $foundationDataScope.Contains("*") -or
+    $instanceManifest.runtimeInstanceId -ne $instanceBinding.runtimeInstanceId -or
+    $instanceManifest.instanceId -ne $instanceBinding.instanceId -or
+    $instanceManifest.fixtureId -ne $instanceBinding.fixtureId -or
+    $instanceManifest.fixtureVersion -ne $instanceBinding.fixtureVersion -or
+    ([string]$instanceManifest.operationLockHash) -notmatch '^sha256:[0-9a-f]{64}$') {
+  throw "The authorized Sample World foundation binding is invalid"
+}
+$requiredFoundationOperations = @("reference.resolve@1.0", "world.get-current-state@1.0")
+$foundationOperations = @($instanceManifest.stableOperations | ForEach-Object { [string]$_ })
+if (@($requiredFoundationOperations | Where-Object { $_ -notin $foundationOperations }).Count -ne 0) {
+  throw "The authorized Sample World foundation operation authority is incomplete"
+}
+if (-not $GatewayBaseUrl) {
+  throw "GatewayBaseUrl must explicitly identify the authorized combined Gateway origin"
+}
+$gatewayOrigin = Get-GatewayOrigin $GatewayBaseUrl "GatewayBaseUrl"
+$handoffGatewayOrigin = Get-GatewayOrigin ([string]$instanceManifest.gatewayBaseUrl) "Foundation gatewayBaseUrl"
+if ($gatewayOrigin -ne $handoffGatewayOrigin) {
+  throw "The explicit foundation handoff is not bound to the requested Gateway origin"
+}
+try {
+  $baseline = Get-Content -Raw -Encoding UTF8 -LiteralPath $gdpsTestBaseline | ConvertFrom-Json
+} catch {
+  throw "The committed GDPS FINAL_B baseline is invalid"
+}
+$expectedEndpointHash = [string]$baseline.gatewayCanaryAttestation.gatewayBaseUrlHash
+if ($baseline.schemaVersion -ne "wsgs-gdps-test-baseline/1.0" -or
+    $baseline.gatewayCanaryAttestation.status -ne "PASS" -or
+    $baseline.gatewayCanaryAttestation.datasetState -ne "FINAL_B" -or
+    $expectedEndpointHash -notmatch '^sha256:[0-9a-f]{64}$' -or
+    (Get-Utf8StringSha256 $gatewayOrigin) -ne $expectedEndpointHash) {
+  throw "The requested Gateway origin is not bound to the committed GDPS FINAL_B handoff"
 }
 
 $ready = Invoke-RestMethod -Uri "$GatewayBaseUrl/health/ready" -TimeoutSec 5
@@ -281,6 +416,21 @@ try {
   if (-not $databaseReady) { throw "The isolated WSGS database did not become ready" }
 
   Import-ProcessEnvironment $consumerEnvironment
+  if (-not $env:GOWM_GATEWAY_BASE_URL -or
+      (Get-GatewayOrigin $env:GOWM_GATEWAY_BASE_URL "consumer environment Gateway origin") -ne $gatewayOrigin) {
+    throw "The authorized consumer environment is not bound to the requested combined Gateway origin"
+  }
+  if (-not $env:GOWM_WSGS_SAMPLE_TOKEN -or -not $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH -or
+      -not (Test-Path -LiteralPath $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH -PathType Leaf)) {
+    throw "The authorized consumer environment is incomplete"
+  }
+  $delegationPrivateKey = (Resolve-Path -LiteralPath $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH).Path
+  if (-not $delegationPrivateKey.StartsWith(
+      $authorizedRuntimeRoot + [IO.Path]::DirectorySeparatorChar,
+      [StringComparison]::OrdinalIgnoreCase
+    )) {
+    throw "The authorized delegation key must remain inside the Sample World runtime directory"
+  }
   $effectiveDataScope = if ($DataScope) {
     $DataScope.Trim()
   } elseif ($LegacyV02Evidence) {
@@ -292,7 +442,12 @@ try {
     throw "The GDPS integration data scope must be one exact non-wildcard claim"
   }
   $randomBytes = New-Object byte[] 32
-  [Security.Cryptography.RandomNumberGenerator]::Fill($randomBytes)
+  $randomNumberGenerator = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try {
+    $randomNumberGenerator.GetBytes($randomBytes)
+  } finally {
+    $randomNumberGenerator.Dispose()
+  }
   $env:WSGS_REQUEST_ENCRYPTION_KEY_BASE64 = [Convert]::ToBase64String($randomBytes)
   $env:DATABASE_URL = "postgresql://wsgs:${databasePassword}@127.0.0.1:${DatabaseHostPort}/wsgs"
   $env:ALLOW_REAL_DEVELOPMENT_PIPELINE_GATE = "YES"
@@ -306,6 +461,8 @@ try {
   $env:WSGS_GATE_RUN_ID = "gdps-" + [Guid]::NewGuid().ToString("N").Substring(0, 16)
   $env:WSGS_EVIDENCE_SOURCE_COMMIT = $sourceCommit
   $env:WSGS_DEVELOPMENT_EVIDENCE_DIR = $evidenceDirectory
+  $env:GOWM_ALIGNMENT_DIRECT_REPORT = Join-Path $repositoryRoot `
+    "reports\wsgs-gowm-0.6.4-alignment\direct-r1-r5-smoke.json"
   $env:GOWM_SAMPLE_HANDOFF_DIR = $handoffDirectory
   $env:GOWM_GATEWAY_BASE_URL = $GatewayBaseUrl
   $env:GOWM_GATEWAY_TOKEN = $env:GOWM_WSGS_SAMPLE_TOKEN
@@ -317,9 +474,20 @@ try {
   $env:GOWM_DELEGATION_ISSUER = $env:GATEWAY_DELEGATION_ISSUER
   $env:GOWM_DELEGATION_AUDIENCE = $env:GATEWAY_DELEGATION_AUDIENCE
   $env:GOWM_DELEGATION_SERVICE_PRINCIPAL_ID = $env:GATEWAY_RUNTIME_PRINCIPAL_REF
-  $env:GOWM_DELEGATION_PRIVATE_KEY_FILE = $env:GOWM_WSGS_DELEGATION_PRIVATE_KEY_PATH
+  $env:GOWM_DELEGATION_PRIVATE_KEY_FILE = $delegationPrivateKey
   $env:WSGS_READINESS_ACTOR_ID = "wsgs-gdps-readiness"
   $env:WSGS_READINESS_DATA_SCOPE = $effectiveDataScope
+  $env:WSGS_PRIMARY_DATA_SCOPE = $effectiveDataScope
+  if ($LegacyV02Evidence) {
+    $env:WSGS_READINESS_DATA_SCOPES = $effectiveDataScope
+    Remove-Item Env:WSGS_CROSS_SCOPE_GATEWAY_ROUTING -ErrorAction SilentlyContinue
+  } else {
+    if ($foundationDataScope -eq $effectiveDataScope) {
+      throw "The foundation and GDPS data scopes must remain distinct"
+    }
+    $env:WSGS_READINESS_DATA_SCOPES = "$foundationDataScope,$effectiveDataScope"
+    $env:WSGS_CROSS_SCOPE_GATEWAY_ROUTING = "GOWM_GDPS_V021"
+  }
   $env:WSGS_READINESS_DATASET_SCOPES = $env:GATEWAY_DATASET_SCOPE_CLAIM
   $env:WSGS_READINESS_PERMISSIONS = "data:read,dataset:read,grounding.read"
   $env:WSGS_READINESS_TIMEOUT_MS = "120000"
@@ -345,8 +513,8 @@ try {
 
   Push-Location $repositoryRoot
   try {
-    npm.cmd run gate:real:development
-    if ($LASTEXITCODE -ne 0) { throw "The real GDPS integration gate failed" }
+    npm.cmd run findings:result-extension:real
+    if ($LASTEXITCODE -ne 0) { throw "The real N04 GDPS integration gate failed" }
   } finally {
     Pop-Location
   }
@@ -367,7 +535,11 @@ try {
   Remove-Item Env:WSGS_GDPS_VOCABULARY_REGISTRY_SHA256 -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_SEMANTIC_CONCEPT_MAP_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:WSGS_GDPS_SEMANTIC_CONCEPT_MAP_SHA256 -ErrorAction SilentlyContinue
+  Remove-Item Env:GOWM_ALIGNMENT_DIRECT_REPORT -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_READINESS_DATA_SCOPES -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_PRIMARY_DATA_SCOPE -ErrorAction SilentlyContinue
+  Remove-Item Env:WSGS_CROSS_SCOPE_GATEWAY_ROUTING -ErrorAction SilentlyContinue
   if (-not $KeepDatabase) { Remove-ExactDatabaseContainer }
 }
 
-Write-Output "WSGS_GDPS_REAL_INTEGRATION_GATE_FINISHED"
+Write-Output "WSGS_GDPS_N04_REAL_INTEGRATION_GATE_FINISHED"

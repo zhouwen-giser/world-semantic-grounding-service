@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "wsgs-sacs-geospatial-evidence-map-template/1.0",
+  "version": "0.2.1",
+  "template": true,
+  "allowedEvidenceClasses": [
+    "SOURCE",
+    "CONTRACT",
+    "UNIT",
+    "POSTGRES_INTEGRATION",
+    "REAL_UPSTREAM",
+    "REAL_CONSUMER",
+    "CI",
+    "DELIVERY"
+  ],
+  "actualEvidenceRequiredFields": [
+    "evidenceClass",
+    "artifactPath",
+    "artifactSha256",
+    "schemaVersion",
+    "assertionIds",
+    "command",
+    "exitCode",
+    "stdoutSummarySha256",
+    "inputHash",
+    "qualifiedSourceSha",
+    "runtimeIdentity",
+    "consumerSourceSha",
+    "generatedAt"
+  ],
+  "entries": [
+    {
+      "acceptanceId": "V21-G01",
+      "requiredEvidenceClasses": ["SOURCE"],
+      "expectedArtifacts": [
+        "reports/sacs-geospatial-v1/N00-source-reconciliation.json",
+        "reports/sacs-geospatial-v1/N00-consumer-compatibility-baseline.json"
+      ]
+    },
+    {
+      "acceptanceId": "V21-G02",
+      "requiredEvidenceClasses": ["SOURCE", "CONTRACT", "DELIVERY"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/contract-report.json", "reports/sacs-geospatial-v1/handoff-intake-report.json", "reports/sacs-geospatial-v1/qualification.json"]
+    },
+    {
+      "acceptanceId": "V21-G03",
+      "requiredEvidenceClasses": ["CONTRACT"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/contract-report.json"]
+    },
+    {
+      "acceptanceId": "V21-G04",
+      "requiredEvidenceClasses": ["CONTRACT", "UNIT"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/contract-report.json", "reports/sacs-geospatial-v1/result-extension-report.json"]
+    },
+    {
+      "acceptanceId": "V21-G05",
+      "requiredEvidenceClasses": ["CONTRACT", "UNIT"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/decoder-report.json"]
+    },
+    {
+      "acceptanceId": "V21-G06",
+      "requiredEvidenceClasses": ["CONTRACT", "UNIT", "REAL_UPSTREAM"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/provenance-report.json", "reports/sacs-geospatial-v1/real-e2e.json"]
+    },
+    {
+      "acceptanceId": "V21-G07",
+      "requiredEvidenceClasses": ["CONTRACT", "UNIT", "REAL_CONSUMER"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/structured-selection-report.json", "reports/sacs-geospatial-v1/sacs-consumer-report.json"]
+    },
+    {
+      "acceptanceId": "V21-G08",
+      "requiredEvidenceClasses": ["CONTRACT", "UNIT", "REAL_UPSTREAM", "REAL_CONSUMER"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/currentness-report.json", "reports/sacs-geospatial-v1/real-e2e.json"]
+    },
+    {
+      "acceptanceId": "V21-G09",
+      "requiredEvidenceClasses": ["POSTGRES_INTEGRATION"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/postgres-report.json"]
+    },
+    {
+      "acceptanceId": "V21-G10",
+      "requiredEvidenceClasses": ["CONTRACT", "DELIVERY"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/handoff-intake-report.json", "handoff/sacs-geospatial-v1/CHECKSUMS.json"]
+    },
+    {
+      "acceptanceId": "V21-G11",
+      "requiredEvidenceClasses": ["CONTRACT", "REAL_CONSUMER"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/sacs-consumer-report.json"]
+    },
+    {
+      "acceptanceId": "V21-G12",
+      "requiredEvidenceClasses": ["POSTGRES_INTEGRATION", "REAL_UPSTREAM", "REAL_CONSUMER"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/real-e2e.json"]
+    },
+    {
+      "acceptanceId": "V21-G13",
+      "requiredEvidenceClasses": ["SOURCE", "CONTRACT", "UNIT", "POSTGRES_INTEGRATION", "CI", "DELIVERY"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/repository-check.json", "reports/sacs-geospatial-v1/ci-report.json", "reports/sacs-geospatial-v1/delivery-scan.json"]
+    },
+    {
+      "acceptanceId": "V21-G14",
+      "requiredEvidenceClasses": ["SOURCE", "CONTRACT", "UNIT", "POSTGRES_INTEGRATION", "REAL_UPSTREAM", "REAL_CONSUMER", "CI", "DELIVERY"],
+      "expectedArtifacts": ["reports/sacs-geospatial-v1/qualification.json", "reports/sacs-geospatial-v1/acceptance-ledger.json", "reports/sacs-geospatial-v1/FINAL_REPORT.md"]
+    }
+  ]
+}
