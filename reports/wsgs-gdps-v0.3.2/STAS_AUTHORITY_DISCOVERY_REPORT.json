@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "gdps-v032-stas-authority-discovery-report/1.0",
+  "generatedAt": "2026-09-02T07:45:40.192887Z",
+  "status": "PASS",
+  "provenance": "REAL_PUBLIC_GOWM_DISCOVERY_AND_EXACT_SOURCE_LOCK",
+  "sources": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583"
+  },
+  "sourceTuple": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583",
+    "wsgsImplementationSha": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "gowmSourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "bundleHash": "sha256:1b24a54d529f825e74641e17d136b43036fb16baee5cbf9508b979a942d136cd"
+  },
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
+  "sourceAuthority": {
+    "providerId": "gowm.stas",
+    "providerVersion": "0.6.2",
+    "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "sourceGitTree": "e6d0747d6a8edaf86a54cc5163cb26a36f98fa16",
+    "expectedOperationCount": 15,
+    "observedOperationCount": 15,
+    "requiredCombinedOperation": "stas.nearest-approach@1.0",
+    "exactProjectionMatched": true
+  },
+  "assertions": [
+    {
+      "id": "V032-W09-001",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "runtimeQualification": "REAL_COMBINED_RUNTIME",
+  "sourceRebinding": {
+    "previousGdpsImplementationCommit": "b425dca202daefc5573ecedabce0637210803f90",
+    "currentGdpsImplementationCommit": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "qualification": "AUTHORIZED_NON_RUNTIME_TEST_LOCK_ONLY",
+    "gdpsChangedPaths": [
+      "tests/unit/test_v032_grounding.py"
+    ],
+    "operationalRuntimeBehaviorChanged": false
+  }
+}

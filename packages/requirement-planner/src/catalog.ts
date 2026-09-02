@@ -184,5 +184,13 @@ export const stableRecipeCatalog = [
     requestedProducts: ["RESOLVED_REFERENCES", "WORLD_EVIDENCE"],
     defaultSnapshotPolicy: "BEST_EFFORT",
     allowApproximation: false
+  },
+  {
+    recipeId: "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT",
+    maturity: "PREVIEW",
+    requirements: ["ANALYZE_NEAREST_APPROACH", "READ_GEO_PRODUCT_VALUE", "READ_LAND_COVER"],
+    requestedProducts: ["EVENT_TIMELINES", "WORLD_EVIDENCE", "CORRELATION_FINDINGS"],
+    defaultSnapshotPolicy: "BEST_EFFORT",
+    allowApproximation: false
   }
 ] as const satisfies readonly StableRequirementRecipe[];

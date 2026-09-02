@@ -21,9 +21,19 @@ const conceptMap: SemanticConceptMap = {
     descriptorCandidates: ["SLOPE/DEGREE"],
     allowedQuerySemantics: ["READ_VALUE", "READ_PROFILE", "FIND_VALUE_RANGE_AREAS"]
   }, {
+    conceptCode: "LAND_COVER",
+    aliases: ["土地覆盖", "地表类型", "land cover"],
+    descriptorCandidates: ["LAND_COVER/DEFAULT"],
+    allowedQuerySemantics: ["READ_VALUE", "FIND_CLASS_AREAS"]
+  }, {
     conceptCode: "DRAINAGE_NETWORK",
     aliases: ["排水沟", "drainage"],
     descriptorCandidates: ["DRAINAGE_NETWORK/DRAINAGE_FEATURES"],
+    allowedQuerySemantics: ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
+  }, {
+    conceptCode: "ROAD_SOURCE",
+    aliases: ["道路", "road"],
+    descriptorCandidates: ["ROAD_SOURCE/ROAD_FEATURES"],
     allowedQuerySemantics: ["FIND_FEATURES_IN_AREA", "FIND_FEATURES_NEARBY", "FIND_INTERSECTIONS"]
   }]
 };
@@ -53,6 +63,18 @@ function frameFor(
 }
 
 describe("projectGeospatialProductIntent source authority", () => {
+  it("maps task-package land-cover wording to the exact current categorical descriptor", () => {
+    const originalText = "查询测试点的地表类型。";
+    expect(projectGeospatialProductIntent({
+      frame: frameFor(originalText, "测试点"),
+      originalText,
+      conceptMap
+    })).toMatchObject({
+      targetConcept: "LAND_COVER",
+      querySemantics: "READ_VALUE"
+    });
+  });
+
   it.each([
     ["滨河路附近500米有哪些排水沟？", 500],
     ["滨河路附近1公里有哪些排水沟？", 1_000]
@@ -87,6 +109,40 @@ describe("projectGeospatialProductIntent source authority", () => {
     const projected = projectGeospatialProductIntent({ frame, originalText, conceptMap });
     expect(projected).toMatchObject({ spatialConstraint: { relation: "NEAR" } });
     expect(projected?.spatialConstraint).not.toHaveProperty("distanceM");
+  });
+
+  it("projects a source-anchored road intersection onto the locked ROAD_SOURCE concept", () => {
+    const originalText = "查找与滨河路东段相交的道路要素。";
+    const frame = frameFor(originalText, "滨河路东段", {
+      spatialExpressions: [{
+        expressionId: "intersects",
+        operator: "INTERSECTS",
+        arguments: ["source-mention"],
+        approximate: false
+      }]
+    });
+
+    expect(projectGeospatialProductIntent({ frame, originalText, conceptMap })).toMatchObject({
+      targetConcept: "ROAD_SOURCE",
+      querySemantics: "FIND_INTERSECTIONS",
+      spatialConstraint: { relation: "INTERSECTS" }
+    });
+  });
+
+  it.each([
+    ["查询测试点20米附近的道路要素。", "测试点", "FIND_FEATURES_NEARBY", { relation: "NEAR", distanceM: 20 }],
+    ["查询与测试线相交的道路要素。", "测试线", "FIND_INTERSECTIONS", { relation: "INTERSECTS" }]
+  ] as const)("derives spatial authority from source text without model spatial expressions: %s", (
+    originalText,
+    surfaceText,
+    querySemantics,
+    spatialConstraint
+  ) => {
+    expect(projectGeospatialProductIntent({
+      frame: frameFor(originalText, surfaceText),
+      originalText,
+      conceptMap
+    })).toMatchObject({ targetConcept: "ROAD_SOURCE", querySemantics, spatialConstraint });
   });
 
   it("accepts an explicit product only when the product id is anchored in source text", () => {

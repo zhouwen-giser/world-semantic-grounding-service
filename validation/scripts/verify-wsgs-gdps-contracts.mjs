@@ -112,7 +112,7 @@ assert(runtimePlan.previewPolicy.allowAllPreview === false &&
 "preview authorization policy drift");
 
 const conceptMap = json(join(root, "config", "gdps-semantic-concept-map.json"));
-assert(conceptMap.operationIdsForbidden === true && conceptMap.concepts.length === 16,
+assert(conceptMap.operationIdsForbidden === true && conceptMap.concepts.length === 18,
   "semantic concept map inventory drift");
 assert(new Set(conceptMap.concepts.map((entry) => entry.conceptCode)).size === conceptMap.concepts.length,
   "duplicate semantic concept");

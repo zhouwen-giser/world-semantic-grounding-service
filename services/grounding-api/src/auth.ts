@@ -89,8 +89,11 @@ export async function authenticate(request: FastifyRequest, config: ApiAuthConfi
   if (config.mode === "STATIC_TRUSTED") return staticIdentity(config.identity);
   const authorization = request.headers.authorization;
   if (!authorization?.startsWith("Bearer ")) throw new ApiAuthError("MISSING_BEARER_TOKEN");
+  const token = authorization.slice("Bearer ".length).trim();
+  if (token.length === 0) throw new ApiAuthError("MISSING_BEARER_TOKEN");
+  if (config.mode === "BEARER_PRESENT") return staticIdentity(config.identity);
   try {
-    const { payload } = await jwtVerify(authorization.slice("Bearer ".length), config.key, {
+    const { payload } = await jwtVerify(token, config.key, {
       issuer: config.issuer,
       audience: config.audience,
       algorithms: ["HS256"]

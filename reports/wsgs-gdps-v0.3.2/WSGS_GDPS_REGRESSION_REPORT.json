@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-regression-report/1.0",
+  "generatedAt": "2026-09-02T07:45:40.192887Z",
+  "status": "PASS",
+  "provenance": "EXACT_SOURCE_REQUIRED_WSGS_AND_GOWM_SUITES",
+  "sources": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583"
+  },
+  "sourceTuple": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583",
+    "wsgsImplementationSha": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "gowmSourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "bundleHash": "sha256:1b24a54d529f825e74641e17d136b43036fb16baee5cbf9508b979a942d136cd"
+  },
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
+  "wsgs": {
+    "sourceSha": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "fullSuite": "PASS",
+    "testFilesPassed": 60,
+    "testFilesSkipped": 5,
+    "testsPassed": 687,
+    "testsSkipped": 29,
+    "testsFailed": 0,
+    "heartbeatTimingFlake": {
+      "initialFullSuite": "1_TIMING_FAILURE",
+      "focusedReruns": 2,
+      "focusedRerunsPassed": 2,
+      "subsequentFullSuite": "PASS"
+    },
+    "realModelCasesPassed": 5,
+    "intakeCheck": "PASS"
+  },
+  "gowm": {
+    "sourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "typescriptCheck": "PASS",
+    "platformTestFilesPassed": 28,
+    "platformTestsPassed": 195,
+    "platformTestsFailed": 0,
+    "isolatedGatewayReadiness": "PASS",
+    "sharedRuntimeModified": false
+  },
+  "gdps": {
+    "sourceSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "focusedV032TestsPassed": 5,
+    "handoffGenerateCheck": "PASS"
+  },
+  "assertions": [
+    {
+      "id": "V032-W12-001",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "sharedRuntimeModified": false,
+  "sourceRebinding": {
+    "previousGdpsImplementationCommit": "b425dca202daefc5573ecedabce0637210803f90",
+    "currentGdpsImplementationCommit": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "qualification": "AUTHORIZED_NON_RUNTIME_TEST_LOCK_ONLY",
+    "gdpsChangedPaths": [
+      "tests/unit/test_v032_grounding.py"
+    ],
+    "operationalRuntimeBehaviorChanged": false
+  }
+}

@@ -29,6 +29,14 @@ const selected: OperationLock = {
   semanticProfileHash: digest("6"),
   maturity: "PREVIEW"
 };
+const foundationPreview: OperationLock = {
+  operationId: "stas.nearest-approach",
+  operationVersion: "1.0",
+  inputSchemaHash: digest("7"),
+  outputSchemaHash: digest("8"),
+  semanticProfileHash: digest("9"),
+  maturity: "PREVIEW"
+};
 
 function operation(value: OperationLock, availability = false) {
   return {
@@ -124,6 +132,49 @@ describe("segmented scope authority loader", () => {
     expect(loaded.authority.bindings["geo-raster.sample@1.0"]).toMatchObject({
       role: "SELECTED_DATASET",
       dataScope: "scope-gdps-v021-baseline"
+    });
+  });
+
+  it("binds an additionally locked STAS operation to the Foundation scope", () => {
+    const paths = fixture();
+    const loaded = loadSegmentedScopeAuthority({
+      foundationHandoffDirectory: paths.gowm,
+      gdpsHandoffDirectory: paths.gdps,
+      foundationOperations: [foundation],
+      selectedDatasetOperations: [selected],
+      additionalFoundationSources: [{ sourceLockHash: digest("f"), operations: [foundationPreview] }]
+    });
+
+    expect(loaded.authority.bindings["stas.nearest-approach@1.0"]).toMatchObject({
+      role: "FOUNDATION",
+      dataScope: "wsgs-demo",
+      sourceLockHash: digest("f")
+    });
+    expect(loaded.authority.bindings["geo-raster.sample@1.0"]).toMatchObject({
+      role: "SELECTED_DATASET",
+      dataScope: "scope-gdps-v021-baseline"
+    });
+  });
+
+  it("binds a fixture-locked selected operation to its exact runtime dataset scope", () => {
+    const paths = fixture();
+    const loaded = loadSegmentedScopeAuthority({
+      foundationHandoffDirectory: paths.gowm,
+      gdpsHandoffDirectory: paths.gdps,
+      foundationOperations: [foundation],
+      selectedDatasetOperations: [selected],
+      selectedDatasetScopeSource: {
+        dataScope: "scope-gdps-v031-a",
+        sourceLockHash: digest("e")
+      },
+      additionalFoundationSources: [{ sourceLockHash: digest("f"), operations: [foundationPreview] }]
+    });
+
+    expect(loaded.authority.requiredDataScopes).toEqual(["scope-gdps-v031-a", "wsgs-demo"]);
+    expect(loaded.authority.bindings["geo-raster.sample@1.0"]).toMatchObject({
+      role: "SELECTED_DATASET",
+      dataScope: "scope-gdps-v031-a",
+      sourceLockHash: digest("e")
     });
   });
 

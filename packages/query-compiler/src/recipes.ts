@@ -15,8 +15,16 @@ type RequirementContract = Omit<
 export interface QueryTemplateLink {
   sourceStepId: string;
   outputPort: string;
+  sourcePath?: string;
   inputName: string;
   targetPath: string;
+}
+
+export interface QueryTemplateOutput {
+  name: string;
+  sourceStepId: string;
+  outputPort: string;
+  sourcePath?: string;
 }
 
 export interface QueryTemplateRequestBinding {
@@ -52,7 +60,11 @@ export interface QueryTemplateRule {
   maturity: "STABLE" | "PREVIEW";
   allowDegraded: boolean;
   previewAuthorizationRequired?: boolean;
+  authorizationRecipeId?: string;
+  descriptorAuthorizationRequired?: boolean;
+  requiresTrustedOperationInput?: true;
   defaultSnapshotMode?: SnapshotMode;
+  outputs?: readonly QueryTemplateOutput[];
   steps: readonly QueryTemplateStep[];
 }
 
@@ -77,6 +89,27 @@ const resultPort = (
 const stringLiteralPort: SchemaPort = {
   schemaUri: "urn:gowm:v0.2:value:string",
   schemaHash: "sha256:a71d355802de7ff21b9c9d9214a1ba71b3648866bcf1b7c0f4ff3b656485c6d5",
+  valueKind: "ANY",
+  unitSemantics: "UNSPECIFIED"
+};
+
+const arrayLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:array",
+  schemaHash: "sha256:8e1e4dd66e9483d8341c51dc5ec424d8e6510ae35cdbc53040d0bab497459945",
+  valueKind: "ANY",
+  unitSemantics: "UNSPECIFIED"
+};
+
+const objectLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:object",
+  schemaHash: "sha256:a874188523644975b2d758a153c3b6fafbafd5b107133b30b9abf4055ae1809c",
+  valueKind: "ANY",
+  unitSemantics: "UNSPECIFIED"
+};
+
+const numberLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:number",
+  schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348",
   valueKind: "ANY",
   unitSemantics: "UNSPECIFIED"
 };
@@ -218,14 +251,16 @@ const gdpsDescriptorBindings: readonly QueryTemplateRequestBinding[] = [{
 }, gdpsProductBinding];
 
 const classCodesBinding: QueryTemplateRequestBinding = {
-  inputName: "classCodes", path: "/classCodes", targetPath: "/classCodes", literalFromParameter: true
+  inputName: "classCodes", path: "/classCodes", targetPath: "/classCodes", port: arrayLiteralPort,
+  literalFromParameter: true
 };
 const rangesBinding: QueryTemplateRequestBinding = {
-  inputName: "ranges", path: "/ranges", targetPath: "/ranges", literalFromParameter: true
+  inputName: "ranges", path: "/ranges", targetPath: "/ranges", port: arrayLiteralPort,
+  literalFromParameter: true
 };
 const propertyFiltersBinding: QueryTemplateRequestBinding = {
-  inputName: "propertyFilters", path: "/propertyFilters", targetPath: "/propertyFilters", optional: true,
-  literalFromParameter: true
+  inputName: "propertyFilters", path: "/propertyFilters", targetPath: "/propertyFilters", port: objectLiteralPort,
+  optional: true, literalFromParameter: true
 };
 const platformProfileBinding: QueryTemplateRequestBinding = {
   inputName: "platformProfile", path: "/platformProfile", targetPath: "/platformProfile", port: stringLiteralPort,
@@ -255,7 +290,7 @@ function genericGdpsStep(
       spatialSemantics: "EXACT",
       timeSemantics: "CURRENT",
       resultNature: semantics.resultNature,
-      inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
+      inputPorts: [requestPort()],
       outputPorts: [resultPort()]
     })
   };
@@ -334,7 +369,81 @@ function gdpsAreaStep(
   };
 }
 
+const nearestApproachStep: QueryTemplateStep = {
+  stepId: "nearest-approach",
+  costWeight: 3,
+  failurePolicy: "FAIL_FAST",
+  links: [],
+  requirement: contract("stas.nearest-approach@1.0", {
+    domain: "TEMPORAL",
+    relationSemantics: [],
+    acceptedReferenceKinds: [],
+    producedReferenceKinds: [],
+    spatialSemantics: "NONE",
+    timeSemantics: "INTERVAL",
+    resultNature: "DERIVED",
+    inputPorts: [requestPort()],
+    outputPorts: [resultPort()]
+  })
+};
+
+function nearestApproachContextStep(
+  stepId: string,
+  productType: "SLOPE" | "LAND_COVER",
+  productProfile: "DEGREE" | "DEFAULT"
+): QueryTemplateStep {
+  return {
+    stepId,
+    costWeight: 3,
+    failurePolicy: "FAIL_FAST",
+    links: [{
+      sourceStepId: "nearest-approach",
+      outputPort: "result",
+      sourcePath: "/result/shortest_line/coordinates/0",
+      inputName: "pointCoordinates",
+      targetPath: "/point/coordinates"
+    }],
+    literalBindings: [
+      geoJsonPointType,
+      { inputName: "productType", value: productType, targetPath: "/productType", port: stringLiteralPort },
+      { inputName: "productProfile", value: productProfile, targetPath: "/productProfile", port: stringLiteralPort }
+    ],
+    requirement: contract("geo-raster.sample@1.0", {
+      domain: "ANALYSIS",
+      relationSemantics: ["DESCRIBES"],
+      acceptedReferenceKinds: [],
+      producedReferenceKinds: [],
+      spatialSemantics: "EXACT",
+      timeSemantics: "CURRENT",
+      resultNature: "FACT",
+      inputPorts: [requestPort()],
+      outputPorts: [resultPort()]
+    })
+  };
+}
+
 export const queryTemplateRules: readonly QueryTemplateRule[] = [
+  {
+    templateId: "stas-nearest-approach-with-gdps-context",
+    pattern: "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    authorizationRecipeId: "stas-nearest-approach-gdps-current-context",
+    descriptorAuthorizationRequired: false,
+    requiresTrustedOperationInput: true,
+    allowDegraded: false,
+    defaultSnapshotMode: "BEST_EFFORT",
+    outputs: [
+      { name: "temporalEvidence", sourceStepId: "nearest-approach", outputPort: "result" },
+      { name: "slopeEvidence", sourceStepId: "slope-context", outputPort: "result" },
+      { name: "landCoverEvidence", sourceStepId: "land-cover-context", outputPort: "result" }
+    ],
+    steps: [
+      nearestApproachStep,
+      nearestApproachContextStep("slope-context", "SLOPE", "DEGREE"),
+      nearestApproachContextStep("land-cover-context", "LAND_COVER", "DEFAULT")
+    ]
+  },
   {
     templateId: "reference-identity",
     pattern: "REFERENCE_IDENTITY",
@@ -616,6 +725,33 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     }]
   },
   {
+    templateId: "gdps-validate-source-currentness",
+    pattern: "GDPS_VALIDATE_SOURCE_CURRENTNESS",
+    maturity: "PREVIEW",
+    previewAuthorizationRequired: true,
+    authorizationRecipeId: "gdps-check-current-geo-product",
+    descriptorAuthorizationRequired: false,
+    allowDegraded: false,
+    defaultSnapshotMode: "LATEST_AT_START",
+    steps: [{
+      stepId: "check-current-product",
+      costWeight: 1,
+      failurePolicy: "FAIL_FAST",
+      links: [],
+      requirement: contract("geo-product.check-current@1.0", {
+        domain: "PLATFORM",
+        relationSemantics: ["VALIDATES"],
+        acceptedReferenceKinds: [],
+        producedReferenceKinds: [],
+        spatialSemantics: "NONE",
+        timeSemantics: "CURRENT",
+        resultNature: "VALIDATION",
+        inputPorts: [{ name: "operationInput", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }],
+        outputPorts: [resultPort()]
+      })
+    }]
+  },
+  {
     templateId: "gdps-land-cover-at-reference",
     pattern: "GDPS_LAND_COVER_AT_REFERENCE",
     maturity: "PREVIEW",
@@ -776,7 +912,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
       }, [{
         inputName: "distanceMetres", path: "/distanceM", targetPath: "/distanceMetres",
-        literalFromParameter: true
+        port: numberLiteralPort, literalFromParameter: true
       }, propertyFiltersBinding],
       [geoJsonPointType])]
   },

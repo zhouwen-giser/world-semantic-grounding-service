@@ -1,6 +1,6 @@
 # WSGS v0.2.1 Authoritative SACS Geospatial Handoff
 
-Status: N03 complete; N04 source/runtime qualification in progress; G1 NOT_RUN; productionQualified=false.
+Status: N05 source/contract/unit complete; N06 source/contract/unit ready with real runtime NOT_RUN; G1 NOT_RUN; productionQualified=false.
 
 ## Purpose and non-goals
 
@@ -78,9 +78,9 @@ N01 will align mutable surfaces to `0.2.1`: `VERSION`, root/workspace package ma
 | N01 | N00 pushed | additive 1.1 and geospatial profile contracts | `WSGS_V021_GEOSPATIAL_CONTRACT_READY` | COMPLETE |
 | N02 | N01 pushed | descriptor/profile-driven six-kind decoder registry | `WSGS_V021_FINDING_DECODER_READY` | COMPLETE |
 | N03 | N02 pushed | SourceProduct, typed gaps, provenance | `WSGS_V021_GEOSPATIAL_PROVENANCE_READY` | COMPLETE |
-| N04 | N03 pushed | API, capabilities, result-extension runtime | `WSGS_V021_RESULT_EXTENSION_READY` | NOT_RUN |
-| N05 | N04 pushed | structured selection and opaque token | `WSGS_V021_STRUCTURED_SELECTION_READY` | NOT_RUN |
-| N06 | N05 pushed | dedicated source currentness operation | `WSGS_V021_CURRENTNESS_READY` | NOT_RUN |
+| N04 | N03 pushed | API, capabilities, result-extension runtime | `WSGS_V021_RESULT_EXTENSION_READY` | COMPLETE |
+| N05 | N04 pushed | structured selection and opaque token | `WSGS_V021_STRUCTURED_SELECTION_READY` | COMPLETE |
+| N06 | N05 pushed | dedicated source currentness operation | `WSGS_V021_CURRENTNESS_READY` | SOURCE_AND_UNIT_READY_RUNTIME_NOT_RUN |
 | N07 | N06 pushed | PostgreSQL migration, replay, restart, recovery | `WSGS_V021_PERSISTENCE_READY` | NOT_RUN |
 | N08 | N07 pushed | exact 8+1 authoritative handoff | `WSGS_V021_HANDOFF_PUBLISHED` | NOT_RUN |
 | N09 | N08 pushed | exact SACS v0.4 consumer compatibility | `WSGS_SACS_V04_CONSUMER_COMPATIBLE` | NOT_RUN |

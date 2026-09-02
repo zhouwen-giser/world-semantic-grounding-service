@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-persistence-report/1.0",
+  "generatedAt": "2026-09-02T07:45:40.192887Z",
+  "status": "PASS",
+  "provenance": "REAL_PUBLIC_WSGS_PERSISTENCE_AND_RETRIEVAL",
+  "sources": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583"
+  },
+  "sourceTuple": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583",
+    "wsgsImplementationSha": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "gowmSourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "bundleHash": "sha256:1b24a54d529f825e74641e17d136b43036fb16baee5cbf9508b979a942d136cd"
+  },
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
+  "runtime": {
+    "classification": "LOCAL_ISOLATED_CONTROLLED_ENVIRONMENT",
+    "wsgsVersion": "0.2.1",
+    "wsgsImageDigest": "sha256:3f1f5260a927b975ff488f6cc43560824fbb88bf37419a28a717f4bcddc80d22",
+    "wsgsOciRevision": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "gowmVersion": "0.6.4",
+    "gowmImageDigest": "sha256:ba663c1c27c02f8fc57312e207279ffc83026aa5bd8b5265e93d944080252b2d",
+    "gowmOciRevision": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "authMode": "BEARER_PRESENT_AND_SIGNED_DELEGATION_V1",
+    "authQualification": "DEBUG_FUNCTIONAL_ONLY"
+  },
+  "evidence": {
+    "groundingId": "grounding-43ee599b-164f-4ec9-9d84-56d0d9f30eff",
+    "terminalStatus": "COMPLETED",
+    "publicPostHttpStatus": 202,
+    "publicGetHttpStatus": 200,
+    "resultHash": "sha256:480bdea551320f39d81f5791b34239a93bc939e0b330344ac83550413700115b",
+    "retrievedResultMatchesCompletedExecution": true,
+    "directDatabaseInsertion": false,
+    "directProviderCalls": 0
+  },
+  "assertions": [
+    {
+      "id": "V032-W07-001",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "sourceRebinding": {
+    "previousGdpsImplementationCommit": "b425dca202daefc5573ecedabce0637210803f90",
+    "currentGdpsImplementationCommit": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "qualification": "AUTHORIZED_NON_RUNTIME_TEST_LOCK_ONLY",
+    "gdpsChangedPaths": [
+      "tests/unit/test_v032_grounding.py"
+    ],
+    "operationalRuntimeBehaviorChanged": false
+  }
+}

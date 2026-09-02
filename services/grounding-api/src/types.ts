@@ -11,6 +11,10 @@ export type ApiAuthConfig =
       identity: GroundingIdentity;
     }
   | {
+      mode: "BEARER_PRESENT";
+      identity: GroundingIdentity;
+    }
+  | {
       mode: "JWT_SERVICE";
       key: Uint8Array;
       issuer: string;
@@ -37,6 +41,16 @@ export interface GroundingApiBackend {
     groundingId: string,
     contractSelection?: GroundingContractSelection
   ): Promise<unknown | null>;
+  resolveWorldSelection?(
+    identity: GroundingIdentity,
+    request: Readonly<Record<string, unknown>>
+  ): Promise<unknown>;
+  validateSourceCurrentness?(
+    identity: GroundingIdentity,
+    idempotencyKey: string,
+    request: Readonly<Record<string, unknown>>,
+    signal?: AbortSignal
+  ): Promise<unknown>;
 }
 
 export interface GroundingApiConfig {

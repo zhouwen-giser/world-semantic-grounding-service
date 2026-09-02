@@ -126,6 +126,13 @@ export function projectGeospatialProductIntent(input: ProductIntentProjectionInp
   const product = /(?:使用|采用|use)\s*([a-z][a-z0-9-]{2,63})\s*(?:数据|data)?/iu.exec(input.originalText)?.[1]?.toLowerCase();
   const classSemantics = classes(input.originalText, concept.conceptCode);
   const distanceM = sourceDistanceMetres(input.originalText);
+  const spatialConstraint = intersects || semantics === "FIND_INTERSECTIONS"
+    ? { relation: "INTERSECTS" as const }
+    : near || semantics === "FIND_FEATURES_NEARBY"
+      ? { relation: "NEAR" as const, ...(distanceM ? { distanceM } : {}) }
+      : within || ["FIND_FEATURES_IN_AREA", "FIND_CLASS_AREAS", "FIND_VALUE_RANGE_AREAS"].includes(semantics)
+        ? { relation: "WITHIN" as const }
+        : { relation: "AT" as const };
   return {
     schemaVersion: "wsgs-geospatial-product-intent/1.0",
     intentId: id([concept.conceptCode, semantics, mentionIds, numericConstraint ?? null, classSemantics ?? null, product ?? null]),
@@ -134,9 +141,7 @@ export function projectGeospatialProductIntent(input: ProductIntentProjectionInp
     subjectMentionIds: [...mentionIds],
     ...(classSemantics ? { classSemantics } : {}),
     ...(numericConstraint ? { numericConstraint } : {}),
-    ...(intersects ? { spatialConstraint: { relation: "INTERSECTS" } } :
-      near ? { spatialConstraint: { relation: "NEAR", ...(distanceM ? { distanceM } : {}) } } :
-      within ? { spatialConstraint: { relation: "WITHIN" } } : { spatialConstraint: { relation: "AT" } }),
+    spatialConstraint,
     ...(product ? { explicitProductPreference: product } : {}),
     sourceNodeIds: [...mentionIds],
     sourceSpans: anchoredSpans

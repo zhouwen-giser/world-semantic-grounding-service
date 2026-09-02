@@ -1,0 +1,13 @@
+{
+  "caseId": "E2E-06",
+  "questionKind": "FEATURES_IN_AREA",
+  "expectedExplanationStatus": "COMPLETE",
+  "status": "NOT_RUN",
+  "runtimeEvidence": null,
+  "blockers": [
+    "N07_REAL_POSTGRESQL_QUALIFICATION_REQUIRED",
+    "N09_SACS_CONSUMER_COMPATIBILITY_REQUIRED",
+    "EXACT_SOURCE_RUNTIME_TUPLE_REQUIRED",
+    "EXPLICIT_ISOLATED_DOCKER_EXECUTION_AUTHORIZATION_REQUIRED"
+  ]
+}

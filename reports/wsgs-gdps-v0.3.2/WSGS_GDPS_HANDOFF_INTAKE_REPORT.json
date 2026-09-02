@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-handoff-intake-report/1.0",
+  "status": "PASS",
+  "provenance": "AUTHORITATIVE_GDPS_HANDOFF_CONSUMED_BY_WSGS",
+  "sources": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583"
+  },
+  "sourceTuple": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583",
+    "wsgsSha": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "currentWsgsHead": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "gowmSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "stasSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14"
+  },
+  "wsgsEvidenceOnlyPaths": [
+    "reports/**"
+  ],
+  "handoff": {
+    "inventoryCount": 11,
+    "businessFileCount": 10,
+    "bundleHash": "sha256:1b24a54d529f825e74641e17d136b43036fb16baee5cbf9508b979a942d136cd"
+  },
+  "locks": {
+    "providerManifestHash": "sha256:207434bd04d797428f05642c3772929e7e527be812b7dabece96791aa3fc6d9d",
+    "capabilityLockHash": "sha256:c183020d5a31dbaf8a4dfd53b3475071091b68a93419fa3995d4585032e84a62",
+    "descriptorRegistryHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
+    "descriptorLockHash": "sha256:5dc50b5a0338f1576bd861480f3ff98bb4039e54d755a743952c97f2a09c84ca",
+    "realDataCoverageLockHash": "sha256:0e56903da898feb4abe478fdf3ee9963758e9bf8ea3f0acc7bf6549f0f76e12e",
+    "gowmGatewayContractLockHash": "sha256:b22e799f90572b9d0ee242a72b44ce91b59d66c67109195fdde11eefe3337248",
+    "stasAuthorityLockHash": "sha256:1238382b65396730bf6054a4b786889f1bb6adc88aa35f97b7921d02c056824f",
+    "wsgsNativeContractSchemaSetHash": "sha256:6bc2d8e40c3691f1dc28d515e732a4e04bcc21beb425e47d5f026d0a9a904131",
+    "handoffChecksumsHash": "sha256:d23c65ea0f8456c8c0845adb732b065a40510767107fe42df677aef95150fb8b",
+    "catalogHash": "sha256:bf9f2ea9a5e08059402eb100067d1a88c76184298258f977a276ed2964befa78"
+  },
+  "catalog": {
+    "authority": "WSGS",
+    "operationFamilyCount": 10,
+    "bindingCount": 88,
+    "defaultProductIdBinding": "FORBIDDEN"
+  },
+  "negativeCases": [
+    {
+      "id": "DEFAULT_PRODUCT_ID",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "id": "UNKNOWN_FAMILY",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "id": "DESCRIPTOR_HASH_DRIFT",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "id": "INPUT_SCHEMA_HASH_DRIFT",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "id": "MATURITY_ESCALATION",
+      "status": "PASS_FAIL_CLOSED"
+    },
+    {
+      "id": "HISTORICAL_FALLBACK",
+      "status": "PASS_FAIL_CLOSED"
+    }
+  ],
+  "assertions": [
+    {
+      "id": "V032-W01-001",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "runtimeQualification": "NOT_RUN",
+  "blockers": [],
+  "credentialMaterialIncluded": false
+}

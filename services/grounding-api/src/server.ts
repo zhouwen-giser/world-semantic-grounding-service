@@ -216,6 +216,20 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
       void reply.code(503).send(checkedProtocolError(validators, request, "NOT_READY"));
       return;
     }
+    if (error && typeof error === "object" && "code" in error &&
+      typeof error.code === "string" && error.code.startsWith("SELECTION_")) {
+      const statusCode = error.code === "SELECTION_NOT_FOUND" ? 404
+        : error.code === "SELECTION_SCOPE_MISMATCH" ? 403
+          : error.code === "SELECTION_TOKEN_EXPIRED" ? 410
+            : error.code === "SELECTION_REVISION_CONFLICT" ||
+              error.code === "SELECTION_RESULT_HASH_MISMATCH" ||
+              error.code === "SELECTION_SOURCE_HASH_MISMATCH" ||
+              error.code === "SELECTION_REFERENCE_STALE" ? 409
+              : 400;
+      metrics.increment("selection_rejected");
+      void reply.code(statusCode).send(checkedProtocolError(validators, request, error.code));
+      return;
+    }
     const status = error && typeof error === "object" && "statusCode" in error && error.statusCode === 413 ? 413 : 500;
     metrics.increment(status === 413 ? "request_too_large" : "internal_error");
     void reply.code(status).send(checkedProtocolError(validators, request, status === 413 ? "REQUEST_TOO_LARGE" : "INTERNAL_ERROR"));
@@ -279,6 +293,47 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
     validateResponse(negotiatedResponseValidator(validators, selection, "JOB"), value);
     exposeNegotiation(reply, selection);
     metrics.increment("grounding_get");
+    return reply.code(200).send(value);
+  });
+
+  app.post("/v1/world-selections:resolve", async (request, reply) => {
+    const caller = await identity(request, config);
+    const selection = negotiateGroundingContract(request, caller, contractNegotiation);
+    if (!isSacsGeospatialContract(selection)) {
+      throw new ApiProtocolError("WSGS_CONSUMER_CONTRACT_MISMATCH", 406);
+    }
+    rateBudget.consume(caller);
+    const body = requestObject(request);
+    assertNoAuthority(body);
+    validate(validators.structuredSelectionRequest, body, "INVALID_STRUCTURED_SELECTION_REQUEST");
+    if (!config.backend.resolveWorldSelection) throw new ApiProtocolError("NOT_READY", 503);
+    const value = await config.backend.resolveWorldSelection(caller, body);
+    validateResponse(validators.structuredSelectionResult, value);
+    exposeNegotiation(reply, selection);
+    metrics.increment("world_selection_resolve");
+    return reply.code(200).send(value);
+  });
+
+  app.post("/v1/source-currentness:validate", async (request, reply) => {
+    const caller = await identity(request, config);
+    const selection = negotiateGroundingContract(request, caller, contractNegotiation);
+    if (!isSacsGeospatialContract(selection)) {
+      throw new ApiProtocolError("WSGS_CONSUMER_CONTRACT_MISMATCH", 406);
+    }
+    rateBudget.consume(caller);
+    const body = requestObject(request);
+    assertNoAuthority(body);
+    validate(validators.sourceCurrentnessRequest, body, "INVALID_SOURCE_CURRENTNESS_REQUEST");
+    if (!config.backend.validateSourceCurrentness) throw new ApiProtocolError("NOT_READY", 503);
+    const header = request.headers["idempotency-key"];
+    const idempotencyKey = Array.isArray(header) ? header[0] : header;
+    if (!idempotencyKey || idempotencyKey.length > 256) {
+      throw new ApiProtocolError("MISSING_OR_INVALID_IDEMPOTENCY_KEY", 400);
+    }
+    const value = await config.backend.validateSourceCurrentness(caller, idempotencyKey, body);
+    validateResponse(validators.sourceCurrentnessResult, value);
+    exposeNegotiation(reply, selection);
+    metrics.increment("source_currentness_validate");
     return reply.code(200).send(value);
   });
 

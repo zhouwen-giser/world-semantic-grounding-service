@@ -51,7 +51,17 @@ const OPERATION_PLANS: Readonly<Record<GroundingOperation, readonly PipelineStag
     "CAPABILITY_MATCH",
     "WORLD_QUERY_COMPILE"
   ] as const),
-  EXECUTE_WORLD_QUERY: PIPELINE_STAGES
+  EXECUTE_WORLD_QUERY: PIPELINE_STAGES,
+  VALIDATE_SOURCE_CURRENTNESS: Object.freeze([
+    "LOAD_CONTEXT",
+    "REQUIREMENT_PLAN",
+    "CAPABILITY_MATCH",
+    "WORLD_QUERY_COMPILE",
+    "GOWM_EXECUTE",
+    "EVIDENCE_NORMALIZE",
+    "PRODUCT_ASSEMBLE",
+    "RESULT_PERSIST"
+  ] as const)
 });
 
 const retryableStatuses = new Set([408, 425, 429, 500, 502, 503, 504]);
@@ -170,13 +180,16 @@ function canonicalResultMaterial(value: unknown): unknown {
 function materializeResult(
   value: unknown,
   runFingerprint: string,
-  maxResultBytes: number
+  maxResultBytes: number,
+  operation: GroundingOperation
 ): Pick<PipelineRunResult, "status" | "value" | "resultHash" | "resultBytes"> {
   const final = terminalValue(value);
   const hashMaterial = canonicalResultMaterial(final.value);
   const resultHash = canonicalSha256({ runFingerprint, status: final.status, value: hashMaterial });
   const resultValue = isPlainRecord(final.value)
-    ? { ...final.value, resultHash }
+    ? operation === "VALIDATE_SOURCE_CURRENTNESS"
+      ? { ...final.value, validationResultHash: resultHash }
+      : { ...final.value, resultHash }
     : { schemaVersion: "1.0", status: final.status, value: final.value, resultHash };
   const resultBytes = canonicalBytes(resultValue);
   if (resultBytes.byteLength > maxResultBytes) {
@@ -295,7 +308,7 @@ export class GroundingPipeline {
           });
           const outputValue = output ?? null;
           const stageMaterialized = nextStageIndex === plan.length - 1
-            ? materializeResult(outputValue, runFingerprint, input.maxResultBytes)
+            ? materializeResult(outputValue, runFingerprint, input.maxResultBytes, input.operation)
             : undefined;
           const terminalStageStatus: PipelineEventStatus = stageMaterialized?.status === "PARTIAL"
             ? "PARTIAL"
@@ -395,7 +408,7 @@ export class GroundingPipeline {
 
     const finalStage = plan.at(-1);
     if (!finalStage) throw new PipelineConfigurationError("Pipeline plan is empty");
-    materialized ??= materializeResult(state[finalStage], runFingerprint, input.maxResultBytes);
+    materialized ??= materializeResult(state[finalStage], runFingerprint, input.maxResultBytes, input.operation);
     return {
       ...materialized,
       runFingerprint,

@@ -36,6 +36,7 @@ import {
   formalHttpRequestTimeoutMs,
   type FormalHttpRequestOptions
 } from "./formal-http-client.js";
+import { n04ResultSemanticProjection } from "../lib/n04-result-semantic-projection.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -2156,6 +2157,11 @@ async function collect(
     )
   }));
   const named = collectNamedStrings(terminalResult, new Set(["productId", "contentHash"]));
+  const persistedOperationKeys = [...new Set(executions.rows.flatMap((row) =>
+    row.operation_id && row.operation_version ? [`${row.operation_id}@${row.operation_version}`] : []))];
+  const orderedOperationKeys = segments.rows.length > 0
+    ? [...new Set(segments.rows.map((row) => row.operation_key))]
+    : persistedOperationKeys;
   const planning = checkpoint.state["REQUIREMENT_PLAN"];
   const selectedRecipeValues = planning && typeof planning === "object" && !Array.isArray(planning)
     ? (planning as JsonObject)["selectedRecipeIds"]
@@ -2203,8 +2209,7 @@ async function collect(
     admissionSegmentedScopeAuthorityBinding,
     gatewayExecutionCount: executions.rowCount ?? 0,
     spatialExecutionCount: executions.rows.filter((row) => row.operation_id?.startsWith("spatial.")).length,
-    operationKeys: [...new Set(executions.rows.flatMap((row) =>
-      row.operation_id && row.operation_version ? [`${row.operation_id}@${row.operation_version}`] : []))],
+    operationKeys: orderedOperationKeys,
     operationStatuses: executions.rows.flatMap((row) => row.operation_id && row.operation_version ? [{
       operationKey: `${row.operation_id}@${row.operation_version}`,
       status: row.normalized_status,
@@ -2855,39 +2860,6 @@ function canonicalResultHash(runFingerprint: string, result: JsonObject): `sha25
   }) as `sha256:${string}`;
 }
 
-function n04ResultSemanticProjection(result: JsonObject): JsonObject {
-  const withoutRuntimeFields = (value: unknown): unknown => {
-    if (Array.isArray(value)) return value.map(withoutRuntimeFields);
-    if (!value || typeof value !== "object") return value;
-    return Object.fromEntries(Object.entries(value as JsonObject)
-      .filter(([key]) => ![
-        "validUntil",
-        "evaluatedAt",
-        "receiptIds",
-        "evidenceIds"
-      ].includes(key))
-      .map(([key, entry]) => [key, withoutRuntimeFields(entry)]));
-  };
-  const source = object(result["source"], "N04_RESULT_SOURCE_MISSING");
-  const execution = object(result["execution"], "N04_RESULT_EXECUTION_MISSING");
-  return {
-    schemaVersion: result["schemaVersion"],
-    status: result["status"],
-    source: { originalTextSha256: source["originalTextSha256"] },
-    mentions: withoutRuntimeFields(result["mentions"]),
-    referenceProducts: withoutRuntimeFields(result["referenceProducts"]),
-    evidenceItems: withoutRuntimeFields(result["evidenceItems"]),
-    geospatialFindings: withoutRuntimeFields(result["geospatialFindings"]),
-    ambiguities: withoutRuntimeFields(result["ambiguities"]),
-    unresolvedMentions: withoutRuntimeFields(result["unresolvedMentions"]),
-    capabilityGaps: withoutRuntimeFields(result["capabilityGaps"]),
-    warnings: withoutRuntimeFields(result["warnings"]),
-    execution: Object.fromEntries(Object.entries(execution)
-      .filter(([key]) => key !== "elapsedMs" && key !== "semanticModelReceiptIds")
-      .map(([key, entry]) => [key, withoutRuntimeFields(entry)]))
-  };
-}
-
 function n04ExtensionSummary(evidence: CaseEvidence): {
   findingCount: number;
   sourceProductCount: number;
@@ -3115,7 +3087,17 @@ async function runN04ResultExtensionGate(
   if (synchronousResponse.status !== 200 || synchronousResponse.body["status"] !== "COMPLETED" ||
       synchronousResponse.headers.get("wsgs-contract-version") !== "sacs-wsgs-grounding/1.1" ||
       synchronousResponse.headers.get("wsgs-result-profile") !== "sacs-wsgs-geospatial-findings/1.0") {
-    throw new Error("N04_FRESH_SYNC_SUBMISSION_FAILED");
+    const terminalStatus = typeof synchronousResponse.body["status"] === "string" &&
+      /^[A-Z][A-Z0-9_]{1,31}$/u.test(synchronousResponse.body["status"])
+      ? synchronousResponse.body["status"]
+      : "MISSING_OR_INVALID";
+    const contractBinding = synchronousResponse.headers.get("wsgs-contract-version") ===
+      "sacs-wsgs-grounding/1.1" ? "CONTRACT_MATCH" : "CONTRACT_MISMATCH";
+    const profileBinding = synchronousResponse.headers.get("wsgs-result-profile") ===
+      "sacs-wsgs-geospatial-findings/1.0" ? "PROFILE_MATCH" : "PROFILE_MISMATCH";
+    throw new Error(
+      `N04_FRESH_SYNC_SUBMISSION_FAILED_HTTP_${synchronousResponse.status}_STATUS_${terminalStatus}_${contractBinding}_${profileBinding}`
+    );
   }
   const synchronousGroundingId = string(
     synchronousResponse.body["groundingId"],
@@ -3172,9 +3154,17 @@ async function runN04ResultExtensionGate(
   );
   validateGdpsCaseEvidence(definition, { ...geospatialEvidence, recipeId: definition.id }, gdpsSuite, gdpsRuntime);
   assertN04SegmentedGatewayTrace(geospatialEvidence, sharedExecutionGatewayBinding, operationLockBinding);
+  const sharedSegmentAuthorityProjection = (evidence: CaseEvidence): JsonObject[] =>
+    evidence.segmentBindings.map(({ operationKey, dataScopeHash, sourceLockHash, scopeAuthorityHash }) => ({
+      operationKey,
+      dataScopeHash,
+      sourceLockHash,
+      scopeAuthorityHash
+    }));
   if (evidenceCanonicalJson(synchronousEvidence.admissionGatewayBinding) !==
         evidenceCanonicalJson(geospatialEvidence.admissionGatewayBinding) ||
-      evidenceCanonicalJson(synchronousEvidence.segmentBindings) !== evidenceCanonicalJson(geospatialEvidence.segmentBindings)) {
+      evidenceCanonicalJson(sharedSegmentAuthorityProjection(synchronousEvidence)) !==
+        evidenceCanonicalJson(sharedSegmentAuthorityProjection(geospatialEvidence))) {
     throw new Error("N04_SYNC_ASYNC_SHARED_GATEWAY_BINDING_MISMATCH");
   }
   const extension = n04ExtensionSummary(geospatialEvidence);

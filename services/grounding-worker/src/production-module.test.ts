@@ -6,6 +6,7 @@ import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import type { DeterministicParseResult } from "@wsgs/deterministic-parser";
 import { canonicalSha256, type PipelineStageContext } from "@wsgs/grounding-pipeline";
+import type { GdpsV032BindingCatalog } from "@wsgs/query-compiler";
 import { stableRecipeIds } from "@wsgs/requirement-planner";
 import type { GdpsLockedRecipe } from "@wsgs/trusted-capability-snapshot";
 import type { Pool } from "pg";
@@ -16,10 +17,16 @@ import {
   PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
   applyReferenceValidation,
   assertPriorGroundingReplaySupport,
+  augmentGdpsProjectionFrame,
+  boundedGatewayOperationDeadline,
+  boundedReferenceCandidateLimit,
   buildRecipeOperationInput,
   capabilityCatalogHash,
   canonicalLfSha256,
+  compileGdpsV032MapSelectionQuery,
+  composeStasGdpsEvidence,
   computeWorldQueryNodeRequestHashes,
+  deriveGroundingResultStatus,
   mergeKnownReferenceProducts,
   normalizeGdpsWorldQuerySources,
   normalizeReferenceResolution,
@@ -29,10 +36,117 @@ import {
   productionReferenceMentions,
   referenceMentionsRequiringResolution,
   selectFindingSubjectReferenceProductIdsForNode,
+  selectProductionAdditionalPreviewOperations,
   selectProductionSouthboundLock
 } from "./production-module.js";
+import { canonicalStasGdpsInputHash } from "./stas-gdps-fixture-lock.js";
 
 const digest = (character: string): `sha256:${string}` => `sha256:${character.repeat(64)}`;
+const gdpsV032Catalog = JSON.parse(readFileSync(resolve(
+  process.cwd(), "contracts", "integrations", "gdps", "wsgs-gdps-binding-catalog.json"
+), "utf8")) as GdpsV032BindingCatalog;
+
+function gdpsV032MapOptions(mapGeometryCount = 1): Parameters<typeof compileGdpsV032MapSelectionQuery>[0] {
+  const binding = gdpsV032Catalog.bindings.find((entry) => entry.bindingId === "SLOPE/DEGREE::SAMPLE_VALUE")!;
+  const mapMentions = Array.from({ length: mapGeometryCount }, (_, index) => ({
+    mentionId: `map-${index + 1}`,
+    surfaceText: `区域${index + 1}`,
+    span: { encoding: "UTF16_CODE_UNIT" as const, start: index, end: index + 1 },
+    expectedKinds: ["POINT"],
+    extractionSource: "CLIENT_MAP" as const,
+    priority: 500,
+    candidate: {
+      kind: "MAP_SELECTION" as const,
+      value: { selectionId: `selection-${index + 1}`, revision: 1, geometry: { type: "Point", coordinates: [116.3, 39.9] } },
+      approximate: false,
+      requiresUpstreamValidation: false
+    }
+  }));
+  return {
+    recipeId: "GDPS_GENERIC_SAMPLE_VALUE",
+    intent: {
+      schemaVersion: "wsgs-grounded-geospatial-product-intent/1.0",
+      intentId: "intent-slope-point",
+      descriptorId: binding.descriptorId,
+      descriptorHash: binding.descriptorHash as `sha256:${string}`,
+      productType: binding.productType,
+      productProfile: binding.productProfile,
+      representation: "RASTER_CONTINUOUS",
+      queryProfile: "SAMPLE_VALUE",
+      sourceNodeIds: ["map-1"]
+    },
+    deterministic: {
+      parserVersion: "deterministic-parser/1.0",
+      mentions: mapMentions,
+      ambiguities: [],
+      priorGroundings: [],
+      warnings: []
+    },
+    requiredForProduct: "WORLD_EVIDENCE",
+    catalog: gdpsV032Catalog,
+    capabilities: [{
+      operationId: binding.operationId,
+      operationVersion: binding.operationVersion,
+      maturity: "PREVIEW",
+      inputSchemaHash: binding.inputSchemaHash,
+      outputSchemaHash: binding.outputSchemaHash,
+      ports: {
+        inputs: [{
+          name: "request", schemaUri: "urn:gdps:test:input", schemaHash: binding.inputSchemaHash,
+          valueKind: "ANY", unitSemantics: "UNSPECIFIED"
+        }],
+        outputs: [{
+          name: "result", schemaUri: "urn:gdps:test:output", schemaHash: binding.outputSchemaHash,
+          valueKind: "ANY", unitSemantics: "UNSPECIFIED"
+        }]
+      },
+      execution: { costClass: "LOW", mode: "SYNC", defaultTimeoutMs: 1_000, maximumTimeoutMs: 5_000 },
+      limits: { maximumOutputBytes: 1_048_576 }
+    } as never],
+    operationLocks: [{
+      operationId: binding.operationId,
+      operationVersion: binding.operationVersion,
+      maturity: "PREVIEW",
+      inputSchemaHash: binding.inputSchemaHash,
+      outputSchemaHash: binding.outputSchemaHash,
+      semanticProfileHash: binding.semanticProfileHash,
+      snapshotSupport: "CONSISTENT_AT_START",
+      requiredPermissions: ["data:read"]
+    }],
+    availability: [{
+      operationId: binding.operationId,
+      operationVersion: binding.operationVersion,
+      maturity: "PREVIEW",
+      availability: "AVAILABLE",
+      reasonCodes: [],
+      checkedAt: "2026-09-02T00:00:00.000Z",
+      validUntil: "2026-09-02T01:00:00.000Z",
+      contractCatalogRevision: digest("a"),
+      bindingRevision: digest("b")
+    }],
+    caller: {
+      schemaVersion: "2.0",
+      servicePrincipalId: "wsgs-service",
+      actorId: "wsgs-service",
+      dataScope: "scope-gdps",
+      dataScopes: ["scope-gdps"],
+      datasetScopes: [],
+      permissions: ["data:read"]
+    } as never,
+    requestId: "request-gdps-v032-map",
+    idempotencyKey: "idempotency-gdps-v032-map",
+    parameterSchemaHash: digest("c"),
+    maximumGeometryBytes: 4096,
+    budgets: {
+      maximumNodes: 1,
+      maximumDepth: 1,
+      maximumRows: 10,
+      maximumCandidates: 10,
+      maximumOutputBytes: 1_048_576,
+      maximumExecutionMs: 5_000
+    }
+  };
+}
 
 function lockedRecipe(entry: Parameters<typeof selectProductionSouthboundLock>[0]["previewOperations"][number]): GdpsLockedRecipe {
   return {
@@ -185,6 +299,20 @@ function worldQuerySubmission() {
 }
 
 describe("production stage module authority boundaries", () => {
+  it("clamps direct reference resolution to the live descriptor candidate limit", () => {
+    expect(boundedReferenceCandidateLimit(20, 10)).toBe(10);
+    expect(boundedReferenceCandidateLimit(8, 10)).toBe(8);
+    expect(boundedReferenceCandidateLimit(20, 5_000)).toBe(10);
+    expect(boundedReferenceCandidateLimit(20)).toBe(10);
+  });
+
+  it("leaves a bounded cross-process clock margin on Gateway operation deadlines", () => {
+    const now = Date.parse("2026-09-01T00:00:00.000Z");
+    expect(boundedGatewayOperationDeadline(now, now + 120_000, 30_000).getTime()).toBe(now + 29_000);
+    expect(boundedGatewayOperationDeadline(now, now + 5_000, 30_000).getTime()).toBe(now + 5_000);
+    expect(boundedGatewayOperationDeadline(now, now + 5_000, 500).getTime()).toBe(now + 450);
+  });
+
   it("uses per-node best effort for mixed world-independent and snapshot-bound DAGs", () => {
     expect(PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY).toEqual({
       mode: "BEST_EFFORT",
@@ -233,6 +361,40 @@ describe("production stage module authority boundaries", () => {
 
     expect(selected.previewOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`))
       .toEqual(["landcover.get-class@1.0"]);
+  });
+
+  it("adds the dedicated currentness operation through an exact non-finding recipe lock", () => {
+    const lock = JSON.parse(readFileSync(resolve(
+      import.meta.dirname,
+      "..", "..", "..",
+      "contracts", "upstream", "gowm-0.6.3", "extracted", "package", "bundle", "locks",
+      "wsgs-southbound-operation-lock-v2.json"
+    ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
+    const currentness = {
+      ...lock.previewOperations[0]!,
+      operationId: "geo-product.check-current",
+      operationVersion: "1.0",
+      maturity: "PREVIEW" as const,
+      inputSchemaHash: "sha256:284dd239dba4acd2fbc0a3a8d31a7bc7fa1783218b85ee5c9dce4ed19ac27ed9",
+      outputSchemaHash: "sha256:67ef7be1d9057705654ce3a17f91c6c76b96dd176384b86e2a2eb269cdf0c475",
+      semanticProfileHash: "sha256:69f1a115e6dcb55d6c5dbe589c9b486fb5ac708aeeec03282c6b665905182034"
+    };
+    lock.previewOperations.push(currentness);
+    const selected = selectProductionSouthboundLock(lock, [], [currentness]);
+    expect(selected.previewOperations.map((entry) => `${entry.operationId}@${entry.operationVersion}`))
+      .toEqual(["geo-product.check-current@1.0"]);
+  });
+
+  it("does not add currentness to a fixture-only combined STAS/GDPS runtime", () => {
+    const currentness = { allowedOperations: [{ operationId: "geo-product.check-current" }] } as never;
+    const fixture = {
+      lock: { allowedOperations: [{ operationId: "stas.nearest-approach" }, { operationId: "geo-raster.sample" }] }
+    } as never;
+
+    expect(selectProductionAdditionalPreviewOperations(true, [], currentness, fixture)
+      .map((entry) => entry.operationId))
+      .toEqual(["stas.nearest-approach", "geo-raster.sample"]);
+    expect(selectProductionAdditionalPreviewOperations(false, [], currentness, fixture)).toEqual([]);
   });
 
   it("fails closed when an enabled GDPS recipe is absent from the exact lock", () => {
@@ -326,6 +488,113 @@ describe("production stage module authority boundaries", () => {
         evidenceIds: ["gdps-evidence-1"]
       }
     }]);
+  });
+
+  it("recovers per-node v0.3.2 descriptor authority from locked literal bindings", () => {
+    const compiled = compileGdpsV032MapSelectionQuery(gdpsV032MapOptions());
+    expect(compiled?.status).toBe("COMPILED");
+    if (!compiled || compiled.status !== "COMPILED") throw new Error("GDPS_V032_COMPILE_FAILED");
+    const operation = compiled.submission.plan.nodes[0]!.operation;
+    const directNode = compiled.submission.plan.nodes[0]!;
+    const literalPort = directNode.inputs["request"]!.port;
+    const slopeNode = {
+      ...directNode,
+      inputs: {
+        ...directNode.inputs,
+        productType: { kind: "LITERAL" as const, port: literalPort, value: "SLOPE", targetPath: "/productType" },
+        productProfile: { kind: "LITERAL" as const, port: literalPort, value: "DEGREE", targetPath: "/productProfile" }
+      }
+    };
+    const landCoverNode = {
+      ...slopeNode,
+      nodeId: "Node_2",
+      inputs: {
+        ...slopeNode.inputs,
+        productType: { ...slopeNode.inputs["productType"]!, value: "LAND_COVER" },
+        productProfile: { ...slopeNode.inputs["productProfile"]!, value: "DEFAULT" }
+      }
+    };
+    const { operationInput: _operationInput, ...parametersWithoutOperationInput } = compiled.submission.parameters;
+    const combinedSubmission = {
+      ...compiled.submission,
+      parameters: parametersWithoutOperationInput,
+      plan: { ...compiled.submission.plan, nodes: [slopeNode, landCoverNode] }
+    };
+    const recipe: GdpsLockedRecipe = {
+      schemaVersion: "wsgs-locked-gdps-recipe/2.0",
+      recipeId: "recipe-gdps-generic-sample-value",
+      semanticPattern: "GDPS_GENERIC_SAMPLE_VALUE",
+      requirementType: "READ_GEO_PRODUCT_VALUE",
+      descriptorConstraint: null,
+      queryProfile: "SAMPLE_VALUE_OR_CLASS",
+      previewAuthorizationRequired: true,
+      maturityPolicy: { allowed: "PREVIEW", requiresExactHashes: true },
+      productIdPolicy: "UNBOUND_UNLESS_EXPLICIT",
+      inputBindings: {},
+      outputSemantics: { currentOnly: true },
+      allowedOperations: [{ ...operation, semanticProfileHash: compiled.bindings[0]!.semanticProfileHash }]
+    };
+    const source = normalizeGdpsWorldQuerySources(combinedSubmission, {
+      nodes: [{
+        nodeId: "Node_1",
+        result: {
+          operation: { operationId: operation.operationId, operationVersion: operation.operationVersion },
+          status: "COMPLETED",
+          output: { value: { productId: "slope-main", contentHash: digest("5"), truncated: false } },
+          dataSnapshot: { digest: digest("6") },
+          computeSnapshot: { digest: digest("7") },
+          receipts: [{ receiptId: "gdps-receipt-1" }],
+          evidenceReferences: [{ evidenceId: "gdps-evidence-1" }]
+        }
+      }, {
+        nodeId: "Node_2",
+        result: {
+          operation: { operationId: operation.operationId, operationVersion: operation.operationVersion },
+          status: "COMPLETED",
+          output: { value: { productId: "land-cover-main", contentHash: digest("b"), truncated: false } },
+          dataSnapshot: { digest: digest("c") },
+          computeSnapshot: { digest: digest("d") },
+          receipts: [{ receiptId: "gdps-receipt-2" }],
+          evidenceReferences: [{ evidenceId: "gdps-evidence-2" }]
+        }
+      }]
+    }, {
+      lock: {
+        schemaVersion: "wsgs-gdps-recipe-lock/2.0",
+        providerId: "gdps.geospatial-products",
+        providerVersion: "0.2.1",
+        descriptorRegistryHash: digest("8"),
+        productTypeCount: 34,
+        profileCount: 35,
+        capabilityLockHash: digest("9"),
+        recipes: [recipe]
+      },
+      lockHash: digest("a")
+    }, gdpsV032Catalog);
+    expect(source).toMatchObject([
+      {
+        nodeId: "Node_1",
+        evidence: {
+          descriptorId: "SLOPE/DEGREE",
+          productType: "SLOPE",
+          productProfile: "DEGREE",
+          queryProfile: "SAMPLE_VALUE",
+          productId: "slope-main",
+          normalizedStatus: "COMPLETED"
+        }
+      },
+      {
+        nodeId: "Node_2",
+        evidence: {
+          descriptorId: "LAND_COVER/DEFAULT",
+          productType: "LAND_COVER",
+          productProfile: "DEFAULT",
+          queryProfile: "SAMPLE_CLASS",
+          productId: "land-cover-main",
+          normalizedStatus: "COMPLETED"
+        }
+      }
+    ]);
   });
 
   it("publishes candidate rank without leaking provider topology", () => {
@@ -462,6 +731,18 @@ describe("production stage module authority boundaries", () => {
     ]);
   });
 
+  it("keeps an authoritative local map selection out of reference resolver traffic", () => {
+    const options = gdpsV032MapOptions();
+    const mapMention = options.deterministic.mentions[0]!;
+    expect(referenceMentionsRequiringResolution([{
+      mentionId: mapMention.mentionId,
+      surfaceText: mapMention.surfaceText,
+      span: mapMention.span,
+      expectedKinds: [...mapMention.expectedKinds],
+      extractionSources: [mapMention.extractionSource]
+    }], options.deterministic)).toEqual([]);
+  });
+
   it("publishes a bounded northbound lease only for a currently usable reference", () => {
     const key = { namespace: "gowm" as const, kind: "WORLD_OBJECT", id: `wrf_${"b".repeat(32)}`, version: "7" };
     const product = {
@@ -548,6 +829,87 @@ describe("production stage module authority boundaries", () => {
     });
   });
 
+  it("compiles one bounded map geometry through the exact v0.3.2 GDPS binding", () => {
+    const result = compileGdpsV032MapSelectionQuery(gdpsV032MapOptions());
+    expect(result).toMatchObject({
+      status: "COMPILED",
+      templateId: "gdps-v032:SLOPE/DEGREE::SAMPLE_VALUE",
+      submission: {
+        snapshotPolicy: { mode: "BEST_EFFORT", allowDowngrade: false },
+        plan: { nodes: [{ operation: { operationId: "geo-raster.sample", operationVersion: "1.0" } }] },
+        parameters: {
+          operationInput: {
+            productType: "SLOPE",
+            productProfile: "DEGREE",
+            point: { type: "Point", coordinates: [116.3, 39.9] }
+          }
+        }
+      }
+    });
+  });
+
+  it("adds trusted deterministic map mentions only to the GDPS projection view", () => {
+    const options = gdpsV032MapOptions();
+    const frame = {
+      schemaVersion: "1.0" as const,
+      mentions: [],
+      spatialExpressions: [],
+      relationExpressions: [],
+      temporalConstraints: [],
+      aggregationExpressions: [],
+      rankingExpressions: []
+    };
+    expect(augmentGdpsProjectionFrame(frame, options.deterministic).mentions).toEqual([{
+      mentionId: "map-1",
+      surfaceText: "区域1",
+      span: { encoding: "UTF16_CODE_UNIT", start: 0, end: 1 },
+      expectedKinds: ["POINT"],
+      semanticRole: "SPATIAL_SUBJECT"
+    }]);
+    expect(frame.mentions).toEqual([]);
+  });
+
+  it("does not let a trusted direct map selection override completed world evidence", () => {
+    expect(deriveGroundingResultStatus({
+      ambiguityCount: 0,
+      unresolvedMentionIds: ["map-1"],
+      referenceProductCount: 0,
+      trustedDirectMapMentionIds: ["map-1"],
+      completedDirectMapEvidence: false,
+      partial: false
+    })).toBe("COMPLETED");
+    expect(deriveGroundingResultStatus({
+      ambiguityCount: 0,
+      unresolvedMentionIds: ["map-1", "world-object-1"],
+      referenceProductCount: 0,
+      trustedDirectMapMentionIds: ["map-1"],
+      completedDirectMapEvidence: false,
+      partial: false
+    })).toBe("UNRESOLVED");
+    expect(deriveGroundingResultStatus({
+      ambiguityCount: 0,
+      unresolvedMentionIds: ["query-target-1"],
+      referenceProductCount: 0,
+      trustedDirectMapMentionIds: ["map-1"],
+      completedDirectMapEvidence: true,
+      partial: false
+    })).toBe("COMPLETED");
+  });
+
+  it("keeps the legacy reference recipe authoritative when no map geometry is present", () => {
+    expect(compileGdpsV032MapSelectionQuery(gdpsV032MapOptions(0))).toBeNull();
+  });
+
+  it("fails closed when more than one map geometry could bind the GDPS request", () => {
+    expect(compileGdpsV032MapSelectionQuery(gdpsV032MapOptions(2))).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: {
+        reason: "UNSUPPORTED_EXPRESSION",
+        details: { code: "MAP_SELECTION_GEOMETRY_AMBIGUOUS", geometryCount: 2 }
+      }
+    });
+  });
+
   it("builds the real reference.resolve shape and converts 1 km from millimetres to metres", () => {
     const result = buildRecipeOperationInput(nearbyPlanning());
     expect(result.status).toBe("READY");
@@ -577,6 +939,250 @@ describe("production stage module authority boundaries", () => {
     addFormatsModule.default(ajv);
     ajv.addSchema(common);
     expect(ajv.validate(schema, result.operationInput), ajv.errorsText()).toBe(true);
+  });
+
+  it("loads combined STAS input only from the exact runtime fixture authority", () => {
+    const base = nearbyPlanning();
+    const operationInput = {
+      dataScopeId: "00000000-0000-4000-8000-000000000001",
+      dimensionPolicy: "2D",
+      timeRange: { start: "2026-08-13T01:00:00.000Z", end: "2026-08-13T01:00:06.000Z" },
+      trackletA: { trackletId: "40000000-0000-4000-8000-000000000001", versionNo: 1 },
+      trackletB: { trackletId: "40000000-0000-4000-8000-000000000002", versionNo: 1 },
+      uncertaintyPolicy: "NOMINAL_WITH_SCALAR_SENSITIVITY"
+    };
+    const requirements = [
+      {
+        requirementId: "requirement-nearest", requirementType: "ANALYZE_NEAREST_APPROACH" as const,
+        requiredForProduct: "CORRELATION_FINDINGS" as const, required: true, allowApproximation: false,
+        inputs: { inputAuthority: "RUNTIME_FIXTURE_LOCK" }, outputs: ["nearestApproach"]
+      },
+      {
+        requirementId: "requirement-slope", requirementType: "READ_GEO_PRODUCT_VALUE" as const,
+        requiredForProduct: "CORRELATION_FINDINGS" as const, required: true, allowApproximation: false,
+        inputs: {}, outputs: ["geospatialProductValue"]
+      },
+      {
+        requirementId: "requirement-land-cover", requirementType: "READ_LAND_COVER" as const,
+        requiredForProduct: "CORRELATION_FINDINGS" as const, required: true, allowApproximation: false,
+        inputs: {}, outputs: ["landCover"]
+      }
+    ];
+    const result = buildRecipeOperationInput({
+      ...base,
+      recipeId: "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT",
+      planning: {
+        status: "PLANNED",
+        graph: {
+          schemaVersion: "1.0", graphId: "requirement-graph-stas-gdps", graphHash: digest("9"), requirements,
+          dependencies: [{
+            fromRequirementId: "requirement-nearest", toRequirementId: "requirement-slope",
+            outputName: "nearestApproach", targetPath: "/point"
+          }, {
+            fromRequirementId: "requirement-slope", toRequirementId: "requirement-land-cover",
+            outputName: "geospatialProductValue", targetPath: "/point"
+          }]
+        },
+        selectedRecipeIds: ["STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT"],
+        capabilityGaps: []
+      },
+      stasGdpsFixture: {
+        lockHash: digest("8"),
+        lock: { operationInput, operationInputHash: canonicalStasGdpsInputHash(operationInput) }
+      } as never
+    });
+
+    expect(result).toMatchObject({
+      status: "READY",
+      requiredForProduct: "CORRELATION_FINDINGS",
+      operationInput,
+      parameterValues: {},
+      trustedOperationInput: {
+        source: "RUNTIME_FIXTURE_LOCK",
+        inputHash: canonicalStasGdpsInputHash(operationInput)
+      }
+    });
+  });
+
+  it("composes separate temporal and current spatial evidence without historical overclaim", () => {
+    const submission = worldQuerySubmission();
+    const stasGdpsFixture = {
+      lock: {
+        eventGeometryTransform: {
+          sourceCrs: "EPSG:32618",
+          targetCrs: "EPSG:4326",
+          axisOrder: "EAST_NORTH_TO_LONGITUDE_LATITUDE",
+          engine: "PROJ4JS/2.22.0"
+        }
+      }
+    } as never;
+    const port = {
+      schemaUri: "urn:test:value",
+      schemaHash: digest("a"),
+      valueKind: "ANY" as const,
+      unitSemantics: "UNSPECIFIED" as const
+    };
+    const budget = { maximumRows: 1, maximumCandidates: 1, maximumOutputBytes: 1_024, maximumExecutionMs: 1_000 };
+    submission.plan.nodes = [{
+      nodeId: "Node_1",
+      operation: {
+        operationId: "stas.nearest-approach", operationVersion: "1.0",
+        inputSchemaHash: digest("1"), outputSchemaHash: digest("2")
+      },
+      inputs: { request: { kind: "REQUEST_PATH" as const, port, path: "/operationInput" } },
+      failurePolicy: "FAIL_FAST" as const,
+      budget
+    }, ...[{
+      nodeId: "Node_2", productType: "SLOPE", productProfile: "DEGREE"
+    }, {
+      nodeId: "Node_3", productType: "LAND_COVER", productProfile: "DEFAULT"
+    }].map(({ nodeId, productType, productProfile }) => ({
+      nodeId,
+      operation: {
+        operationId: "geo-raster.sample", operationVersion: "1.0",
+        inputSchemaHash: digest("3"), outputSchemaHash: digest("4")
+      },
+      inputs: {
+        pointCoordinates: {
+          kind: "NODE_OUTPUT" as const, port, nodeId: "Node_1", outputPort: "result",
+          path: "/result/shortest_line/coordinates/0", targetPath: "/point/coordinates"
+        },
+        productType: { kind: "LITERAL" as const, port, value: productType, targetPath: "/productType" },
+        productProfile: { kind: "LITERAL" as const, port, value: productProfile, targetPath: "/productProfile" }
+      },
+      failurePolicy: "FAIL_FAST" as const,
+      budget
+    }))];
+    submission.plan.budgets = {
+      maximumNodes: 3, maximumDepth: 2, maximumRows: 3, maximumCandidates: 3,
+      maximumOutputBytes: 3_072, maximumExecutionMs: 3_000
+    };
+    const item = (nodeId: string, operationId: string, safePayload: Record<string, unknown>) => ({
+      evidenceProductId: `evidence-${nodeId.toLowerCase()}`,
+      productKind: "CAPABILITY_RESULT" as const,
+      authority: "gowm",
+      sourceOperation: operationId,
+      sourceNodeId: nodeId,
+      upstreamStatus: "COMPLETED" as const,
+      payloadSchemaUri: "urn:test:output",
+      payloadSchemaHash: digest("b"),
+      safePayload,
+      receiptIds: [`receipt-${nodeId.toLowerCase()}`],
+      evidenceIds: [`upstream-${nodeId.toLowerCase()}`],
+      unknowns: [],
+      warnings: []
+    });
+    const evidenceItems = [
+      item("Node_1", "stas.nearest-approach", {
+        result: {
+          minimum_distance_m: 23,
+          nearest_instant: "01010000206A7F0000B33554BE818C1F41153D7FA0E02F5141@2026-08-13 01:00:03.003203+00",
+          shortest_line: {
+            type: "LineString",
+            coordinates: [[516_896.3455135132, 4_505_474.315256105], [517_733.12, 4_506_590.44]]
+          }
+        }
+      }),
+      item("Node_2", "geo-raster.sample", {
+        contentHash: digest("c"), descriptorHash: digest("d"), value: 12.5
+      }),
+      item("Node_3", "geo-raster.sample", {
+        contentHash: digest("e"), descriptorHash: digest("f"), value: "GRASS"
+      })
+    ];
+    const composed = composeStasGdpsEvidence({
+      submissions: [submission], evidenceItems, requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"],
+      stasGdpsFixture
+    });
+
+    expect(composed.map((entry) => entry.productKind)).toEqual(["EVENT_TIMELINE", "CORRELATION_FINDING"]);
+    expect(composed[0]?.safePayload).toMatchObject({
+      events: [{ eventTime: "2026-08-13T01:00:03.003203+00:00", minimumDistanceMetres: 23 }]
+    });
+    expect(composed[1]?.safePayload).toMatchObject({
+      temporalEvidence: [{ applicability: "EVENT_TIME" }],
+      currentSpatialEvidence: [
+        { applicability: "CURRENT_AT_QUERY_START" },
+        { applicability: "CURRENT_AT_QUERY_START" }
+      ],
+      limitations: expect.arrayContaining(["CURRENT_SPATIAL_EVIDENCE_DOES_NOT_PROVE_EVENT_TIME_ENVIRONMENT"]),
+      confidencePolicy: "PRESERVE_SOURCE_QUALITY_NO_AVERAGING"
+    });
+    const ajv = new Ajv2020Module.default({ strict: true });
+    addFormatsModule.default(ajv);
+    for (const [schemaFile, payload] of [
+      ["stas-event-timeline.schema.json", composed[0]?.safePayload],
+      ["stas-gdps-correlation.schema.json", composed[1]?.safePayload]
+    ] as const) {
+      const schema = JSON.parse(readFileSync(resolve(
+        import.meta.dirname, "..", "..", "..", "contracts", "wsgs-v0.2.1-sacs-geospatial", schemaFile
+      ), "utf8")) as Record<string, unknown>;
+      expect(ajv.validate(schema, payload), ajv.errorsText()).toBe(true);
+    }
+
+    const withoutGeometry = structuredClone(evidenceItems);
+    (withoutGeometry[0]!.safePayload as Record<string, unknown>)["result"] = {
+      minimum_distance_m: 23,
+      nearest_instant: "2026-08-13T01:00:03.000Z"
+    };
+    const diagnostics: string[] = [];
+    expect(composeStasGdpsEvidence({
+      submissions: [submission], evidenceItems: withoutGeometry,
+      requestedProducts: ["EVENT_TIMELINES", "CORRELATION_FINDINGS"], stasGdpsFixture, diagnostics
+    })).toEqual([]);
+    expect(diagnostics).toEqual(["STAS_GDPS_COMPOSITION_EVENT_GEOMETRY"]);
+  });
+
+  it("places a grounded anchor before an unresolved product descriptor mention", () => {
+    const options = nearbyPlanning();
+    const graph = options.planning.graph!;
+    graph.requirements[0]!.inputs["mentionNodeIds"] = ["node-product", "node-anchor"];
+    options.groundingGraph = {
+      graph: {
+        schemaVersion: "1.0",
+        nodes: [{
+          nodeId: "node-product",
+          kind: "MENTION",
+          payload: {
+            mentionId: "mention-product",
+            surfaceText: "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+            expectedKinds: ["WORLD_OBJECT"]
+          }
+        }, {
+          nodeId: "node-anchor",
+          kind: "MENTION",
+          payload: {
+            mentionId: "mention-anchor",
+            surfaceText: "3号车",
+            expectedKinds: ["WORLD_OBJECT"]
+          }
+        }],
+        edges: []
+      }
+    } as never;
+    options.references = {
+      mentions: [{ mentionId: "mention-product", candidateProductIds: [] }, {
+        mentionId: "mention-anchor", candidateProductIds: ["reference-anchor"]
+      }],
+      referenceProducts: [{
+        productId: "reference-anchor",
+        referenceKey: {
+          namespace: "gowm", kind: "WORLD_OBJECT", id: `wrf_${"b".repeat(32)}`, version: "69"
+        }
+      }]
+    } as never;
+
+    const result = buildRecipeOperationInput(options);
+    expect(result.status).toBe("READY");
+    if (result.status !== "READY") return;
+    expect(result.operationInput["mentions"]).toEqual([
+      { mentionId: "mention-anchor", surfaceText: "3号车", expectedKinds: ["WORLD_OBJECT"] },
+      {
+        mentionId: "mention-product",
+        surfaceText: "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+        expectedKinds: ["WORLD_OBJECT"]
+      }
+    ]);
   });
 
   it.each(stableRecipeIds)("returns a typed gap when %s has no requirement graph inputs", (recipeId) => {

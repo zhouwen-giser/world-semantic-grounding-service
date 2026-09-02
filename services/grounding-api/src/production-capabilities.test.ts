@@ -82,4 +82,46 @@ describe("groundingCapabilitiesForSelection", () => {
     expect(operations).toHaveLength(6);
     expect(new Set(operations).size).toBe(6);
   });
+
+  it("advertises only N05 as available when structured-selection authority is configured", () => {
+    const capabilities = groundingCapabilitiesForSelection(
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
+      { ready: true, reasons: [] },
+      { structuredSelection: true, currentness: false }
+    );
+    expect(validators.capabilities11(capabilities)).toBe(true);
+    expect(capabilities).toMatchObject({
+      requiredCapabilitiesReady: false,
+      optionalCapabilities: [
+        { operationId: "RESOLVE_WORLD_SELECTION", available: true },
+        {
+          operationId: "VALIDATE_SOURCE_CURRENTNESS",
+          available: false,
+          reason: "IMPLEMENTATION_PENDING_N06"
+        }
+      ]
+    });
+    expect((capabilities["optionalCapabilities"] as Record<string, unknown>[])[0]).not.toHaveProperty("reason");
+  });
+
+  it("advertises N05 and N06 as ready only when both phase authority and runtime readiness pass", () => {
+    const capabilities = groundingCapabilitiesForSelection(
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
+      { ready: true, reasons: [] },
+      { structuredSelection: true, currentness: true }
+    );
+    expect(validators.capabilities11(capabilities)).toBe(true);
+    expect(capabilities).toMatchObject({
+      requiredCapabilitiesReady: true,
+      optionalCapabilities: [
+        { operationId: "RESOLVE_WORLD_SELECTION", available: true },
+        { operationId: "VALIDATE_SOURCE_CURRENTNESS", available: true }
+      ]
+    });
+    expect(groundingCapabilitiesForSelection(
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
+      { ready: false, reasons: ["GATEWAY_UNAVAILABLE"] },
+      { structuredSelection: true, currentness: true }
+    )["requiredCapabilitiesReady"]).toBe(false);
+  });
 });

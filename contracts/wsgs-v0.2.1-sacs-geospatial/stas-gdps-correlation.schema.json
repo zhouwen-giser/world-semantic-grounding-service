@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.3.2:stas-gdps-correlation:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "relation",
+    "temporalEvidence",
+    "currentSpatialEvidence",
+    "correlationFindings",
+    "limitations",
+    "confidencePolicy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "wsgs-stas-gdps-correlation/1.0" },
+    "relation": { "const": "POSSIBLY_CORRESPONDS_TO" },
+    "temporalEvidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidenceReference" }
+    },
+    "currentSpatialEvidence": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/evidenceReference" }
+    },
+    "correlationFindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "factEvidenceIds", "inference", "temporalApplicability"],
+        "properties": {
+          "kind": { "const": "CURRENT_CONTEXT_AT_NEAREST_APPROACH_GEOMETRY" },
+          "factEvidenceIds": {
+            "type": "array",
+            "minItems": 3,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+          },
+          "inference": { "const": "WSGS_ASSOCIATED_CURRENT_SPATIAL_CONTEXT_WITH_EVENT_GEOMETRY" },
+          "temporalApplicability": { "const": "CURRENT_AT_QUERY_START_NOT_EVENT_TIME" }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "CURRENT_SPATIAL_EVIDENCE_DOES_NOT_PROVE_EVENT_TIME_ENVIRONMENT",
+          "MISSING_EVIDENCE_IS_NOT_NEGATIVE_FACT"
+        ]
+      }
+    },
+    "confidencePolicy": { "const": "PRESERVE_SOURCE_QUALITY_NO_AVERAGING" }
+  },
+  "$defs": {
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceProductId", "applicability"],
+      "properties": {
+        "evidenceProductId": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "applicability": {
+          "enum": ["EVENT_TIME", "CURRENT_AT_QUERY_START"]
+        }
+      }
+    }
+  }
+}

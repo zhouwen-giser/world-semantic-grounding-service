@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-spatial-e2e-report/1.0",
+  "generatedAt": "2026-09-02T07:45:40.192887Z",
+  "status": "PASS",
+  "qualification": "REAL_PUBLIC_END_TO_END",
+  "provenance": "REAL_PUBLIC_WSGS_TO_GOWM_TO_GDPS_EXECUTION",
+  "sources": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583"
+  },
+  "sourceTuple": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583",
+    "wsgsImplementationSha": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "gowmSourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "bundleHash": "sha256:1b24a54d529f825e74641e17d136b43036fb16baee5cbf9508b979a942d136cd"
+  },
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
+  "runtime": {
+    "classification": "LOCAL_ISOLATED_CONTROLLED_ENVIRONMENT",
+    "wsgsVersion": "0.2.1",
+    "wsgsImageDigest": "sha256:3f1f5260a927b975ff488f6cc43560824fbb88bf37419a28a717f4bcddc80d22",
+    "wsgsOciRevision": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "gowmVersion": "0.6.4",
+    "gowmImageDigest": "sha256:ba663c1c27c02f8fc57312e207279ffc83026aa5bd8b5265e93d944080252b2d",
+    "gowmOciRevision": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "authMode": "BEARER_PRESENT_AND_SIGNED_DELEGATION_V1",
+    "authQualification": "DEBUG_FUNCTIONAL_ONLY"
+  },
+  "runtimeEquivalence": {
+    "fromGowmSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "toGowmSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "changedSemanticPath": "INDETERMINATE_NODE_STATUS_ONLY",
+    "completedCaseBehaviorChanged": false
+  },
+  "cases": [
+    {
+      "caseId": "S1-POINT-CONTEXT",
+      "acceptanceId": "V032-W05-001",
+      "status": "PASS",
+      "executions": [
+        {
+          "groundingId": "grounding-95689671-2db7-4efd-93c9-fd652a08d645",
+          "terminalStatus": "COMPLETED",
+          "gatewayStatus": "COMPLETED",
+          "resultHash": "sha256:0cf7f34b97c2c457324d4f6c77305710d2f162d55a9bb4b37d8dd25875e6b436",
+          "sourceOperation": "geo-raster.sample"
+        },
+        {
+          "groundingId": "grounding-d89e91d8-93a1-46b3-b709-2c51e002106f",
+          "terminalStatus": "COMPLETED",
+          "gatewayStatus": "COMPLETED",
+          "resultHash": "sha256:437f7855c2705afc0c9e4cef64fdc10203f8fdda215c08fc27556e22447610f6",
+          "sourceOperation": "geo-raster.sample"
+        }
+      ],
+      "realDataProducts": [
+        {
+          "productId": "copernicus-slope-current",
+          "productType": "SLOPE",
+          "productProfile": "DEGREE",
+          "contentHash": "sha256:3f754fe8572ecd569fe4ab6d66c3d906c64754af3129bda9a1fb6df7e0053210",
+          "realityClass": "REAL",
+          "synthetic": false
+        },
+        {
+          "productId": "esa-worldcover-land-cover-current",
+          "productType": "LAND_COVER",
+          "productProfile": "DEFAULT",
+          "contentHash": "sha256:6c4a9b75875b0a5636f761c4ebafc8ffa8caf433364fb6a1d0346cf28f325997",
+          "realityClass": "REAL",
+          "synthetic": false
+        }
+      ],
+      "directProviderCalls": 0
+    },
+    {
+      "caseId": "S2-REGION-CONTEXT",
+      "acceptanceId": "V032-W05-002",
+      "status": "PASS",
+      "executions": [
+        {
+          "groundingId": "grounding-1bcb91e0-0a16-4383-9074-4a27bf3438f5",
+          "terminalStatus": "COMPLETED",
+          "gatewayStatus": "COMPLETED",
+          "resultHash": "sha256:a0fc097a2df5d88e651dcf140b58ee669b728f766361b9d37e03ef30c45845ea",
+          "sourceOperation": "geo-vector.find-in-area"
+        },
+        {
+          "groundingId": "grounding-d89e91d8-93a1-46b3-b709-2c51e002106f",
+          "terminalStatus": "COMPLETED",
+          "gatewayStatus": "COMPLETED",
+          "resultHash": "sha256:437f7855c2705afc0c9e4cef64fdc10203f8fdda215c08fc27556e22447610f6",
+          "sourceOperation": "geo-raster.sample"
+        }
+      ],
+      "realDataProducts": [
+        {
+          "productId": "natural-earth-roads-current",
+          "productType": "ROAD_SOURCE",
+          "productProfile": "ROAD_FEATURES",
+          "contentHash": "sha256:7d1a37c8fd43211ca38f9c35652143b5586420664644fe3797a82e61f304c4b2",
+          "realityClass": "REAL",
+          "synthetic": false
+        },
+        {
+          "productId": "esa-worldcover-land-cover-current",
+          "productType": "LAND_COVER",
+          "productProfile": "DEFAULT",
+          "contentHash": "sha256:6c4a9b75875b0a5636f761c4ebafc8ffa8caf433364fb6a1d0346cf28f325997",
+          "realityClass": "REAL",
+          "synthetic": false
+        }
+      ],
+      "directProviderCalls": 0
+    },
+    {
+      "caseId": "S3-NEARBY-CONTEXT",
+      "acceptanceId": "V032-W05-003",
+      "status": "PASS",
+      "execution": {
+        "groundingId": "grounding-db06fdf5-4862-49ae-97a7-23ccae712430",
+        "terminalStatus": "COMPLETED",
+        "gatewayStatus": "COMPLETED",
+        "resultHash": "sha256:804c64dfe28ea450a83cfd572a4ba85bc400c6af69a0bb953810adbd56a6001c",
+        "sourceOperation": "geo-vector.find-nearby"
+      },
+      "realDataProducts": [
+        {
+          "productId": "natural-earth-roads-current",
+          "productType": "ROAD_SOURCE",
+          "productProfile": "ROAD_FEATURES",
+          "contentHash": "sha256:7d1a37c8fd43211ca38f9c35652143b5586420664644fe3797a82e61f304c4b2",
+          "realityClass": "REAL",
+          "synthetic": false
+        }
+      ],
+      "directProviderCalls": 0
+    },
+    {
+      "caseId": "S4-TRUE-INTERSECTION",
+      "acceptanceId": "V032-W06-001",
+      "status": "PASS",
+      "execution": {
+        "groundingId": "grounding-43ee599b-164f-4ec9-9d84-56d0d9f30eff",
+        "terminalStatus": "COMPLETED",
+        "gatewayStatus": "COMPLETED",
+        "resultHash": "sha256:480bdea551320f39d81f5791b34239a93bc939e0b330344ac83550413700115b",
+        "sourceOperation": "geo-vector.find-intersections"
+      },
+      "intersection": {
+        "geometryHash": "sha256:4f7fac07bd35e5fdbf9e525468e66b1d7e914e74334ff1a8d0e5f0f7d48d5427",
+        "coveredProductCount": 1,
+        "intersectingFeatureCount": 1,
+        "coordinatesRecorded": false,
+        "geometryRecorded": false
+      },
+      "realDataProducts": [
+        {
+          "productId": "natural-earth-roads-current",
+          "productType": "ROAD_SOURCE",
+          "productProfile": "ROAD_FEATURES",
+          "contentHash": "sha256:7d1a37c8fd43211ca38f9c35652143b5586420664644fe3797a82e61f304c4b2",
+          "realityClass": "REAL",
+          "synthetic": false
+        }
+      ],
+      "directProviderCalls": 0
+    },
+    {
+      "caseId": "S5-LINE-PROFILE",
+      "acceptanceId": "V032-W06-002",
+      "status": "PASS",
+      "execution": {
+        "groundingId": "grounding-83827136-e42a-4232-b206-558df94357f6",
+        "terminalStatus": "COMPLETED",
+        "gatewayStatus": "COMPLETED",
+        "resultHash": "sha256:77cd45729dd3d863f1e2568d686bee4abab332035105feb1bb92d6329f1f546b",
+        "sourceOperation": "geo-raster.profile"
+      },
+      "realDataProducts": [
+        {
+          "productId": "copernicus-dsm-current",
+          "productType": "ELEVATION_DSM",
+          "productProfile": "DEFAULT",
+          "contentHash": "sha256:22349e528519874084d179699d315f5bb9f29385c268f339d5b069748e9dab71",
+          "realityClass": "REAL",
+          "synthetic": false
+        },
+        {
+          "productId": "copernicus-slope-current",
+          "productType": "SLOPE",
+          "productProfile": "DEGREE",
+          "contentHash": "sha256:3f754fe8572ecd569fe4ab6d66c3d906c64754af3129bda9a1fb6df7e0053210",
+          "realityClass": "REAL",
+          "synthetic": false
+        }
+      ],
+      "directProviderCalls": 0
+    }
+  ],
+  "assertions": [
+    {
+      "id": "V032-W05-001",
+      "status": "PASS",
+      "blockingReason": ""
+    },
+    {
+      "id": "V032-W05-002",
+      "status": "PASS",
+      "blockingReason": ""
+    },
+    {
+      "id": "V032-W05-003",
+      "status": "PASS",
+      "blockingReason": ""
+    },
+    {
+      "id": "V032-W06-001",
+      "status": "PASS",
+      "blockingReason": ""
+    },
+    {
+      "id": "V032-W06-002",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "safePayloadRead": false,
+  "sourceRebinding": {
+    "previousGdpsImplementationCommit": "b425dca202daefc5573ecedabce0637210803f90",
+    "currentGdpsImplementationCommit": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "qualification": "AUTHORIZED_NON_RUNTIME_TEST_LOCK_ONLY",
+    "gdpsChangedPaths": [
+      "tests/unit/test_v032_grounding.py"
+    ],
+    "operationalRuntimeBehaviorChanged": false
+  }
+}

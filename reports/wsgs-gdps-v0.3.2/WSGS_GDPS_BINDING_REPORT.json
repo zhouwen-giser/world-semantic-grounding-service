@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-binding-report/1.0",
+  "status": "PASS",
+  "provenance": "REAL_WSGS_BINDING_COMPILER_EXECUTION",
+  "sources": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583"
+  },
+  "sourceTuple": {
+    "gdpsSha": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "gdpsImplementationTreeHash": "sha256:a263a0802bef5fa8f15e754f081249b819f249ff219f3d6606eff9748457f583",
+    "wsgsImplementationSha": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "bundleHash": "sha256:1b24a54d529f825e74641e17d136b43036fb16baee5cbf9508b979a942d136cd"
+  },
+  "credentialMaterialIncluded": false,
+  "catalog": {
+    "authority": "WSGS",
+    "operationFamilyCount": 10,
+    "bindingCount": 88,
+    "catalogHash": "sha256:bf9f2ea9a5e08059402eb100067d1a88c76184298258f977a276ed2964befa78",
+    "defaultProductIdBinding": "FORBIDDEN",
+    "historicalFallback": "FORBIDDEN"
+  },
+  "observations": {
+    "exactPreviewBindingCompiled": true,
+    "implicitProductIdPresent": false,
+    "trustedExplicitProductIdCompiled": true,
+    "callerProductIdRejected": true,
+    "maturityEscalationRejected": true,
+    "operationHashDriftRejected": true
+  },
+  "assertions": [
+    {
+      "id": "V032-W02-004",
+      "status": "PASS",
+      "blockingReason": ""
+    },
+    {
+      "id": "V032-W02-005",
+      "status": "PASS",
+      "blockingReason": ""
+    }
+  ],
+  "gatewayQualification": "NOT_RUN",
+  "sourceRebinding": {
+    "previousGdpsImplementationCommit": "b425dca202daefc5573ecedabce0637210803f90",
+    "currentGdpsImplementationCommit": "806ea25404c96485deb38dd13a0022b61f7998b7",
+    "qualification": "AUTHORIZED_NON_RUNTIME_TEST_LOCK_ONLY",
+    "gdpsChangedPaths": [
+      "tests/unit/test_v032_grounding.py"
+    ],
+    "operationalRuntimeBehaviorChanged": false
+  }
+}

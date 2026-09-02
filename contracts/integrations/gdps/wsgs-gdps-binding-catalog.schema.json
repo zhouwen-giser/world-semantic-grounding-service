@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:integrations:gdps:binding-catalog:1.0",
+  "title": "WSGS authoritative GDPS binding catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "authority", "policy", "operationFamilies", "bindings"],
+  "properties": {
+    "schemaVersion": { "const": "wsgs-gdps-binding-catalog/1.0" },
+    "authority": { "const": "WSGS" },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultProductIdBinding", "explicitUserProductSelection", "requiresExactSchemaHashes", "requiresExactSemanticHash", "requiresExactDescriptorHash", "historicalFallback"],
+      "properties": {
+        "defaultProductIdBinding": { "const": "FORBIDDEN" },
+        "explicitUserProductSelection": { "const": "ALLOWED" },
+        "requiresExactSchemaHashes": { "const": true },
+        "requiresExactSemanticHash": { "const": true },
+        "requiresExactDescriptorHash": { "const": true },
+        "historicalFallback": { "const": "FORBIDDEN" }
+      }
+    },
+    "operationFamilies": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["familyId", "operationId", "operationVersion", "queryProfile", "inputSchemaHash", "outputSchemaHash", "semanticProfileHash", "allowedMaturity", "timeSemantics"],
+        "properties": {
+          "familyId": { "type": "string", "minLength": 1 },
+          "operationId": { "type": "string", "minLength": 1 },
+          "operationVersion": { "const": "1.0" },
+          "queryProfile": { "type": "string", "minLength": 1 },
+          "inputSchemaHash": { "$ref": "#/$defs/sha256" },
+          "outputSchemaHash": { "$ref": "#/$defs/sha256" },
+          "semanticProfileHash": { "$ref": "#/$defs/sha256" },
+          "allowedMaturity": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "uniqueItems": true,
+            "items": { "enum": ["STABLE", "PREVIEW"] }
+          },
+          "timeSemantics": { "const": "CURRENT" }
+        }
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["bindingId", "requirementKind", "requirementVersion", "operationId", "operationVersion", "familyId", "productType", "productProfile", "descriptorId", "descriptorHash", "queryProfile", "platformProfilePolicy", "inputSchemaHash", "outputSchemaHash", "semanticProfileHash", "allowedMaturity", "selectionPolicy", "timeSemantics", "noDataSemantics", "evidenceMapping"],
+        "properties": {
+          "bindingId": { "type": "string", "minLength": 1 },
+          "requirementKind": { "type": "string", "minLength": 1 },
+          "requirementVersion": { "const": "1.0" },
+          "operationId": { "type": "string", "minLength": 1 },
+          "operationVersion": { "const": "1.0" },
+          "familyId": { "type": "string", "minLength": 1 },
+          "productType": { "type": "string", "minLength": 1 },
+          "productProfile": { "type": "string", "minLength": 1 },
+          "descriptorId": { "type": "string", "minLength": 1 },
+          "descriptorHash": { "$ref": "#/$defs/sha256" },
+          "queryProfile": { "type": "string", "minLength": 1 },
+          "platformProfilePolicy": { "enum": ["REQUIRED", "OPTIONAL", "FORBIDDEN"] },
+          "inputSchemaHash": { "$ref": "#/$defs/sha256" },
+          "outputSchemaHash": { "$ref": "#/$defs/sha256" },
+          "semanticProfileHash": { "$ref": "#/$defs/sha256" },
+          "allowedMaturity": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "uniqueItems": true,
+            "items": { "enum": ["STABLE", "PREVIEW"] }
+          },
+          "selectionPolicy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["defaultProductId", "explicitProductId", "requiresFullCoverage", "scopePolicy"],
+            "properties": {
+              "defaultProductId": { "const": null },
+              "explicitProductId": { "const": "TRUSTED_EXPLICIT_SELECTION_ONLY" },
+              "requiresFullCoverage": { "const": true },
+              "scopePolicy": { "const": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH" }
+            }
+          },
+          "timeSemantics": { "const": "CURRENT" },
+          "noDataSemantics": { "const": "EXPLICIT_GAP" },
+          "evidenceMapping": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dataSnapshot", "executionReceipt", "contentHash", "descriptorHash", "temporalApplicability"],
+            "properties": {
+              "dataSnapshot": { "const": "REQUIRED" },
+              "executionReceipt": { "const": "REQUIRED" },
+              "contentHash": { "const": "REQUIRED" },
+              "descriptorHash": { "const": "REQUIRED" },
+              "temporalApplicability": { "const": "CURRENT_AT_QUERY_START" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

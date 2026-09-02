@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "wsgs-v021-n07-restart-replay/1.0",
+  "phase": "N07",
+  "generator": {
+    "name": "generate-sacs-geospatial-persistence-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_SOURCE_AUDIT_NO_DATABASE",
+  "inputSetHash": "sha256:0392864b5b57dbd2f2aee5cf2731144eea9ee15beb6679872e81bbb1c2d583a2",
+  "sourceHashes": {
+    "database/migrations/005_wsgs_sacs_geospatial.sql": "sha256:74dc5f2bd25634587946d2eda3ec1277eddf3e5a55fb4f01ca28c29ea515b2af",
+    "database/assertions/005_wsgs_sacs_geospatial.sql": "sha256:79297663a0fc599e5fa00440fd69d0d575bb3f0ef60cfc1c5b47957741feb9de",
+    "packages/runtime/src/migrations.ts": "sha256:d5e2e67318c98c4c7940827089910ba8aaf592a1178c2bc5f77ac357026a1bdb",
+    "packages/runtime/src/migration-002.integration.test.ts": "sha256:5eb6b6c18c944b976add8a31e55ed5d89dabcbde0b2c8c9878659ba1155f419a",
+    "packages/grounding-pipeline/src/backend.ts": "sha256:7c7e4e5af85894be1a535e9027237e4f7fec033cd63986913fcfb18ee54a1733",
+    "packages/grounding-pipeline/src/postgres-backend-store.ts": "sha256:6f57b3f4c85e69c5a3a0eafe2963caa5153b610479fcfe493cb803a761eef8ff",
+    "services/grounding-worker/src/result-schema.ts": "sha256:1d898fc10aa3aa6f69d78c77b376eaf11e1cca6df52de4e19d21e7beda8d763d",
+    "services/grounding-worker/src/postgres-store.ts": "sha256:a77dc0a4fc1e192e4bd19bc51e081a056de19b7105c281cf1a2bdfd8a080fc84",
+    "services/grounding-worker/src/postgres.integration.test.ts": "sha256:eec7b3c46ef02e32ce4909c2c73ad2588dca544d9d5edcaffa318b8fd8196833",
+    "services/grounding-api/src/postgres-selection-store.ts": "sha256:e72752647881dbac05ebff4df6ade4837db3eea4ccd038aba4bcdd218c51cb6d",
+    "services/grounding-api/src/postgres-selection-store.test.ts": "sha256:92fbe5057229ed2adf0db67187f3aed7162e75baf87c5ade06add2b55202ef66",
+    "services/grounding-api/src/postgres-selection-store.integration.test.ts": "sha256:654b30d45b7f6d2abdecaa912cfc7d57e5d5920d1252bc7f1b2aed8bc7119822",
+    "services/grounding-api/src/production.ts": "sha256:515e33ebc71bd9e94f607ff361756e1dc024b3abb1ced82d4cd923a48406439d"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "postgresQualification": "NOT_RUN",
+  "productionQualified": false,
+  "status": "NOT_RUN",
+  "reason": "API_WORKER_RESTART_WITH_REAL_POSTGRESQL_NOT_EXECUTED",
+  "exactResultBytesReplay": "NOT_RUN",
+  "sameIdempotencySameRequest": "NOT_RUN",
+  "sameIdempotencyDifferentRequest": "NOT_RUN",
+  "selectionRevisionAfterRestart": "NOT_RUN",
+  "workerFenceGenerationRecovery": "NOT_RUN",
+  "runtimeEvidenceIncluded": false
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "wsgs-v021-n10-cleanup/1.0",
+  "phase": "N10",
+  "status": "NOT_RUN",
+  "runtimeCreated": false,
+  "containersRemoved": 0,
+  "networksRemoved": 0,
+  "volumesRemoved": 0,
+  "dockerInvoked": false
+}

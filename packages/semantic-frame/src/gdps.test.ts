@@ -35,6 +35,55 @@ describe("GDPS semantic frame vocabulary", () => {
     expect(frame.mentions.map((mention) => mention.surfaceText)).toEqual(["2号车"]);
   });
 
+  it.each(["相交", "穿过"])("retains model-backed Chinese %s spatial semantics", (operatorText) => {
+    const text = `查找与滨河路东段${operatorText}的道路要素。`;
+    const reference = "滨河路东段";
+    const product = "道路要素";
+    const referenceStart = text.indexOf(reference);
+    const productStart = text.indexOf(product);
+    const frame = stabilizeSemanticFrame({
+      ...empty,
+      mentions: [
+        {
+          mentionId: "reference",
+          surfaceText: reference,
+          span: { encoding: "UTF16_CODE_UNIT", start: referenceStart, end: referenceStart + reference.length }
+        },
+        {
+          mentionId: "product",
+          surfaceText: product,
+          span: { encoding: "UTF16_CODE_UNIT", start: productStart, end: productStart + product.length }
+        }
+      ],
+      spatialExpressions: [{ expressionId: "intersection", operator: "INTERSECTS", arguments: ["reference", "product"] }]
+    }, text);
+    expect(frame.spatialExpressions).toEqual([expect.objectContaining({ operator: "INTERSECTS" })]);
+    expect(frame.spatialExpressions[0]?.arguments).toHaveLength(1);
+    expect(frame.spatialExpressions[0]?.arguments.every((id) =>
+      frame.mentions.some((mention) => mention.mentionId === id))).toBe(true);
+  });
+
+  it("retains an exact road code used by a model-backed intersection relation", () => {
+    const text = "查找与RD-BH-E相交的道路要素。";
+    const surfaceText = "RD-BH-E";
+    const start = text.indexOf(surfaceText);
+    const frame = stabilizeSemanticFrame({
+      ...empty,
+      mentions: [{
+        mentionId: "road-code",
+        surfaceText,
+        span: { encoding: "UTF16_CODE_UNIT", start, end: start + surfaceText.length }
+      }],
+      relationExpressions: [{
+        expressionId: "intersection",
+        relationType: "INTERSECTS",
+        subjectMentionId: "road-code"
+      }]
+    }, text);
+    expect(frame.mentions).toEqual([expect.objectContaining({ surfaceText, expectedKinds: ["LAYER_FEATURE"] })]);
+    expect(frame.relationExpressions).toEqual([expect.objectContaining({ relationType: "INTERSECTS" })]);
+  });
+
   it.each([
     ["2号车当前位置是什么地表覆盖？", "LAND_COVER_AT_LOCATION"],
     ["A区内有哪些湿地？", "FIND_WETLANDS"],

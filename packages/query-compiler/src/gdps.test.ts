@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { TypedWorldQueryCompiler } from "./compiler.js";
 import { queryTemplateRules } from "./recipes.js";
-import { authorizeGdps, compileInput } from "./test-fixtures.js";
+import { authorizeGdps, compileInput, digest } from "./test-fixtures.js";
 import type {
   CapabilityDescriptor,
   CapabilitySemanticProfile,
@@ -36,7 +36,7 @@ const publishedOperationLock = JSON.parse(readFileSync(
   "utf8"
 )) as { defaultOperations: OperationLock[]; previewOperations: OperationLock[] };
 
-function usePublishedGdpsOperation(input: CompileInput, operationId: string): void {
+function usePublishedGdpsOperation(input: CompileInput, operationId: string, inputPortName?: string): void {
   const descriptor = publishedClosure.provider.manifest.capabilities.find((entry) =>
     entry.operationId === operationId && entry.operationVersion === "1.0");
   const semantic = publishedClosure.operations.find((entry) =>
@@ -45,8 +45,15 @@ function usePublishedGdpsOperation(input: CompileInput, operationId: string): vo
     .find((entry) => entry.operationId === operationId && entry.operationVersion === "1.0");
   if (!descriptor || !semantic || !lock) throw new Error(`PUBLISHED_GDPS_OPERATION_MISSING:${operationId}`);
 
+  const selectedDescriptor = inputPortName === undefined ? descriptor : {
+    ...descriptor,
+    ports: {
+      ...descriptor.ports,
+      inputs: descriptor.ports.inputs.map((port, index) => index === 0 ? { ...port, name: inputPortName } : port)
+    }
+  };
   input.capabilities = input.capabilities.map((entry) =>
-    entry.operationId === operationId && entry.operationVersion === "1.0" ? descriptor : entry);
+    entry.operationId === operationId && entry.operationVersion === "1.0" ? selectedDescriptor : entry);
   input.semanticProfiles = input.semanticProfiles.map((entry) =>
     entry.operationId === operationId && entry.operationVersion === "1.0"
       ? {
@@ -87,6 +94,77 @@ const genericCases: Array<readonly [QuerySemanticPattern, readonly string[], Rec
 describe("GDPS typed query plans", () => {
   const compiler = new TypedWorldQueryCompiler();
 
+  function trustedNearestApproachInput(): CompileInput {
+    const input = compileInput("STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT");
+    input.maturityPolicy.allowPreview = true;
+    input.operationInput = {
+      dataScopeId: "00000000-0000-4000-8000-000000000001",
+      dimensionPolicy: "2D",
+      timeRange: { end: "2026-08-13T01:00:06.000Z", start: "2026-08-13T01:00:00.000Z" },
+      trackletA: { trackletId: "40000000-0000-4000-8000-000000000001", versionNo: 1 },
+      trackletB: { trackletId: "40000000-0000-4000-8000-000000000002", versionNo: 1 },
+      uncertaintyPolicy: "NOMINAL_WITH_SCALAR_SENSITIVITY"
+    };
+    input.parameterValues = {};
+    authorizeGdps(input);
+    return input;
+  }
+
+  it("requires an exact trusted fixture lock for the STAS plus GDPS recipe", () => {
+    const input = trustedNearestApproachInput();
+
+    expect(compiler.compile(input)).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "SCHEMA_MISMATCH", details: { reason: "TRUSTED_OPERATION_INPUT_REQUIRED" } }
+    });
+  });
+
+  it("compiles locked nearest-approach geometry into two complementary current products", () => {
+    const input = trustedNearestApproachInput();
+    input.trustedOperationInput = {
+      source: "RUNTIME_FIXTURE_LOCK",
+      inputHash: digest(JSON.stringify(input.operationInput))
+    };
+
+    const result = compiler.compile(input);
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual([
+      "stas.nearest-approach",
+      "geo-raster.sample",
+      "geo-raster.sample"
+    ]);
+    for (const node of result.submission.plan.nodes.slice(1)) {
+      expect(node.inputs["pointCoordinates"]).toMatchObject({
+        kind: "NODE_OUTPUT",
+        nodeId: "Node_1",
+        outputPort: "result",
+        path: "/result/shortest_line/coordinates/0",
+        targetPath: "/point/coordinates"
+      });
+    }
+    expect(result.submission.plan.nodes[1]?.inputs).toMatchObject({
+      productType: { kind: "LITERAL", value: "SLOPE", targetPath: "/productType" },
+      productProfile: { kind: "LITERAL", value: "DEGREE", targetPath: "/productProfile" },
+      pointType: { kind: "LITERAL", value: "Point", targetPath: "/point/type" }
+    });
+    expect(result.submission.plan.nodes[2]?.inputs).toMatchObject({
+      productType: { kind: "LITERAL", value: "LAND_COVER", targetPath: "/productType" },
+      productProfile: { kind: "LITERAL", value: "DEFAULT", targetPath: "/productProfile" },
+      pointType: { kind: "LITERAL", value: "Point", targetPath: "/point/type" }
+    });
+    expect(result.submission.plan.outputs.map((output) => output.name)).toEqual([
+      "temporalEvidence", "slopeEvidence", "landCoverEvidence"
+    ]);
+    expect(JSON.stringify(result.submission.plan)).not.toMatch(/providerId|providerUrl|https?:\/\//iu);
+
+    (input.operationInput["trackletA"] as Record<string, unknown>)["versionNo"] = 2;
+    expect(compiler.compile(input)).toMatchObject({
+      status: "CAPABILITY_GAP",
+      gap: { reason: "SCHEMA_MISMATCH", details: { reason: "TRUSTED_OPERATION_INPUT_REQUIRED" } }
+    });
+  });
+
   it.each([
     "GDPS_WETLANDS_IN_AREA",
     "GDPS_BLOCKED_AREAS_IN_AREA",
@@ -98,10 +176,39 @@ describe("GDPS typed query plans", () => {
     ]);
   });
 
+  it.each([
+    "GDPS_GENERIC_SAMPLE_VALUE",
+    "GDPS_GENERIC_PROFILE_VALUE",
+    "GDPS_GENERIC_FIND_CLASS",
+    "GDPS_GENERIC_FIND_RANGE",
+    "GDPS_GENERIC_VECTOR_IN_AREA",
+    "GDPS_GENERIC_VECTOR_NEARBY",
+    "GDPS_GENERIC_VECTOR_INTERSECTS"
+  ] as const)("matches %s against the published generic GDPS request port", (pattern) => {
+    const domainRequirement = queryTemplateRules.find((rule) => rule.pattern === pattern)?.steps.at(-1)?.requirement;
+    expect(domainRequirement?.inputPorts).toEqual([
+      { name: "request", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }
+    ]);
+  });
+
   it("matches obstacle.find-nearby against its published NEAR semantics", () => {
     const requirement = queryTemplateRules
       .find((rule) => rule.pattern === "GDPS_OBSTACLES_NEAR_REFERENCE")?.steps.at(-1)?.requirement;
     expect(requirement?.relationSemantics).toEqual(["NEAR"]);
+  });
+
+  it("matches combined GDPS context against its published request/result ports", () => {
+    const steps = queryTemplateRules
+      .find((rule) => rule.pattern === "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT")?.steps.slice(1);
+    expect(steps).toHaveLength(2);
+    for (const step of steps ?? []) {
+      expect(step.requirement.inputPorts).toEqual([
+        { name: "request", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }
+      ]);
+      expect(step.requirement.outputPorts).toEqual([
+        { name: "result", valueKind: "ANY", unitSemantics: "UNSPECIFIED" }
+      ]);
+    }
   });
 
   it("rejects GDPS when only the global PREVIEW switch is enabled", () => {
@@ -111,6 +218,43 @@ describe("GDPS typed query plans", () => {
       status: "CAPABILITY_GAP",
       gap: { reason: "RECIPE_LOCK_DRIFT", details: { exactRecipeAuthorized: false } }
     });
+  });
+
+  it("compiles source currentness as one exact Gateway operation without a descriptor binding", () => {
+    const input = compileInput("GDPS_VALIDATE_SOURCE_CURRENTNESS");
+    input.maturityPolicy.allowPreview = true;
+    usePublishedGdpsOperation(input, "geo-product.check-current");
+    input.operationInput = {
+      productId: "gdps-baseline-dtm",
+      contentHash: `sha256:${"a".repeat(64)}`
+    };
+    const lock = input.operationLocks.find((entry) => entry.operationId === "geo-product.check-current")!;
+    input.gdpsRecipeAuthorization = {
+      recipeId: "gdps-check-current-geo-product",
+      semanticPattern: "GDPS_VALIDATE_SOURCE_CURRENTNESS",
+      recipeLockHash: `sha256:${"f".repeat(64)}`,
+      descriptorConstraint: null,
+      previewAuthorizationRequired: true,
+      allowedOperations: [{
+        operationId: lock.operationId,
+        operationVersion: lock.operationVersion,
+        inputSchemaHash: lock.inputSchemaHash,
+        outputSchemaHash: lock.outputSchemaHash,
+        semanticProfileHash: lock.semanticProfileHash
+      }]
+    };
+    input.trustedGdpsRecipeLockHash = input.gdpsRecipeAuthorization.recipeLockHash;
+    input.parameterValues = {};
+    const result = compiler.compile(input);
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.plan.nodes).toHaveLength(1);
+    expect(result.submission.plan.nodes[0]).toMatchObject({
+      operation: { operationId: "geo-product.check-current", operationVersion: "1.0" },
+      inputs: { request: { kind: "REQUEST_PATH", path: "/operationInput" } }
+    });
+    expect(result.submission.parameters).toEqual({ operationInput: input.operationInput });
+    expect(JSON.stringify(result.submission)).not.toContain("sourceProductId");
   });
 
   it.each(cases)("compiles explicitly locked recipe %s", (pattern, operations) => {
@@ -167,7 +311,7 @@ describe("GDPS typed query plans", () => {
   it.each(genericCases)("builds descriptor-driven generic plan %s", (pattern, operations, parameters) => {
     const input = compileInput(pattern);
     input.maturityPolicy.allowPreview = true;
-    usePublishedGdpsOperation(input, operations.at(-1)!);
+    usePublishedGdpsOperation(input, operations.at(-1)!, "request");
     authorizeGdps(input, {
       descriptorId: pattern.includes("VECTOR") ? "DRAINAGE_NETWORK/DRAINAGE_FEATURES" : "SLOPE/DEGREE",
       productType: pattern.includes("VECTOR") ? "DRAINAGE_NETWORK" : "SLOPE",
@@ -183,8 +327,14 @@ describe("GDPS typed query plans", () => {
       productProfile: expect.objectContaining({ kind: "LITERAL", targetPath: "/productProfile" })
     }));
     for (const [name, value] of Object.entries(parameters)) {
-      expect(result.submission.plan.nodes.at(-1)?.inputs[name === "distanceM" ? "distanceMetres" : name])
-        .toMatchObject({ kind: "LITERAL", value });
+      const bindingName = name === "distanceM" ? "distanceMetres" : name;
+      const expectedSchemaUri = name === "distanceM"
+        ? "urn:gowm:v0.2:value:number"
+        : name === "propertyFilters"
+          ? "urn:gowm:v0.2:value:object"
+          : "urn:gowm:v0.2:value:array";
+      expect(result.submission.plan.nodes.at(-1)?.inputs[bindingName])
+        .toMatchObject({ kind: "LITERAL", value, port: { schemaUri: expectedSchemaUri } });
     }
     if (pattern === "GDPS_GENERIC_SAMPLE_VALUE" || pattern === "GDPS_GENERIC_VECTOR_NEARBY") {
       expect(result.submission.plan.nodes.at(-1)?.inputs["pointType"]).toMatchObject({

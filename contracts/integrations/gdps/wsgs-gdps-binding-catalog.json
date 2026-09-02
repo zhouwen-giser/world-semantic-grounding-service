@@ -1,0 +1,3226 @@
+{
+  "schemaVersion": "wsgs-gdps-binding-catalog/1.0",
+  "authority": "WSGS",
+  "policy": {
+    "defaultProductIdBinding": "FORBIDDEN",
+    "explicitUserProductSelection": "ALLOWED",
+    "requiresExactSchemaHashes": true,
+    "requiresExactSemanticHash": true,
+    "requiresExactDescriptorHash": true,
+    "historicalFallback": "FORBIDDEN"
+  },
+  "operationFamilies": [
+    {
+      "familyId": "CURRENT_PRODUCT_GET",
+      "operationId": "geo-product.get",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:f0b37c6d8bb07a27c2223eb81b735255da22d421a26faae5a7e8d948e78a0645",
+      "outputSchemaHash": "sha256:8c20cfba8a4f7d54ad043e2a8e949441b92b34771cffced562c5c090df2f93a3",
+      "semanticProfileHash": "sha256:8ec1455b0ecd48325fbc30e37ddc445f2f9fcf26d0b7fc1472b2a33b2f839ce8",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "GET",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_PRODUCT_SEARCH",
+      "operationId": "geo-product.search",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:b951f1d5b3eadbe3fda99131d8dd9cfab851ab34f0ebe033e2b9550b97efa4b7",
+      "outputSchemaHash": "sha256:bac750f1d3772e12cab7894794f61bd75a70e6de0d8aeadcfe2c0efd864d6d86",
+      "semanticProfileHash": "sha256:a2a5a88a5028adddebc3e13f897b6306db1b96e47bbc367e66e057b7f09d8651",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "SEARCH",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_PRODUCT_CHECK",
+      "operationId": "geo-product.check-current",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:284dd239dba4acd2fbc0a3a8d31a7bc7fa1783218b85ee5c9dce4ed19ac27ed9",
+      "outputSchemaHash": "sha256:67ef7be1d9057705654ce3a17f91c6c76b96dd176384b86e2a2eb269cdf0c475",
+      "semanticProfileHash": "sha256:69f1a115e6dcb55d6c5dbe589c9b486fb5ac708aeeec03282c6b665905182034",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "CHECK_CURRENT",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "SAMPLE",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "PROFILE",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "FIND_CLASS",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "FIND_RANGE",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "IN_AREA",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "NEARBY",
+      "timeSemantics": "CURRENT"
+    },
+    {
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "queryProfile": "INTERSECTS",
+      "timeSemantics": "CURRENT"
+    }
+  ],
+  "bindings": [
+    {
+      "bindingId": "ELEVATION_DTM/DEFAULT::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "ELEVATION_DTM",
+      "productProfile": "DEFAULT",
+      "descriptorId": "ELEVATION_DTM/DEFAULT",
+      "descriptorHash": "sha256:7e033d18b36916c2e9db8951b3211769dda96244bbfc4d43fc05854f771b93db",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ELEVATION_DTM/DEFAULT::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "ELEVATION_DTM",
+      "productProfile": "DEFAULT",
+      "descriptorId": "ELEVATION_DTM/DEFAULT",
+      "descriptorHash": "sha256:7e033d18b36916c2e9db8951b3211769dda96244bbfc4d43fc05854f771b93db",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ELEVATION_DSM/DEFAULT::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "ELEVATION_DSM",
+      "productProfile": "DEFAULT",
+      "descriptorId": "ELEVATION_DSM/DEFAULT",
+      "descriptorHash": "sha256:0cb51b27447449e8ce3337002d88f20eb8700b163a43243414ace14abbab08db",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ELEVATION_DSM/DEFAULT::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "ELEVATION_DSM",
+      "productProfile": "DEFAULT",
+      "descriptorId": "ELEVATION_DSM/DEFAULT",
+      "descriptorHash": "sha256:0cb51b27447449e8ce3337002d88f20eb8700b163a43243414ace14abbab08db",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "LAND_COVER/DEFAULT::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "LAND_COVER",
+      "productProfile": "DEFAULT",
+      "descriptorId": "LAND_COVER/DEFAULT",
+      "descriptorHash": "sha256:7056d986494a8a659bec339ae623b1dba4390358261151ff3fd7aceb33f18599",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "LAND_COVER/DEFAULT::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "LAND_COVER",
+      "productProfile": "DEFAULT",
+      "descriptorId": "LAND_COVER/DEFAULT",
+      "descriptorHash": "sha256:7056d986494a8a659bec339ae623b1dba4390358261151ff3fd7aceb33f18599",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "TERRAIN_FORM/DEFAULT::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "TERRAIN_FORM",
+      "productProfile": "DEFAULT",
+      "descriptorId": "TERRAIN_FORM/DEFAULT",
+      "descriptorHash": "sha256:3c08d74de6b8fe30ee508e8dd42679a40b022f72d83d86d046879bb7be824822",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "TERRAIN_FORM/DEFAULT::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "TERRAIN_FORM",
+      "productProfile": "DEFAULT",
+      "descriptorId": "TERRAIN_FORM/DEFAULT",
+      "descriptorHash": "sha256:3c08d74de6b8fe30ee508e8dd42679a40b022f72d83d86d046879bb7be824822",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SURFACE_WATER/DEFAULT::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "SURFACE_WATER",
+      "productProfile": "DEFAULT",
+      "descriptorId": "SURFACE_WATER/DEFAULT",
+      "descriptorHash": "sha256:48f79814657001fd4c4812d4d98ab7454d57f4c0170a92f0c0c24650b1eb93b6",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SURFACE_WATER/DEFAULT::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "SURFACE_WATER",
+      "productProfile": "DEFAULT",
+      "descriptorId": "SURFACE_WATER/DEFAULT",
+      "descriptorHash": "sha256:48f79814657001fd4c4812d4d98ab7454d57f4c0170a92f0c0c24650b1eb93b6",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "WETLAND/DEFAULT::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "WETLAND",
+      "productProfile": "DEFAULT",
+      "descriptorId": "WETLAND/DEFAULT",
+      "descriptorHash": "sha256:8918e4e18fa602e8afa62e75c87f765c9b29649a14dbb6ad7b891fe255938800",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "WETLAND/DEFAULT::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "WETLAND",
+      "productProfile": "DEFAULT",
+      "descriptorId": "WETLAND/DEFAULT",
+      "descriptorHash": "sha256:8918e4e18fa602e8afa62e75c87f765c9b29649a14dbb6ad7b891fe255938800",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SURFACE_MATERIAL/DEFAULT::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "SURFACE_MATERIAL",
+      "productProfile": "DEFAULT",
+      "descriptorId": "SURFACE_MATERIAL/DEFAULT",
+      "descriptorHash": "sha256:72e0fa7e7739cdb3ae0d97111bbce0f690a174185436469732598a437799b614",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SURFACE_MATERIAL/DEFAULT::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "SURFACE_MATERIAL",
+      "productProfile": "DEFAULT",
+      "descriptorId": "SURFACE_MATERIAL/DEFAULT",
+      "descriptorHash": "sha256:72e0fa7e7739cdb3ae0d97111bbce0f690a174185436469732598a437799b614",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BUILDING/DEFAULT::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "BUILDING",
+      "productProfile": "DEFAULT",
+      "descriptorId": "BUILDING/DEFAULT",
+      "descriptorHash": "sha256:c0640caad75bb218e7abbeece9e571d1d8033ec9503beeba16c8a193357b60ed",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BUILDING/DEFAULT::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "BUILDING",
+      "productProfile": "DEFAULT",
+      "descriptorId": "BUILDING/DEFAULT",
+      "descriptorHash": "sha256:c0640caad75bb218e7abbeece9e571d1d8033ec9503beeba16c8a193357b60ed",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BUILDING/DEFAULT::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "BUILDING",
+      "productProfile": "DEFAULT",
+      "descriptorId": "BUILDING/DEFAULT",
+      "descriptorHash": "sha256:c0640caad75bb218e7abbeece9e571d1d8033ec9503beeba16c8a193357b60ed",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "OBSTACLE/DEFAULT::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "OBSTACLE",
+      "productProfile": "DEFAULT",
+      "descriptorId": "OBSTACLE/DEFAULT",
+      "descriptorHash": "sha256:bdaa5c2265dd0b9a039abd647f37f4a7bf9137b556190be71df28172cb1fee74",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "OBSTACLE/DEFAULT::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "OBSTACLE",
+      "productProfile": "DEFAULT",
+      "descriptorId": "OBSTACLE/DEFAULT",
+      "descriptorHash": "sha256:bdaa5c2265dd0b9a039abd647f37f4a7bf9137b556190be71df28172cb1fee74",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "OBSTACLE/DEFAULT::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "OBSTACLE",
+      "productProfile": "DEFAULT",
+      "descriptorId": "OBSTACLE/DEFAULT",
+      "descriptorHash": "sha256:bdaa5c2265dd0b9a039abd647f37f4a7bf9137b556190be71df28172cb1fee74",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "UGV_TRAVERSABILITY/DEFAULT::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "UGV_TRAVERSABILITY",
+      "productProfile": "DEFAULT",
+      "descriptorId": "UGV_TRAVERSABILITY/DEFAULT",
+      "descriptorHash": "sha256:b3395f17c44c4bccca5199e350e3f73be70c1436a40271f8c99c686e9fb182cf",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "REQUIRED",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "UGV_TRAVERSABILITY/DEFAULT::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "UGV_TRAVERSABILITY",
+      "productProfile": "DEFAULT",
+      "descriptorId": "UGV_TRAVERSABILITY/DEFAULT",
+      "descriptorHash": "sha256:b3395f17c44c4bccca5199e350e3f73be70c1436a40271f8c99c686e9fb182cf",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "REQUIRED",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "VEGETATION_STRUCTURE/CANOPY_HEIGHT_M::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "VEGETATION_STRUCTURE",
+      "productProfile": "CANOPY_HEIGHT_M",
+      "descriptorId": "VEGETATION_STRUCTURE/CANOPY_HEIGHT_M",
+      "descriptorHash": "sha256:304dd4a566ef25012ae9358d575648b868c8cae300a583da2be46dd749ece930",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "VEGETATION_STRUCTURE/CANOPY_HEIGHT_M::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "VEGETATION_STRUCTURE",
+      "productProfile": "CANOPY_HEIGHT_M",
+      "descriptorId": "VEGETATION_STRUCTURE/CANOPY_HEIGHT_M",
+      "descriptorHash": "sha256:304dd4a566ef25012ae9358d575648b868c8cae300a583da2be46dd749ece930",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "VEGETATION_STRUCTURE/CANOPY_HEIGHT_M::FIND_VALUE_RANGE",
+      "requirementKind": "VALUE_RANGE_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "productType": "VEGETATION_STRUCTURE",
+      "productProfile": "CANOPY_HEIGHT_M",
+      "descriptorId": "VEGETATION_STRUCTURE/CANOPY_HEIGHT_M",
+      "descriptorHash": "sha256:304dd4a566ef25012ae9358d575648b868c8cae300a583da2be46dd749ece930",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "VEGETATION_STRUCTURE/VEGETATION_DENSITY_CLASS::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "VEGETATION_STRUCTURE",
+      "productProfile": "VEGETATION_DENSITY_CLASS",
+      "descriptorId": "VEGETATION_STRUCTURE/VEGETATION_DENSITY_CLASS",
+      "descriptorHash": "sha256:b762f0e2b5b38b53c791b4a3eee0b29649fc8effc56bc5840e2b917996903ccf",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "VEGETATION_STRUCTURE/VEGETATION_DENSITY_CLASS::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "VEGETATION_STRUCTURE",
+      "productProfile": "VEGETATION_DENSITY_CLASS",
+      "descriptorId": "VEGETATION_STRUCTURE/VEGETATION_DENSITY_CLASS",
+      "descriptorHash": "sha256:b762f0e2b5b38b53c791b4a3eee0b29649fc8effc56bc5840e2b917996903ccf",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "DRAINAGE_NETWORK/DRAINAGE_FEATURES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "DRAINAGE_NETWORK",
+      "productProfile": "DRAINAGE_FEATURES",
+      "descriptorId": "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+      "descriptorHash": "sha256:0a9169a48da947a20cbf597c07a09613d3f46a36d3686d594bad5e8d13adb0d1",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "DRAINAGE_NETWORK/DRAINAGE_FEATURES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "DRAINAGE_NETWORK",
+      "productProfile": "DRAINAGE_FEATURES",
+      "descriptorId": "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+      "descriptorHash": "sha256:0a9169a48da947a20cbf597c07a09613d3f46a36d3686d594bad5e8d13adb0d1",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "DRAINAGE_NETWORK/DRAINAGE_FEATURES::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "DRAINAGE_NETWORK",
+      "productProfile": "DRAINAGE_FEATURES",
+      "descriptorId": "DRAINAGE_NETWORK/DRAINAGE_FEATURES",
+      "descriptorHash": "sha256:0a9169a48da947a20cbf597c07a09613d3f46a36d3686d594bad5e8d13adb0d1",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "FLOOD_RISK/FLOOD_RISK_CLASS::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "FLOOD_RISK",
+      "productProfile": "FLOOD_RISK_CLASS",
+      "descriptorId": "FLOOD_RISK/FLOOD_RISK_CLASS",
+      "descriptorHash": "sha256:e2fdf01ee5fd97d2660f67f570de581671e5125c441f0e3578ff8b6aaecbc261",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "FLOOD_RISK/FLOOD_RISK_CLASS::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "FLOOD_RISK",
+      "productProfile": "FLOOD_RISK_CLASS",
+      "descriptorId": "FLOOD_RISK/FLOOD_RISK_CLASS",
+      "descriptorHash": "sha256:e2fdf01ee5fd97d2660f67f570de581671e5125c441f0e3578ff8b6aaecbc261",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ROBOT_DOG_TRAVERSABILITY/TRAVERSABILITY_CLASS::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "ROBOT_DOG_TRAVERSABILITY",
+      "productProfile": "TRAVERSABILITY_CLASS",
+      "descriptorId": "ROBOT_DOG_TRAVERSABILITY/TRAVERSABILITY_CLASS",
+      "descriptorHash": "sha256:a14bb713bd11cb26f075701360f16e04a295fa4f57c683c71dd875f8fe0c4daa",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "REQUIRED",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ROBOT_DOG_TRAVERSABILITY/TRAVERSABILITY_CLASS::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "ROBOT_DOG_TRAVERSABILITY",
+      "productProfile": "TRAVERSABILITY_CLASS",
+      "descriptorId": "ROBOT_DOG_TRAVERSABILITY/TRAVERSABILITY_CLASS",
+      "descriptorHash": "sha256:a14bb713bd11cb26f075701360f16e04a295fa4f57c683c71dd875f8fe0c4daa",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "REQUIRED",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "GROUND_BEARING_CAPACITY/BEARING_CAPACITY_KPA::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "GROUND_BEARING_CAPACITY",
+      "productProfile": "BEARING_CAPACITY_KPA",
+      "descriptorId": "GROUND_BEARING_CAPACITY/BEARING_CAPACITY_KPA",
+      "descriptorHash": "sha256:f52bf3f62690892b761cdf9a1318edb5dbdfc112b702c1727866900808eacfec",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "GROUND_BEARING_CAPACITY/BEARING_CAPACITY_KPA::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "GROUND_BEARING_CAPACITY",
+      "productProfile": "BEARING_CAPACITY_KPA",
+      "descriptorId": "GROUND_BEARING_CAPACITY/BEARING_CAPACITY_KPA",
+      "descriptorHash": "sha256:f52bf3f62690892b761cdf9a1318edb5dbdfc112b702c1727866900808eacfec",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "GROUND_BEARING_CAPACITY/BEARING_CAPACITY_KPA::FIND_VALUE_RANGE",
+      "requirementKind": "VALUE_RANGE_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "productType": "GROUND_BEARING_CAPACITY",
+      "productProfile": "BEARING_CAPACITY_KPA",
+      "descriptorId": "GROUND_BEARING_CAPACITY/BEARING_CAPACITY_KPA",
+      "descriptorHash": "sha256:f52bf3f62690892b761cdf9a1318edb5dbdfc112b702c1727866900808eacfec",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "UAV_RESTRICTION/RESTRICTION_ZONES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "UAV_RESTRICTION",
+      "productProfile": "RESTRICTION_ZONES",
+      "descriptorId": "UAV_RESTRICTION/RESTRICTION_ZONES",
+      "descriptorHash": "sha256:aee15208b2b26f3228f9fde7ba2b01cb2afa80780a3e9b0ec2bd252c1a96afa5",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "UAV_RESTRICTION/RESTRICTION_ZONES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "UAV_RESTRICTION",
+      "productProfile": "RESTRICTION_ZONES",
+      "descriptorId": "UAV_RESTRICTION/RESTRICTION_ZONES",
+      "descriptorHash": "sha256:aee15208b2b26f3228f9fde7ba2b01cb2afa80780a3e9b0ec2bd252c1a96afa5",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "UAV_RESTRICTION/RESTRICTION_ZONES::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "UAV_RESTRICTION",
+      "productProfile": "RESTRICTION_ZONES",
+      "descriptorId": "UAV_RESTRICTION/RESTRICTION_ZONES",
+      "descriptorHash": "sha256:aee15208b2b26f3228f9fde7ba2b01cb2afa80780a3e9b0ec2bd252c1a96afa5",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "LANDING_ZONE_SUITABILITY/SUITABILITY_CLASS::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "LANDING_ZONE_SUITABILITY",
+      "productProfile": "SUITABILITY_CLASS",
+      "descriptorId": "LANDING_ZONE_SUITABILITY/SUITABILITY_CLASS",
+      "descriptorHash": "sha256:25c13f8f07e41026152df6412e407100d31abf4027bf2ad78ecf856f22dbcc0a",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "LANDING_ZONE_SUITABILITY/SUITABILITY_CLASS::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "LANDING_ZONE_SUITABILITY",
+      "productProfile": "SUITABILITY_CLASS",
+      "descriptorId": "LANDING_ZONE_SUITABILITY/SUITABILITY_CLASS",
+      "descriptorHash": "sha256:25c13f8f07e41026152df6412e407100d31abf4027bf2ad78ecf856f22dbcc0a",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "VISIBILITY_COVERAGE/VISIBLE_BOOLEAN::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "VISIBILITY_COVERAGE",
+      "productProfile": "VISIBLE_BOOLEAN",
+      "descriptorId": "VISIBILITY_COVERAGE/VISIBLE_BOOLEAN",
+      "descriptorHash": "sha256:a94109944a635895744b00a4fd98ab7c26c960a287aac4819a4f67e0521fbe9e",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "VISIBILITY_COVERAGE/VISIBLE_BOOLEAN::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "VISIBILITY_COVERAGE",
+      "productProfile": "VISIBLE_BOOLEAN",
+      "descriptorId": "VISIBILITY_COVERAGE/VISIBLE_BOOLEAN",
+      "descriptorHash": "sha256:a94109944a635895744b00a4fd98ab7c26c960a287aac4819a4f67e0521fbe9e",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "OBSERVATION_SITE_SUITABILITY/SITE_FEATURES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "OBSERVATION_SITE_SUITABILITY",
+      "productProfile": "SITE_FEATURES",
+      "descriptorId": "OBSERVATION_SITE_SUITABILITY/SITE_FEATURES",
+      "descriptorHash": "sha256:73176afffc8529ece0b86d26c2fc6cb097ddf6aa63bb67e999196fb879bac7b4",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "OBSERVATION_SITE_SUITABILITY/SITE_FEATURES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "OBSERVATION_SITE_SUITABILITY",
+      "productProfile": "SITE_FEATURES",
+      "descriptorId": "OBSERVATION_SITE_SUITABILITY/SITE_FEATURES",
+      "descriptorHash": "sha256:73176afffc8529ece0b86d26c2fc6cb097ddf6aa63bb67e999196fb879bac7b4",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "COMMUNICATION_COVERAGE/SIGNAL_STRENGTH_DBM::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "COMMUNICATION_COVERAGE",
+      "productProfile": "SIGNAL_STRENGTH_DBM",
+      "descriptorId": "COMMUNICATION_COVERAGE/SIGNAL_STRENGTH_DBM",
+      "descriptorHash": "sha256:0807d0bae18d0f055e3f7ad29d0b75abda990beef84209c6c7b77a7d924f9785",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "COMMUNICATION_COVERAGE/SIGNAL_STRENGTH_DBM::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "COMMUNICATION_COVERAGE",
+      "productProfile": "SIGNAL_STRENGTH_DBM",
+      "descriptorId": "COMMUNICATION_COVERAGE/SIGNAL_STRENGTH_DBM",
+      "descriptorHash": "sha256:0807d0bae18d0f055e3f7ad29d0b75abda990beef84209c6c7b77a7d924f9785",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "COMMUNICATION_COVERAGE/SIGNAL_STRENGTH_DBM::FIND_VALUE_RANGE",
+      "requirementKind": "VALUE_RANGE_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "productType": "COMMUNICATION_COVERAGE",
+      "productProfile": "SIGNAL_STRENGTH_DBM",
+      "descriptorId": "COMMUNICATION_COVERAGE/SIGNAL_STRENGTH_DBM",
+      "descriptorHash": "sha256:0807d0bae18d0f055e3f7ad29d0b75abda990beef84209c6c7b77a7d924f9785",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ASSEMBLY_AREA_SUITABILITY/SITE_FEATURES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "ASSEMBLY_AREA_SUITABILITY",
+      "productProfile": "SITE_FEATURES",
+      "descriptorId": "ASSEMBLY_AREA_SUITABILITY/SITE_FEATURES",
+      "descriptorHash": "sha256:001b380bbf17923d324cef844dd23c495662c0da8794da036120fcbf90b0d6e6",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ASSEMBLY_AREA_SUITABILITY/SITE_FEATURES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "ASSEMBLY_AREA_SUITABILITY",
+      "productProfile": "SITE_FEATURES",
+      "descriptorId": "ASSEMBLY_AREA_SUITABILITY/SITE_FEATURES",
+      "descriptorHash": "sha256:001b380bbf17923d324cef844dd23c495662c0da8794da036120fcbf90b0d6e6",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ASSEMBLY_AREA_SUITABILITY/SITE_FEATURES::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "ASSEMBLY_AREA_SUITABILITY",
+      "productProfile": "SITE_FEATURES",
+      "descriptorId": "ASSEMBLY_AREA_SUITABILITY/SITE_FEATURES",
+      "descriptorHash": "sha256:001b380bbf17923d324cef844dd23c495662c0da8794da036120fcbf90b0d6e6",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SLOPE/DEGREE::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "SLOPE",
+      "productProfile": "DEGREE",
+      "descriptorId": "SLOPE/DEGREE",
+      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SLOPE/DEGREE::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "SLOPE",
+      "productProfile": "DEGREE",
+      "descriptorId": "SLOPE/DEGREE",
+      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SLOPE/DEGREE::FIND_VALUE_RANGE",
+      "requirementKind": "VALUE_RANGE_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "productType": "SLOPE",
+      "productProfile": "DEGREE",
+      "descriptorId": "SLOPE/DEGREE",
+      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ASPECT/DEGREE::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "ASPECT",
+      "productProfile": "DEGREE",
+      "descriptorId": "ASPECT/DEGREE",
+      "descriptorHash": "sha256:d3887a25742bda9778deba8f093dedbcf44c178d87abc90899f7e632dccf9f72",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ASPECT/DEGREE::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "ASPECT",
+      "productProfile": "DEGREE",
+      "descriptorId": "ASPECT/DEGREE",
+      "descriptorHash": "sha256:d3887a25742bda9778deba8f093dedbcf44c178d87abc90899f7e632dccf9f72",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ASPECT/DEGREE::FIND_VALUE_RANGE",
+      "requirementKind": "VALUE_RANGE_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "productType": "ASPECT",
+      "productProfile": "DEGREE",
+      "descriptorId": "ASPECT/DEGREE",
+      "descriptorHash": "sha256:d3887a25742bda9778deba8f093dedbcf44c178d87abc90899f7e632dccf9f72",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "TERRAIN_ROUGHNESS/TRI_SCORE::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "TERRAIN_ROUGHNESS",
+      "productProfile": "TRI_SCORE",
+      "descriptorId": "TERRAIN_ROUGHNESS/TRI_SCORE",
+      "descriptorHash": "sha256:9110321ef82f8f5e906d3fb9ad493d2b6e10120f6ea6c095d188bed2e08b002a",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "TERRAIN_ROUGHNESS/TRI_SCORE::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "TERRAIN_ROUGHNESS",
+      "productProfile": "TRI_SCORE",
+      "descriptorId": "TERRAIN_ROUGHNESS/TRI_SCORE",
+      "descriptorHash": "sha256:9110321ef82f8f5e906d3fb9ad493d2b6e10120f6ea6c095d188bed2e08b002a",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "TERRAIN_ROUGHNESS/TRI_SCORE::FIND_VALUE_RANGE",
+      "requirementKind": "VALUE_RANGE_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "productType": "TERRAIN_ROUGHNESS",
+      "productProfile": "TRI_SCORE",
+      "descriptorId": "TERRAIN_ROUGHNESS/TRI_SCORE",
+      "descriptorHash": "sha256:9110321ef82f8f5e906d3fb9ad493d2b6e10120f6ea6c095d188bed2e08b002a",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SOIL_TYPE/SOIL_CLASS::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "SOIL_TYPE",
+      "productProfile": "SOIL_CLASS",
+      "descriptorId": "SOIL_TYPE/SOIL_CLASS",
+      "descriptorHash": "sha256:f8491a8b671ea1b8a5a3b8f06830d735e72dd8427ff66e2f30ae9a0353b2958d",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SOIL_TYPE/SOIL_CLASS::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "SOIL_TYPE",
+      "productProfile": "SOIL_CLASS",
+      "descriptorId": "SOIL_TYPE/SOIL_CLASS",
+      "descriptorHash": "sha256:f8491a8b671ea1b8a5a3b8f06830d735e72dd8427ff66e2f30ae9a0353b2958d",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SOIL_MOISTURE_CLASS/MOISTURE_CLASS::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "SOIL_MOISTURE_CLASS",
+      "productProfile": "MOISTURE_CLASS",
+      "descriptorId": "SOIL_MOISTURE_CLASS/MOISTURE_CLASS",
+      "descriptorHash": "sha256:98497e395c5fe0003e1db01a966c709e3a9600e505a4e6864042cc579127ab9d",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "SOIL_MOISTURE_CLASS/MOISTURE_CLASS::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "SOIL_MOISTURE_CLASS",
+      "productProfile": "MOISTURE_CLASS",
+      "descriptorId": "SOIL_MOISTURE_CLASS/MOISTURE_CLASS",
+      "descriptorHash": "sha256:98497e395c5fe0003e1db01a966c709e3a9600e505a4e6864042cc579127ab9d",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "GROUND_STABILITY/STABILITY_CLASS::SAMPLE_CLASS",
+      "requirementKind": "POINT_CLASSIFICATION",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "GROUND_STABILITY",
+      "productProfile": "STABILITY_CLASS",
+      "descriptorId": "GROUND_STABILITY/STABILITY_CLASS",
+      "descriptorHash": "sha256:fb5014c7769c5c851b26a6f829373036a7502c3a4b4b97a1f18a7b6d4dbff82c",
+      "queryProfile": "SAMPLE_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "GROUND_STABILITY/STABILITY_CLASS::FIND_CLASS",
+      "requirementKind": "CLASS_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-class",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_CLASS",
+      "productType": "GROUND_STABILITY",
+      "productProfile": "STABILITY_CLASS",
+      "descriptorId": "GROUND_STABILITY/STABILITY_CLASS",
+      "descriptorHash": "sha256:fb5014c7769c5c851b26a6f829373036a7502c3a4b4b97a1f18a7b6d4dbff82c",
+      "queryProfile": "FIND_CLASS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:14420aab786d8ec86249f284c6f65830f8ab4ffec0e2f4e231bc8c6be544581a",
+      "outputSchemaHash": "sha256:1dedcf579484d528a24f692310e4ee43a255e9d465ed2fcb0c7d1a2c4d9b43b3",
+      "semanticProfileHash": "sha256:cd43bc2e592a272771a323b34c8e6ee19eb630d51ab6f69460b9cb1444cb3d80",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ROAD_SOURCE/ROAD_FEATURES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "ROAD_SOURCE",
+      "productProfile": "ROAD_FEATURES",
+      "descriptorId": "ROAD_SOURCE/ROAD_FEATURES",
+      "descriptorHash": "sha256:0c9e09e215512f2c8986ec65b62322826665ef6320b0524e96281938a64cedfb",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ROAD_SOURCE/ROAD_FEATURES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "ROAD_SOURCE",
+      "productProfile": "ROAD_FEATURES",
+      "descriptorId": "ROAD_SOURCE/ROAD_FEATURES",
+      "descriptorHash": "sha256:0c9e09e215512f2c8986ec65b62322826665ef6320b0524e96281938a64cedfb",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "ROAD_SOURCE/ROAD_FEATURES::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "ROAD_SOURCE",
+      "productProfile": "ROAD_FEATURES",
+      "descriptorId": "ROAD_SOURCE/ROAD_FEATURES",
+      "descriptorHash": "sha256:0c9e09e215512f2c8986ec65b62322826665ef6320b0524e96281938a64cedfb",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BRIDGE/BRIDGE_FEATURES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "BRIDGE",
+      "productProfile": "BRIDGE_FEATURES",
+      "descriptorId": "BRIDGE/BRIDGE_FEATURES",
+      "descriptorHash": "sha256:4493a5b7addf8977c4576af751a51a7fe2450f35aba4e97d0bb5eba72845fe9e",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BRIDGE/BRIDGE_FEATURES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "BRIDGE",
+      "productProfile": "BRIDGE_FEATURES",
+      "descriptorId": "BRIDGE/BRIDGE_FEATURES",
+      "descriptorHash": "sha256:4493a5b7addf8977c4576af751a51a7fe2450f35aba4e97d0bb5eba72845fe9e",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BRIDGE/BRIDGE_FEATURES::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "BRIDGE",
+      "productProfile": "BRIDGE_FEATURES",
+      "descriptorId": "BRIDGE/BRIDGE_FEATURES",
+      "descriptorHash": "sha256:4493a5b7addf8977c4576af751a51a7fe2450f35aba4e97d0bb5eba72845fe9e",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "TUNNEL/TUNNEL_FEATURES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "TUNNEL",
+      "productProfile": "TUNNEL_FEATURES",
+      "descriptorId": "TUNNEL/TUNNEL_FEATURES",
+      "descriptorHash": "sha256:e2b1e7f8e4b3503f255b9ca215cc44f2222365a37bbbde5619b394f495d2da57",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "TUNNEL/TUNNEL_FEATURES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "TUNNEL",
+      "productProfile": "TUNNEL_FEATURES",
+      "descriptorId": "TUNNEL/TUNNEL_FEATURES",
+      "descriptorHash": "sha256:e2b1e7f8e4b3503f255b9ca215cc44f2222365a37bbbde5619b394f495d2da57",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "TUNNEL/TUNNEL_FEATURES::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "TUNNEL",
+      "productProfile": "TUNNEL_FEATURES",
+      "descriptorId": "TUNNEL/TUNNEL_FEATURES",
+      "descriptorHash": "sha256:e2b1e7f8e4b3503f255b9ca215cc44f2222365a37bbbde5619b394f495d2da57",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "FORD/FORD_FEATURES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "FORD",
+      "productProfile": "FORD_FEATURES",
+      "descriptorId": "FORD/FORD_FEATURES",
+      "descriptorHash": "sha256:a587aed6f18219c8128908cd0d86813291c992287a8050539f38c545307b161b",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "FORD/FORD_FEATURES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "FORD",
+      "productProfile": "FORD_FEATURES",
+      "descriptorId": "FORD/FORD_FEATURES",
+      "descriptorHash": "sha256:a587aed6f18219c8128908cd0d86813291c992287a8050539f38c545307b161b",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "FORD/FORD_FEATURES::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "FORD",
+      "productProfile": "FORD_FEATURES",
+      "descriptorId": "FORD/FORD_FEATURES",
+      "descriptorHash": "sha256:a587aed6f18219c8128908cd0d86813291c992287a8050539f38c545307b161b",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "CULVERT/CULVERT_FEATURES::VECTOR_IN_AREA",
+      "requirementKind": "FEATURES_IN_AREA",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-in-area",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_IN_AREA",
+      "productType": "CULVERT",
+      "productProfile": "CULVERT_FEATURES",
+      "descriptorId": "CULVERT/CULVERT_FEATURES",
+      "descriptorHash": "sha256:aac4ddefa3144fab61d985f17b1e25767507ad4cc3401f9301de3bebffa39878",
+      "queryProfile": "VECTOR_IN_AREA",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:50cc257202bc08ed59edd875c6d10fedd981b5433019890e3fbe26b0dfb5628d",
+      "outputSchemaHash": "sha256:6f5bf35c10ddc6abad03063ed907a2852708daf2405c5e7956ca6f33e6bb1651",
+      "semanticProfileHash": "sha256:9ce0aba49412495d420c5e3a069a83f3748d883124aa65f34aed800126e40919",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "CULVERT/CULVERT_FEATURES::VECTOR_NEARBY",
+      "requirementKind": "FEATURES_NEARBY",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-nearby",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_NEARBY",
+      "productType": "CULVERT",
+      "productProfile": "CULVERT_FEATURES",
+      "descriptorId": "CULVERT/CULVERT_FEATURES",
+      "descriptorHash": "sha256:aac4ddefa3144fab61d985f17b1e25767507ad4cc3401f9301de3bebffa39878",
+      "queryProfile": "VECTOR_NEARBY",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:a9d1b2603e28391edcdbe719b7a5ba50eb219e98a15108918ae9dff6a434e391",
+      "outputSchemaHash": "sha256:a1df3608bf76e11b79b291db197be30638896a5f56a1395c555a4250233a6d7d",
+      "semanticProfileHash": "sha256:5cb080097fe97c67b8bfcdf666be00c8218aa3d35a7dd80604fc707cc0ddde4a",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "CULVERT/CULVERT_FEATURES::VECTOR_INTERSECTS",
+      "requirementKind": "INTERSECTIONS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-vector.find-intersections",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_VECTOR_INTERSECTS",
+      "productType": "CULVERT",
+      "productProfile": "CULVERT_FEATURES",
+      "descriptorId": "CULVERT/CULVERT_FEATURES",
+      "descriptorHash": "sha256:aac4ddefa3144fab61d985f17b1e25767507ad4cc3401f9301de3bebffa39878",
+      "queryProfile": "VECTOR_INTERSECTS",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:86d32f555d2af75d5c017ce3cb6494c800648e8fdebedabeb60c9f19cf9e0b16",
+      "outputSchemaHash": "sha256:b9955d7e09a5dc5a007c87bdc2f6cd2dabf3a1ffd6df7d37d2df75b20b00dff9",
+      "semanticProfileHash": "sha256:5b7a9eb4862d0b459410c2c440a520e8aded8d731fca996d07274bd2a8a89c17",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BUILDING_HEIGHT/HEIGHT_M::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "BUILDING_HEIGHT",
+      "productProfile": "HEIGHT_M",
+      "descriptorId": "BUILDING_HEIGHT/HEIGHT_M",
+      "descriptorHash": "sha256:03fb541a4ca44f3cc4ba4a2848d8fb9db882399ff43b150d88df81b5e4030ae6",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BUILDING_HEIGHT/HEIGHT_M::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "BUILDING_HEIGHT",
+      "productProfile": "HEIGHT_M",
+      "descriptorId": "BUILDING_HEIGHT/HEIGHT_M",
+      "descriptorHash": "sha256:03fb541a4ca44f3cc4ba4a2848d8fb9db882399ff43b150d88df81b5e4030ae6",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "BUILDING_HEIGHT/HEIGHT_M::FIND_VALUE_RANGE",
+      "requirementKind": "VALUE_RANGE_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "productType": "BUILDING_HEIGHT",
+      "productProfile": "HEIGHT_M",
+      "descriptorId": "BUILDING_HEIGHT/HEIGHT_M",
+      "descriptorHash": "sha256:03fb541a4ca44f3cc4ba4a2848d8fb9db882399ff43b150d88df81b5e4030ae6",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "OBSTACLE_HEIGHT/HEIGHT_M::SAMPLE_VALUE",
+      "requirementKind": "POINT_VALUE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.sample",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_SAMPLE",
+      "productType": "OBSTACLE_HEIGHT",
+      "productProfile": "HEIGHT_M",
+      "descriptorId": "OBSTACLE_HEIGHT/HEIGHT_M",
+      "descriptorHash": "sha256:87496c0a1dd8db9c71c1dfdf7b132297261e6ac79b15a728560178313816aa30",
+      "queryProfile": "SAMPLE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
+      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
+      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "OBSTACLE_HEIGHT/HEIGHT_M::PROFILE_VALUE",
+      "requirementKind": "PROFILE",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.profile",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_PROFILE",
+      "productType": "OBSTACLE_HEIGHT",
+      "productProfile": "HEIGHT_M",
+      "descriptorId": "OBSTACLE_HEIGHT/HEIGHT_M",
+      "descriptorHash": "sha256:87496c0a1dd8db9c71c1dfdf7b132297261e6ac79b15a728560178313816aa30",
+      "queryProfile": "PROFILE_VALUE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:cc68b1d5c0c4ba2d787dcb5cb9d1338d23e99793672bb4740629868696e9dc0a",
+      "outputSchemaHash": "sha256:2245c2b4c7675cd8e5677e55486565faf65900a6a4343e562b7cc62df6dd97ed",
+      "semanticProfileHash": "sha256:57f429907a34fbf2fcccfabc1b691c50f45d506b1a84aa110bd650045b3b4f50",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    },
+    {
+      "bindingId": "OBSTACLE_HEIGHT/HEIGHT_M::FIND_VALUE_RANGE",
+      "requirementKind": "VALUE_RANGE_AREAS",
+      "requirementVersion": "1.0",
+      "operationId": "geo-raster.find-by-range",
+      "operationVersion": "1.0",
+      "familyId": "CURRENT_RASTER_FIND_RANGE",
+      "productType": "OBSTACLE_HEIGHT",
+      "productProfile": "HEIGHT_M",
+      "descriptorId": "OBSTACLE_HEIGHT/HEIGHT_M",
+      "descriptorHash": "sha256:87496c0a1dd8db9c71c1dfdf7b132297261e6ac79b15a728560178313816aa30",
+      "queryProfile": "FIND_VALUE_RANGE",
+      "platformProfilePolicy": "OPTIONAL",
+      "inputSchemaHash": "sha256:59c10af2dc94a8c6fced44dd8efd5e1b3c42a35b2bbc9b6f152e2ba6f867f3ae",
+      "outputSchemaHash": "sha256:e9af4d388195493a247cf3691c2a15d984fd555178c79a84fa4f23261ee9546c",
+      "semanticProfileHash": "sha256:219a46103e618fe0ebd68e69ced83dc1660310041eca24f6c4cf04300ca3cf8c",
+      "allowedMaturity": [
+        "PREVIEW"
+      ],
+      "selectionPolicy": {
+        "defaultProductId": null,
+        "explicitProductId": "TRUSTED_EXPLICIT_SELECTION_ONLY",
+        "requiresFullCoverage": true,
+        "scopePolicy": "CURRENT_SCOPE_AUTHORIZED_DESCRIPTOR_MATCH"
+      },
+      "timeSemantics": "CURRENT",
+      "noDataSemantics": "EXPLICIT_GAP",
+      "evidenceMapping": {
+        "dataSnapshot": "REQUIRED",
+        "executionReceipt": "REQUIRED",
+        "contentHash": "REQUIRED",
+        "descriptorHash": "REQUIRED",
+        "temporalApplicability": "CURRENT_AT_QUERY_START"
+      }
+    }
+  ]
+}

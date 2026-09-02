@@ -450,6 +450,43 @@ integration("W04 PostgreSQL production adapters", () => {
       resultBytes: result.resultBytes
     })).toBe("APPLIED");
     const groundingId = (created.value as Record<string, unknown>)["groundingId"] as string;
+    const extension = geospatialResult["geospatialFindings"] as Record<string, unknown>;
+    const persistedExtension = await pool.query<{
+      contract_version: string;
+      result_profile: string;
+      contract_selection_hash: string;
+      geospatial_findings_json: Record<string, unknown>;
+      geospatial_profile_schema_hash: string;
+      geospatial_finding_set_hash: string;
+      geospatial_source_product_set_hash: string;
+      geospatial_source_locks: unknown[];
+      geospatial_source_locks_hash: string;
+    }>(
+      `SELECT contract_version, result_profile, contract_selection_hash,
+              geospatial_findings_json, geospatial_profile_schema_hash,
+              geospatial_finding_set_hash, geospatial_source_product_set_hash,
+              geospatial_source_locks, geospatial_source_locks_hash
+         FROM wsgs.grounding_result WHERE grounding_id = $1`,
+      [groundingId]
+    );
+    expect(persistedExtension.rows[0]).toMatchObject({
+      contract_version: "sacs-wsgs-grounding/1.1",
+      result_profile: "sacs-wsgs-geospatial-findings/1.0",
+      contract_selection_hash: expect.stringMatching(/^sha256:[0-9a-f]{64}$/u),
+      geospatial_findings_json: extension,
+      geospatial_profile_schema_hash: extension["profileSchemaHash"],
+      geospatial_finding_set_hash: extension["findingSetHash"],
+      geospatial_source_product_set_hash: extension["sourceProductSetHash"],
+      geospatial_source_locks_hash: expect.stringMatching(/^sha256:[0-9a-f]{64}$/u)
+    });
+    expect(persistedExtension.rows[0]?.geospatial_source_locks).toEqual([
+      expect.objectContaining({
+        sourceProductId: "source.slope.current",
+        productId: "product.slope.current",
+        contentHash: `sha256:${"a".repeat(64)}`,
+        descriptorHash: `sha256:${"b".repeat(64)}`
+      })
+    ]);
     const replay = await backend.get(identity, groundingId, SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION);
     expect(replay).toMatchObject({
       status: "COMPLETED",
@@ -484,6 +521,147 @@ integration("W04 PostgreSQL production adapters", () => {
       true,
       SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
     )).rejects.toBeInstanceOf(PostgresIdempotencyConflictError);
+  });
+
+  it("persists currentness request and result atomically with the exact terminal bytes", async () => {
+    const currentnessRequest = {
+      schemaVersion: "wsgs-source-currentness-request/1.0",
+      sourceProductId: "source.gdps.baseline.dtm",
+      productId: "gdps-baseline-dtm",
+      previousContentHash: `sha256:${"a".repeat(64)}`
+    };
+    const body = {
+      ...request("currentness"),
+      operation: "VALIDATE_SOURCE_CURRENTNESS",
+      currentnessRequest
+    };
+    const created = await backend.create(
+      identity,
+      "idem-currentness-persistence",
+      body,
+      true,
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
+    );
+    const workerStore = new PostgresGroundingWorkerStore(pool, codec);
+    const claim = await workerStore.claimNext("worker-currentness-persistence", 5_000);
+    expect(claim).not.toBeNull();
+    const pipeline = new GroundingPipeline({
+      executor: executor([], {
+        RESULT_PERSIST: async () => ({
+          schemaVersion: "sacs-source-currentness/1.0",
+          productId: currentnessRequest.productId,
+          previousContentHash: currentnessRequest.previousContentHash,
+          currentContentHash: currentnessRequest.previousContentHash,
+          status: "CURRENT",
+          checkedAt: "2027-01-15T08:00:00.000Z",
+          validationGroundingId: claim!.groundingId
+        })
+      }),
+      journal: new PostgresPipelineJournal(pool, codec)
+    });
+    const result = await pipeline.run({ ...claim!, fence: claim! });
+    expect(await workerStore.settle(claim!, {
+      kind: "RESULT",
+      status: result.status,
+      resultHash: result.resultHash,
+      resultBytes: result.resultBytes
+    })).toBe("APPLIED");
+
+    const persisted = await pool.query<{
+      result_bytes: Buffer;
+      contract_version: string;
+      result_profile: string;
+      contract_selection_hash: string;
+      geospatial_findings_json: unknown | null;
+      request_json: Record<string, unknown>;
+      result_json: Record<string, unknown>;
+      validation_result_hash: string;
+      currentness: string;
+    }>(
+      `SELECT result.result_bytes, result.contract_version, result.result_profile,
+              result.contract_selection_hash, result.geospatial_findings_json,
+              currentness.request_json, currentness.result_json,
+              currentness.validation_result_hash, currentness.currentness
+         FROM wsgs.grounding_result AS result
+         JOIN wsgs.source_currentness_validation AS currentness
+           ON currentness.grounding_id = result.grounding_id
+        WHERE result.grounding_id = $1`,
+      [claim!.groundingId]
+    );
+    expect(persisted.rows[0]).toMatchObject({
+      contract_version: "sacs-wsgs-grounding/1.1",
+      result_profile: "sacs-wsgs-geospatial-findings/1.0",
+      contract_selection_hash: expect.stringMatching(/^sha256:[0-9a-f]{64}$/u),
+      geospatial_findings_json: null,
+      request_json: currentnessRequest,
+      validation_result_hash: result.resultHash,
+      currentness: "CURRENT"
+    });
+    expect(persisted.rows[0]?.result_bytes).toEqual(Buffer.from(result.resultBytes));
+    expect(persisted.rows[0]?.result_json).toEqual(JSON.parse(new TextDecoder().decode(result.resultBytes)));
+
+    const groundingId = (created.value as Record<string, unknown>)["groundingId"] as string;
+    expect(await backend.get(identity, groundingId, SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION))
+      .toMatchObject({ result: { validationResultHash: result.resultHash, status: "CURRENT" } });
+  });
+
+  it("rolls back the terminal result when currentness extension persistence fails", async () => {
+    const currentnessRequest = {
+      schemaVersion: "wsgs-source-currentness-request/1.0",
+      sourceProductId: "source.gdps.rollback",
+      productId: "gdps-rollback",
+      previousContentHash: `sha256:${"a".repeat(64)}`
+    };
+    await backend.create(identity, "idem-currentness-rollback", {
+      ...request("currentness-rollback"),
+      operation: "VALIDATE_SOURCE_CURRENTNESS",
+      currentnessRequest
+    }, true, SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION);
+    const workerStore = new PostgresGroundingWorkerStore(pool, codec);
+    const claim = await workerStore.claimNext("worker-currentness-rollback", 5_000);
+    expect(claim).not.toBeNull();
+    const pipeline = new GroundingPipeline({
+      executor: executor([], {
+        RESULT_PERSIST: async () => ({
+          schemaVersion: "sacs-source-currentness/1.0",
+          productId: currentnessRequest.productId,
+          previousContentHash: currentnessRequest.previousContentHash,
+          status: "NOT_AVAILABLE",
+          checkedAt: "2027-01-15T08:00:00.000Z",
+          validationGroundingId: claim!.groundingId
+        })
+      }),
+      journal: new PostgresPipelineJournal(pool, codec)
+    });
+    const result = await pipeline.run({ ...claim!, fence: claim! });
+    await pool.query(
+      `UPDATE wsgs.grounding_request
+          SET request_metadata = request_metadata - 'currentnessRequest'
+        WHERE grounding_id = $1`,
+      [claim!.groundingId]
+    );
+    await expect(workerStore.settle(claim!, {
+      kind: "RESULT",
+      status: result.status,
+      resultHash: result.resultHash,
+      resultBytes: result.resultBytes
+    })).rejects.toMatchObject({ code: "GROUNDING_RESULT_SCHEMA_INVALID" });
+    const splitBrain = await pool.query<{
+      result_count: string;
+      currentness_count: string;
+      job_status: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text FROM wsgs.grounding_result WHERE grounding_id = $1) AS result_count,
+         (SELECT count(*)::text FROM wsgs.source_currentness_validation WHERE grounding_id = $1) AS currentness_count,
+         (SELECT status FROM wsgs.grounding_job WHERE grounding_id = $1) AS job_status`,
+      [claim!.groundingId]
+    );
+    expect(splitBrain.rows[0]).toEqual({
+      result_count: "0",
+      currentness_count: "0",
+      job_status: "RUNNING"
+    });
   });
 
   it("rejects idempotency payload drift in the database serialization transaction", async () => {

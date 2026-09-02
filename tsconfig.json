@@ -17,6 +17,8 @@
     { "path": "packages/prior-grounding" },
     { "path": "packages/evidence-normalizer" },
     { "path": "packages/northbound-geospatial-findings" },
+    { "path": "packages/structured-world-selection" },
+    { "path": "packages/source-currentness" },
     { "path": "packages/runtime" },
     { "path": "packages/grounding-pipeline" },
     { "path": "services/grounding-api" },

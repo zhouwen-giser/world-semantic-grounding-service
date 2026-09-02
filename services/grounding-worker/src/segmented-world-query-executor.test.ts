@@ -300,7 +300,13 @@ function pinnedSnapshotPolicy(): WorldQuerySubmission["snapshotPolicy"] {
   };
 }
 
-function envelope(lock: OperationLock, value: unknown, receiptId: string, inputHash: `sha256:${string}`) {
+function envelope(
+  lock: OperationLock,
+  value: unknown,
+  receiptId: string,
+  inputHash: `sha256:${string}`,
+  status: "COMPLETED" | "NO_DATA" = "COMPLETED"
+) {
   const provider = { providerId: "test.provider", providerVersion: "1", implementationDigest: digest("9") };
   const computeSnapshot = {
     operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
@@ -312,7 +318,7 @@ function envelope(lock: OperationLock, value: unknown, receiptId: string, inputH
     providerProtocolVersion: "1.0",
     requestId: "upstream-request",
     operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
-    status: "COMPLETED",
+    status,
     computeSnapshot,
     output: { schemaUri: `urn:test:${lock.operationId}:output`, schemaHash: lock.outputSchemaHash, value },
     receipts: [{
@@ -357,14 +363,20 @@ function testNodeInput(submission: WorldQuerySubmission): unknown {
   return result;
 }
 
-function worldResult(submission: WorldQuerySubmission, lock: OperationLock, value: unknown, receiptId: string) {
+function worldResult(
+  submission: WorldQuerySubmission,
+  lock: OperationLock,
+  value: unknown,
+  receiptId: string,
+  nodeStatus: "COMPLETED" | "NO_DATA" = "COMPLETED"
+) {
   const node = submission.plan.nodes[0]!;
   const outputs = Object.fromEntries(submission.plan.outputs.map((output) => [
     output.name,
     testPointer(value, output.binding.path)
   ]));
   const inputHash = canonicalSha256(testNodeInput(submission));
-  const resultEnvelope = envelope(lock, value, receiptId, inputHash);
+  const resultEnvelope = envelope(lock, value, receiptId, inputHash, nodeStatus);
   const manifestBody = {
     querySnapshotId: `snapshot-${node.nodeId}`,
     mode: "BEST_EFFORT" as const,
@@ -384,11 +396,11 @@ function worldResult(submission: WorldQuerySubmission, lock: OperationLock, valu
     queryPlanVersion: "2.0",
     queryId: submission.plan.queryId,
     jobId: `job-${node.nodeId}`,
-    status: "COMPLETED",
+    status: nodeStatus === "NO_DATA" ? "PARTIAL" : "COMPLETED",
     nodes: [{
       nodeId: node.nodeId,
       operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
-      status: "COMPLETED",
+      status: nodeStatus,
       attempt: 1,
       inputHash,
       outputHash: canonicalSha256(resultEnvelope),
@@ -503,6 +515,16 @@ describe("segmented world-query executor", () => {
       confidence: { kind: "LITERAL", value: 0.9, targetPath: "/minimumConfidence" }
     });
     expect(requests.every(({ submission }) => submission.plan.nodes.length === 1)).toBe(true);
+    expect(requests[0]!.submission.plan.outputs).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        binding: expect.objectContaining({ outputPort: "result", path: "/candidate/referenceKey" })
+      })
+    ]));
+    expect(requests[1]!.submission.plan.outputs).toEqual([
+      expect.objectContaining({
+        binding: expect.objectContaining({ outputPort: "result", path: "/classification" })
+      })
+    ]);
     expect(requests.every(({ submission }) => submission.snapshotPolicy.mode === "BEST_EFFORT")).toBe(true);
     expect(new Set(requests.map(({ submission }) => submission.plan.queryId)).size).toBe(2);
     expect(events).toEqual([
@@ -527,6 +549,116 @@ describe("segmented world-query executor", () => {
     expect(execution.segments[1]!.terminal).toMatchObject({ status: "COMPLETED" });
     expect(execution.segmentedExecutionHash).toMatch(/^sha256:[0-9a-f]{64}$/u);
     expect(JSON.stringify(execution)).not.toContain("signed.segment.token");
+  });
+
+  it("captures a shared source port once when downstream consumers select different paths", async () => {
+    const submission = sourceSubmission();
+    delete submission.plan.outputs.find(({ name }) => name === "areaReference")!.binding.path;
+    submission.plan.nodes.find(({ nodeId }) => nodeId === "classify")!.inputs["coordinates"] = {
+      kind: "NODE_OUTPUT",
+      port: port("reference-key", foundationLock.outputSchemaHash),
+      nodeId: "resolve",
+      outputPort: "result",
+      path: "/candidate/coordinates",
+      targetPath: "/coordinates"
+    };
+    const runtimeCapabilities = capabilities();
+    delete runtimeCapabilities[0]!.ports.outputs[0]!.path;
+    const requests: WorldQuerySubmission[] = [];
+    const gateway: SegmentedGatewayClient = {
+      submitWorldQuery: vi.fn(async (request) => {
+        const segment = request as unknown as WorldQuerySubmission;
+        requests.push(segment);
+        const node = segment.plan.nodes[0]!;
+        return node.nodeId === "resolve"
+          ? {
+              status: 200,
+              value: worldResult(segment, foundationLock, {
+                candidate: {
+                  coordinates: [116.3, 39.9],
+                  referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: "area", version: "1.0.0" }
+                }
+              }, "receipt-resolve")
+            }
+          : {
+              status: 200,
+              value: worldResult(segment, gdpsLock, { classification: "FOREST" }, "receipt-classify")
+            };
+      }),
+      pollJob: vi.fn(),
+      cancelWorldQuery: vi.fn()
+    };
+
+    const execution = await executeSegmentedWorldQuery({
+      submission,
+      authority: authority(),
+      capabilities: runtimeCapabilities,
+      identity: identity(),
+      deadlineAt: new Date(Date.now() + 60_000),
+      runtime: { gateway, signer: { sign: vi.fn(async (request: DelegationRequest) => signed(request)) } }
+    });
+
+    expect(requests[0]!.plan.outputs).toEqual([expect.objectContaining({
+      binding: expect.not.objectContaining({ path: expect.anything() })
+    })]);
+    expect(requests[1]!.plan.nodes[0]!.inputs["coordinates"]!.port).toMatchObject({
+      schemaUri: "urn:gowm:v0.2:value:array",
+      schemaHash: "sha256:8e1e4dd66e9483d8341c51dc5ec424d8e6510ae35cdbc53040d0bab497459945"
+    });
+    expect(execution.outputs).toMatchObject({
+      areaReference: {
+        candidate: {
+          referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: "area", version: "1.0.0" }
+        }
+      }
+    });
+  });
+
+  it("preserves a typed NO_DATA value as the final plan output without making it a downstream input", async () => {
+    const gateway: SegmentedGatewayClient = {
+      submitWorldQuery: vi.fn(async (request) => {
+        const submission = request as unknown as WorldQuerySubmission;
+        const node = submission.plan.nodes[0]!;
+        return node.nodeId === "resolve"
+          ? {
+              status: 200,
+              value: worldResult(submission, foundationLock, {
+                candidate: { referenceKey: { namespace: "gowm", kind: "LAYER_FEATURE", id: "area", version: "1.0.0" } }
+              }, "receipt-resolve")
+            }
+          : {
+              status: 200,
+              value: worldResult(submission, gdpsLock, {
+                classification: {
+                  code: "PRODUCT_COVERAGE_INSUFFICIENT",
+                  message: "No current product covers the query"
+                }
+              }, "receipt-no-data", "NO_DATA")
+            };
+      }),
+      pollJob: vi.fn(),
+      cancelWorldQuery: vi.fn()
+    };
+
+    const execution = await executeSegmentedWorldQuery({
+      submission: sourceSubmission(),
+      authority: authority(),
+      capabilities: capabilities(),
+      identity: identity(),
+      deadlineAt: new Date(Date.now() + 60_000),
+      runtime: { gateway, signer: { sign: vi.fn(async (request: DelegationRequest) => signed(request)) } }
+    });
+
+    expect(execution).toMatchObject({
+      status: "PARTIAL",
+      outputs: {
+        classification: {
+          code: "PRODUCT_COVERAGE_INSUFFICIENT",
+          message: "No current product covers the query"
+        }
+      }
+    });
+    expect(execution.nodeResults.at(-1)).toMatchObject({ status: "NO_DATA" });
   });
 
   it("preserves an authoritative PINNED snapshot across every segment", async () => {

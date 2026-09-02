@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "wsgs-v021-n05-selection-contract/1.0",
+  "phase": "N05",
+  "generator": {
+    "name": "generate-sacs-geospatial-selection-evidence",
+    "version": "1.0.0"
+  },
+  "generationMode": "DETERMINISTIC_TEST_VECTOR_EXECUTION_NO_WALL_CLOCK",
+  "inputSetHash": "sha256:25ac8bb1550cc7e159f227eac0ffdd277b020d6007300ce7a20bcde81fece7b6",
+  "sourceHashes": {
+    "packages/structured-world-selection/src/index.ts": "sha256:ea1278ffd279c519202966b12663c9f8e0712c4daca391cf5dc8070eebe83c69",
+    "packages/structured-world-selection/src/index.test.ts": "sha256:fd2787a927d7c7baf87223d792e21caba2528ae27a0db989ad11fb205f4035cc",
+    "services/grounding-api/src/server.ts": "sha256:bca2420fcb771179800819da3d27fe4f338a51266b003bec34620e55422c2f68",
+    "services/grounding-api/src/production.ts": "sha256:515e33ebc71bd9e94f607ff361756e1dc024b3abb1ced82d4cd923a48406439d",
+    "contracts/wsgs-v0.2.1-sacs-geospatial/structured-selection-request.schema.json": "sha256:062575d20fe96a78df3e1ce9a1105b4d40a5fc6b60e5e62ab38d943eeeb4b6e4",
+    "contracts/wsgs-v0.2.1-sacs-geospatial/structured-selection-result.schema.json": "sha256:36263725923f7c045cc89bc142e32cc71bef8742386497253dbf1d89bd017ee3"
+  },
+  "runtimeQualification": "NOT_RUN",
+  "postgresQualification": "NOT_RUN_N07_OWNER",
+  "consumerRuntimeQualification": "NOT_RUN_N09_OWNER",
+  "productionQualified": false,
+  "status": "PASS",
+  "operation": "RESOLVE_WORLD_SELECTION",
+  "apiRoute": "POST /v1/world-selections:resolve",
+  "authoritySource": "AUTHENTICATED_CONTEXT_ONLY",
+  "selectionKinds": [
+    "REFERENCE_KEY",
+    "OPAQUE_ENCRYPTED_TOKEN"
+  ],
+  "xorProjection": "PASS",
+  "bindingChecks": [
+    "priorGroundingId",
+    "priorResultHash",
+    "findingId",
+    "featureId",
+    "selectionRevision",
+    "sourceHash",
+    "servicePrincipalId",
+    "actorId",
+    "dataScope",
+    "authorizationContextHash"
+  ]
+}

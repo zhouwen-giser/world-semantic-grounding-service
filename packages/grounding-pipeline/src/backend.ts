@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { canonicalBytes, canonicalSha256, utf8Sha256 } from "./canonical.js";
 import {
   LEGACY_GROUNDING_CONTRACT_SELECTION,
+  SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
   isSacsGeospatialContract,
   parseGroundingContractSelection,
   type GroundingContractSelection
@@ -110,6 +111,11 @@ export interface ProductionGroundingBackendConfig {
     groundingId: string;
     jobId: string;
   }) => Promise<ProductionAdmissionSnapshot>;
+  resolveWorldSelection?: (
+    identity: ScopedGroundingIdentity,
+    request: Readonly<Record<string, unknown>>
+  ) => Promise<unknown>;
+  sourceCurrentnessEnabled?: boolean;
   cancellationNotifier?: GroundingCancellationNotifier;
   selectDataScope?: (identity: ProductionGroundingIdentity, request: Record<string, unknown>) => string;
   now?: () => number;
@@ -307,7 +313,10 @@ export class ProductionGroundingBackend {
         operation: requestedOperation,
         dataScopes: [...identity.dataScopes],
         permissions: [...identity.permissions],
-        contractSelection: negotiatedContract
+        contractSelection: negotiatedContract,
+        ...(requestedOperation === "VALIDATE_SOURCE_CURRENTNESS"
+          ? { currentnessRequest: structuredClone(request["currentnessRequest"]) }
+          : {})
       })
     });
 
@@ -349,6 +358,84 @@ export class ProductionGroundingBackend {
     if (!cancelled) return null;
     await this.#config.cancellationNotifier?.notify(cancelled.jobId);
     return cancelled.value;
+  }
+
+  async validateSourceCurrentness(
+    identity: ProductionGroundingIdentity,
+    idempotencyKey: string,
+    currentnessRequest: Readonly<Record<string, unknown>>,
+    signal?: AbortSignal
+  ): Promise<unknown> {
+    if (this.#config.sourceCurrentnessEnabled !== true) {
+      throw new ProductionBackendError("NOT_READY", "Source currentness is not configured");
+    }
+    const keys = Object.keys(currentnessRequest).sort();
+    if (JSON.stringify(keys) !== JSON.stringify([
+      "previousContentHash", "productId", "schemaVersion", "sourceProductId"
+    ]) || currentnessRequest["schemaVersion"] !== "wsgs-source-currentness-request/1.0" ||
+      typeof currentnessRequest["sourceProductId"] !== "string" ||
+      !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u.test(currentnessRequest["sourceProductId"]) ||
+      typeof currentnessRequest["productId"] !== "string" ||
+      !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u.test(currentnessRequest["productId"]) ||
+      typeof currentnessRequest["previousContentHash"] !== "string" ||
+      !/^sha256:[0-9a-f]{64}$/u.test(currentnessRequest["previousContentHash"])) {
+      throw new ProductionBackendError("INVALID_SOURCE_CURRENTNESS_REQUEST", "Source currentness request is invalid");
+    }
+    if (!idempotencyKey || idempotencyKey.length > 256) {
+      throw new ProductionBackendError("INVALID_IDEMPOTENCY_KEY", "Idempotency key must contain 1 through 256 characters");
+    }
+    const requestHash = canonicalSha256({ currentnessRequest, idempotencyKey });
+    const sourceText = "VALIDATE_SOURCE_CURRENTNESS";
+    const request: Record<string, unknown> = {
+      schemaVersion: "1.0",
+      requestId: `currentness-${requestHash.slice("sha256:".length, "sha256:".length + 32)}`,
+      operation: "VALIDATE_SOURCE_CURRENTNESS",
+      source: {
+        conversationRef: "source-currentness",
+        messageId: `currentness-${requestHash.slice(-32)}`,
+        originalText: sourceText,
+        originalTextSha256: utf8Sha256(sourceText),
+        locale: "und",
+        createdAt: "1970-01-01T00:00:00.000Z"
+      },
+      requestedProducts: [],
+      contextCapsule: {
+        knownWorldReferences: [], priorGroundings: [], mapSelections: [],
+        externalCorrelationHints: [], externalPredicates: []
+      },
+      executionPolicy: {
+        readOnly: true,
+        deadlineMs: 30_000,
+        maxQueryOperations: 1,
+        maxCandidatesPerMention: 1,
+        maxResultBytes: 1_048_576,
+        allowApproximation: false
+      },
+      currentnessRequest: structuredClone(currentnessRequest)
+    };
+    const outcome = await this.create(
+      identity,
+      idempotencyKey,
+      request,
+      false,
+      SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
+      signal
+    );
+    if (outcome.kind !== "RESULT") {
+      throw new ProductionBackendError("CURRENTNESS_NOT_TERMINAL", "Source currentness did not reach a terminal result");
+    }
+    return outcome.value;
+  }
+
+  async resolveWorldSelection(
+    identity: ProductionGroundingIdentity,
+    request: Readonly<Record<string, unknown>>
+  ): Promise<unknown> {
+    assertIdentity(identity);
+    if (!this.#config.resolveWorldSelection) {
+      throw new ProductionBackendError("NOT_READY", "Structured world selection is not configured");
+    }
+    return this.#config.resolveWorldSelection(this.#scope(identity, {}), request);
   }
 
   #selectDataScope(identity: ProductionGroundingIdentity, request: Record<string, unknown>): string {

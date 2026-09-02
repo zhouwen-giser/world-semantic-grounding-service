@@ -19,6 +19,7 @@ const sha512IntegrityPattern = /^sha512-[A-Za-z0-9+/=]+$/u;
 const operationIdPattern = /^[a-z][a-z0-9.-]{2,127}$/u;
 const operationVersionPattern = /^[0-9]+\.[0-9]+$/u;
 const maximumSnapshotOperations = 256;
+const maximumSupportedFutureClockSkewMs = 1_000;
 
 export class TrustedCapabilitySnapshotError extends Error {
   constructor(
@@ -105,6 +106,17 @@ function capturedAt(input: TrustedCapabilitySnapshotInput): Date {
   return value;
 }
 
+function maximumFutureClockSkewMs(input: TrustedCapabilitySnapshotInput): number {
+  const value = input.maximumFutureClockSkewMs ?? 0;
+  if (!Number.isInteger(value) || value < 0 || value > maximumSupportedFutureClockSkewMs) {
+    throw new TrustedCapabilitySnapshotError(
+      "INVALID_FUTURE_CLOCK_SKEW",
+      `maximumFutureClockSkewMs must be an integer between 0 and ${maximumSupportedFutureClockSkewMs}`
+    );
+  }
+  return value;
+}
+
 function indexUnique<T extends { readonly operationId: string; readonly operationVersion: string }>(
   entries: readonly T[],
   duplicateCode: "DUPLICATE_LOCKED_OPERATION" | "DUPLICATE_CAPABILITY" | "DUPLICATE_SEMANTIC_PROFILE" | "DUPLICATE_AVAILABILITY"
@@ -136,7 +148,8 @@ function availabilityReadiness(
   entry: SchemaValidatedAvailability | undefined,
   key: string,
   input: TrustedCapabilitySnapshotInput,
-  at: number
+  at: number,
+  maximumClockSkewMs: number
 ): NewJobSnapshotReadiness {
   if (entry === undefined) return { status: "REFRESH_AVAILABILITY", code: "AVAILABILITY_MISSING", operationKey: key };
   assertSha256(entry.contractCatalogRevision, `${key}.availability.contractCatalogRevision`);
@@ -155,13 +168,13 @@ function availabilityReadiness(
       `${key} availability expires before it was observed`
     );
   }
-  if (observedAt > at) {
+  if (observedAt > at + maximumClockSkewMs) {
     throw new TrustedCapabilitySnapshotError(
       "AVAILABILITY_OBSERVED_IN_FUTURE",
       `${key} availability observation is later than snapshot capture time`
     );
   }
-  if (validUntil <= at) {
+  if (validUntil <= Math.max(at, observedAt)) {
     return { status: "REFRESH_AVAILABILITY", code: "AVAILABILITY_EXPIRED", operationKey: key };
   }
   return { status: "READY" };
@@ -175,6 +188,7 @@ function availabilityReadiness(
 export function evaluateNewJobSnapshotReadiness(input: TrustedCapabilitySnapshotInput): NewJobSnapshotReadiness {
   assertInputMetadata(input);
   const at = capturedAt(input).getTime();
+  const maximumClockSkewMs = maximumFutureClockSkewMs(input);
   const lockEntries = lockedOperations(input);
   indexUnique(input.catalog.capabilities, "DUPLICATE_CAPABILITY");
   indexUnique(input.semantics.profiles, "DUPLICATE_SEMANTIC_PROFILE");
@@ -198,7 +212,13 @@ export function evaluateNewJobSnapshotReadiness(input: TrustedCapabilitySnapshot
   }
 
   for (const entry of lockEntries) {
-    const readiness = availabilityReadiness(availability.get(operationKey(entry)), operationKey(entry), input, at);
+    const readiness = availabilityReadiness(
+      availability.get(operationKey(entry)),
+      operationKey(entry),
+      input,
+      at,
+      maximumClockSkewMs
+    );
     if (readiness.status !== "READY") return readiness;
   }
   return { status: "READY" };
@@ -279,8 +299,8 @@ function immutableClone(snapshot: TrustedCapabilitySnapshot): TrustedCapabilityS
 
 /** Builds a canonical snapshot after every live value has passed the lock checks. */
 export function buildTrustedCapabilitySnapshot(input: TrustedCapabilitySnapshotInput): TrustedCapabilitySnapshot {
-  const captureTime = capturedAt(input);
-  const normalizedInput: TrustedCapabilitySnapshotInput = { ...input, capturedAt: captureTime };
+  const requestedCaptureTime = capturedAt(input);
+  const normalizedInput: TrustedCapabilitySnapshotInput = { ...input, capturedAt: requestedCaptureTime };
   const readiness = evaluateNewJobSnapshotReadiness(normalizedInput);
   if (readiness.status !== "READY") throwForReadiness(readiness);
 
@@ -288,6 +308,16 @@ export function buildTrustedCapabilitySnapshot(input: TrustedCapabilitySnapshotI
   const capabilities = indexUnique(normalizedInput.catalog.capabilities, "DUPLICATE_CAPABILITY");
   const profiles = indexUnique(normalizedInput.semantics.profiles, "DUPLICATE_SEMANTIC_PROFILE");
   const availability = indexUnique(normalizedInput.availability.operations, "DUPLICATE_AVAILABILITY");
+  const captureTime = new Date(Math.max(
+    requestedCaptureTime.getTime(),
+    ...locked.map((entry) => {
+      const observed = availability.get(operationKey(entry));
+      if (observed === undefined) {
+        throw new TrustedCapabilitySnapshotError("AVAILABILITY_MISSING", operationKey(entry));
+      }
+      return toTimestamp(observed.checkedAt, "AVAILABILITY_TIME_INVALID", `${operationKey(entry)}.checkedAt`);
+    })
+  ));
 
   for (const entry of locked) {
     const key = operationKey(entry);

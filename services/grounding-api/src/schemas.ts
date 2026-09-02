@@ -16,11 +16,21 @@ export interface ApiSchemaValidators {
   groundingJob11: ValidateFunction;
   capabilities: ValidateFunction;
   capabilities11: ValidateFunction;
+  structuredSelectionRequest: ValidateFunction;
+  structuredSelectionResult: ValidateFunction;
+  sourceCurrentnessRequest: ValidateFunction;
+  sourceCurrentnessResult: ValidateFunction;
   protocolError: ValidateFunction;
 }
 
 function registryValidator(
-  schemaName: "grounding-result-extension.schema.json" | "capabilities-response-v1.1.schema.json"
+  schemaName:
+    | "grounding-result-extension.schema.json"
+    | "capabilities-response-v1.1.schema.json"
+    | "structured-selection-request.schema.json"
+    | "structured-selection-result.schema.json"
+    | "source-currentness-request.schema.json"
+    | "source-currentness-result.schema.json"
 ): ValidateFunction {
   const registry = defaultSacsGeospatialSchemaRegistry();
   const validator = ((value: unknown): boolean => {
@@ -64,6 +74,10 @@ export function compileApiSchemas(documents: Record<string, unknown>): ApiSchema
     groundingJob11,
     capabilities: get("capabilities-response.schema.json"),
     capabilities11: registryValidator("capabilities-response-v1.1.schema.json"),
+    structuredSelectionRequest: registryValidator("structured-selection-request.schema.json"),
+    structuredSelectionResult: registryValidator("structured-selection-result.schema.json"),
+    sourceCurrentnessRequest: registryValidator("source-currentness-request.schema.json"),
+    sourceCurrentnessResult: registryValidator("source-currentness-result.schema.json"),
     protocolError: get("protocol-error.schema.json")
   };
 }

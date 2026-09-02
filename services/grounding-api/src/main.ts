@@ -29,21 +29,50 @@ function environmentList(plural: string, singular: string, allowMissing: boolean
   return [required(plural)];
 }
 
+function environmentListFallback(preferred: string, fallbacks: readonly string[], allowMissing: boolean): string[] {
+  const value = process.env[preferred] ?? fallbacks
+    .map((name) => process.env[name])
+    .find((entry) => entry !== undefined);
+  if (value === undefined) {
+    if (allowMissing) return [];
+    return [required(preferred)];
+  }
+  return value.split(",").map((entry) => entry.trim());
+}
+
 export function authFromEnvironment(): ApiAuthConfig {
   const mode = process.env["WSGS_AUTH_MODE"] ?? "JWT_SERVICE";
-  if (mode === "STATIC_TRUSTED") {
+  if (mode === "STATIC_TRUSTED" || mode === "BEARER_PRESENT") {
+    const useBearerDefaults = mode === "BEARER_PRESENT";
     return {
       mode,
       identity: createGroundingIdentity({
-        servicePrincipalId: requiredEither("WSGS_STATIC_SERVICE_PRINCIPAL_ID", "WSGS_STATIC_PRINCIPAL_ID"),
-        actorId: requiredEither("WSGS_STATIC_ACTOR_ID", "WSGS_STATIC_ACTOR"),
-        dataScopes: environmentList("WSGS_STATIC_DATA_SCOPES", "WSGS_STATIC_DATA_SCOPE", false),
-        datasetScopes: environmentList("WSGS_STATIC_DATASET_SCOPES", "WSGS_STATIC_DATASET_SCOPE", true),
-        permissions: process.env["WSGS_STATIC_PERMISSIONS"]?.split(/[ ,]+/u).filter(Boolean) ?? ["grounding.read"]
+        servicePrincipalId: useBearerDefaults
+          ? requiredEither("WSGS_BEARER_SERVICE_PRINCIPAL_ID", "GOWM_DELEGATION_SERVICE_PRINCIPAL_ID")
+          : requiredEither("WSGS_STATIC_SERVICE_PRINCIPAL_ID", "WSGS_STATIC_PRINCIPAL_ID"),
+        actorId: useBearerDefaults
+          ? requiredEither("WSGS_BEARER_ACTOR_ID", "WSGS_READINESS_ACTOR_ID")
+          : requiredEither("WSGS_STATIC_ACTOR_ID", "WSGS_STATIC_ACTOR"),
+        dataScopes: useBearerDefaults
+          ? environmentListFallback(
+              "WSGS_BEARER_DATA_SCOPES",
+              ["WSGS_READINESS_DATA_SCOPES", "WSGS_READINESS_DATA_SCOPE"],
+              false
+            )
+          : environmentList("WSGS_STATIC_DATA_SCOPES", "WSGS_STATIC_DATA_SCOPE", false),
+        datasetScopes: useBearerDefaults
+          ? environmentListFallback("WSGS_BEARER_DATASET_SCOPES", ["WSGS_READINESS_DATASET_SCOPES"], true)
+          : environmentList("WSGS_STATIC_DATASET_SCOPES", "WSGS_STATIC_DATASET_SCOPE", true),
+        permissions: (useBearerDefaults
+          ? process.env["WSGS_BEARER_PERMISSIONS"] ?? process.env["WSGS_READINESS_PERMISSIONS"]
+          : process.env["WSGS_STATIC_PERMISSIONS"]
+        )?.split(/[ ,]+/u).filter(Boolean) ?? ["grounding.read"]
       })
     };
   }
-  if (mode !== "JWT_SERVICE") throw new Error("WSGS_AUTH_MODE must be JWT_SERVICE or STATIC_TRUSTED");
+  if (mode !== "JWT_SERVICE") {
+    throw new Error("WSGS_AUTH_MODE must be JWT_SERVICE, BEARER_PRESENT, or STATIC_TRUSTED");
+  }
   const secret = new TextEncoder().encode(required("WSGS_JWT_HS256_SECRET"));
   if (secret.byteLength < 32) throw new Error("WSGS_JWT_HS256_SECRET must contain at least 32 UTF-8 bytes");
   return {

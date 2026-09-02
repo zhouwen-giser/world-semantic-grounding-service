@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import type { WorldSemanticFrame } from "@wsgs/contracts";
 import type { GroundingIdentityV2 } from "@wsgs/delegated-identity";
 import { GowmDelegationSigner, createGroundingIdentity } from "@wsgs/delegated-identity";
 import {
@@ -16,6 +17,7 @@ import {
 import {
   GdpsDescriptorConsumer,
   projectGeospatialProductIntent,
+  type GroundedGeospatialProductIntent,
   type ProductDescriptorRegistry,
   type ProductVocabularyRegistry,
   type SemanticConceptMap
@@ -78,10 +80,15 @@ import {
   CapabilityMatcher,
   TypedWorldQueryCompiler,
   canonicalPlanHash,
+  compileGdpsV032Requirement,
   queryTemplateRules,
   recipeSnapshotMode,
+  validateCompiledPlan,
   type CapabilityGap,
   type CompileResult,
+  type GdpsV032BindingCatalog,
+  type GdpsV032RequirementKind,
+  type GdpsRecipeAuthorization,
   type QuerySemanticPattern,
   type WorldQuerySubmission
 } from "@wsgs/query-compiler";
@@ -107,12 +114,23 @@ import {
   type SemanticModelPolicyResult
 } from "@wsgs/semantic-model";
 import {
+  buildSourceCurrentnessEvidence,
+  currentnessOperationInput,
+  loadSourceCurrentnessRecipeAuthorization,
+  normalizeSourceCurrentness,
+  parseSourceCurrentnessRequest,
+  type SourceCurrentnessRecipeAuthorization,
+  type SourceCurrentnessResultMaterial,
+  type ValidateSourceCurrentnessRequest
+} from "@wsgs/source-currentness";
+import {
   buildTrustedCapabilitySnapshot,
   loadGdpsConsumerSnapshotExtension,
   loadGdpsRecipeLock,
   verifyGdpsConsumerSnapshotExtension,
   verifyPersistedTrustedCapabilitySnapshot,
   type GdpsConsumerSnapshotExtension,
+  type GdpsLockedOperation,
   type GdpsLockedRecipe,
   type LoadedGdpsRecipeLock,
   type SchemaValidatedSouthboundLock,
@@ -133,6 +151,11 @@ import {
   loadSegmentedScopeAuthority,
   type LoadedSegmentedScopeAuthority
 } from "./segmented-scope-authority.js";
+import {
+  loadStasGdpsFixtureLock,
+  transformStasGdpsEventCoordinates,
+  type LoadedStasGdpsFixtureLock
+} from "./stas-gdps-fixture-lock.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -149,6 +172,16 @@ const commonSchemaPath = fileURLToPath(new URL(
   "../../../contracts/wsgs-v0.1/contracts/common.schema.json",
   import.meta.url
 ));
+const currentnessRecipeLockPath = fileURLToPath(new URL(
+  "../../../contracts/upstream/gdps-v0.2.1/GDPS_RECIPE_LOCK.json",
+  import.meta.url
+));
+const gdpsV032BindingCatalogPath = fileURLToPath(new URL(
+  "../../../contracts/integrations/gdps/wsgs-gdps-binding-catalog.json",
+  import.meta.url
+));
+const gdpsV032BindingCatalogRawSha256 =
+  "sha256:9f430bef8d0289e85497f29465513cc71aba673295054418e989734f83713feb" as const;
 const referenceIdPattern = /^wrf_[0-9a-f]{32}$/u;
 const evidenceProducts = new Set<OperationalRequestedProduct>([
   "WORLD_EVIDENCE",
@@ -230,15 +263,22 @@ interface Runtime {
   gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
   gdpsRecipeLock?: LoadedGdpsRecipeLock;
   gdpsRecipes: GdpsLockedRecipe[];
+  stasGdpsFixture?: LoadedStasGdpsFixtureLock;
+  currentnessRecipe: SourceCurrentnessRecipeAuthorization;
   segmentedScopeAuthority?: LoadedSegmentedScopeAuthority;
   gdpsDescriptor?: {
     consumer: GdpsDescriptorConsumer;
     conceptMap: SemanticConceptMap;
   };
+  gdpsV032BindingCatalog: GdpsV032BindingCatalog;
   parameterSchemaHash: `sha256:${string}`;
 }
 
 type PersistedSemanticModelResult = SemanticModelPolicyResult & { receiptId?: string };
+type RuntimeRequirementPlanning = Omit<RequirementPlanningResult, "selectedRecipeIds"> & {
+  selectedRecipeIds: QuerySemanticPattern[];
+  gdpsV032Intent?: GroundedGeospatialProductIntent;
+};
 
 interface ProductionFactoryOptions {
   pool?: Pool;
@@ -335,7 +375,8 @@ function allGatewayLocks(lock: OperationalGowmLock): OperationLock[] {
 
 export function selectProductionSouthboundLock(
   lock: OperationalGowmLock,
-  previewRecipes: readonly GdpsLockedRecipe[] = []
+  previewRecipes: readonly GdpsLockedRecipe[] = [],
+  additionalPreviewOperations: readonly GdpsLockedOperation[] = []
 ): OperationalGowmLock {
   const available = [...lock.defaultOperations, ...lock.previewOperations];
   const selected = PRODUCTION_STABLE_OPERATION_IDS.map((operationId) => {
@@ -346,7 +387,8 @@ export function selectProductionSouthboundLock(
     }
     return entry;
   });
-  const previewOperations = new Map(previewRecipes.flatMap((recipe) => recipe.allowedOperations)
+  const previewOperations = new Map([...previewRecipes.flatMap((recipe) => recipe.allowedOperations),
+    ...additionalPreviewOperations]
     .map((entry) => [`${entry.operationId}@${entry.operationVersion}`, entry] as const));
   const selectedPreview = [...previewOperations.entries()].sort(([left], [right]) => left.localeCompare(right))
     .map(([operationKey, expected]) => {
@@ -367,6 +409,19 @@ export function selectProductionSouthboundLock(
     defaultOperations: selected,
     previewOperations: selectedPreview
   };
+}
+
+export function selectProductionAdditionalPreviewOperations(
+  allowPreview: boolean,
+  gdpsRecipes: readonly GdpsLockedRecipe[],
+  currentnessRecipe: SourceCurrentnessRecipeAuthorization,
+  stasGdpsFixture?: LoadedStasGdpsFixtureLock
+): GdpsLockedOperation[] {
+  if (!allowPreview) return [];
+  return [
+    ...(gdpsRecipes.length > 0 ? currentnessRecipe.allowedOperations : []),
+    ...(stasGdpsFixture?.lock.allowedOperations ?? [])
+  ];
 }
 
 function configuredGdpsRecipes(): {
@@ -463,6 +518,38 @@ function configuredGdpsDescriptor(
   return { consumer, conceptMap };
 }
 
+function configuredStasGdpsFixture(): LoadedStasGdpsFixtureLock | undefined {
+  const lockPath = process.env["WSGS_STAS_GDPS_FIXTURE_LOCK_FILE"]?.trim();
+  const expectedSha256 = process.env["WSGS_STAS_GDPS_FIXTURE_LOCK_SHA256"]?.trim();
+  if (!lockPath && !expectedSha256) return undefined;
+  if (!lockPath || !expectedSha256) {
+    throw new ProductionStageModuleError("WSGS_STAS_GDPS_FIXTURE_LOCK_CONFIGURATION_INCOMPLETE");
+  }
+  return loadStasGdpsFixtureLock({
+    lockPath,
+    expectedSha256: expectedSha256 as `sha256:${string}`
+  });
+}
+
+function loadGdpsV032BindingCatalog(): GdpsV032BindingCatalog {
+  const bytes = readFileSync(gdpsV032BindingCatalogPath);
+  const actual = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+  if (actual !== gdpsV032BindingCatalogRawSha256) {
+    throw new ProductionStageModuleError("WSGS_GDPS_V032_BINDING_CATALOG_INTEGRITY_MISMATCH");
+  }
+  let catalog: GdpsV032BindingCatalog;
+  try {
+    catalog = JSON.parse(bytes.toString("utf8")) as GdpsV032BindingCatalog;
+  } catch {
+    throw new ProductionStageModuleError("WSGS_GDPS_V032_BINDING_CATALOG_JSON_INVALID");
+  }
+  if (catalog.schemaVersion !== "wsgs-gdps-binding-catalog/1.0" || catalog.authority !== "WSGS" ||
+      !Array.isArray(catalog.operationFamilies) || !Array.isArray(catalog.bindings)) {
+    throw new ProductionStageModuleError("WSGS_GDPS_V032_BINDING_CATALOG_INVALID");
+  }
+  return catalog;
+}
+
 function gatewayFailure(error: unknown): never {
   if (!(error instanceof GatewayProtocolError)) throw error;
   const details = error.details ?? {};
@@ -507,17 +594,46 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const lock = operationalLock.lock;
   const gdps = configuredGdpsRecipes();
   const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded, gdps.recipes);
-  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes);
+  const gdpsV032BindingCatalog = loadGdpsV032BindingCatalog();
+  const stasGdpsFixture = configuredStasGdpsFixture();
+  const currentnessRecipe = loadSourceCurrentnessRecipeAuthorization(currentnessRecipeLockPath);
+  const allowPreview = process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES";
+  const productionLock = selectProductionSouthboundLock(
+    lock,
+    gdps.recipes,
+    selectProductionAdditionalPreviewOperations(
+      allowPreview,
+      gdps.recipes,
+      currentnessRecipe,
+      stasGdpsFixture
+    )
+  );
   const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
   if (segmentedMode && segmentedMode !== "GOWM_GDPS_V021") {
     throw new ProductionStageModuleError("INVALID_WSGS_CROSS_SCOPE_GATEWAY_ROUTING");
   }
+  const stasFoundationOperations = productionLock.previewOperations.filter((entry) =>
+    entry.operationId === "stas.nearest-approach" && entry.operationVersion === "1.0");
+  const selectedDatasetOperations = productionLock.previewOperations.filter((entry) =>
+    !stasFoundationOperations.includes(entry));
   const segmentedScopeAuthority = segmentedMode === "GOWM_GDPS_V021"
     ? loadSegmentedScopeAuthority({
         foundationHandoffDirectory: environmentText("GOWM_SAMPLE_HANDOFF_DIR"),
         gdpsHandoffDirectory: fileURLToPath(new URL("../../../contracts/upstream/gdps-v0.2.1/", import.meta.url)),
         foundationOperations: productionLock.defaultOperations.map(gatewayLock),
-        selectedDatasetOperations: productionLock.previewOperations.map(gatewayLock)
+        selectedDatasetOperations: selectedDatasetOperations.map(gatewayLock),
+        ...(stasGdpsFixture ? {
+          selectedDatasetScopeSource: {
+            dataScope: stasGdpsFixture.lock.runtimeBinding.gdpsDataScope,
+            sourceLockHash: stasGdpsFixture.lockHash
+          }
+        } : {}),
+        ...(stasGdpsFixture && stasFoundationOperations.length > 0 ? {
+          additionalFoundationSources: [{
+            sourceLockHash: stasGdpsFixture.lockHash,
+            operations: stasFoundationOperations.map(gatewayLock)
+          }]
+        } : {})
       })
     : undefined;
   const trustedOperationKeys = allGatewayLocks(productionLock)
@@ -552,12 +668,15 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     signer,
     model: createModel(modelPolicy),
     modelPolicy,
-    allowPreview: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES",
+    allowPreview,
     ...(gdps.consumerSnapshot ? { gdpsConsumerSnapshot: gdps.consumerSnapshot } : {}),
     ...(gdps.loaded ? { gdpsRecipeLock: gdps.loaded } : {}),
     gdpsRecipes: gdps.recipes,
+    ...(stasGdpsFixture ? { stasGdpsFixture } : {}),
+    currentnessRecipe,
     ...(segmentedScopeAuthority ? { segmentedScopeAuthority } : {}),
     ...(gdpsDescriptor ? { gdpsDescriptor } : {}),
+    gdpsV032BindingCatalog,
     parameterSchemaHash: loadWorldQueryParameterSchemaHash()
   };
 }
@@ -606,7 +725,13 @@ async function liveAuthority(
   const lock = value.operationalLock.lock;
   const productionLock = selectProductionSouthboundLock(
     lock,
-    value.gdpsRecipes
+    value.gdpsRecipes,
+    selectProductionAdditionalPreviewOperations(
+      value.allowPreview,
+      value.gdpsRecipes,
+      value.currentnessRecipe,
+      value.stasGdpsFixture
+    )
   );
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
@@ -643,7 +768,8 @@ async function liveAuthority(
     availability,
     southboundLock: validatedLock(productionLock),
     southboundLockHash: value.operationalLock.lockHash,
-    capturedAt: new Date()
+    capturedAt: new Date(),
+    maximumFutureClockSkewMs: 1_000
   });
   const validation = value.gateway.validateTrustedContracts({
     catalog,
@@ -909,10 +1035,11 @@ async function executeOperation(
     callerMaximumResultBytes,
     descriptor.limits.maximumOutputBytes ?? callerMaximumResultBytes
   );
-  const deadlineAt = new Date(Math.min(
+  const deadlineAt = boundedGatewayOperationDeadline(
+    Date.now(),
     context.deadlineAt.getTime(),
-    Date.now() + descriptor.execution.maximumTimeoutMs
-  ));
+    descriptor.execution.maximumTimeoutMs
+  );
   const preferredExecution = descriptor.execution.mode === "SYNC"
     ? "SYNC" as const
     : descriptor.execution.mode === "ASYNC"
@@ -1141,9 +1268,11 @@ export function referenceMentionsRequiringResolution(
   mentions: readonly MergedMention[],
   deterministic: DeterministicParseResult
 ): MergedMention[] {
-  const knownMentionIds = new Set(deterministic.mentions.flatMap((mention) =>
-    mention.candidate.kind === "KNOWN_REFERENCE" ? [mention.mentionId] : []));
-  return productionReferenceMentions(mentions).filter((mention) => !knownMentionIds.has(mention.mentionId));
+  const locallyBoundMentionIds = new Set(deterministic.mentions.flatMap((mention) =>
+    mention.candidate.kind === "KNOWN_REFERENCE" || !mention.candidate.requiresUpstreamValidation
+      ? [mention.mentionId]
+      : []));
+  return productionReferenceMentions(mentions).filter((mention) => !locallyBoundMentionIds.has(mention.mentionId));
 }
 
 export function applyReferenceValidation(
@@ -1195,6 +1324,10 @@ export type RecipeOperationInputResult =
       requiredForProduct: string;
       operationInput: JsonObject;
       parameterValues: JsonObject;
+      trustedOperationInput?: {
+        source: "RUNTIME_FIXTURE_LOCK";
+        inputHash: `sha256:${string}`;
+      };
     }
   | { status: "CAPABILITY_GAP"; gap: CapabilityGap };
 
@@ -1206,6 +1339,7 @@ export interface RecipeOperationInputOptions {
   locale?: string;
   maximumCandidates: number;
   originalText?: string;
+  stasGdpsFixture?: LoadedStasGdpsFixtureLock;
 }
 
 function stringArray(value: unknown): string[] {
@@ -1280,7 +1414,12 @@ function referenceResolveInput(
   if (mentionNodeIds.length === 0) return null;
   const nodes = new Map(graph.graph.nodes.map((entry) => [entry.nodeId, entry]));
   const fallbackKinds = stringArray(requirement.inputs["expectedReferenceKinds"]);
-  const mentions = mentionNodeIds.flatMap((nodeId) => {
+  const groundedMentionIds = new Set(
+    (Array.isArray(references.mentions) ? references.mentions : [])
+      .filter((mention) => Array.isArray(mention.candidateProductIds) && mention.candidateProductIds.length > 0)
+      .map((mention) => mention.mentionId)
+  );
+  const mentions = mentionNodeIds.flatMap((nodeId, index) => {
     const node = nodes.get(nodeId);
     if (node?.kind !== "MENTION") return [];
     const payload = object(node.payload, "GROUNDING_GRAPH_MENTION_PAYLOAD_INVALID");
@@ -1292,8 +1431,11 @@ function referenceResolveInput(
       .filter((entry, index, values) => entry.length <= 128 && values.indexOf(entry) === index)
       .sort()
       .slice(0, 32);
-    return [{ mentionId, surfaceText, ...(expectedKinds.length > 0 ? { expectedKinds } : {}) }];
-  });
+    return [{ mentionId, surfaceText, ...(expectedKinds.length > 0 ? { expectedKinds } : {}), sourceIndex: index }];
+  }).sort((left, right) =>
+    Number(groundedMentionIds.has(right.mentionId)) - Number(groundedMentionIds.has(left.mentionId)) ||
+    left.sourceIndex - right.sourceIndex
+  ).map(({ sourceIndex: _sourceIndex, ...mention }) => mention);
   if (mentions.length !== mentionNodeIds.length || mentions.length > 32) return null;
   const anchorReferenceKeys = references.referenceProducts
     .map((entry) => entry.referenceKey)
@@ -1311,12 +1453,60 @@ function referenceResolveInput(
   };
 }
 
+function isSourceCurrentness(context: PipelineStageContext): boolean {
+  return context.operation === "VALIDATE_SOURCE_CURRENTNESS";
+}
+
+function sourceCurrentnessRequest(context: PipelineStageContext): ValidateSourceCurrentnessRequest {
+  return parseSourceCurrentnessRequest(request(context)["currentnessRequest"]);
+}
+
+export function boundedReferenceCandidateLimit(
+  requestedMaximumCandidates: number,
+  descriptorMaximumCandidates?: number
+): number {
+  return Math.max(
+    1,
+    Math.min(10, requestedMaximumCandidates, descriptorMaximumCandidates ?? requestedMaximumCandidates)
+  );
+}
+
+export function boundedGatewayOperationDeadline(
+  nowMs: number,
+  contextDeadlineMs: number,
+  maximumTimeoutMs: number
+): Date {
+  const clockSkewMarginMs = Math.min(1_000, Math.max(1, Math.floor(maximumTimeoutMs / 10)));
+  const operationTimeoutMs = Math.max(1, maximumTimeoutMs - clockSkewMarginMs);
+  return new Date(Math.min(contextDeadlineMs, nowMs + operationTimeoutMs));
+}
+
 /** Builds only schema-shaped inputs justified by the planner graph; it never invents missing recipe data. */
 export function buildRecipeOperationInput(options: RecipeOperationInputOptions): RecipeOperationInputResult {
   const chain = requirementChain(options.planning, options.recipeId);
   const fallbackProduct = options.planning.graph?.requirements.find((entry) => entry.required)?.requiredForProduct ?? "WORLD_QUERY";
   if (!chain) return recipeInputGap(options.recipeId, fallbackProduct, "RECIPE_REQUIREMENT_CHAIN_MISSING");
   const requiredForProduct = chain[0]!.requiredForProduct;
+  if (options.recipeId === "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT") {
+    const fixture = options.stasGdpsFixture;
+    if (!fixture) {
+      return recipeInputGap(options.recipeId, requiredForProduct, "STAS_GDPS_FIXTURE_LOCK_REQUIRED");
+    }
+    const authority = chain[0]!.inputs["inputAuthority"];
+    if (authority !== "RUNTIME_FIXTURE_LOCK") {
+      return recipeInputGap(options.recipeId, requiredForProduct, "STAS_GDPS_FIXTURE_AUTHORITY_MISMATCH");
+    }
+    return {
+      status: "READY",
+      requiredForProduct,
+      operationInput: structuredClone(fixture.lock.operationInput),
+      parameterValues: {},
+      trustedOperationInput: {
+        source: "RUNTIME_FIXTURE_LOCK",
+        inputHash: fixture.lock.operationInputHash
+      }
+    };
+  }
   if (options.recipeId === "CATALOG_SEARCH") {
     const requirement = chain[0]!;
     const mentionNodeIds = stringArray(requirement.inputs["mentionNodeIds"]);
@@ -1449,6 +1639,23 @@ function mappedGap(gap: CapabilityGap | JsonObject): JsonObject {
   };
 }
 
+export function deriveGroundingResultStatus(options: {
+  ambiguityCount: number;
+  unresolvedMentionIds: readonly string[];
+  referenceProductCount: number;
+  trustedDirectMapMentionIds: readonly string[];
+  completedDirectMapEvidence: boolean;
+  partial: boolean;
+}): "AMBIGUOUS" | "UNRESOLVED" | "PARTIAL" | "COMPLETED" {
+  if (options.ambiguityCount > 0) return "AMBIGUOUS";
+  const trustedMapIds = new Set(options.trustedDirectMapMentionIds);
+  const blockingUnresolvedCount = options.unresolvedMentionIds.filter((mentionId) => !trustedMapIds.has(mentionId)).length;
+  if (blockingUnresolvedCount > 0 && options.referenceProductCount === 0 && !options.completedDirectMapEvidence) {
+    return "UNRESOLVED";
+  }
+  return options.partial ? "PARTIAL" : "COMPLETED";
+}
+
 function resultDocument(context: PipelineStageContext, evidenceItems: GroundingEvidenceItem[] = []): JsonObject {
   const parts = requestParts(context);
   const deterministic = context.state["DETERMINISTIC_PARSE"] as DeterministicParseResult | undefined;
@@ -1462,6 +1669,7 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     status: "COMPLETED" | "PARTIAL";
     evidenceItems: GroundingEvidenceItem[];
     capabilityGaps: JsonObject[];
+    warnings?: string[];
     geospatialFindings?: JsonObject;
   } | undefined;
   const gaps = [
@@ -1473,14 +1681,26 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     ...(deterministic?.warnings ?? []),
     ...(semantic?.warnings ?? []),
     ...(graph?.warnings ?? []),
-    ...(references?.validationResults.flatMap((entry) => entry.warnings) ?? [])
+    ...(references?.validationResults.flatMap((entry) => entry.warnings) ?? []),
+    ...(normalized?.warnings ?? [])
   ];
   const ambiguities = references?.ambiguities ?? [];
   const unresolved = references?.unresolvedMentions ?? [];
   const partial = semantic?.completionStatus === "PARTIAL" || graph?.completionStatus === "PARTIAL" ||
     normalized?.status === "PARTIAL" || gaps.some((gap) => gap["blocking"] === true);
-  const status = ambiguities.length > 0 ? "AMBIGUOUS" : unresolved.length > 0 && (references?.referenceProducts.length ?? 0) === 0
-    ? "UNRESOLVED" : partial ? "PARTIAL" : "COMPLETED";
+  const trustedDirectMapMentionIds = deterministic?.mentions.flatMap((mention) =>
+    mention.candidate.kind === "MAP_SELECTION" && !mention.candidate.requiresUpstreamValidation
+      ? [mention.mentionId]
+      : []) ?? [];
+  const status = deriveGroundingResultStatus({
+    ambiguityCount: ambiguities.length,
+    unresolvedMentionIds: unresolved.map((entry) => entry.mentionId),
+    referenceProductCount: references?.referenceProducts.length ?? 0,
+    trustedDirectMapMentionIds,
+    completedDirectMapEvidence: trustedDirectMapMentionIds.length === 1 &&
+      normalized?.status === "COMPLETED" && normalized.evidenceItems.length > 0,
+    partial
+  });
   const queryRecords = executed?.outcomes.map((entry) => ({
     queryId: entry.submission.plan.queryId,
     status: ["COMPLETED", "PARTIAL", "FAILED", "CANCELLED"].includes(entry.status) ? entry.status : "FAILED",
@@ -1592,6 +1812,301 @@ function trustedPlanDataScopes(
   return [...scopes].sort();
 }
 
+const gdpsV032RequirementKindByQueryProfile = Object.freeze({
+  SAMPLE_VALUE: "POINT_VALUE",
+  SAMPLE_CLASS: "POINT_CLASSIFICATION",
+  PROFILE_VALUE: "PROFILE",
+  FIND_CLASS: "CLASS_AREAS",
+  FIND_VALUE_RANGE: "VALUE_RANGE_AREAS",
+  VECTOR_IN_AREA: "FEATURES_IN_AREA",
+  VECTOR_NEARBY: "FEATURES_NEARBY",
+  VECTOR_INTERSECTS: "INTERSECTIONS"
+} satisfies Record<GroundedGeospatialProductIntent["queryProfile"], GdpsV032RequirementKind>);
+
+const gdpsV032RecipeByQueryProfile = Object.freeze({
+  SAMPLE_VALUE: "GDPS_GENERIC_SAMPLE_VALUE",
+  SAMPLE_CLASS: "GDPS_GENERIC_SAMPLE_VALUE",
+  PROFILE_VALUE: "GDPS_GENERIC_PROFILE_VALUE",
+  FIND_CLASS: "GDPS_GENERIC_FIND_CLASS",
+  FIND_VALUE_RANGE: "GDPS_GENERIC_FIND_RANGE",
+  VECTOR_IN_AREA: "GDPS_GENERIC_VECTOR_IN_AREA",
+  VECTOR_NEARBY: "GDPS_GENERIC_VECTOR_NEARBY",
+  VECTOR_INTERSECTS: "GDPS_GENERIC_VECTOR_INTERSECTS"
+} satisfies Record<GroundedGeospatialProductIntent["queryProfile"], QuerySemanticPattern>);
+
+interface GdpsV032MapSelectionCompileOptions {
+  recipeId: QuerySemanticPattern;
+  intent: GroundedGeospatialProductIntent;
+  deterministic: DeterministicParseResult;
+  requiredForProduct: string;
+  catalog: GdpsV032BindingCatalog;
+  capabilities: readonly CapabilityDescriptor[];
+  operationLocks: readonly OperationLock[];
+  availability: Readonly<OperationAvailabilityList["operations"]>;
+  caller: GroundingIdentityV2 & { dataScope: string };
+  segmentedScopeAuthority?: LoadedSegmentedScopeAuthority;
+  requestId: string;
+  idempotencyKey: string;
+  parameterSchemaHash: `sha256:${string}`;
+  maximumGeometryBytes: number;
+  budgets: WorldQuerySubmission["plan"]["budgets"];
+}
+
+function gdpsV032Gap(
+  options: Pick<GdpsV032MapSelectionCompileOptions, "recipeId" | "requiredForProduct">,
+  reason: CapabilityGap["reason"],
+  code: string,
+  details: JsonObject = {}
+): CompileResult {
+  return {
+    status: "CAPABILITY_GAP",
+    gap: {
+      gapId: `gdps-v032-${canonicalSha256({ recipeId: options.recipeId, code, details }).slice(7, 31)}`,
+      semanticCapability: options.recipeId,
+      reason,
+      requiredForProduct: options.requiredForProduct,
+      blocking: true,
+      details: { code, ...details }
+    }
+  };
+}
+
+function directMapSelectionGeometry(
+  deterministic: DeterministicParseResult
+): { status: "ABSENT" } | { status: "AMBIGUOUS"; count: number } | { status: "READY"; geometry: JsonObject } {
+  const geometries = deterministic.mentions.flatMap((mention): JsonObject[] => {
+    if (mention.candidate.kind !== "MAP_SELECTION" || mention.candidate.requiresUpstreamValidation) return [];
+    const candidate = mention.candidate.value;
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+    const geometry = (candidate as JsonObject)["geometry"];
+    return geometry && typeof geometry === "object" && !Array.isArray(geometry)
+      ? [structuredClone(geometry as JsonObject)]
+      : [];
+  });
+  if (geometries.length === 0) return { status: "ABSENT" };
+  if (geometries.length !== 1) return { status: "AMBIGUOUS", count: geometries.length };
+  return { status: "READY", geometry: geometries[0]! };
+}
+
+export function augmentGdpsProjectionFrame(
+  frame: WorldSemanticFrame,
+  deterministic: DeterministicParseResult
+): WorldSemanticFrame {
+  const mentionIds = new Set(frame.mentions.map((mention) => mention.mentionId));
+  const mapMentions = deterministic.mentions.flatMap((mention): WorldSemanticFrame["mentions"] => {
+    if (mention.candidate.kind !== "MAP_SELECTION" || mention.candidate.requiresUpstreamValidation ||
+        mentionIds.has(mention.mentionId)) return [];
+    mentionIds.add(mention.mentionId);
+    return [{
+      mentionId: mention.mentionId,
+      surfaceText: mention.surfaceText,
+      span: { ...mention.span },
+      expectedKinds: [...mention.expectedKinds],
+      semanticRole: "SPATIAL_SUBJECT"
+    }];
+  });
+  return {
+    ...structuredClone(frame),
+    mentions: [...structuredClone(frame.mentions), ...mapMentions]
+  };
+}
+
+/**
+ * Compiles a single caller-supplied, bounded map geometry through the WSGS-owned
+ * v0.3.2 GDPS binding catalog. A null result means that the legacy reference
+ * recipe remains authoritative; a gap is fail-closed and must never fall back.
+ */
+export function compileGdpsV032MapSelectionQuery(
+  options: GdpsV032MapSelectionCompileOptions
+): CompileResult | null {
+  if (gdpsV032RecipeByQueryProfile[options.intent.queryProfile] !== options.recipeId) return null;
+  const selectedGeometry = directMapSelectionGeometry(options.deterministic);
+  if (selectedGeometry.status === "ABSENT") return null;
+  if (selectedGeometry.status === "AMBIGUOUS") {
+    return gdpsV032Gap(options, "UNSUPPORTED_EXPRESSION", "MAP_SELECTION_GEOMETRY_AMBIGUOUS", {
+      geometryCount: selectedGeometry.count
+    });
+  }
+  const requirementKind = gdpsV032RequirementKindByQueryProfile[options.intent.queryProfile];
+  const matchingBindings = options.catalog.bindings.filter((entry) =>
+    entry.requirementKind === requirementKind &&
+    entry.productType === options.intent.productType &&
+    entry.productProfile === options.intent.productProfile);
+  if (matchingBindings.length !== 1) {
+    return gdpsV032Gap(options, "UNSUPPORTED_EXPRESSION", matchingBindings.length === 0
+      ? "GDPS_V032_BINDING_NOT_FOUND"
+      : "GDPS_V032_BINDING_AMBIGUOUS", { bindingCount: matchingBindings.length });
+  }
+  const binding = matchingBindings[0]!;
+  const lock = options.operationLocks.find((entry) =>
+    entry.operationId === binding.operationId && entry.operationVersion === binding.operationVersion);
+  if (!lock) return gdpsV032Gap(options, "NOT_REGISTERED", "GDPS_V032_OPERATION_LOCK_MISSING");
+  const available = options.availability.find((entry) =>
+    entry.operationId === binding.operationId && entry.operationVersion === binding.operationVersion);
+  if (!available || available.availability !== "AVAILABLE") {
+    return gdpsV032Gap(options, "OPERATION_UNAVAILABLE", "GDPS_V032_OPERATION_NOT_AVAILABLE", {
+      availability: available?.availability ?? "MISSING"
+    });
+  }
+  const descriptor = options.capabilities.find((entry) =>
+    entry.operationId === binding.operationId && entry.operationVersion === binding.operationVersion);
+  if (!descriptor) return gdpsV032Gap(options, "NOT_REGISTERED", "GDPS_V032_CAPABILITY_DESCRIPTOR_MISSING");
+  if (descriptor.inputSchemaHash !== lock.inputSchemaHash || descriptor.outputSchemaHash !== lock.outputSchemaHash ||
+      descriptor.maturity !== lock.maturity) {
+    return gdpsV032Gap(options, "SCHEMA_MISMATCH", "GDPS_V032_CAPABILITY_LOCK_DRIFT");
+  }
+  const inputPort = descriptor.ports.inputs.find((entry) => entry.name === "request") ?? descriptor.ports.inputs[0];
+  const outputPort = descriptor.ports.outputs.find((entry) => entry.name === "result") ?? descriptor.ports.outputs[0];
+  if (!inputPort || !outputPort) return gdpsV032Gap(options, "SCHEMA_MISMATCH", "GDPS_V032_PORT_MISSING");
+  const parameters: JsonObject = {
+    ...(options.intent.classCodes ? { classCodes: [...options.intent.classCodes] } : {}),
+    ...(options.intent.ranges ? { ranges: structuredClone(options.intent.ranges) } : {}),
+    ...(options.intent.propertyFilters ? { propertyFilters: structuredClone(options.intent.propertyFilters) } : {}),
+    ...(options.intent.queryProfile === "VECTOR_NEARBY" && options.intent.spatialConstraint?.distanceM !== undefined
+      ? { distanceMetres: options.intent.spatialConstraint.distanceM }
+      : {})
+  };
+  const selectedDataScope = trustedOperationDataScope(
+    options.segmentedScopeAuthority,
+    options.caller,
+    binding
+  );
+  const direct = compileGdpsV032Requirement({
+    requirement: {
+      schemaVersion: "wsgs-gdps-requirement/1.0",
+      requirementId: `gdps-v032-${canonicalSha256({ intent: options.intent, geometry: selectedGeometry.geometry }).slice(7, 31)}`,
+      kind: requirementKind,
+      productType: options.intent.productType,
+      productProfile: options.intent.productProfile,
+      ...(options.intent.platformProfile ? { platformProfile: options.intent.platformProfile } : {}),
+      geometry: selectedGeometry.geometry,
+      ...(Object.keys(parameters).length > 0 ? { parameters } : {}),
+      timeIntent: "CURRENT"
+    },
+    catalog: options.catalog,
+    trustedContext: {
+      servicePrincipalId: options.caller.servicePrincipalId,
+      dataScope: selectedDataScope,
+      maximumGeometryBytes: options.maximumGeometryBytes,
+      ...(options.intent.explicitProductId
+        ? { explicitProductSelection: {
+            productId: options.intent.explicitProductId,
+            source: "USER_EXPLICIT",
+            descriptorHash: options.intent.descriptorHash
+          } }
+        : {})
+    },
+    operationState: {
+      operationId: lock.operationId,
+      operationVersion: lock.operationVersion,
+      maturity: lock.maturity,
+      inputSchemaHash: lock.inputSchemaHash,
+      outputSchemaHash: lock.outputSchemaHash,
+      semanticProfileHash: lock.semanticProfileHash
+    }
+  });
+  if (direct.status === "GAP") {
+    const reason: CapabilityGap["reason"] = direct.reason === "MATURITY_NOT_ALLOWED" ? "MATURITY_NOT_ALLOWED"
+      : direct.reason === "GEOMETRY_BUDGET_EXCEEDED" ? "BUDGET_EXCEEDED"
+        : ["CATALOG_LOCK_DRIFT", "OPERATION_LOCK_DRIFT"].includes(direct.reason) ? "SCHEMA_MISMATCH"
+          : "UNSUPPORTED_EXPRESSION";
+    return gdpsV032Gap(options, reason, `GDPS_V032_${direct.reason}`, direct.details ?? {});
+  }
+  const nodeBudget = {
+    maximumRows: options.budgets.maximumRows,
+    maximumCandidates: options.budgets.maximumCandidates,
+    maximumOutputBytes: Math.min(
+      options.budgets.maximumOutputBytes,
+      descriptor.limits.maximumOutputBytes ?? options.budgets.maximumOutputBytes
+    ),
+    maximumExecutionMs: Math.min(options.budgets.maximumExecutionMs, descriptor.execution.maximumTimeoutMs)
+  };
+  const queryId = `query-${canonicalSha256({ requestId: options.requestId, request: direct.request }).slice(7, 31)}`;
+  const plan: WorldQuerySubmission["plan"] = {
+    queryPlanVersion: "2.0",
+    queryId,
+    nodes: [{
+      nodeId: "Node_1",
+      operation: {
+        operationId: lock.operationId,
+        operationVersion: lock.operationVersion,
+        inputSchemaHash: lock.inputSchemaHash,
+        outputSchemaHash: lock.outputSchemaHash
+      },
+      inputs: {
+        request: {
+          kind: "REQUEST_PATH",
+          port: {
+            schemaUri: inputPort.schemaUri,
+            schemaHash: inputPort.schemaHash,
+            valueKind: inputPort.valueKind,
+            unitSemantics: inputPort.unitSemantics
+          },
+          path: "/operationInput"
+        }
+      },
+      failurePolicy: "FAIL_FAST",
+      budget: nodeBudget
+    }],
+    outputs: [{
+      name: outputPort.name,
+      binding: {
+        kind: "NODE_OUTPUT",
+        port: {
+          schemaUri: outputPort.schemaUri,
+          schemaHash: outputPort.schemaHash,
+          valueKind: outputPort.valueKind,
+          unitSemantics: outputPort.unitSemantics
+        },
+        nodeId: "Node_1",
+        outputPort: outputPort.name,
+        ...(outputPort.path ? { path: outputPort.path } : {})
+      }
+    }],
+    budgets: { ...options.budgets }
+  };
+  validateCompiledPlan(plan, [descriptor]);
+  const submission: WorldQuerySubmission = {
+    requestId: options.requestId,
+    idempotencyKey: options.idempotencyKey,
+    plan,
+    parameters: { operationInput: direct.request.input },
+    parameterSchemaHash: options.parameterSchemaHash,
+    // The GDPS Provider attests currentness in its required dataSnapshot, but
+    // does not expose Gateway resource discovery for a strong LATEST pin.
+    // BEST_EFFORT preserves that Provider evidence without turning an
+    // unsupported Gateway resource pin into a false schema failure.
+    snapshotPolicy: PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY
+  };
+  return {
+    status: "COMPILED",
+    templateId: `gdps-v032:${binding.bindingId}`,
+    bindings: [{
+      requirementId: direct.request.requirementId,
+      operationId: lock.operationId,
+      operationVersion: lock.operationVersion,
+      inputSchemaHash: lock.inputSchemaHash,
+      outputSchemaHash: lock.outputSchemaHash,
+      semanticProfileHash: lock.semanticProfileHash,
+      maturity: lock.maturity,
+      availability: "AVAILABLE",
+      snapshotSupport: lock.snapshotSupport ?? "CONSISTENT_AT_START",
+      requiredPermissions: [...(lock.requiredPermissions ?? [])],
+      matchEvidence: {
+        bindingId: binding.bindingId,
+        descriptorId: binding.descriptorId,
+        descriptorHash: binding.descriptorHash,
+        dataScope: selectedDataScope,
+        policy: "WSGS_GDPS_V032_BINDING_CATALOG_EXACT"
+      },
+      selectionPolicy: "WSGS_GDPS_V032_BINDING_CATALOG_EXACT"
+    }],
+    submission,
+    planHash: canonicalPlanHash(plan),
+    policy: { approximateInput: false, exactVerificationRequired: false, snapshotMode: "BEST_EFFORT" }
+  };
+}
+
 interface PersistedSegmentedWorldQueryOutcome extends JsonObject {
   executionMode: "SEGMENTED_GATEWAY_QUERIES";
   submission: WorldQuerySubmission;
@@ -1604,6 +2119,198 @@ interface PersistedSegmentedWorldQueryOutcome extends JsonObject {
 }
 
 type PersistedWorldQueryOutcome = PersistedSingleWorldQueryOutcome | PersistedSegmentedWorldQueryOutcome;
+
+const stasTimelineSchemaHash =
+  "sha256:5705a8321a6a02f49d596c07fc7a7f29289baa3d25b469134785fd75551eb647" as const;
+const stasGdpsCorrelationSchemaHash =
+  "sha256:ad43f8b8f7addc336f51671f8b0cb2febe98d88936f4381e7974973a0f0c2c7f" as const;
+
+function unique(values: readonly string[]): string[] {
+  return [...new Set(values)].sort();
+}
+
+function literalBindingValue(
+  node: WorldQuerySubmission["plan"]["nodes"][number],
+  targetPath: string
+): string | undefined {
+  for (const binding of Object.values(node.inputs)) {
+    if (binding.kind === "LITERAL" && binding.targetPath === targetPath && typeof binding.value === "string") {
+      return binding.value;
+    }
+  }
+  return undefined;
+}
+
+function inlineObject(item: GroundingEvidenceItem): JsonObject | undefined {
+  return item.safePayload !== null && typeof item.safePayload === "object" && !Array.isArray(item.safePayload)
+    ? item.safePayload as JsonObject
+    : undefined;
+}
+
+function optionalObject(value: unknown): JsonObject | undefined {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value as JsonObject : undefined;
+}
+
+function isStasGdpsSubmission(submission: WorldQuerySubmission): boolean {
+  const operations = submission.plan.nodes.map((node) => node.operation.operationId);
+  return operations.filter((operationId) => operationId === "stas.nearest-approach").length === 1 &&
+    operations.filter((operationId) => operationId === "geo-raster.sample").length === 2;
+}
+
+function stasNearestInstantTimestamp(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const rawTimestamp = value.includes("@") ? value.slice(value.lastIndexOf("@") + 1) : value;
+  const match = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?)(Z|[+-]\d{2}(?::?\d{2})?)$/u.exec(rawTimestamp);
+  if (!match) return undefined;
+  const rawOffset = match[3]!;
+  const offset = rawOffset === "Z" ? "Z"
+    : /^[+-]\d{2}$/u.test(rawOffset) ? `${rawOffset}:00`
+      : /^[+-]\d{4}$/u.test(rawOffset) ? `${rawOffset.slice(0, 3)}:${rawOffset.slice(3)}`
+        : rawOffset;
+  const normalized = `${match[1]}T${match[2]}${offset}`;
+  return Number.isFinite(Date.parse(normalized)) ? normalized : undefined;
+}
+
+export function composeStasGdpsEvidence(input: {
+  submissions: readonly WorldQuerySubmission[];
+  evidenceItems: readonly GroundingEvidenceItem[];
+  requestedProducts: readonly string[];
+  stasGdpsFixture?: LoadedStasGdpsFixtureLock;
+  diagnostics?: string[];
+}): GroundingEvidenceItem[] {
+  const reject = (code: string): GroundingEvidenceItem[] => {
+    input.diagnostics?.push(code);
+    return [];
+  };
+  if (!input.requestedProducts.includes("EVENT_TIMELINES") &&
+      !input.requestedProducts.includes("CORRELATION_FINDINGS")) return [];
+  const candidates = input.submissions.filter(isStasGdpsSubmission);
+  if (candidates.length !== 1) return reject("STAS_GDPS_COMPOSITION_SUBMISSION_CARDINALITY");
+  const submission = candidates[0]!;
+  const stasNode = submission.plan.nodes.find((node) => node.operation.operationId === "stas.nearest-approach");
+  const slopeNode = submission.plan.nodes.find((node) =>
+    node.operation.operationId === "geo-raster.sample" &&
+    literalBindingValue(node, "/productType") === "SLOPE" &&
+    literalBindingValue(node, "/productProfile") === "DEGREE");
+  const landCoverNode = submission.plan.nodes.find((node) =>
+    node.operation.operationId === "geo-raster.sample" &&
+    literalBindingValue(node, "/productType") === "LAND_COVER" &&
+    literalBindingValue(node, "/productProfile") === "DEFAULT");
+  if (!stasNode || !slopeNode || !landCoverNode) return reject("STAS_GDPS_COMPOSITION_PLAN_BINDING");
+  const sourceFor = (nodeId: string, operationId: string): GroundingEvidenceItem | undefined => {
+    const matches = input.evidenceItems.filter((item) =>
+      item.sourceNodeId === nodeId && item.sourceOperation === operationId && item.upstreamStatus === "COMPLETED");
+    return matches.length === 1 ? matches[0] : undefined;
+  };
+  const stas = sourceFor(stasNode.nodeId, "stas.nearest-approach");
+  const slope = sourceFor(slopeNode.nodeId, "geo-raster.sample");
+  const landCover = sourceFor(landCoverNode.nodeId, "geo-raster.sample");
+  if (!stas || !slope || !landCover) return reject("STAS_GDPS_COMPOSITION_SOURCE_CARDINALITY");
+  const stasPayload = inlineObject(stas);
+  const slopePayload = inlineObject(slope);
+  const landCoverPayload = inlineObject(landCover);
+  const result = stasPayload && optionalObject(stasPayload["result"]);
+  const line = result && optionalObject(result["shortest_line"]);
+  const coordinates = line?.["coordinates"];
+  const rawEventCoordinates = Array.isArray(coordinates) ? coordinates[0] : undefined;
+  let eventCoordinates: readonly [number, number] | undefined;
+  if (input.stasGdpsFixture && Array.isArray(rawEventCoordinates)) {
+    try {
+      eventCoordinates = transformStasGdpsEventCoordinates(
+        input.stasGdpsFixture.lock.eventGeometryTransform,
+        rawEventCoordinates
+      );
+    } catch {
+      return reject("STAS_GDPS_COMPOSITION_EVENT_GEOMETRY_TRANSFORM");
+    }
+  }
+  const nearestInstant = stasNearestInstantTimestamp(result?.["nearest_instant"]);
+  const minimumDistance = result?.["minimum_distance_m"];
+  const productEvidenceLocked = [slopePayload, landCoverPayload].every((payload) =>
+    payload && /^sha256:[0-9a-f]{64}$/u.test(String(payload["contentHash"])) &&
+      /^sha256:[0-9a-f]{64}$/u.test(String(payload["descriptorHash"])));
+  if (!stasPayload || !slopePayload || !landCoverPayload) {
+    return reject("STAS_GDPS_COMPOSITION_INLINE_SOURCE_REQUIRED");
+  }
+  if (!eventCoordinates) return reject("STAS_GDPS_COMPOSITION_EVENT_GEOMETRY");
+  if (!nearestInstant) return reject("STAS_GDPS_COMPOSITION_EVENT_TIME");
+  if (typeof minimumDistance !== "number" || !Number.isFinite(minimumDistance) || minimumDistance < 0) {
+    return reject("STAS_GDPS_COMPOSITION_DISTANCE");
+  }
+  if (!productEvidenceLocked) return reject("STAS_GDPS_COMPOSITION_SOURCE_CONTRACT");
+
+  const sourceEvidenceIds = [stas.evidenceProductId, slope.evidenceProductId, landCover.evidenceProductId];
+  const sourceItems = [stas, slope, landCover];
+  const receiptIds = unique(sourceItems.flatMap((item) => item.receiptIds));
+  const evidenceIds = unique(sourceItems.flatMap((item) => item.evidenceIds));
+  const planHash = canonicalPlanHash(submission.plan);
+  const timelinePayload = {
+    schemaVersion: "wsgs-stas-event-timeline/1.0",
+    events: [{
+      eventType: "NEAREST_APPROACH",
+      eventTime: nearestInstant,
+      geometry: { type: "Point", coordinates: [...eventCoordinates] },
+      minimumDistanceMetres: minimumDistance,
+      sourceEvidenceIds: [stas.evidenceProductId]
+    }]
+  };
+  const timeline: GroundingEvidenceItem = {
+    evidenceProductId: `evidence-${canonicalSha256({ kind: "EVENT_TIMELINE", planHash, timelinePayload }).slice(7, 39)}`,
+    productKind: "EVENT_TIMELINE",
+    authority: "wsgs",
+    sourceOperation: "wsgs.compose-stas-event-timeline",
+    sourceQueryId: submission.plan.queryId,
+    upstreamStatus: "COMPLETED",
+    payloadSchemaUri: "urn:wsgs:v0.3.2:stas-event-timeline:1.0",
+    payloadSchemaHash: stasTimelineSchemaHash,
+    safePayload: timelinePayload,
+    computeSnapshot: { authority: "WSGS", recipeId: "stas-nearest-approach-gdps-current-context", planHash },
+    receiptIds,
+    evidenceIds,
+    unknowns: [],
+    warnings: []
+  };
+  const correlationPayload = {
+    schemaVersion: "wsgs-stas-gdps-correlation/1.0",
+    relation: "POSSIBLY_CORRESPONDS_TO",
+    temporalEvidence: [{ evidenceProductId: stas.evidenceProductId, applicability: "EVENT_TIME" }],
+    currentSpatialEvidence: [slope, landCover].map((item) => ({
+      evidenceProductId: item.evidenceProductId,
+      applicability: "CURRENT_AT_QUERY_START"
+    })),
+    correlationFindings: [{
+      kind: "CURRENT_CONTEXT_AT_NEAREST_APPROACH_GEOMETRY",
+      factEvidenceIds: sourceEvidenceIds,
+      inference: "WSGS_ASSOCIATED_CURRENT_SPATIAL_CONTEXT_WITH_EVENT_GEOMETRY",
+      temporalApplicability: "CURRENT_AT_QUERY_START_NOT_EVENT_TIME"
+    }],
+    limitations: [
+      "CURRENT_SPATIAL_EVIDENCE_DOES_NOT_PROVE_EVENT_TIME_ENVIRONMENT",
+      "MISSING_EVIDENCE_IS_NOT_NEGATIVE_FACT"
+    ],
+    confidencePolicy: "PRESERVE_SOURCE_QUALITY_NO_AVERAGING"
+  };
+  const correlation: GroundingEvidenceItem = {
+    evidenceProductId: `evidence-${canonicalSha256({ kind: "CORRELATION_FINDING", planHash, correlationPayload }).slice(7, 39)}`,
+    productKind: "CORRELATION_FINDING",
+    authority: "wsgs",
+    sourceOperation: "wsgs.compose-stas-gdps-current-context",
+    sourceQueryId: submission.plan.queryId,
+    upstreamStatus: "COMPLETED",
+    payloadSchemaUri: "urn:wsgs:v0.3.2:stas-gdps-correlation:1.0",
+    payloadSchemaHash: stasGdpsCorrelationSchemaHash,
+    safePayload: correlationPayload,
+    computeSnapshot: { authority: "WSGS", recipeId: "stas-nearest-approach-gdps-current-context", planHash },
+    receiptIds,
+    evidenceIds,
+    unknowns: [],
+    warnings: ["CURRENT_SPATIAL_EVIDENCE_DOES_NOT_PROVE_EVENT_TIME_ENVIRONMENT"]
+  };
+  return [
+    ...(input.requestedProducts.includes("EVENT_TIMELINES") ? [timeline] : []),
+    ...(input.requestedProducts.includes("CORRELATION_FINDINGS") ? [correlation] : [])
+  ];
+}
 
 interface NormalizationUnit {
   submission: WorldQuerySubmission;
@@ -1826,10 +2533,71 @@ export interface NormalizedGdpsWorldQuerySource {
   evidence: GdpsSourceEvidence;
 }
 
+function gdpsEvidenceAuthority(
+  submission: WorldQuerySubmission,
+  planned: WorldQuerySubmission["plan"]["nodes"][number],
+  catalog?: GdpsV032BindingCatalog
+): {
+  descriptorId: string;
+  descriptorHash: `sha256:${string}`;
+  productType: string;
+  productProfile: string;
+  queryProfile: string;
+} {
+  const parameters = submission.parameters;
+  if (["descriptorId", "descriptorHash", "productType", "productProfile", "queryProfile"]
+    .every((key) => typeof parameters[key] === "string" && parameters[key] !== "")) {
+    return {
+      descriptorId: parameters["descriptorId"] as string,
+      descriptorHash: parameters["descriptorHash"] as `sha256:${string}`,
+      productType: parameters["productType"] as string,
+      productProfile: parameters["productProfile"] as string,
+      queryProfile: parameters["queryProfile"] as string
+    };
+  }
+  if (!catalog) throw new ProductionStageModuleError("GDPS_DESCRIPTOR_ID_MISSING");
+  const operationInput = parameters["operationInput"];
+  const operationInputObject = operationInput !== null && typeof operationInput === "object" && !Array.isArray(operationInput)
+    ? operationInput as Record<string, unknown>
+    : undefined;
+  const literalText = (inputName: string, missingCode: string): string => {
+    const binding = planned.inputs[inputName];
+    if (!binding || binding.kind !== "LITERAL") {
+      throw new ProductionStageModuleError(missingCode);
+    }
+    return text(binding.value, missingCode);
+  };
+  const productType = typeof operationInputObject?.["productType"] === "string"
+    ? text(operationInputObject["productType"], "GDPS_PRODUCT_TYPE_MISSING")
+    : literalText("productType", "GDPS_PRODUCT_TYPE_MISSING");
+  const productProfile = typeof operationInputObject?.["productProfile"] === "string"
+    ? text(operationInputObject["productProfile"], "GDPS_PRODUCT_PROFILE_MISSING")
+    : literalText("productProfile", "GDPS_PRODUCT_PROFILE_MISSING");
+  const matches = catalog.bindings.filter((binding) =>
+    binding.operationId === planned.operation.operationId &&
+    binding.operationVersion === planned.operation.operationVersion &&
+    binding.productType === productType &&
+    binding.productProfile === productProfile);
+  if (matches.length !== 1) {
+    throw new ProductionStageModuleError(matches.length === 0
+      ? "GDPS_DESCRIPTOR_BINDING_NOT_FOUND"
+      : "GDPS_DESCRIPTOR_BINDING_AMBIGUOUS");
+  }
+  const binding = matches[0]!;
+  return {
+    descriptorId: binding.descriptorId,
+    descriptorHash: binding.descriptorHash as `sha256:${string}`,
+    productType: binding.productType,
+    productProfile: binding.productProfile,
+    queryProfile: binding.queryProfile
+  };
+}
+
 export function normalizeGdpsWorldQuerySources(
   submission: WorldQuerySubmission,
   worldValue: unknown,
-  recipeLock?: LoadedGdpsRecipeLock
+  recipeLock?: LoadedGdpsRecipeLock,
+  bindingCatalog?: GdpsV032BindingCatalog
 ): NormalizedGdpsWorldQuerySource[] {
   if (!recipeLock) return [];
   const world = object(worldValue, "WORLD_QUERY_RESULT_INVALID");
@@ -1843,7 +2611,6 @@ export function normalizeGdpsWorldQuerySources(
       recipesByOperation.set(key, recipe);
     }
   }
-  const parameters = submission.parameters;
   return nodes.flatMap((rawNode): NormalizedGdpsWorldQuerySource[] => {
     const node = object(rawNode, "WORLD_QUERY_NODE_INVALID");
     const nodeId = text(node["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
@@ -1853,11 +2620,8 @@ export function normalizeGdpsWorldQuerySources(
     const recipe = recipesByOperation.get(key);
     if (!recipe) return [];
     if (node["result"] === undefined) throw new ProductionStageModuleError("GDPS_NODE_RESULT_MISSING");
-    const descriptorId = text(parameters["descriptorId"], "GDPS_DESCRIPTOR_ID_MISSING");
-    const descriptorHash = text(parameters["descriptorHash"], "GDPS_DESCRIPTOR_HASH_MISSING") as `sha256:${string}`;
-    const productType = text(parameters["productType"], "GDPS_PRODUCT_TYPE_MISSING");
-    const productProfile = text(parameters["productProfile"], "GDPS_PRODUCT_PROFILE_MISSING");
-    const queryProfile = text(parameters["queryProfile"], "GDPS_QUERY_PROFILE_MISSING");
+    const { descriptorId, descriptorHash, productType, productProfile, queryProfile } =
+      gdpsEvidenceAuthority(submission, planned, bindingCatalog);
     return [{
       nodeId,
       evidence: normalizeGdpsSourceEvidence(node["result"], {
@@ -2478,6 +3242,9 @@ export async function createPipelineStageExecutor(
       if (referenceMentions.length === 0) return normalizeReferenceResolution(null, []);
       const parts = requestParts(context);
       const lock = operationLock(authority, "reference.resolve");
+      const descriptor = authority.capabilityCatalog.capabilities.find((candidate) =>
+        candidate.operationId === lock.operationId && candidate.operationVersion === lock.operationVersion);
+      if (!descriptor) throw new ProductionStageModuleError("GATEWAY_CAPABILITY_DESCRIPTOR_MISSING");
       const envelope = await executeOperation(value, context, lock, {
         schemaVersion: "1.0",
         mentions: referenceMentions.map((mention) => ({
@@ -2485,7 +3252,10 @@ export async function createPipelineStageExecutor(
           ...(mention.expectedKinds.length > 0 ? { expectedKinds: mention.expectedKinds } : {})
         })),
         context: { language: parts.source["locale"], anchorReferenceKeys: [] },
-        limitPerMention: parts.policy["maxCandidatesPerMention"]
+        limitPerMention: boundedReferenceCandidateLimit(
+          integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID"),
+          descriptor.limits.maximumCandidates
+        )
       }, "reference-resolve");
       return normalizeReferenceResolution(envelopeValue(envelope, lock), referenceMentions);
     },
@@ -2520,16 +3290,25 @@ export async function createPipelineStageExecutor(
     },
 
     REQUIREMENT_PLAN: async (context) => {
+      if (isSourceCurrentness(context)) {
+        return {
+          status: "PLANNED" as const,
+          graph: null,
+          selectedRecipeIds: ["GDPS_VALIDATE_SOURCE_CURRENTNESS" as const],
+          capabilityGaps: []
+        };
+      }
       const parts = requestParts(context);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_FRAME_VALIDATE");
+      const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
       const projected = value.gdpsDescriptor ? projectGeospatialProductIntent({
-        frame: model.frame,
+        frame: augmentGdpsProjectionFrame(model.frame, deterministic),
         originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
         conceptMap: value.gdpsDescriptor.conceptMap
       }) : null;
       const descriptorResolution = projected ? value.gdpsDescriptor!.consumer.resolve(projected) : undefined;
-      const planned = planner.plan({
+      const basePlanned = planner.plan({
         groundingGraph: graph.graph,
         ...(descriptorResolution?.status === "MATCHED" && descriptorResolution.intent
           ? { groundedProductIntents: [descriptorResolution.intent] }
@@ -2544,9 +3323,21 @@ export async function createPipelineStageExecutor(
           allowApproximation: parts.policy["allowApproximation"] === true
         }
       });
+      const mapGeometry = directMapSelectionGeometry(deterministic);
+      const directRecipe = descriptorResolution?.status === "MATCHED" && descriptorResolution.intent &&
+        mapGeometry.status !== "ABSENT"
+        ? gdpsV032RecipeByQueryProfile[descriptorResolution.intent.queryProfile]
+        : undefined;
+      const planned = directRecipe ? {
+        ...basePlanned,
+        status: "PLANNED" as const,
+        selectedRecipeIds: [directRecipe],
+        capabilityGaps: []
+      } : basePlanned;
       if (descriptorResolution?.status === "MATCHED" && descriptorResolution.intent) {
         const selectedGdpsPatterns = planned.selectedRecipeIds.filter((recipeId) =>
-          queryTemplateRules.some((rule) => rule.pattern === recipeId && rule.previewAuthorizationRequired));
+          queryTemplateRules.some((rule) =>
+            rule.pattern === recipeId && rule.previewAuthorizationRequired && rule.descriptorAuthorizationRequired !== false));
         const recipeGaps = selectedGdpsPatterns.flatMap((semanticPattern): PlannerCapabilityGap[] => {
           const lookup = value.gdpsDescriptor!.consumer.lookupRecipe(descriptorResolution.intent!, semanticPattern);
           if (lookup.status === "MATCHED") return [];
@@ -2566,7 +3357,7 @@ export async function createPipelineStageExecutor(
             }
           }];
         });
-        if (recipeGaps.length === 0) return planned;
+        if (recipeGaps.length === 0) return { ...planned, gdpsV032Intent: descriptorResolution.intent };
         return {
           ...planned,
           status: "CAPABILITY_GAP" as const,
@@ -2604,7 +3395,7 @@ export async function createPipelineStageExecutor(
 
     CAPABILITY_MATCH: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
-      const planning = stageValue<RequirementPlanningResult>(context, "REQUIREMENT_PLAN");
+      const planning = stageValue<RuntimeRequirementPlanning>(context, "REQUIREMENT_PLAN");
       const matches: JsonObject[] = [];
       const gaps: JsonObject[] = [];
       for (const recipeId of planning.selectedRecipeIds) {
@@ -2636,20 +3427,111 @@ export async function createPipelineStageExecutor(
 
     WORLD_QUERY_COMPILE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
-      const planning = stageValue<RequirementPlanningResult>(context, "REQUIREMENT_PLAN");
+      const planning = stageValue<RuntimeRequirementPlanning>(context, "REQUIREMENT_PLAN");
       const matched = stageValue<{ capabilityGaps: JsonObject[] }>(context, "CAPABILITY_MATCH");
       const parts = requestParts(context);
+      if (isSourceCurrentness(context)) {
+        const currentness = sourceCurrentnessRequest(context);
+        const result = compiler.compile({
+          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
+          idempotencyKey: `${idempotencyKey(context)}:source-currentness`,
+          pattern: "GDPS_VALIDATE_SOURCE_CURRENTNESS",
+          requiredForProduct: "SOURCE_PRODUCTS",
+          operationInput: currentnessOperationInput(currentness),
+          parameterValues: {},
+          capabilities: authority.capabilityCatalog.capabilities,
+          semanticProfiles: authority.semanticCatalog.profiles,
+          operationLocks: allGatewayLocks(authority.southboundLock),
+          availability: authority.availability.operations,
+          maturityPolicy: { allowPreview: value.allowPreview },
+          trustedGdpsRecipeLockHash: value.currentnessRecipe.recipeLockHash,
+          gdpsRecipeAuthorization: value.currentnessRecipe,
+          parameterSchemaHash: value.parameterSchemaHash,
+          observedAt: authority.availability.checkedAt,
+          snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false },
+          budgets: {
+            maximumNodes: 1,
+            maximumDepth: 1,
+            maximumRows: 1,
+            maximumCandidates: 1,
+            maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+            maximumExecutionMs: integer(parts.policy["deadlineMs"], "DEADLINE_INVALID")
+          }
+        });
+        if (result.status === "COMPILED") {
+          await withFence(context, value.pool, async (client) => {
+            const persisted = await client.query(
+              `INSERT INTO wsgs.world_query(query_id, grounding_id, data_scope, plan, plan_hash)
+               VALUES ($1,$2,$3,$4::jsonb,$5)
+               ON CONFLICT (query_id) DO UPDATE SET plan = EXCLUDED.plan, plan_hash = EXCLUDED.plan_hash
+               WHERE wsgs.world_query.grounding_id = EXCLUDED.grounding_id
+                 AND wsgs.world_query.plan_hash = EXCLUDED.plan_hash`,
+              [result.submission.plan.queryId, context.groundingId, identity(context).dataScope,
+                JSON.stringify(result.submission), result.planHash]
+            );
+            if (persisted.rowCount !== 1) throw new PipelineFenceRejectedError();
+          });
+        }
+        return {
+          compiled: [result],
+          capabilityGaps: result.status === "CAPABILITY_GAP"
+            ? [...matched.capabilityGaps, result.gap as unknown as JsonObject]
+            : [...matched.capabilityGaps]
+        };
+      }
       const groundingGraph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
+      const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
+      const caller = identity(context);
+      const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, authority);
       const compiled: CompileResult[] = [];
       const gaps = [...matched.capabilityGaps];
-      for (const recipeId of planning.selectedRecipeIds) {
+      for (const semanticPattern of planning.selectedRecipeIds) {
+        const recipeId = semanticPattern as StableRecipeId;
+        const requiredForProduct = planning.graph?.requirements.find((entry) => entry.required)?.requiredForProduct ?? "WORLD_QUERY";
+        const direct = planning.gdpsV032Intent ? compileGdpsV032MapSelectionQuery({
+          recipeId,
+          intent: planning.gdpsV032Intent,
+          deterministic,
+          requiredForProduct,
+          catalog: value.gdpsV032BindingCatalog,
+          capabilities: authority.capabilityCatalog.capabilities,
+          operationLocks: allGatewayLocks(authority.southboundLock),
+          availability: authority.availability.operations,
+          caller,
+          ...(segmentedScopeAuthority ? { segmentedScopeAuthority } : {}),
+          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
+          idempotencyKey: `${idempotencyKey(context)}:${recipeId}:gdps-v032-map`,
+          parameterSchemaHash: value.parameterSchemaHash,
+          maximumGeometryBytes: environmentInteger(
+            "WSGS_GDPS_V032_MAX_GEOMETRY_BYTES",
+            1_048_576,
+            64,
+            16_777_216
+          ),
+          budgets: {
+            maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
+            maximumDepth: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"),
+            maximumRows: Math.max(1, integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID") * 32),
+            maximumCandidates: Math.max(1, integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID") * 32),
+            maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+            maximumExecutionMs: integer(parts.policy["deadlineMs"], "DEADLINE_INVALID")
+          }
+        }) : null;
+        if (direct) {
+          compiled.push(direct);
+          if (direct.status === "CAPABILITY_GAP") gaps.push(direct.gap as unknown as JsonObject);
+          continue;
+        }
         const gdpsRecipe = value.gdpsRecipes.find((entry) => entry.semanticPattern === recipeId);
         const recipeInput = buildRecipeOperationInput({
           recipeId,
-          planning,
+          planning: planning as unknown as RequirementPlanningResult,
           groundingGraph,
           references,
+          ...(recipeId === "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT" && value.stasGdpsFixture
+            ? { stasGdpsFixture: value.stasGdpsFixture }
+            : {}),
           ...(typeof parts.source["locale"] === "string" ? { locale: parts.source["locale"] } : {}),
           maximumCandidates: integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID")
           , originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING")
@@ -2666,6 +3548,25 @@ export async function createPipelineStageExecutor(
         const descriptorHash = typeof recipeInput.parameterValues?.["descriptorHash"] === "string"
           ? recipeInput.parameterValues["descriptorHash"]
           : gdpsRecipe?.descriptorConstraint?.descriptorHash;
+        const combinedFixture = recipeId === "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT"
+          ? value.stasGdpsFixture
+          : undefined;
+        const recipeAuthorization: GdpsRecipeAuthorization | undefined = combinedFixture ? {
+          recipeId: combinedFixture.lock.recipeId,
+          semanticPattern: combinedFixture.lock.semanticPattern,
+          recipeLockHash: combinedFixture.lockHash,
+          descriptorConstraint: null,
+          previewAuthorizationRequired: true,
+          allowedOperations: combinedFixture.lock.allowedOperations
+        } : gdpsRecipe && value.gdpsRecipeLock && descriptorId && descriptorHash ? {
+          recipeId: gdpsRecipe.recipeId,
+          semanticPattern: gdpsRecipe.semanticPattern as QuerySemanticPattern,
+          recipeLockHash: value.gdpsRecipeLock.lockHash,
+          descriptorId,
+          descriptorHash: descriptorHash as `sha256:${string}`,
+          previewAuthorizationRequired: true,
+          allowedOperations: gdpsRecipe.allowedOperations
+        } : undefined;
         const result = compiler.compile({
           requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
           idempotencyKey: `${idempotencyKey(context)}:${recipeId}`,
@@ -2682,18 +3583,13 @@ export async function createPipelineStageExecutor(
           operationLocks: allGatewayLocks(authority.southboundLock),
           availability: authority.availability.operations,
           maturityPolicy: { allowPreview: value.allowPreview },
-          ...(gdpsRecipe && value.gdpsRecipeLock && descriptorId && descriptorHash ? {
-            trustedGdpsRecipeLockHash: value.gdpsRecipeLock.lockHash,
-            gdpsRecipeAuthorization: {
-              recipeId: gdpsRecipe.recipeId,
-              semanticPattern: gdpsRecipe.semanticPattern as QuerySemanticPattern,
-              recipeLockHash: value.gdpsRecipeLock.lockHash,
-              descriptorId,
-              descriptorHash: descriptorHash as `sha256:${string}`,
-              previewAuthorizationRequired: true as const,
-              allowedOperations: gdpsRecipe.allowedOperations
-            }
+          ...(recipeAuthorization ? {
+            trustedGdpsRecipeLockHash: recipeAuthorization.recipeLockHash,
+            gdpsRecipeAuthorization: recipeAuthorization
           } : {}),
+          ...(recipeInput.trustedOperationInput
+            ? { trustedOperationInput: recipeInput.trustedOperationInput }
+            : {}),
           parameterSchemaHash: value.parameterSchemaHash,
           observedAt: authority.availability.checkedAt,
           snapshotPolicy: PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
@@ -2748,6 +3644,16 @@ export async function createPipelineStageExecutor(
               authority: scopeAuthority.authority,
               capabilities: persisted.capabilityCatalog.capabilities,
               identity: caller,
+              ...(value.stasGdpsFixture ? {
+                nodeOutputTransforms: [{
+                  kind: "PROJECT_COORDINATES" as const,
+                  sourceOperationKey: "stas.nearest-approach@1.0" as const,
+                  sourcePath: value.stasGdpsFixture.lock.eventGeometryPath,
+                  targetOperationKey: "geo-raster.sample@1.0" as const,
+                  targetPath: "/point/coordinates" as const,
+                  transform: value.stasGdpsFixture.lock.eventGeometryTransform
+                }]
+              } : {}),
               deadlineAt: context.deadlineAt,
               signal: context.signal,
               runtime: {
@@ -2893,6 +3799,58 @@ export async function createPipelineStageExecutor(
     },
 
     EVIDENCE_NORMALIZE: async (context) => {
+      if (isSourceCurrentness(context)) {
+        const execution = stageValue<{ outcomes: PersistedWorldQueryOutcome[] }>(context, "GOWM_EXECUTE");
+        const outcome = execution.outcomes[0];
+        const fallbackCheckedAt = text(
+          object(stageValue(context, "LOAD_CONTEXT"), "CURRENTNESS_LOAD_CONTEXT_INVALID")["startedAt"],
+          "CURRENTNESS_CHECKED_AT_MISSING"
+        );
+        if (!outcome) {
+          return {
+            result: normalizeSourceCurrentness({
+              request: sourceCurrentnessRequest(context),
+              validationGroundingId: context.groundingId,
+              checkedAt: fallbackCheckedAt,
+              upstream: null
+            }),
+            evidence: null,
+            authorityDecision: "UNAVAILABLE"
+          };
+        }
+        if (outcome.executionMode !== "SINGLE_GATEWAY_QUERY") {
+          throw new ProductionStageModuleError("CURRENTNESS_SINGLE_GATEWAY_QUERY_REQUIRED");
+        }
+        const world = finalSingleWorldResult(outcome);
+        const outputs = object(world["outputs"], "CURRENTNESS_WORLD_OUTPUTS_INVALID");
+        const nodes = Array.isArray(world["nodes"]) ? world["nodes"] : [];
+        const receiptIds = nodes.flatMap((rawNode) => {
+          if (!rawNode || typeof rawNode !== "object" || Array.isArray(rawNode)) return [];
+          const envelope = (rawNode as JsonObject)["result"];
+          if (!envelope || typeof envelope !== "object" || Array.isArray(envelope)) return [];
+          const receipts = (envelope as JsonObject)["receipts"];
+          if (!Array.isArray(receipts)) return [];
+          return receipts.flatMap((receipt) => receipt && typeof receipt === "object" && !Array.isArray(receipt) &&
+            typeof (receipt as JsonObject)["receiptId"] === "string"
+            ? [(receipt as JsonObject)["receiptId"] as string]
+            : []);
+        });
+        const result = normalizeSourceCurrentness({
+          request: sourceCurrentnessRequest(context),
+          validationGroundingId: context.groundingId,
+          checkedAt: typeof world["finishedAt"] === "string" ? world["finishedAt"] : fallbackCheckedAt,
+          upstream: outputs["result"]
+        });
+        return {
+          result,
+          evidence: buildSourceCurrentnessEvidence({
+            queryId: outcome.submission.plan.queryId,
+            upstreamResultHash: outcome.resultHash as `sha256:${string}`,
+            receiptIds
+          }),
+          authorityDecision: result.status === "UNKNOWN" ? "UNAVAILABLE" : "AUTHORITATIVE"
+        };
+      }
       const authority = persistedAuthority(context, value.gateway);
       const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, authority);
       const execution = stageValue<{ outcomes: PersistedWorldQueryOutcome[] }>(context, "GOWM_EXECUTE");
@@ -2955,7 +3913,12 @@ export async function createPipelineStageExecutor(
             references
           ));
         }
-        const gdpsSources = normalizeGdpsWorldQuerySources(outcome.submission, findingWorld, value.gdpsRecipeLock);
+        const gdpsSources = normalizeGdpsWorldQuerySources(
+          outcome.submission,
+          findingWorld,
+          value.gdpsRecipeLock,
+          value.gdpsV032BindingCatalog
+        );
         const gdpsByNode = new Map(gdpsSources.map((entry) => [entry.nodeId, entry.evidence]));
         for (const unit of units) {
           const nodes = Array.isArray(unit.world["nodes"]) ? unit.world["nodes"] : [];
@@ -3012,7 +3975,9 @@ export async function createPipelineStageExecutor(
               authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest,
               delegatedIdentityHash: unit.delegatedIdentityHash as Sha256Digest,
               ...(semantic?.receiptId ? { modelReceiptIds: [semantic.receiptId] } : {}),
-              requestedProducts: normalizationProducts,
+              requestedProducts: isStasGdpsSubmission(outcome.submission)
+                ? ["WORLD_EVIDENCE"]
+                : normalizationProducts,
               maximumInlinePayloadBytes
             },
             operationsByNode,
@@ -3057,6 +4022,13 @@ export async function createPipelineStageExecutor(
           warnings.push(...evidence.warnings, ...evidence.unknowns);
         }
       }
+      evidenceItems.push(...composeStasGdpsEvidence({
+        submissions: execution.outcomes.map((outcome) => outcome.submission),
+        evidenceItems,
+        requestedProducts: requestParts(context).requestedProducts,
+        diagnostics: warnings,
+        ...(value.stasGdpsFixture ? { stasGdpsFixture: value.stasGdpsFixture } : {})
+      }));
       await persistExecutionRecords(
         context,
         value.pool,
@@ -3105,7 +4077,9 @@ export async function createPipelineStageExecutor(
       };
     },
 
-    PRODUCT_ASSEMBLE: async (context) => resultDocument(context),
+    PRODUCT_ASSEMBLE: async (context) => isSourceCurrentness(context)
+      ? stageValue<{ result: SourceCurrentnessResultMaterial }>(context, "EVIDENCE_NORMALIZE").result
+      : resultDocument(context),
 
     RESULT_PERSIST: async (context) => stageValue<JsonObject>(context, "PRODUCT_ASSEMBLE")
   });

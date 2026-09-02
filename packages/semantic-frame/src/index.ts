@@ -39,7 +39,7 @@ function assertUnique(values: readonly string[], code: string): void {
 }
 
 const nonEntitySurfaces = new Set([
-  "附近", "内", "哪里", "哪儿", "何处", "有哪些", "有什么", "什么", "哪些", "设备", "车辆"
+  "附近", "内", "哪里", "哪儿", "何处", "有哪些", "有什么", "什么", "哪些", "设备", "车辆", "道路", "道路要素"
 ]);
 const canonicalReferenceKinds = new Set([
   "WORLD_OBJECT", "SPATIAL_OBJECT", "DATA_SCOPE", "DATASET", "LAYER", "LAYER_FEATURE",
@@ -60,6 +60,7 @@ function normalizedKind(raw: string): string | null {
 
 function inferredKind(surfaceText: string): string[] {
   if (/号车$/u.test(surfaceText)) return ["WORLD_OBJECT"];
+  if (/^RD-[A-Z0-9-]+$/iu.test(surfaceText)) return ["LAYER_FEATURE"];
   if (/[路区]$/u.test(surfaceText)) return ["LAYER_FEATURE"];
   return [];
 }
@@ -69,15 +70,27 @@ function namedEntityCandidates(sourceText: string): Array<{ surfaceText: string;
     // Vehicle identifiers are bounded labels, not arbitrary preceding prose;
     // e.g. "为什么2号车..." must anchor "2号车", never "为什么2号车".
     { expression: /(?:[A-Za-z0-9]+|[一二三四五六七八九十百千]+)号车/gu, expectedKinds: ["WORLD_OBJECT"] },
-    { expression: /[\p{L}\p{N}]+路/gu, expectedKinds: ["LAYER_FEATURE"] },
+    { expression: /[\p{L}\p{N}]+?(?:大道|路|街)(?:东段|西段|南段|北段)?/gu, expectedKinds: ["LAYER_FEATURE"] },
     { expression: /[A-Za-z0-9一二三四五六七八九十]+区/gu, expectedKinds: ["LAYER_FEATURE"] }
   ];
   const values: Array<{ surfaceText: string; start: number; end: number; expectedKinds: string[] }> = [];
   for (const { expression, expectedKinds } of patterns) {
     for (const match of sourceText.matchAll(expression)) {
-      const start = match.index;
+      let start = match.index;
       if (start === undefined || !match[0]) continue;
-      values.push({ surfaceText: match[0], start, end: start + match[0].length, expectedKinds });
+      let surfaceText = match[0];
+      if (expectedKinds.includes("LAYER_FEATURE") && /(?:大道|路|街)(?:东段|西段|南段|北段)?$/u.test(surfaceText)) {
+        const boundary = Math.max(...["与", "沿", "在", "从", "到", "的"].map((marker) => surfaceText.lastIndexOf(marker)));
+        if (boundary >= 0) {
+          start += boundary + 1;
+          surfaceText = surfaceText.slice(boundary + 1);
+        }
+        const leadingAction = /^(?:请)?(?:查找|判断|获取|寻找|查询)/u.exec(surfaceText)?.[0] ?? "";
+        start += leadingAction.length;
+        surfaceText = surfaceText.slice(leadingAction.length);
+        if (nonEntitySurfaces.has(surfaceText)) continue;
+      }
+      values.push({ surfaceText, start, end: start + surfaceText.length, expectedKinds });
     }
   }
   return values.sort((left, right) => left.start - right.start || right.end - left.end)
@@ -154,7 +167,7 @@ export function stabilizeSemanticFrame(frame: WorldSemanticFrame, originalText: 
       arguments: arguments_
     }];
   });
-  const sourceClaimsSpatialMeaning = /(?:附近|\bnear\b|\bwithin\b|\bintersects?\b|\bbuffer\b)/iu.test(originalText);
+  const sourceClaimsSpatialMeaning = /(?:附近|相交|穿过|\bnear\b|\bwithin\b|\bintersects?\b|\bbuffer\b)/iu.test(originalText);
   const spatialExpressions = explicitSpatial.length > 0 ? explicitSpatial : sourceClaimsSpatialMeaning ? proposedSpatial : [];
 
   const explicitRelations: WorldSemanticFrame["relationExpressions"] = [];

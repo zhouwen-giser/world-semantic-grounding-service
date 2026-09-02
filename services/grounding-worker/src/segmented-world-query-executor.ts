@@ -33,12 +33,49 @@ import {
   type SegmentedOperationScopeBinding,
   type SegmentedScopeAuthority
 } from "./segmented-scope-authority.js";
+import {
+  transformStasGdpsEventCoordinates,
+  type StasGdpsEventGeometryTransform
+} from "./stas-gdps-fixture-lock.js";
 
 const sha256Pattern = /^sha256:[0-9a-f]{64}$/u;
 const compactJwsPattern = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/u;
 const unsafeTargetSegments = new Set(["__proto__", "prototype", "constructor"]);
 const successfulWorldStatuses = new Set(["COMPLETED", "PARTIAL"]);
 const usableNodeStatuses = new Set(["COMPLETED", "PARTIAL", "NO_DATA"]);
+
+const projectedValuePorts = Object.freeze({
+  array: {
+    schemaUri: "urn:gowm:v0.2:value:array",
+    schemaHash: "sha256:8e1e4dd66e9483d8341c51dc5ec424d8e6510ae35cdbc53040d0bab497459945",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  },
+  boolean: {
+    schemaUri: "urn:gowm:v0.2:value:boolean",
+    schemaHash: "sha256:7f17d695204279bf96eee346c482a8525470b30e5685c0a8fe2d8c3d291c6837",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  },
+  number: {
+    schemaUri: "urn:gowm:v0.2:value:number",
+    schemaHash: "sha256:f0bbdee8d99cf6777316260a88948dcb4290389c3a80268ae3cbbc4835970348",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  },
+  object: {
+    schemaUri: "urn:gowm:v0.2:value:object",
+    schemaHash: "sha256:a874188523644975b2d758a153c3b6fafbafd5b107133b30b9abf4055ae1809c",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  },
+  string: {
+    schemaUri: "urn:gowm:v0.2:value:string",
+    schemaHash: "sha256:a71d355802de7ff21b9c9d9214a1ba71b3648866bcf1b7c0f4ff3b656485c6d5",
+    valueKind: "ANY",
+    unitSemantics: "UNSPECIFIED"
+  }
+} as const);
 
 type JsonObject = Record<string, unknown>;
 
@@ -143,8 +180,18 @@ export interface ExecuteSegmentedWorldQueryInput {
   readonly capabilities: readonly CapabilityDescriptor[];
   readonly identity: GroundingIdentityV2;
   readonly runtime: SegmentedWorldQueryRuntime;
+  readonly nodeOutputTransforms?: readonly SegmentedNodeOutputTransform[];
   readonly signal?: AbortSignal;
   readonly deadlineAt: Date;
+}
+
+export interface SegmentedNodeOutputTransform {
+  readonly kind: "PROJECT_COORDINATES";
+  readonly sourceOperationKey: "stas.nearest-approach@1.0";
+  readonly sourcePath: "/result/shortest_line/coordinates/0";
+  readonly targetOperationKey: "geo-raster.sample@1.0";
+  readonly targetPath: "/point/coordinates";
+  readonly transform: StasGdpsEventGeometryTransform;
 }
 
 function operationKey(value: { operationId: string; operationVersion: string }): string {
@@ -295,8 +342,7 @@ function nodeResultValue(
     throw new SegmentedWorldQueryError("SOURCE_NODE_NOT_USABLE");
   }
   const envelope = object(node["result"], "SOURCE_NODE_RESULT_ENVELOPE_MISSING");
-  if (node["status"] === "NO_DATA") {
-    if (noData === "NULL") return null;
+  if (node["status"] === "NO_DATA" && noData === "REJECT") {
     throw new SegmentedWorldQueryError("SOURCE_NODE_NO_DATA");
   }
   const output = object(envelope["output"], "SOURCE_NODE_OUTPUT_MISSING");
@@ -319,15 +365,73 @@ function resolveInputBinding(
   return nodeResultValue(resultByNode, binding);
 }
 
-function segmentOutputs(plan: WorldQueryPlanV2, nodeId: string): WorldQueryPlanV2["outputs"] {
+function transformedInputBinding(
+  submission: WorldQuerySubmission,
+  targetNode: WorldQueryNode,
+  resultByNode: ReadonlyMap<string, Readonly<JsonObject>>,
+  binding: WorldQueryInputBinding,
+  transforms: readonly SegmentedNodeOutputTransform[]
+): unknown {
+  const value = resolveInputBinding(submission, resultByNode, binding);
+  if (binding.kind !== "NODE_OUTPUT") return value;
+  const sourceNode = submission.plan.nodes.find(({ nodeId }) => nodeId === binding.nodeId);
+  if (!sourceNode) throw new SegmentedWorldQueryError("SOURCE_NODE_OUTPUT_MISSING");
+  const candidates = transforms.filter((entry) =>
+    entry.kind === "PROJECT_COORDINATES" &&
+    entry.sourceOperationKey === operationKey(sourceNode.operation) &&
+    entry.sourcePath === binding.path &&
+    entry.targetOperationKey === operationKey(targetNode.operation) &&
+    entry.targetPath === binding.targetPath);
+  if (candidates.length === 0) return value;
+  if (candidates.length !== 1) throw new SegmentedWorldQueryError("NODE_OUTPUT_TRANSFORM_AMBIGUOUS");
+  try {
+    return transformStasGdpsEventCoordinates(candidates[0]!.transform, value);
+  } catch {
+    throw new SegmentedWorldQueryError("NODE_OUTPUT_TRANSFORM_FAILED");
+  }
+}
+
+function validateNodeOutputTransforms(transforms: readonly SegmentedNodeOutputTransform[]): void {
+  if (transforms.length > 1) throw new SegmentedWorldQueryError("NODE_OUTPUT_TRANSFORM_SET_INVALID");
+  for (const entry of transforms) {
+    if (entry.kind !== "PROJECT_COORDINATES" ||
+        entry.sourceOperationKey !== "stas.nearest-approach@1.0" ||
+        entry.sourcePath !== "/result/shortest_line/coordinates/0" ||
+        entry.targetOperationKey !== "geo-raster.sample@1.0" ||
+        entry.targetPath !== "/point/coordinates" ||
+        entry.transform.sourceCrs !== "EPSG:32618" ||
+        entry.transform.targetCrs !== "EPSG:4326" ||
+        entry.transform.axisOrder !== "EAST_NORTH_TO_LONGITUDE_LATITUDE" ||
+        entry.transform.engine !== "PROJ4JS/2.22.0") {
+      throw new SegmentedWorldQueryError("NODE_OUTPUT_TRANSFORM_INVALID");
+    }
+  }
+}
+
+function projectedValuePort(value: unknown): WorldQueryInputBinding["port"] {
+  if (Array.isArray(value)) return projectedValuePorts.array;
+  if (value !== null && typeof value === "object") return projectedValuePorts.object;
+  if (typeof value === "boolean") return projectedValuePorts.boolean;
+  if (typeof value === "number") return projectedValuePorts.number;
+  if (typeof value === "string") return projectedValuePorts.string;
+  throw new SegmentedWorldQueryError("PROJECTED_NODE_OUTPUT_TYPE_UNSUPPORTED");
+}
+
+function segmentOutputs(
+  plan: WorldQueryPlanV2,
+  nodeId: string,
+  descriptor: CapabilityDescriptor
+): WorldQueryPlanV2["outputs"] {
   const outputs = new Map<string, WorldQueryPlanV2["outputs"][number]["binding"]>();
   const add = (binding: WorldQueryPlanV2["outputs"][number]["binding"]): void => {
+    const controlledPort = descriptor.ports.outputs.find((port) => port.name === binding.outputPort);
+    if (!controlledPort) throw new SegmentedWorldQueryError("SEGMENT_OUTPUT_PORT_MISSING");
     const selector = {
       kind: binding.kind,
       port: binding.port,
       nodeId: binding.nodeId,
       outputPort: binding.outputPort,
-      ...(binding.path === undefined ? {} : { path: binding.path })
+      ...(controlledPort.path === undefined ? {} : { path: controlledPort.path })
     } as const;
     const prior = outputs.get(binding.outputPort);
     if (prior && canonical(prior) !== canonical(selector)) {
@@ -360,15 +464,23 @@ function boundedIdentifier(prefix: string, suffix: string): string {
 function singleNodeSubmission(
   source: WorldQuerySubmission,
   node: WorldQueryNode,
+  descriptor: CapabilityDescriptor,
   index: number,
-  resultByNode: ReadonlyMap<string, Readonly<JsonObject>>
+  resultByNode: ReadonlyMap<string, Readonly<JsonObject>>,
+  transforms: readonly SegmentedNodeOutputTransform[]
 ): WorldQuerySubmission {
-  const inputEntries = Object.entries(node.inputs).map(([name, binding]) => [name, {
-    kind: "LITERAL" as const,
-    port: jsonClone(binding.port, "INVALID_BINDING_PORT"),
-    value: resolveInputBinding(source, resultByNode, binding),
-    ...(binding.targetPath === undefined ? {} : { targetPath: binding.targetPath })
-  }] as const);
+  const inputEntries = Object.entries(node.inputs).map(([name, binding]) => {
+    const value = transformedInputBinding(source, node, resultByNode, binding, transforms);
+    const port = binding.kind === "NODE_OUTPUT" && binding.path !== undefined
+      ? projectedValuePort(value)
+      : binding.port;
+    return [name, {
+      kind: "LITERAL" as const,
+      port: jsonClone(port, "INVALID_BINDING_PORT"),
+      value,
+      ...(binding.targetPath === undefined ? {} : { targetPath: binding.targetPath })
+    }] as const;
+  });
   const segmentDigest = createHash("sha256")
     .update(`${source.plan.queryId}:${index}:${node.nodeId}:${operationKey(node.operation)}`)
     .digest("hex").slice(0, 20);
@@ -380,7 +492,7 @@ function singleNodeSubmission(
       ...jsonClone(node, "INVALID_PLAN_NODE"),
       inputs: Object.fromEntries(inputEntries)
     }],
-    outputs: segmentOutputs(source.plan, node.nodeId),
+    outputs: segmentOutputs(source.plan, node.nodeId, descriptor),
     budgets: {
       maximumNodes: 1,
       maximumDepth: 1,
@@ -632,13 +744,19 @@ function sourcePlanHash(plan: WorldQueryPlanV2, capabilities: readonly Capabilit
   }
 }
 
-function preflightBindings(submission: WorldQuerySubmission): void {
+function preflightBindings(
+  submission: WorldQuerySubmission,
+  capabilities: readonly CapabilityDescriptor[]
+): void {
   const noResults = new Map<string, Readonly<JsonObject>>();
+  const descriptors = new Map(capabilities.map((descriptor) => [operationKey(descriptor), descriptor]));
   for (const node of submission.plan.nodes) {
     if (node.failurePolicy === "SKIP_IF_PRECONDITION_FALSE") {
       throw new SegmentedWorldQueryError("SEGMENT_PRECONDITION_POLICY_UNSUPPORTED");
     }
-    segmentOutputs(submission.plan, node.nodeId);
+    const descriptor = descriptors.get(operationKey(node.operation));
+    if (!descriptor) throw new SegmentedWorldQueryError("SEGMENT_CAPABILITY_DESCRIPTOR_MISSING");
+    segmentOutputs(submission.plan, node.nodeId, descriptor);
     for (const binding of Object.values(node.inputs)) {
       if (binding.kind === "NODE_OUTPUT") continue;
       resolveInputBinding(submission, noResults, binding);
@@ -705,6 +823,11 @@ export async function executeSegmentedWorldQuery(
   }
   const executionIdentity = jsonFrozenClone(input.identity, "SEGMENTED_IDENTITY_INVALID");
   const capabilities = jsonFrozenClone(input.capabilities, "SEGMENTED_CAPABILITY_CATALOG_INVALID");
+  const nodeOutputTransforms = jsonFrozenClone(
+    input.nodeOutputTransforms ?? [],
+    "SEGMENTED_NODE_OUTPUT_TRANSFORMS_INVALID"
+  );
+  validateNodeOutputTransforms(nodeOutputTransforms);
   validateIdentity(executionIdentity);
   if (!(input.deadlineAt instanceof Date) || !Number.isFinite(input.deadlineAt.getTime()) ||
       input.deadlineAt.getTime() <= Date.now()) {
@@ -717,7 +840,7 @@ export async function executeSegmentedWorldQuery(
   const ordered = topologicalNodes(sourceSubmission.plan);
   for (const node of ordered) operationBinding(input.authority, node);
   const sourceHash = sourcePlanHash(sourceSubmission.plan, capabilities);
-  preflightBindings(sourceSubmission);
+  preflightBindings(sourceSubmission, capabilities);
 
   let pinnedManifestHash: string | undefined;
   if (sourceSubmission.snapshotPolicy.mode === "PINNED") {
@@ -739,7 +862,7 @@ export async function executeSegmentedWorldQuery(
     const descriptor = descriptors.get(operationKey(node.operation));
     if (!descriptor) throw new SegmentedWorldQueryError("SEGMENT_CAPABILITY_DESCRIPTOR_MISSING");
     const submission = jsonFrozenClone(
-      singleNodeSubmission(sourceSubmission, node, index, resultByNode),
+      singleNodeSubmission(sourceSubmission, node, descriptor, index, resultByNode, nodeOutputTransforms),
       "SEGMENT_WORLD_QUERY_SUBMISSION_INVALID"
     );
     const signed = await input.runtime.signer.sign({

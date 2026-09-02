@@ -54,8 +54,6 @@ const localProducts = new Set<RequestedProduct>(["MENTIONS", "GROUNDING_GRAPH"])
 const previewOnlyProducts = new Set<RequestedProduct>([
   "DERIVED_REFERENCES",
   "OPERATIONAL_TASKS",
-  "EVENT_TIMELINES",
-  "CORRELATION_FINDINGS",
   "PREDICATE_EVALUATIONS"
 ]);
 const recipeById = new Map(stableRecipeCatalog.map((recipe) => [recipe.recipeId, recipe]));
@@ -70,6 +68,7 @@ const outputByRequirement: Record<RequirementType, string> = {
   SPATIAL_NEARBY: "nearbyCandidates",
   SPATIAL_IN_AREA: "areaCandidates",
   SPATIAL_INTERSECTS: "intersectionCandidates",
+  ANALYZE_NEAREST_APPROACH: "nearestApproach",
   READ_LAND_COVER: "landCover",
   READ_TERRAIN_CLASS: "terrainClass",
   READ_ELEVATION: "elevation",
@@ -103,6 +102,7 @@ const targetByRequirement: Record<RequirementType, string> = {
   SPATIAL_NEARBY: "/anchorReferences",
   SPATIAL_IN_AREA: "/areaReferences",
   SPATIAL_INTERSECTS: "/references",
+  ANALYZE_NEAREST_APPROACH: "/eventGeometry",
   READ_LAND_COVER: "/point",
   READ_TERRAIN_CLASS: "/point",
   READ_ELEVATION: "/point",
@@ -406,6 +406,8 @@ function inputsForRequirement(
     case "READ_GEOMETRY":
     case "READ_PROVENANCE":
       return { ...common, referenceNodeIds: signals.referenceNodeIds };
+    case "ANALYZE_NEAREST_APPROACH":
+      return { ...common, inputAuthority: "RUNTIME_FIXTURE_LOCK" };
     case "READ_LAND_COVER":
     case "READ_TERRAIN_CLASS":
     case "READ_ELEVATION":
@@ -549,6 +551,14 @@ export class SemanticRequirementPlanner {
     const nearbySources = signals.spatialConstraints.filter((entry) => entry.operator === "NEAR").map((entry) => entry.sourceNodeId);
     const inAreaSources = signals.spatialConstraints.filter((entry) => entry.operator === "WITHIN" || entry.operator === "CONTAINS").map((entry) => entry.sourceNodeId);
     const intersectionSources = signals.spatialConstraints.filter((entry) => entry.operator === "INTERSECTS").map((entry) => entry.sourceNodeId);
+    const needsNearestApproachContext = products.includes("EVENT_TIMELINES") || products.includes("CORRELATION_FINDINGS");
+    if (needsNearestApproachContext) {
+      addRecipe(
+        "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT",
+        products.includes("CORRELATION_FINDINGS") ? "CORRELATION_FINDINGS" : "EVENT_TIMELINES",
+        []
+      );
+    }
     const gdpsSelections: Array<readonly [StableRecipeId, readonly string[]]> = [
       ["GDPS_LAND_COVER_AT_REFERENCE", tokenSources(signals, landCoverTokens)],
       ["GDPS_WETLANDS_IN_AREA", tokenSources(signals, wetlandTokens)],
@@ -594,7 +604,7 @@ export class SemanticRequirementPlanner {
     }
     const gdpsRecipeIds = new Set<StableRecipeId>([
       ...gdpsSelections.map(([id]) => id), "GDPS_HIGH_GROUND_IN_AREA",
-      ...Object.values(genericRecipeByProfile)
+      ...Object.values(genericRecipeByProfile), "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT"
     ]);
     const gdpsRecipeSelected = [...selected.keys()].some((id) => gdpsRecipeIds.has(id)) || highGroundSources.length > 0;
     if (needsQuery || needsReferenceSet) {
@@ -610,7 +620,7 @@ export class SemanticRequirementPlanner {
     const spatialRecipeSelected = ["REFERENCE_NEARBY", "REFERENCE_IN_AREA", "REFERENCE_INTERSECTIONS",
       "GDPS_LAND_COVER_AT_REFERENCE", "GDPS_WETLANDS_IN_AREA", "GDPS_OBSTACLES_NEAR_REFERENCE",
       "GDPS_BLOCKED_AREAS_IN_AREA", "GDPS_HIGH_GROUND_IN_AREA", "GDPS_ELEVATION_AT_REFERENCE",
-      "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE"]
+      "GDPS_TRAVERSABILITY_EXPLAIN_AT_REFERENCE", "STAS_NEAREST_APPROACH_WITH_GDPS_CONTEXT"]
       .some((id) => selected.has(id as StableRecipeId));
     if (needsReferenceSet && !spatialRecipeSelected && !gdpsRecipeSelected) {
       addRecipe("CATALOG_SEARCH", "REFERENCE_SETS", tokenSources(signals, catalogTokens));

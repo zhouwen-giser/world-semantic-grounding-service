@@ -55,6 +55,14 @@ export interface LoadSegmentedScopeAuthorityInput {
   readonly gdpsHandoffDirectory: string;
   readonly foundationOperations: readonly OperationLock[];
   readonly selectedDatasetOperations: readonly OperationLock[];
+  readonly selectedDatasetScopeSource?: {
+    readonly dataScope: string;
+    readonly sourceLockHash: Sha256Digest;
+  };
+  readonly additionalFoundationSources?: readonly {
+    readonly sourceLockHash: Sha256Digest;
+    readonly operations: readonly OperationLock[];
+  }[];
 }
 
 export interface LoadedSegmentedScopeAuthority {
@@ -206,7 +214,9 @@ function createLoadedSegmentedScopeAuthority(
     readonly gdpsChecksumsHash: Sha256Digest;
   }
 ): SegmentedScopeAuthority {
-  if (sources.length !== 2 || sources[0]?.role === sources[1]?.role) {
+  if (sources.length < 2 ||
+      !sources.some((source) => source.role === "FOUNDATION") ||
+      !sources.some((source) => source.role === "SELECTED_DATASET")) {
     throw new SegmentedScopeAuthorityError("TRUSTED_SCOPE_SOURCES_REQUIRED");
   }
   const requiredDataScopes = new Set<string>();
@@ -326,46 +336,74 @@ export function loadSegmentedScopeAuthority(
   }
   assertExactOperationLocks(binding["operationContracts"], input.foundationOperations, "GOWM_INSTANCE_OPERATION_LOCK_DRIFT", false);
 
-  const checksumsFile = jsonFile(join(input.gdpsHandoffDirectory, "CHECKSUMS.json"), "GDPS_CHECKSUMS");
-  const checksums = checksumMap(checksumsFile.value);
-  const datasetFile = jsonFile(join(input.gdpsHandoffDirectory, "GDPS_SAMPLE_DATASET_LOCK.json"), "GDPS_SAMPLE_DATASET_LOCK");
-  const capabilityFile = jsonFile(join(input.gdpsHandoffDirectory, "GDPS_CAPABILITY_LOCK.json"), "GDPS_CAPABILITY_LOCK");
-  if (checksums.get("GDPS_SAMPLE_DATASET_LOCK.json") !== sha256(datasetFile.bytes) ||
-      checksums.get("GDPS_CAPABILITY_LOCK.json") !== sha256(capabilityFile.bytes)) {
-    throw new SegmentedScopeAuthorityError("GDPS_HANDOFF_CHECKSUM_MISMATCH");
+  let selectedDatasetDataScope: string;
+  let selectedDatasetSourceLockHash: Sha256Digest;
+  let gdpsChecksumsHash: Sha256Digest;
+  if (input.selectedDatasetScopeSource) {
+    selectedDatasetDataScope = dataScope(
+      input.selectedDatasetScopeSource.dataScope,
+      "SELECTED_DATASET_SCOPE_INVALID"
+    );
+    selectedDatasetSourceLockHash = digest(
+      input.selectedDatasetScopeSource.sourceLockHash,
+      "SELECTED_DATASET_SOURCE_HASH_INVALID"
+    );
+    gdpsChecksumsHash = selectedDatasetSourceLockHash;
+  } else {
+    const checksumsFile = jsonFile(join(input.gdpsHandoffDirectory, "CHECKSUMS.json"), "GDPS_CHECKSUMS");
+    const checksums = checksumMap(checksumsFile.value);
+    const datasetFile = jsonFile(join(input.gdpsHandoffDirectory, "GDPS_SAMPLE_DATASET_LOCK.json"), "GDPS_SAMPLE_DATASET_LOCK");
+    const capabilityFile = jsonFile(join(input.gdpsHandoffDirectory, "GDPS_CAPABILITY_LOCK.json"), "GDPS_CAPABILITY_LOCK");
+    if (checksums.get("GDPS_SAMPLE_DATASET_LOCK.json") !== sha256(datasetFile.bytes) ||
+        checksums.get("GDPS_CAPABILITY_LOCK.json") !== sha256(capabilityFile.bytes)) {
+      throw new SegmentedScopeAuthorityError("GDPS_HANDOFF_CHECKSUM_MISMATCH");
+    }
+    const dataset = datasetFile.value;
+    const capability = capabilityFile.value;
+    if (dataset["schemaVersion"] !== "gdps-v021-sample-dataset-lock/1.0" ||
+        capability["schemaVersion"] !== "gdps-v021-capability-lock/1.0" ||
+        capability["providerId"] !== "gdps.geospatial-products") {
+      throw new SegmentedScopeAuthorityError("GDPS_SCOPE_AUTHORITY_INVALID");
+    }
+    selectedDatasetDataScope = dataScope(dataset["scope"], "GDPS_SAMPLE_DATA_SCOPE_INVALID");
+    const selectedKeys = new Set(input.selectedDatasetOperations.map(operationKey));
+    const selectedCapabilityLocks = array(capability["operations"], "GDPS_CAPABILITY_LOCK_INVALID")
+      .filter((raw) => {
+        const entry = object(raw, "GDPS_CAPABILITY_LOCK_INVALID");
+        return selectedKeys.has(operationKey({
+          operationId: text(entry["operationId"], "GDPS_CAPABILITY_LOCK_INVALID"),
+          operationVersion: text(entry["operationVersion"], "GDPS_CAPABILITY_LOCK_INVALID")
+        }));
+      });
+    assertExactOperationLocks(
+      selectedCapabilityLocks,
+      input.selectedDatasetOperations,
+      "GDPS_CAPABILITY_OPERATION_LOCK_DRIFT",
+      true
+    );
+    const capabilityHash = checksums.get("GDPS_CAPABILITY_LOCK.json");
+    if (!capabilityHash) throw new SegmentedScopeAuthorityError("GDPS_CAPABILITY_CHECKSUM_MISSING");
+    selectedDatasetSourceLockHash = capabilityHash;
+    gdpsChecksumsHash = sha256(checksumsFile.bytes);
   }
-  const dataset = datasetFile.value;
-  const capability = capabilityFile.value;
-  if (dataset["schemaVersion"] !== "gdps-v021-sample-dataset-lock/1.0" ||
-      capability["schemaVersion"] !== "gdps-v021-capability-lock/1.0" ||
-      capability["providerId"] !== "gdps.geospatial-products") {
-    throw new SegmentedScopeAuthorityError("GDPS_SCOPE_AUTHORITY_INVALID");
-  }
-  const selectedDatasetDataScope = dataScope(dataset["scope"], "GDPS_SAMPLE_DATA_SCOPE_INVALID");
   if (selectedDatasetDataScope === foundationDataScope) {
     throw new SegmentedScopeAuthorityError("SEGMENTED_DATA_SCOPES_NOT_DISTINCT");
   }
-  const selectedKeys = new Set(input.selectedDatasetOperations.map(operationKey));
-  const selectedCapabilityLocks = array(capability["operations"], "GDPS_CAPABILITY_LOCK_INVALID")
-    .filter((raw) => {
-      const entry = object(raw, "GDPS_CAPABILITY_LOCK_INVALID");
-      return selectedKeys.has(operationKey({
-        operationId: text(entry["operationId"], "GDPS_CAPABILITY_LOCK_INVALID"),
-        operationVersion: text(entry["operationVersion"], "GDPS_CAPABILITY_LOCK_INVALID")
-      }));
-    });
-  assertExactOperationLocks(
-    selectedCapabilityLocks,
-    input.selectedDatasetOperations,
-    "GDPS_CAPABILITY_OPERATION_LOCK_DRIFT",
-    true
-  );
-  const gdpsCapabilityHash = checksums.get("GDPS_CAPABILITY_LOCK.json");
-  if (!gdpsCapabilityHash) throw new SegmentedScopeAuthorityError("GDPS_CAPABILITY_CHECKSUM_MISSING");
   const foundationInstanceBindingHash = sha256(bindingFile.bytes);
-  const gdpsChecksumsHash = sha256(checksumsFile.bytes);
 
-  const sources = [{
+  const additionalFoundationSources: readonly TrustedOperationScopeSource[] =
+    (input.additionalFoundationSources ?? []).map((source) => {
+      if (source.operations.length === 0) {
+        throw new SegmentedScopeAuthorityError("ADDITIONAL_FOUNDATION_OPERATIONS_REQUIRED");
+      }
+      return {
+        role: "FOUNDATION" as const,
+        dataScope: foundationDataScope,
+        sourceLockHash: digest(source.sourceLockHash, "ADDITIONAL_FOUNDATION_SOURCE_HASH_INVALID"),
+        operations: source.operations
+      };
+    });
+  const sources: readonly TrustedOperationScopeSource[] = [{
       role: "FOUNDATION",
       dataScope: foundationDataScope,
       sourceLockHash: foundationSourceHash,
@@ -373,9 +411,9 @@ export function loadSegmentedScopeAuthority(
     }, {
       role: "SELECTED_DATASET",
       dataScope: selectedDatasetDataScope,
-      sourceLockHash: gdpsCapabilityHash,
+      sourceLockHash: selectedDatasetSourceLockHash,
       operations: input.selectedDatasetOperations
-    }] as const;
+    }, ...additionalFoundationSources];
   return Object.freeze({
     authority: createLoadedSegmentedScopeAuthority(sources, {
       foundationInstanceBindingHash,

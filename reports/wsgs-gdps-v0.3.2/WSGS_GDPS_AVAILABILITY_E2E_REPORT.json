@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "wsgs-gdps-v032-availability-e2e-report/1.0",
+  "generatedAt": "2026-09-01T17:47:30.000Z",
+  "status": "PASS",
+  "provenance": "REAL_PUBLIC_WSGS_CONTROLLED_PROVIDER_UNAVAILABILITY_AND_REAL_NO_DATA_EXECUTION",
+  "sources": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+  },
+  "sourceTuple": {
+    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
+    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
+    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
+    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
+  },
+  "availabilityContrast": {
+    "providerUnavailable": {
+      "requestId": "gdps-v032-unavailable-1788284814163",
+      "publicPostHttpStatus": 503,
+      "groundingCreated": false,
+      "noDataResultCreated": false,
+      "classification": "SERVICE_UNAVAILABLE"
+    },
+    "noData": {
+      "requestId": "gdps-v032-s4d-1788275525620",
+      "groundingId": "grounding-4860d95b-367c-43bc-9267-aa4f73e5c52d",
+      "publicPostHttpStatus": 202,
+      "publicGetHttpStatus": 200,
+      "terminalStatus": "COMPLETED",
+      "gatewayStatus": "PARTIAL",
+      "resultCode": "PRODUCT_NOT_AVAILABLE",
+      "unknowns": [
+        "NO_DATA"
+      ],
+      "classification": "NO_AUTHORIZED_CURRENT_PRODUCT_COVERS_QUERY"
+    },
+    "classificationsRemainDistinct": true,
+    "providerRestored": true,
+    "wsgsReadinessAfterRestoreHttpStatus": 200
+  },
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false
+}

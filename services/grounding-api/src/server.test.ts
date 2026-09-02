@@ -19,6 +19,20 @@ const capabilities11 = JSON.parse(readFileSync(
   new URL("examples/capabilities-response-v1.1.json", sacsGeospatialDirectory),
   "utf8"
 )) as Record<string, unknown>;
+const structuredSelectionRequest = JSON.parse(readFileSync(
+  new URL("examples/structured-selection-request.json", sacsGeospatialDirectory),
+  "utf8"
+)) as Record<string, unknown>;
+const structuredSelectionResult = JSON.parse(readFileSync(
+  new URL("examples/structured-selection-result-reference-key.json", sacsGeospatialDirectory),
+  "utf8"
+)) as Record<string, unknown>;
+const sourceCurrentnessRequest = JSON.parse(readFileSync(
+  new URL("examples/source-currentness-request.json", sacsGeospatialDirectory), "utf8"
+)) as Record<string, unknown>;
+const sourceCurrentnessResult = JSON.parse(readFileSync(
+  new URL("examples/source-currentness-result-current.json", sacsGeospatialDirectory), "utf8"
+)) as Record<string, unknown>;
 const now = "2026-08-25T00:00:00Z";
 const resultHash = `sha256:${"a".repeat(64)}`;
 const sourceText = "road";
@@ -124,6 +138,14 @@ function backend(captured: GroundingIdentity[] = []): GroundingApiBackend {
     cancel: vi.fn(async (identity, groundingId) => {
       captured.push(identity);
       return groundingId === "missing" ? null : { ...groundingJob, status: "CANCELLED", updatedAt: now, finishedAt: now };
+    }),
+    resolveWorldSelection: vi.fn(async (identity) => {
+      captured.push(identity);
+      return structuredSelectionResult;
+    }),
+    validateSourceCurrentness: vi.fn(async (identity) => {
+      captured.push(identity);
+      return sourceCurrentnessResult;
     })
   };
 }
@@ -182,6 +204,69 @@ describe("grounding API", () => {
     });
     expect(asyncResponse.statusCode).toBe(202);
     expect(asyncResponse.json()).toEqual(groundingJob);
+  });
+
+  it("resolves a contract-valid structured selection only through negotiated 1.1 authority", async () => {
+    const captured: GroundingIdentity[] = [];
+    const app = await staticApp(captured, backend(captured), ["service-a"]);
+    const headers = {
+      "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
+      "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0"
+    };
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/world-selections:resolve",
+      headers,
+      payload: structuredSelectionRequest
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual(structuredSelectionResult);
+    expect(captured.at(-1)).toMatchObject({ servicePrincipalId: "service-a", dataScopes: ["scope-a"] });
+
+    const legacy = await app.inject({
+      method: "POST",
+      url: "/v1/world-selections:resolve",
+      payload: structuredSelectionRequest
+    });
+    expect(legacy.statusCode).toBe(406);
+    const forged = await app.inject({
+      method: "POST",
+      url: "/v1/world-selections:resolve",
+      headers,
+      payload: { ...structuredSelectionRequest, principalId: "forged" }
+    });
+    expect(forged.statusCode).toBe(400);
+    expect(forged.json().error.code).toBe("BODY_AUTHORITY_FIELD_FORBIDDEN");
+  });
+
+  it("validates source currentness only through negotiated 1.1 authority and an idempotency key", async () => {
+    const captured: GroundingIdentity[] = [];
+    const app = await staticApp(captured, backend(captured), ["service-a"]);
+    const headers = {
+      "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
+      "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0",
+      "idempotency-key": "currentness-1"
+    };
+    const response = await app.inject({
+      method: "POST", url: "/v1/source-currentness:validate", headers, payload: sourceCurrentnessRequest
+    });
+    expect(response.statusCode, response.body).toBe(200);
+    expect(response.json()).toEqual(sourceCurrentnessResult);
+    expect(captured.at(-1)).toMatchObject({ servicePrincipalId: "service-a", dataScopes: ["scope-a"] });
+
+    const legacy = await app.inject({
+      method: "POST", url: "/v1/source-currentness:validate",
+      headers: { "idempotency-key": "currentness-legacy" }, payload: sourceCurrentnessRequest
+    });
+    expect(legacy.statusCode).toBe(406);
+    const missingKey = await app.inject({
+      method: "POST", url: "/v1/source-currentness:validate",
+      headers: {
+        "wsgs-contract-version": "sacs-wsgs-grounding/1.1",
+        "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0"
+      }, payload: sourceCurrentnessRequest
+    });
+    expect(missingKey.statusCode).toBe(400);
   });
 
   it("negotiates the exact 1.1 Result-extension profile for sync, async, GET, and capabilities", async () => {
@@ -344,6 +429,33 @@ describe("grounding API", () => {
       datasetScopes: [],
       permissions: ["grounding.read"]
     }));
+  });
+
+  it("accepts any non-empty token in BEARER_PRESENT mode without trusting token claims", async () => {
+    const captured: GroundingIdentity[] = [];
+    const app = await createGroundingApi({
+      auth: { mode: "BEARER_PRESENT", identity: staticIdentity },
+      backend: backend(captured),
+      schemas
+    });
+    apps.push(app);
+
+    expect((await app.inject({ method: "GET", url: "/v1/capabilities" })).statusCode).toBe(401);
+    expect((await app.inject({
+      method: "GET",
+      url: "/v1/capabilities",
+      headers: { authorization: "Bearer   " }
+    })).statusCode).toBe(401);
+
+    const supplied = "not-a-jwt-and-not-a-shared-secret";
+    const response = await app.inject({
+      method: "GET",
+      url: "/v1/capabilities",
+      headers: { authorization: `Bearer ${supplied}` }
+    });
+    expect(response.statusCode).toBe(200);
+    expect(captured).toEqual([staticIdentity]);
+    expect(JSON.stringify(captured)).not.toContain(supplied);
   });
 
   it("rejects missing, duplicate, ambiguous, oversized, and invalid scope claims", async () => {
