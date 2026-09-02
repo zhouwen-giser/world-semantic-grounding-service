@@ -161,6 +161,7 @@ const allowedParameterKeys = new Set([
 ]);
 const identifier = /^[A-Z][A-Z0-9_]{0,63}$/u;
 const principalIdentifier = /^[a-z][a-z0-9._-]{2,127}$/u;
+const platformIdentityIdentifier = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/u;
 const productIdentifier = /^[a-z][a-z0-9-]{2,127}$/u;
 const expectedGeometry: Record<GdpsV032RequirementKind, readonly string[]> = {
   POINT_VALUE: ["Point"],
@@ -275,8 +276,8 @@ export function compileGdpsV032Requirement(input: {
   if (!isObject(parameters) || Object.keys(parameters).some((key) => !allowedParameterKeys.has(key))) {
     return gap("PARAMETER_POLICY_VIOLATION");
   }
-  if (!principalIdentifier.test(trustedContext.servicePrincipalId) ||
-      !principalIdentifier.test(trustedContext.dataScope)) {
+  if (!platformIdentityIdentifier.test(trustedContext.servicePrincipalId) ||
+      !platformIdentityIdentifier.test(trustedContext.dataScope)) {
     return gap("INVALID_REQUIREMENT");
   }
   const explicit = trustedContext.explicitProductSelection;

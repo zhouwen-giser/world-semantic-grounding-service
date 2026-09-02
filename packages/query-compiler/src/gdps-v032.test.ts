@@ -94,6 +94,21 @@ describe("GDPS v0.3.2 authoritative binding compiler", () => {
     expect(result.request.input["productId"]).toBe("slope-current-a");
   });
 
+  it("accepts the platform identity character set and still rejects unsafe identities", () => {
+    expect(compile({
+      trustedContext: {
+        ...trustedContext,
+        servicePrincipalId: "7/wsgs:runtime",
+        dataScope: "scope/gdps:v032"
+      }
+    })).toMatchObject({ status: "COMPILED" });
+    for (const servicePrincipalId of ["wsgs runtime", "*", ""]) {
+      expect(compile({
+        trustedContext: { ...trustedContext, servicePrincipalId }
+      })).toMatchObject({ status: "GAP", reason: "INVALID_REQUIREMENT" });
+    }
+  });
+
   it.each(["productId", "providerUrl", "dataScope", "operationId", "inputSchemaHash"])(
     "rejects caller-controlled %s injection",
     (key) => {
