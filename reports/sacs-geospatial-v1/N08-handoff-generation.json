@@ -5,7 +5,7 @@
   "provenance": "AUTHORITATIVE_WSGS_HANDOFF",
   "inventoryCount": 8,
   "fileCount": 9,
-  "bundleHash": "sha256:82049de1d32e9d5eb985d9cd8a1118a57525e865d24c11633a404ec94be75203",
+  "bundleHash": "sha256:a68f4c69ae64d4f007e7e823333995c49ab79986cb0df9627fab6fefb30188ff",
   "consumerLockHash": "sha256:171c1053a7c0f22d8979302833ccb8b32d88d278432b753479600590ff869464",
   "sourceLockPath": "contracts/handoff-source-locks/wsgs-sacs-geospatial-v1.json",
   "sourceLockHash": "sha256:165369d73887655424c7e3d66cb52bbb03e82046af20026f05d9b1db877f2f58",
