@@ -69,7 +69,7 @@ function namedEntityCandidates(sourceText: string): Array<{ surfaceText: string;
     // Vehicle identifiers are bounded labels, not arbitrary preceding prose;
     // e.g. "为什么2号车..." must anchor "2号车", never "为什么2号车".
     { expression: /(?:[A-Za-z0-9]+|[一二三四五六七八九十百千]+)号车/gu, expectedKinds: ["WORLD_OBJECT"] },
-    { expression: /[\p{L}\p{N}]+(?:大道|路|街)(?:东段|西段|南段|北段)?/gu, expectedKinds: ["LAYER_FEATURE"] },
+    { expression: /[\p{L}\p{N}]+?(?:大道|路|街)(?:东段|西段|南段|北段)?/gu, expectedKinds: ["LAYER_FEATURE"] },
     { expression: /[A-Za-z0-9一二三四五六七八九十]+区/gu, expectedKinds: ["LAYER_FEATURE"] }
   ];
   const values: Array<{ surfaceText: string; start: number; end: number; expectedKinds: string[] }> = [];
