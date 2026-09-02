@@ -4,15 +4,15 @@
   "status": "PASS",
   "provenance": "REAL_PUBLIC_WSGS_PERSISTENCE_AND_RETRIEVAL",
   "sources": {
-    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
-    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832"
+    "gdpsSha": "b425dca202daefc5573ecedabce0637210803f90",
+    "gdpsImplementationTreeHash": "sha256:7d7b70261dcb2e3b310b1a58bb89673fd74c1faf694b53d4ae876ab775275a62"
   },
   "sourceTuple": {
-    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
-    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832",
-    "wsgsImplementationSha": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "gdpsSha": "b425dca202daefc5573ecedabce0637210803f90",
+    "gdpsImplementationTreeHash": "sha256:7d7b70261dcb2e3b310b1a58bb89673fd74c1faf694b53d4ae876ab775275a62",
+    "wsgsImplementationSha": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
     "gowmSourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
-    "bundleHash": "sha256:617b3210d689e83aeeb955a2ff9518f74c29d6b60ce237b5b23c8eb2e5de57fa"
+    "bundleHash": "sha256:e1e4d47f4aeaf71d53a8d611b795d3a983d597e4cd38d8dc13801377fd1bb1eb"
   },
   "credentialMaterialIncluded": false,
   "internalTopologyIncluded": false,
@@ -43,5 +43,23 @@
       "status": "PASS",
       "blockingReason": ""
     }
-  ]
+  ],
+  "sourceRebinding": {
+    "previousWsgsImplementationCommit": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "currentWsgsImplementationCommit": "efc28076d1bb2514d637c7ed92d240eed69ae0a2",
+    "previousGdpsImplementationCommit": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "currentGdpsImplementationCommit": "b425dca202daefc5573ecedabce0637210803f90",
+    "qualification": "AUTHORIZED_NON_RUNTIME_CONTRACT_AND_PROVENANCE_ONLY",
+    "wsgsChangedPaths": [
+      "validation/scripts/verify-wsgs-gdps-contracts.mjs"
+    ],
+    "gdpsChangedPaths": [
+      "dependencies/wsgs-source-lock-v0.3.2.json",
+      "integration/GDPS_GOWM_V021_APPROVED_MANIFEST.json",
+      "scripts/final_acceptance_v032.py",
+      "src/gdps/onboarding.py"
+    ],
+    "operationalRuntimeBehaviorChanged": false,
+    "runtimeOciRevisionPreserved": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a"
+  }
 }
