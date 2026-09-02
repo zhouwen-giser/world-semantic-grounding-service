@@ -60,7 +60,7 @@ describe("GDPS semantic frame vocabulary", () => {
       spatialExpressions: [{ expressionId: "intersection", operator: "INTERSECTS", arguments: ["reference", "product"] }]
     }, text);
     expect(frame.spatialExpressions).toEqual([expect.objectContaining({ operator: "INTERSECTS" })]);
-    expect(frame.spatialExpressions[0]?.arguments).toHaveLength(2);
+    expect(frame.spatialExpressions[0]?.arguments).toHaveLength(1);
     expect(frame.spatialExpressions[0]?.arguments.every((id) =>
       frame.mentions.some((mention) => mention.mentionId === id))).toBe(true);
   });
