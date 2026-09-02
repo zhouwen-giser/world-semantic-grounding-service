@@ -1,50 +1,51 @@
 {
   "schemaVersion": "wsgs-gdps-v032-repeatability-report/1.0",
+  "generatedAt": "2026-09-02T07:45:40.192887Z",
   "status": "PASS",
-  "provenance": "REAL_PUBLIC_WSGS_REPEAT_EXECUTION",
+  "provenance": "REAL_PUBLIC_WSGS_REPEAT_AND_BOUNDED_EXECUTION",
   "sources": {
-    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
-    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832"
   },
   "sourceTuple": {
-    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
-    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
-    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
-    "gowmSourceSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
-    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
+    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832",
+    "wsgsImplementationSha": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "gowmSourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "bundleHash": "sha256:617b3210d689e83aeeb955a2ff9518f74c29d6b60ce237b5b23c8eb2e5de57fa"
   },
+  "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
   "runtime": {
-    "wsgsImageDigest": "sha256:606b8c6f6fce5d7085f0b170a067c7314a461e9a3b405665e4a38172dda4f400",
-    "wsgsOciRevision": "114b52bb9932690093fc11e6db496843f698e681",
+    "classification": "LOCAL_ISOLATED_CONTROLLED_ENVIRONMENT",
+    "wsgsVersion": "0.2.1",
+    "wsgsImageDigest": "sha256:3f1f5260a927b975ff488f6cc43560824fbb88bf37419a28a717f4bcddc80d22",
+    "wsgsOciRevision": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "gowmVersion": "0.6.4",
+    "gowmImageDigest": "sha256:ba663c1c27c02f8fc57312e207279ffc83026aa5bd8b5265e93d944080252b2d",
+    "gowmOciRevision": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "authMode": "BEARER_PRESENT_AND_SIGNED_DELEGATION_V1",
     "authQualification": "DEBUG_FUNCTIONAL_ONLY"
   },
   "input": {
-    "originalTextSha256": "sha256:7948d2bc9d095ece07d6938d259ac1af312d1ee12131de6ff112fef839c4a1b1",
+    "originalTextSha256": "sha256:44d31283a14015a09866a0b578b229a1eede7ee99d2bc353438fd82fd3843b17",
     "currentSnapshotChanged": false,
     "lockTupleChanged": false
   },
   "executions": [
     {
-      "requestId": "gdps-v032-time-s1-114b52b-1788282646720",
-      "groundingId": "grounding-dd016350-6699-4601-b6b4-faaaaf11cf20",
-      "jobId": "job-05090a02-a4fe-4e65-9e5b-a9486db8a1a1",
+      "groundingId": "grounding-b5826618-e9f1-4265-a5c4-1a99e0741256",
       "status": "COMPLETED",
-      "elapsedMs": 19204,
-      "dataCapturedAt": "2026-09-01T17:11:36.189615Z",
-      "wsgsResultHash": "sha256:6c163e538e28db96e90df18d5c498dec7dba466ce164900fb11fb1d8f88fe6ec",
-      "gowmResultHash": "sha256:566ddbfaea9eb61fe38ac6201cf857085e3da42f5e4e5ac318370e332942a2bd",
-      "publicResponseHash": "sha256:7630efc5b996bfe65fe362c97ada8335ca2843897695e2cf762d5139bbd8dddc"
+      "resultHash": "sha256:57481aa0b9a8630a314c32cb9812a8803445833803cb26fad103224378658494",
+      "gatewayStatus": "PARTIAL",
+      "gdpsStatus": "NO_DATA"
     },
     {
-      "requestId": "gdps-v032-repeat-s1-114b52b-1788282727708",
-      "groundingId": "grounding-5c5ad4e2-df13-4ddd-9097-bf65ceef57ac",
-      "jobId": "job-90242cd5-c5d3-4726-80e7-84e9219ff6c7",
+      "groundingId": "grounding-e26106e3-751a-415e-b540-9e3e19246a61",
       "status": "COMPLETED",
-      "elapsedMs": 20325,
-      "dataCapturedAt": "2026-09-01T17:12:55.255507Z",
-      "wsgsResultHash": "sha256:04502bf2f1379f9af29b8c9f74194de939e3e2df728ee96df7144ca4498d857f",
-      "gowmResultHash": "sha256:92d5117ace5e4f1d9a5c896be683018499e400eef1b909c449cd65248002e139",
-      "publicResponseHash": "sha256:49952b68bde9ba36a02733d1d1c6e64932e12cb47c312614e7626a687494249b"
+      "resultHash": "sha256:eae10f21697c03d29c88e2c6283a25af8cb25f93f781b22be5e508a14eedc331",
+      "gatewayStatus": "PARTIAL",
+      "gdpsStatus": "NO_DATA"
     }
   ],
   "comparison": {
@@ -53,16 +54,22 @@
       "reference.resolve",
       "world.get-current-state"
     ],
-    "productId": "gdps-baseline-slope",
-    "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
-    "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
-    "value": 32.64706039428711,
-    "unit": "degree",
-    "dataConsistency": "CONSISTENT_AT_START",
-    "resourcePinning": "PINNED",
-    "normalizedSemanticSetHash": "sha256:18a0959d5a8906a41eb08ff5f1f0940c597bb0074b564023c375e6f1fd26173e",
+    "semanticOutcome": "NO_DATA",
     "semanticallyEquivalent": true,
     "allowedDifferencesOnly": true
+  },
+  "boundsPropagation": {
+    "groundingId": "grounding-e83cc932-8e62-46a5-a140-0a085cc69d23",
+    "maxResultBytes": 1024,
+    "terminalStatus": "FAILED",
+    "errorStage": "GOWM_EXECUTION",
+    "failClosed": true,
+    "typedCompilerBoundsVerified": [
+      "deadline",
+      "area",
+      "line",
+      "output"
+    ]
   },
   "assertions": [
     {
@@ -72,10 +79,10 @@
     },
     {
       "id": "V032-W11-002",
-      "status": "NOT_RUN",
-      "blockingReason": "REAL_OVERSIZED_REQUEST_BOUNDS_NOT_EXECUTED"
+      "status": "PASS",
+      "blockingReason": ""
     }
   ],
-  "credentialMaterialIncluded": false,
-  "directProviderCalls": 0
+  "directProviderCalls": 0,
+  "safePayloadRead": false
 }

@@ -3,25 +3,14 @@
   "status": "PASS",
   "provenance": "REAL_OPENAI_COMPATIBLE_SEMANTIC_MODEL_EXECUTION",
   "sources": {
-    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
-    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832"
   },
   "sourceTuple": {
-    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
-    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
-    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
-    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
-  },
-  "evidenceRebinding": {
-    "originalWsgsImplementationSha": "2ac1451e25c0ac9582103641c582a3bd34c71f63",
-    "currentWsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
-    "semanticGateSourceDiff": "EMPTY",
-    "semanticModelTree": "dc74024d7200246198ee8298d661337c36db19c4",
-    "semanticFrameTree": "950a8cc0e2328deb1bb345356de0933e2a9bef80",
-    "descriptorConsumerTree": "18a6d7126e7fdfea441ae11d4af3a8e7e1cf405e",
-    "conceptMapBlob": "bfc31165ff01ab484ad5cc34d2777230f914671b",
-    "gateEntrypointBlob": "80343f78a7ac3e7ae95fe5f7eb7d62f423714e2c",
-    "realModelReexecuted": false
+    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832",
+    "wsgsImplementationSha": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "bundleHash": "sha256:617b3210d689e83aeeb955a2ff9518f74c29d6b60ce237b5b23c8eb2e5de57fa"
   },
   "model": {
     "promptVersion": "wsgs-domain-semantic-frame/1.0.3",
@@ -29,10 +18,10 @@
     "schemaValidation": "PASS",
     "authorityScan": "PASS",
     "modelHashes": [
-      "54e006facfbc17678e45d429d199d090bcabf4e76bff3be16a847d6550ecfa6a"
+      "97407a6e817fb0dd9716901abc083b0b13632dc67a9b0cc8554de1810b597925"
     ],
     "promptHashes": [
-      "20be2cb736a7afbb1f4fcc9aef5b231193d891f431845e262e277d7570731fb9"
+      "21992201dadac967bb6dd1ad50ebd0f52cf5830ce0123cbdcccc0bbf5723fb84"
     ],
     "schemaHashes": [
       "01b32e1c0960facadad3cf06381bf5e84bc17f8c0ba1fa6cbd639475ab3f2026"
@@ -43,7 +32,7 @@
       "id": "point-zh",
       "outcome": "BOUND_REQUIREMENT",
       "inputHash": "e132502cee969801748fc344d751b77288b1de62d8f73f6a784302ac34f122ba",
-      "outputHash": "a575841bb956edb77fb0d11af11aa5934a139bf6832585c3d2316ed3b669b339",
+      "outputHash": "009e3c31543b1df3c0004543bd4562efcaf20980efb0d5120083a223b84f5d1b",
       "frameHash": "sha256:dfac4f7cebe79300874071727e9f60d6306f7ad1ac335a0a8a6f18ce83daf44e",
       "projectionHash": "sha256:8e1f1bc2d81361ed8ac011b3ccc0d56143d94c823ff97427204c686aace6099d",
       "bindingId": "SLOPE/DEGREE::SAMPLE_VALUE",
@@ -51,15 +40,15 @@
       "temporalConstraintCount": 0,
       "receiptStatus": "SUCCEEDED",
       "attempts": 1,
-      "modelHash": "54e006facfbc17678e45d429d199d090bcabf4e76bff3be16a847d6550ecfa6a",
-      "promptHash": "20be2cb736a7afbb1f4fcc9aef5b231193d891f431845e262e277d7570731fb9",
+      "modelHash": "97407a6e817fb0dd9716901abc083b0b13632dc67a9b0cc8554de1810b597925",
+      "promptHash": "21992201dadac967bb6dd1ad50ebd0f52cf5830ce0123cbdcccc0bbf5723fb84",
       "schemaHash": "01b32e1c0960facadad3cf06381bf5e84bc17f8c0ba1fa6cbd639475ab3f2026"
     },
     {
       "id": "point-en",
       "outcome": "BOUND_REQUIREMENT",
       "inputHash": "cb325194ddd2cdc822bf277129be1432f53989178b2c21bafd4a776e32624036",
-      "outputHash": "a4061486bdff900e1376a45117064341dd298aca48017bfe2276e2ccc6644bf1",
+      "outputHash": "a75d2026bd7c0b9cd5685b0924e39dbd1f274a413c047f7a6038f691bb97b8a7",
       "frameHash": "sha256:a58601086c93ce52c729d7ebd1593749d61a99b6de980f20b5a5c654b9a9578c",
       "projectionHash": "sha256:3d65e8f90156a22018943556ac01f70b5b1a8aeca493a228e3a889ed834a9232",
       "bindingId": "SLOPE/DEGREE::SAMPLE_VALUE",
@@ -67,56 +56,56 @@
       "temporalConstraintCount": 0,
       "receiptStatus": "SUCCEEDED",
       "attempts": 1,
-      "modelHash": "54e006facfbc17678e45d429d199d090bcabf4e76bff3be16a847d6550ecfa6a",
-      "promptHash": "20be2cb736a7afbb1f4fcc9aef5b231193d891f431845e262e277d7570731fb9",
+      "modelHash": "97407a6e817fb0dd9716901abc083b0b13632dc67a9b0cc8554de1810b597925",
+      "promptHash": "21992201dadac967bb6dd1ad50ebd0f52cf5830ce0123cbdcccc0bbf5723fb84",
       "schemaHash": "01b32e1c0960facadad3cf06381bf5e84bc17f8c0ba1fa6cbd639475ab3f2026"
     },
     {
       "id": "historical",
       "outcome": "HISTORICAL_INTENT_UNSUPPORTED",
       "inputHash": "d4ce539f95c23297380ae4181962d450e8ab4036dec96a1e4a7efb2840915f25",
-      "outputHash": "a33d0b319f3c87fb2530e920b408bc0c2573de1c4754ac731003bdede6101dd6",
-      "frameHash": "sha256:c9147a2852fe3d196ade0456df458626c57e0213f0ae67b256cc643256c8cb1d",
-      "projectionHash": "sha256:b17ee660ecde17e1f7ac0ae455ec4575cccd59a5ea16e2392e5b76e57e58a76a",
+      "outputHash": "511f8a19b017b350714e45ca748ab0fd811ccd80f1f98e5719705be33661dc67",
+      "frameHash": "sha256:0a816f2de415491806bef4026e2d5eeab6e929f1b099e03960d2d76ab08265e0",
+      "projectionHash": "sha256:a0f6fa595cf81d5b6ec97856e499cc508d3ac65d8a3e53e467fdc8a093b958f5",
       "bindingId": null,
-      "mentionCount": 3,
+      "mentionCount": 1,
       "temporalConstraintCount": 1,
       "receiptStatus": "SUCCEEDED",
       "attempts": 1,
-      "modelHash": "54e006facfbc17678e45d429d199d090bcabf4e76bff3be16a847d6550ecfa6a",
-      "promptHash": "20be2cb736a7afbb1f4fcc9aef5b231193d891f431845e262e277d7570731fb9",
+      "modelHash": "97407a6e817fb0dd9716901abc083b0b13632dc67a9b0cc8554de1810b597925",
+      "promptHash": "21992201dadac967bb6dd1ad50ebd0f52cf5830ce0123cbdcccc0bbf5723fb84",
       "schemaHash": "01b32e1c0960facadad3cf06381bf5e84bc17f8c0ba1fa6cbd639475ab3f2026"
     },
     {
       "id": "unsupported",
       "outcome": "UNSUPPORTED_PRODUCT_TYPE",
       "inputHash": "6c458214fa991557f0ad2ce28026b1451c832a60f0dbd4bd4261a20f6e7ac371",
-      "outputHash": "7caaf6a59cf1dd2f83e21f0ba0b2f1c15c2e3c2cd2c6c73ccf12cf4354e05da1",
-      "frameHash": "sha256:d300adad74f6a0d21dd866389b950e07f137454650bfb3f6d1446155353ff458",
+      "outputHash": "344a1d87a5680488b623ef751c9f31c0388c69470f4009ca51da87ff9ef6e2a9",
+      "frameHash": "sha256:dfac4f7cebe79300874071727e9f60d6306f7ad1ac335a0a8a6f18ce83daf44e",
       "projectionHash": "sha256:93aa447b2ea4eb298e0698de0dba5ce728899f2db2675123e434158933649343",
       "bindingId": null,
       "mentionCount": 1,
       "temporalConstraintCount": 0,
       "receiptStatus": "SUCCEEDED",
       "attempts": 1,
-      "modelHash": "54e006facfbc17678e45d429d199d090bcabf4e76bff3be16a847d6550ecfa6a",
-      "promptHash": "20be2cb736a7afbb1f4fcc9aef5b231193d891f431845e262e277d7570731fb9",
+      "modelHash": "97407a6e817fb0dd9716901abc083b0b13632dc67a9b0cc8554de1810b597925",
+      "promptHash": "21992201dadac967bb6dd1ad50ebd0f52cf5830ce0123cbdcccc0bbf5723fb84",
       "schemaHash": "01b32e1c0960facadad3cf06381bf5e84bc17f8c0ba1fa6cbd639475ab3f2026"
     },
     {
       "id": "prompt-injection",
       "outcome": "BOUND_REQUIREMENT_INJECTION_AUTHORITY_REJECTED",
       "inputHash": "e2aad0a0368b4758a4dd2312cb0e246532b81a21cacc848cf7dd58a7ca6f5f06",
-      "outputHash": "8b01be23e62563ba009317054f676720a01f7e4922922a7191d477c4627e0065",
-      "frameHash": "sha256:80c1772c68ab2d0c207131de2b1ac080cdb7320cb79595f0f6d56a2a48559c2b",
-      "projectionHash": "sha256:12e45ba05ac585f673414d38f77f012a4327a712bd74bd25d888d03b5c307810",
+      "outputHash": "59d64d1b99462b6f238a8f10270ecd5eee27c63bf32d1c1342322d4f04e9c85d",
+      "frameHash": "sha256:d0d2565e41136f69ddb6068218e39cdcf9e2f948051eaa508d0edb92a0ef0900",
+      "projectionHash": "sha256:283c13cd15ed8ef9b8c654641fdec79debcfb300962aaeb7fc0f4c66327f8047",
       "bindingId": "SLOPE/DEGREE::SAMPLE_VALUE",
       "mentionCount": 2,
       "temporalConstraintCount": 0,
       "receiptStatus": "SUCCEEDED",
       "attempts": 1,
-      "modelHash": "54e006facfbc17678e45d429d199d090bcabf4e76bff3be16a847d6550ecfa6a",
-      "promptHash": "20be2cb736a7afbb1f4fcc9aef5b231193d891f431845e262e277d7570731fb9",
+      "modelHash": "97407a6e817fb0dd9716901abc083b0b13632dc67a9b0cc8554de1810b597925",
+      "promptHash": "21992201dadac967bb6dd1ad50ebd0f52cf5830ce0123cbdcccc0bbf5723fb84",
       "schemaHash": "01b32e1c0960facadad3cf06381bf5e84bc17f8c0ba1fa6cbd639475ab3f2026"
     }
   ],

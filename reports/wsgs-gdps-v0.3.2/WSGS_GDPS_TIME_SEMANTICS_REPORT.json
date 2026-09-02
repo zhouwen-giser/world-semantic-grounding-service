@@ -1,39 +1,37 @@
 {
   "schemaVersion": "wsgs-gdps-v032-time-semantics-report/1.0",
+  "generatedAt": "2026-09-02T07:45:40.192887Z",
   "status": "PASS",
-  "provenance": "REAL_WSGS_TYPED_COMPILER_EXECUTION",
+  "provenance": "REAL_WSGS_MODEL_COMPILER_AND_COMBINED_RUNTIME_EXECUTION",
   "sources": {
-    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
-    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832"
   },
   "sourceTuple": {
-    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
-    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
-    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
-    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
+    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832",
+    "wsgsImplementationSha": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "gowmSourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "bundleHash": "sha256:617b3210d689e83aeeb955a2ff9518f74c29d6b60ce237b5b23c8eb2e5de57fa"
   },
   "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
   "observations": {
     "catalogTimeSemantics": "CURRENT",
-    "temporalApplicability": "CURRENT_AT_QUERY_START",
     "compiledSnapshotMode": "LATEST_AT_START",
     "compiledHistoricalFallbackAllowed": false,
     "historicalIntentResult": {
       "status": "GAP",
       "reason": "HISTORICAL_INTENT_UNSUPPORTED"
     },
-    "realSpatialNormalization": {
-      "requestId": "gdps-v032-time-s1-114b52b-1788282646720",
-      "queryStartedAt": "2026-09-01T17:11:17.223Z",
-      "dataCapturedAt": "2026-09-01T17:11:36.189615Z",
-      "queryFinishedAt": "2026-09-01T17:11:36.602Z",
-      "currentSemantics": "CURRENT_AT_QUERY_START",
-      "snapshotMode": "LATEST_AT_START",
-      "dataConsistency": "CONSISTENT_AT_START",
-      "resourcePinning": "PINNED",
-      "contentHash": "sha256:304d53a95e90a2d7f487107a69c06587c9679620531cfb72c61b1e713accb623",
-      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e",
-      "publicResponseHash": "sha256:7630efc5b996bfe65fe362c97ada8335ca2843897695e2cf762d5139bbd8dddc"
+    "combinedCurrentEvidence": {
+      "groundingId": "grounding-0f1777cc-0ea5-480a-b60b-3c606f56f88c",
+      "terminalStatus": "COMPLETED",
+      "gatewayStatus": "COMPLETED",
+      "resultHash": "sha256:5e7e76540537669ec56c7e1925672c049dc40cdbc8daaad49728fac8f5783611",
+      "eventOperation": "wsgs.compose-stas-event-timeline",
+      "currentSpatialOperation": "wsgs.compose-stas-gdps-current-context",
+      "eventTimeAndCurrentSpatialEvidenceSeparated": true
     }
   },
   "assertions": [

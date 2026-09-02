@@ -1,35 +1,26 @@
 {
   "schemaVersion": "wsgs-gdps-v032-compiler-report/1.0",
+  "generatedAt": "2026-09-02T07:45:40.192887Z",
   "status": "PASS",
-  "provenance": "REAL_WSGS_TYPED_COMPILER_EXECUTION",
+  "provenance": "REAL_WSGS_TYPED_COMPILER_AND_REAL_GATEWAY_AMBIGUITY_EXECUTION",
   "sources": {
-    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
-    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27"
+    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832"
   },
   "sourceTuple": {
-    "gdpsSha": "cd5ba17b5b46f22764becda2797db5ab4212b33e",
-    "gdpsImplementationTreeHash": "sha256:ef1a19d5e8f3beba870e908e795042bace8b03473aaa8405ed7ef181a4248f27",
-    "wsgsImplementationSha": "a52935814dced6d9b803566f34878c0f9f26510a",
-    "bundleHash": "sha256:244d5eb2700ca6e8a452853ccd969ea01920d745847dee2b67b48f33c867bd9d"
+    "gdpsSha": "3b06106f15ef5848aec83d7c160c23fea1cc704b",
+    "gdpsImplementationTreeHash": "sha256:243749eb711c5d66a16abc870a5505cb6723fca5e8ecd209e86ec8204e0b3832",
+    "wsgsImplementationSha": "cf1baa754fd6b516d9ec2f8d09ec83af60047b1a",
+    "gowmSourceSha": "709d5264d52134ae63d1c22821f8feb7914ccda8",
+    "bundleHash": "sha256:617b3210d689e83aeeb955a2ff9518f74c29d6b60ce237b5b23c8eb2e5de57fa"
   },
   "credentialMaterialIncluded": false,
+  "internalTopologyIncluded": false,
   "compiler": {
-    "compiledRequestHash": "sha256:377c4c73baf221eb5141db86e2134dc9a5b07711f862e39bbd20a2d441d98d03",
     "operation": {
       "operationId": "geo-raster.sample",
       "operationVersion": "1.0"
     },
-    "locks": {
-      "inputSchemaHash": "sha256:57983c08d1fafefac136dc44effa137500bca5580056bd68ec01b677747308d4",
-      "outputSchemaHash": "sha256:da086a0ab6c1a48ffeac7633acef50b0385851dbf4e9191c24a21f5cd414ecf0",
-      "semanticProfileHash": "sha256:c591c93b448564f1508387ee7609efc6c474fd57fde7c6a2394057cf4fdda4cd",
-      "descriptorHash": "sha256:6ed5565700fb9809ca78fb7ef2ade45fe63f180edca5fd5197d4f79a425d264e"
-    },
-    "inputKeys": [
-      "point",
-      "productProfile",
-      "productType"
-    ],
     "trustedIdentityBound": true,
     "callerProviderUrlPresent": false,
     "callerScopeOverridePresent": false,
@@ -37,6 +28,17 @@
     "historicalFallbackAllowed": false,
     "requirementSchemaValidated": true,
     "compiledRequestSchemaValidated": true
+  },
+  "ambiguityEvidence": {
+    "groundingId": "grounding-c2a359ef-5187-4464-a5a1-d411de1f020f",
+    "temporaryProductHash": "sha256:f8a1817d9e7758a6b192cc956dfe6360ef3302b809a0fe55b92ee67b88e2831a",
+    "terminalStatus": "COMPLETED",
+    "gatewayQueryStatus": "PARTIAL",
+    "providerSemanticStatus": "INDETERMINATE",
+    "ambiguityPreserved": true,
+    "capabilityGapCount": 0,
+    "temporaryProductDeleted": true,
+    "temporaryLoadDeleted": true
   },
   "assertions": [
     {
@@ -46,9 +48,9 @@
     },
     {
       "id": "V032-W04-002",
-      "status": "NOT_RUN",
-      "blockingReason": "REAL_GATEWAY_TWO_PRODUCT_AMBIGUITY_NOT_EXECUTED"
+      "status": "PASS",
+      "blockingReason": ""
     }
   ],
-  "gatewayQualification": "NOT_RUN"
+  "gatewayQualification": "REAL_PUBLIC_WSGS_AND_REAL_GATEWAY"
 }
