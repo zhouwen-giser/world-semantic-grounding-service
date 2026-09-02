@@ -2507,7 +2507,7 @@ export interface NormalizedGdpsWorldQuerySource {
 
 function gdpsEvidenceAuthority(
   submission: WorldQuerySubmission,
-  operation: WorldQuerySubmission["plan"]["nodes"][number]["operation"],
+  planned: WorldQuerySubmission["plan"]["nodes"][number],
   catalog?: GdpsV032BindingCatalog
 ): {
   descriptorId: string;
@@ -2528,12 +2528,26 @@ function gdpsEvidenceAuthority(
     };
   }
   if (!catalog) throw new ProductionStageModuleError("GDPS_DESCRIPTOR_ID_MISSING");
-  const operationInput = object(parameters["operationInput"], "GDPS_OPERATION_INPUT_MISSING");
-  const productType = text(operationInput["productType"], "GDPS_PRODUCT_TYPE_MISSING");
-  const productProfile = text(operationInput["productProfile"], "GDPS_PRODUCT_PROFILE_MISSING");
+  const operationInput = parameters["operationInput"];
+  const operationInputObject = operationInput !== null && typeof operationInput === "object" && !Array.isArray(operationInput)
+    ? operationInput as Record<string, unknown>
+    : undefined;
+  const literalText = (inputName: string, missingCode: string): string => {
+    const binding = planned.inputs[inputName];
+    if (!binding || binding.kind !== "LITERAL") {
+      throw new ProductionStageModuleError(missingCode);
+    }
+    return text(binding.value, missingCode);
+  };
+  const productType = typeof operationInputObject?.["productType"] === "string"
+    ? text(operationInputObject["productType"], "GDPS_PRODUCT_TYPE_MISSING")
+    : literalText("productType", "GDPS_PRODUCT_TYPE_MISSING");
+  const productProfile = typeof operationInputObject?.["productProfile"] === "string"
+    ? text(operationInputObject["productProfile"], "GDPS_PRODUCT_PROFILE_MISSING")
+    : literalText("productProfile", "GDPS_PRODUCT_PROFILE_MISSING");
   const matches = catalog.bindings.filter((binding) =>
-    binding.operationId === operation.operationId &&
-    binding.operationVersion === operation.operationVersion &&
+    binding.operationId === planned.operation.operationId &&
+    binding.operationVersion === planned.operation.operationVersion &&
     binding.productType === productType &&
     binding.productProfile === productProfile);
   if (matches.length !== 1) {
@@ -2579,7 +2593,7 @@ export function normalizeGdpsWorldQuerySources(
     if (!recipe) return [];
     if (node["result"] === undefined) throw new ProductionStageModuleError("GDPS_NODE_RESULT_MISSING");
     const { descriptorId, descriptorHash, productType, productProfile, queryProfile } =
-      gdpsEvidenceAuthority(submission, planned.operation, bindingCatalog);
+      gdpsEvidenceAuthority(submission, planned, bindingCatalog);
     return [{
       nodeId,
       evidence: normalizeGdpsSourceEvidence(node["result"], {

@@ -489,11 +489,36 @@ describe("production stage module authority boundaries", () => {
     }]);
   });
 
-  it("recovers v0.3.2 descriptor authority from the locked binding catalog", () => {
+  it("recovers per-node v0.3.2 descriptor authority from locked literal bindings", () => {
     const compiled = compileGdpsV032MapSelectionQuery(gdpsV032MapOptions());
     expect(compiled?.status).toBe("COMPILED");
     if (!compiled || compiled.status !== "COMPILED") throw new Error("GDPS_V032_COMPILE_FAILED");
     const operation = compiled.submission.plan.nodes[0]!.operation;
+    const directNode = compiled.submission.plan.nodes[0]!;
+    const literalPort = directNode.inputs["request"]!.port;
+    const slopeNode = {
+      ...directNode,
+      inputs: {
+        ...directNode.inputs,
+        productType: { kind: "LITERAL" as const, port: literalPort, value: "SLOPE", targetPath: "/productType" },
+        productProfile: { kind: "LITERAL" as const, port: literalPort, value: "DEGREE", targetPath: "/productProfile" }
+      }
+    };
+    const landCoverNode = {
+      ...slopeNode,
+      nodeId: "Node_2",
+      inputs: {
+        ...slopeNode.inputs,
+        productType: { ...slopeNode.inputs["productType"]!, value: "LAND_COVER" },
+        productProfile: { ...slopeNode.inputs["productProfile"]!, value: "DEFAULT" }
+      }
+    };
+    const { operationInput: _operationInput, ...parametersWithoutOperationInput } = compiled.submission.parameters;
+    const combinedSubmission = {
+      ...compiled.submission,
+      parameters: parametersWithoutOperationInput,
+      plan: { ...compiled.submission.plan, nodes: [slopeNode, landCoverNode] }
+    };
     const recipe: GdpsLockedRecipe = {
       schemaVersion: "wsgs-locked-gdps-recipe/2.0",
       recipeId: "recipe-gdps-generic-sample-value",
@@ -508,7 +533,7 @@ describe("production stage module authority boundaries", () => {
       outputSemantics: { currentOnly: true },
       allowedOperations: [{ ...operation, semanticProfileHash: compiled.bindings[0]!.semanticProfileHash }]
     };
-    const source = normalizeGdpsWorldQuerySources(compiled.submission, {
+    const source = normalizeGdpsWorldQuerySources(combinedSubmission, {
       nodes: [{
         nodeId: "Node_1",
         result: {
@@ -519,6 +544,17 @@ describe("production stage module authority boundaries", () => {
           computeSnapshot: { digest: digest("7") },
           receipts: [{ receiptId: "gdps-receipt-1" }],
           evidenceReferences: [{ evidenceId: "gdps-evidence-1" }]
+        }
+      }, {
+        nodeId: "Node_2",
+        result: {
+          operation: { operationId: operation.operationId, operationVersion: operation.operationVersion },
+          status: "COMPLETED",
+          output: { value: { productId: "land-cover-main", contentHash: digest("b"), truncated: false } },
+          dataSnapshot: { digest: digest("c") },
+          computeSnapshot: { digest: digest("d") },
+          receipts: [{ receiptId: "gdps-receipt-2" }],
+          evidenceReferences: [{ evidenceId: "gdps-evidence-2" }]
         }
       }]
     }, {
@@ -534,17 +570,30 @@ describe("production stage module authority boundaries", () => {
       },
       lockHash: digest("a")
     }, gdpsV032Catalog);
-    expect(source).toMatchObject([{
-      nodeId: "Node_1",
-      evidence: {
-        descriptorId: "SLOPE/DEGREE",
-        productType: "SLOPE",
-        productProfile: "DEGREE",
-        queryProfile: "SAMPLE_VALUE",
-        productId: "slope-main",
-        normalizedStatus: "COMPLETED"
+    expect(source).toMatchObject([
+      {
+        nodeId: "Node_1",
+        evidence: {
+          descriptorId: "SLOPE/DEGREE",
+          productType: "SLOPE",
+          productProfile: "DEGREE",
+          queryProfile: "SAMPLE_VALUE",
+          productId: "slope-main",
+          normalizedStatus: "COMPLETED"
+        }
+      },
+      {
+        nodeId: "Node_2",
+        evidence: {
+          descriptorId: "LAND_COVER/DEFAULT",
+          productType: "LAND_COVER",
+          productProfile: "DEFAULT",
+          queryProfile: "SAMPLE_CLASS",
+          productId: "land-cover-main",
+          normalizedStatus: "COMPLETED"
+        }
       }
-    }]);
+    ]);
   });
 
   it("publishes candidate rank without leaking provider topology", () => {
