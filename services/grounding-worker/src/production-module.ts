@@ -1615,6 +1615,7 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     status: "COMPLETED" | "PARTIAL";
     evidenceItems: GroundingEvidenceItem[];
     capabilityGaps: JsonObject[];
+    warnings?: string[];
     geospatialFindings?: JsonObject;
   } | undefined;
   const gaps = [
@@ -1626,7 +1627,8 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     ...(deterministic?.warnings ?? []),
     ...(semantic?.warnings ?? []),
     ...(graph?.warnings ?? []),
-    ...(references?.validationResults.flatMap((entry) => entry.warnings) ?? [])
+    ...(references?.validationResults.flatMap((entry) => entry.warnings) ?? []),
+    ...(normalized?.warnings ?? [])
   ];
   const ambiguities = references?.ambiguities ?? [];
   const unresolved = references?.unresolvedMentions ?? [];
