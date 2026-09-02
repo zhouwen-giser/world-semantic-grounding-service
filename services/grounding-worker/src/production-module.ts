@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import type { WorldSemanticFrame } from "@wsgs/contracts";
 import type { GroundingIdentityV2 } from "@wsgs/delegated-identity";
 import { GowmDelegationSigner, createGroundingIdentity } from "@wsgs/delegated-identity";
 import {
@@ -1857,6 +1858,29 @@ function directMapSelectionGeometry(
   return { status: "READY", geometry: geometries[0]! };
 }
 
+export function augmentGdpsProjectionFrame(
+  frame: WorldSemanticFrame,
+  deterministic: DeterministicParseResult
+): WorldSemanticFrame {
+  const mentionIds = new Set(frame.mentions.map((mention) => mention.mentionId));
+  const mapMentions = deterministic.mentions.flatMap((mention): WorldSemanticFrame["mentions"] => {
+    if (mention.candidate.kind !== "MAP_SELECTION" || mention.candidate.requiresUpstreamValidation ||
+        mentionIds.has(mention.mentionId)) return [];
+    mentionIds.add(mention.mentionId);
+    return [{
+      mentionId: mention.mentionId,
+      surfaceText: mention.surfaceText,
+      span: { ...mention.span },
+      expectedKinds: [...mention.expectedKinds],
+      semanticRole: "SPATIAL_SUBJECT"
+    }];
+  });
+  return {
+    ...structuredClone(frame),
+    mentions: [...structuredClone(frame.mentions), ...mapMentions]
+  };
+}
+
 /**
  * Compiles a single caller-supplied, bounded map geometry through the WSGS-owned
  * v0.3.2 GDPS binding catalog. A null result means that the legacy reference
@@ -3188,7 +3212,7 @@ export async function createPipelineStageExecutor(
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_FRAME_VALIDATE");
       const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
       const projected = value.gdpsDescriptor ? projectGeospatialProductIntent({
-        frame: model.frame,
+        frame: augmentGdpsProjectionFrame(model.frame, deterministic),
         originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
         conceptMap: value.gdpsDescriptor.conceptMap
       }) : null;

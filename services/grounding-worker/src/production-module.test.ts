@@ -17,6 +17,7 @@ import {
   PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
   applyReferenceValidation,
   assertPriorGroundingReplaySupport,
+  augmentGdpsProjectionFrame,
   boundedGatewayOperationDeadline,
   boundedReferenceCandidateLimit,
   buildRecipeOperationInput,
@@ -725,6 +726,27 @@ describe("production stage module authority boundaries", () => {
         }
       }
     });
+  });
+
+  it("adds trusted deterministic map mentions only to the GDPS projection view", () => {
+    const options = gdpsV032MapOptions();
+    const frame = {
+      schemaVersion: "1.0" as const,
+      mentions: [],
+      spatialExpressions: [],
+      relationExpressions: [],
+      temporalConstraints: [],
+      aggregationExpressions: [],
+      rankingExpressions: []
+    };
+    expect(augmentGdpsProjectionFrame(frame, options.deterministic).mentions).toEqual([{
+      mentionId: "map-1",
+      surfaceText: "区域1",
+      span: { encoding: "UTF16_CODE_UNIT", start: 0, end: 1 },
+      expectedKinds: ["POINT"],
+      semanticRole: "SPATIAL_SUBJECT"
+    }]);
+    expect(frame.mentions).toEqual([]);
   });
 
   it("keeps the legacy reference recipe authoritative when no map geometry is present", () => {
