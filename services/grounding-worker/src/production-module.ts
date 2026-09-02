@@ -1797,6 +1797,20 @@ function isStasGdpsSubmission(submission: WorldQuerySubmission): boolean {
     operations.filter((operationId) => operationId === "geo-raster.sample").length === 2;
 }
 
+function stasNearestInstantTimestamp(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const rawTimestamp = value.includes("@") ? value.slice(value.lastIndexOf("@") + 1) : value;
+  const match = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?)(Z|[+-]\d{2}(?::?\d{2})?)$/u.exec(rawTimestamp);
+  if (!match) return undefined;
+  const rawOffset = match[3]!;
+  const offset = rawOffset === "Z" ? "Z"
+    : /^[+-]\d{2}$/u.test(rawOffset) ? `${rawOffset}:00`
+      : /^[+-]\d{4}$/u.test(rawOffset) ? `${rawOffset.slice(0, 3)}:${rawOffset.slice(3)}`
+        : rawOffset;
+  const normalized = `${match[1]}T${match[2]}${offset}`;
+  return Number.isFinite(Date.parse(normalized)) ? normalized : undefined;
+}
+
 export function composeStasGdpsEvidence(input: {
   submissions: readonly WorldQuerySubmission[];
   evidenceItems: readonly GroundingEvidenceItem[];
@@ -1850,7 +1864,7 @@ export function composeStasGdpsEvidence(input: {
       return reject("STAS_GDPS_COMPOSITION_EVENT_GEOMETRY_TRANSFORM");
     }
   }
-  const nearestInstant = result?.["nearest_instant"];
+  const nearestInstant = stasNearestInstantTimestamp(result?.["nearest_instant"]);
   const minimumDistance = result?.["minimum_distance_m"];
   const productEvidenceLocked = [slopePayload, landCoverPayload].every((payload) =>
     payload && /^sha256:[0-9a-f]{64}$/u.test(String(payload["contentHash"])) &&
@@ -1859,9 +1873,7 @@ export function composeStasGdpsEvidence(input: {
     return reject("STAS_GDPS_COMPOSITION_INLINE_SOURCE_REQUIRED");
   }
   if (!eventCoordinates) return reject("STAS_GDPS_COMPOSITION_EVENT_GEOMETRY");
-  if (typeof nearestInstant !== "string" || !Number.isFinite(Date.parse(nearestInstant))) {
-    return reject("STAS_GDPS_COMPOSITION_EVENT_TIME");
-  }
+  if (!nearestInstant) return reject("STAS_GDPS_COMPOSITION_EVENT_TIME");
   if (typeof minimumDistance !== "number" || !Number.isFinite(minimumDistance) || minimumDistance < 0) {
     return reject("STAS_GDPS_COMPOSITION_DISTANCE");
   }

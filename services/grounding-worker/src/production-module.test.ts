@@ -767,7 +767,7 @@ describe("production stage module authority boundaries", () => {
       item("Node_1", "stas.nearest-approach", {
         result: {
           minimum_distance_m: 23,
-          nearest_instant: "2026-08-13T01:00:03.000Z",
+          nearest_instant: "01010000206A7F0000B33554BE818C1F41153D7FA0E02F5141@2026-08-13 01:00:03.003203+00",
           shortest_line: {
             type: "LineString",
             coordinates: [[516_896.3455135132, 4_505_474.315256105], [517_733.12, 4_506_590.44]]
@@ -788,7 +788,7 @@ describe("production stage module authority boundaries", () => {
 
     expect(composed.map((entry) => entry.productKind)).toEqual(["EVENT_TIMELINE", "CORRELATION_FINDING"]);
     expect(composed[0]?.safePayload).toMatchObject({
-      events: [{ eventTime: "2026-08-13T01:00:03.000Z", minimumDistanceMetres: 23 }]
+      events: [{ eventTime: "2026-08-13T01:00:03.003203+00:00", minimumDistanceMetres: 23 }]
     });
     expect(composed[1]?.safePayload).toMatchObject({
       temporalEvidence: [{ applicability: "EVENT_TIME" }],
