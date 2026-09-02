@@ -10,4 +10,4 @@ Status: **SOURCE_AND_UNIT_READY_RUNTIME_NOT_RUN**
 - Real Gateway, PostgreSQL, foreign-scope, replay, and restart qualification remain NOT_RUN.
 - Completion marker `WSGS_V021_CURRENTNESS_READY` is intentionally withheld.
 
-Input set: `sha256:2bfc2e1333ef5e9624e6e8e1be9a1d0a716d9b5c40e2e9b6e99f7316b725d1aa`
+Input set: `sha256:17f9e679e0f539f382ba8c23f842f66e50ea868dc96ea36d1b56f7814a8b78b0`

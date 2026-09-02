@@ -11,4 +11,4 @@ Status: **SOURCE_READY_POSTGRES_AND_RESTART_NOT_RUN**
 - Real PostgreSQL migration, restart, replay, and negative cases remain NOT_RUN.
 - Completion marker `WSGS_V021_PERSISTENCE_READY` is intentionally withheld.
 
-Input set: `sha256:a07e7730d7a1e77eca7380bd31d1fe929c590125ef642d011fa39accf8e5facc`
+Input set: `sha256:0392864b5b57dbd2f2aee5cf2731144eea9ee15beb6679872e81bbb1c2d583a2`
