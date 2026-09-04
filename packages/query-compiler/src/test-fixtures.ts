@@ -47,6 +47,8 @@ function descriptorMaturity(operationId: string): "STABLE" | "PREVIEW" {
     operationId === "spatial.find-containing-area" ||
     operationId === "correlation.resolve" ||
     operationId === "predicate.evaluate" ||
+    operationId.startsWith("operational-task.") ||
+    operationId === "history.get-trajectory" ||
     ["landcover.", "hydrology.", "obstacle.", "traversability.", "terrain.", "elevation.", "geo-raster.", "geo-vector."]
       .some((prefix) => operationId.startsWith(prefix))
   ) ? "PREVIEW" : "STABLE";
@@ -233,6 +235,26 @@ export function compileInput(pattern: QuerySemanticPattern): CompileInput {
       maximumExecutionMs: 30_000
     }
   };
+}
+
+export function historicalCompileInput(pattern: "HISTORICAL_EXECUTION_INTERVAL" | "HISTORICAL_TRAJECTORY"): CompileInput {
+  const input = compileInput(pattern);
+  input.maturityPolicy.allowPreview = true;
+  input.operationInput = {
+    taskReferenceKey: { namespace: "gowm", kind: "OPERATIONAL_TASK", id: "task-a", version: "3" },
+    selection: { kind: "LATEST" },
+    phaseScope: "EXECUTION_ENVELOPE"
+  };
+  input.parameterValues = {
+    subjectReferenceKey: { namespace: "gowm", kind: "WORLD_OBJECT", id: "vehicle-2", version: "7" },
+    phaseScope: "EXECUTION_ENVELOPE",
+    sourceSelection: { mode: "ONLY_CANDIDATE" },
+    sourceSelectionProfileReferenceKey: {
+      namespace: "gowm", kind: "HISTORY_METHOD_PROFILE", id: "default-history", version: "1"
+    },
+    maximumInlinePoints: 128
+  };
+  return input;
 }
 
 export function authorizeGdps(input: CompileInput, values: {

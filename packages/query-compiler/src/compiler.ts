@@ -33,6 +33,7 @@ interface CompiledUnit {
   links: readonly QueryTemplateLink[];
   requestBindings: readonly QueryTemplateRequestBinding[];
   literalBindings: readonly QueryTemplateLiteralBinding[];
+  preconditions: NonNullable<QueryTemplateStep["preconditions"]>;
 }
 
 export { queryTemplateRules };
@@ -273,7 +274,8 @@ export class TypedWorldQueryCompiler {
         failurePolicy: step.failurePolicy,
         links: step.links,
         requestBindings: step.requestBindings ?? [],
-        literalBindings: step.literalBindings ?? []
+        literalBindings: step.literalBindings ?? [],
+        preconditions: step.preconditions ?? []
       });
       bindings.push(matched.primary.binding);
       if (matched.exactVerification !== undefined) {
@@ -298,6 +300,7 @@ export class TypedWorldQueryCompiler {
             targetPath: "/geometry"
           }],
           literalBindings: [],
+          preconditions: [],
           links: [{
             sourceStepId: step.stepId,
             outputPort: candidateOutput.name,
@@ -421,6 +424,27 @@ export class TypedWorldQueryCompiler {
         },
         inputs: nodeInputs,
         failurePolicy: unit.failurePolicy,
+        ...(unit.preconditions.length === 0 ? {} : {
+          preconditions: unit.preconditions.map((precondition) => {
+            const source = resolvedByUnitId.get(precondition.sourceStepId);
+            if (!source) throw new QueryCompilationError("TEMPLATE_PRECONDITION_ORDER");
+            if (precondition.kind === "NODE_STATUS") {
+              return { kind: "NODE_STATUS" as const, nodeId: source.node.nodeId, statuses: [...precondition.statuses] };
+            }
+            const outputPort = sourceOutput(source, precondition.outputPort);
+            if (!outputPort) throw new QueryCompilationError("TEMPLATE_PRECONDITION_PORT");
+            return {
+              kind: "VALUE_PRESENT" as const,
+              binding: {
+                kind: "NODE_OUTPUT" as const,
+                port: schemaPort(outputPort),
+                nodeId: source.node.nodeId,
+                outputPort: outputPort.name,
+                ...(outputPort.path === undefined ? {} : { path: outputPort.path })
+              }
+            };
+          })
+        }),
         budget: {
           maximumRows: rows[index]!,
           maximumCandidates: candidates[index]!,

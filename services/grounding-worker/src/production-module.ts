@@ -58,6 +58,21 @@ import {
   type ReferenceValidationProduct
 } from "@wsgs/grounding-graph";
 import {
+  compareHistoricalFindings,
+  executeHistoricalTrace,
+  historicalTraceConfigurationFromEnvironment,
+  projectHistoricalReference,
+  projectHistoricalTraceIntent,
+  resolveHistoricalFollowup,
+  type HistoricalExecutionResult,
+  type HistoricalFollowupDecision,
+  type HistoricalReferenceKey,
+  type HistoricalTraceConfiguration,
+  type HistoricalTraceFinding,
+  type HistoricalTraceIntent,
+  type PriorHistoricalResult
+} from "@wsgs/historical-trace-consumer";
+import {
   PIPELINE_STAGES,
   LEGACY_GROUNDING_CONTRACT_SELECTION,
   PipelineFenceRejectedError,
@@ -173,6 +188,15 @@ export const PRODUCTION_STABLE_OPERATION_IDS = Object.freeze([
   "result.validate"
 ] as const);
 
+export const HISTORICAL_PREVIEW_OPERATION_IDS = Object.freeze([
+  "operational-task.find",
+  "operational-task.get",
+  "operational-task.get-execution-intervals",
+  "history.get-trajectory"
+] as const);
+
+const historicalPreviewOperationIds = new Set<string>(HISTORICAL_PREVIEW_OPERATION_IDS);
+
 /**
  * Stable grounding recipes combine world-independent catalog resolution with
  * snapshot-bound world evidence. GOWM cannot attest a world-independent node
@@ -227,6 +251,7 @@ interface Runtime {
   model: SemanticModelParser;
   modelPolicy: SemanticModelPolicyMode;
   allowPreview: boolean;
+  history: HistoricalTraceConfiguration;
   gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
   gdpsRecipeLock?: LoadedGdpsRecipeLock;
   gdpsRecipes: GdpsLockedRecipe[];
@@ -236,6 +261,21 @@ interface Runtime {
     conceptMap: SemanticConceptMap;
   };
   parameterSchemaHash: `sha256:${string}`;
+}
+
+interface HistoricalCompiledPlan {
+  schemaVersion: "wsgs-historical-query-dag/1.0";
+  intent: HistoricalTraceIntent;
+  operations: string[];
+  planHash: `sha256:${string}`;
+}
+
+interface HistoricalCompilation {
+  compiled: CompileResult[];
+  capabilityGaps: JsonObject[];
+  historicalPlan?: HistoricalCompiledPlan;
+  historicalReuse?: PriorHistoricalResult;
+  historicalPriorForComparison?: PriorHistoricalResult;
 }
 
 type PersistedSemanticModelResult = SemanticModelPolicyResult & { receiptId?: string };
@@ -335,7 +375,8 @@ function allGatewayLocks(lock: OperationalGowmLock): OperationLock[] {
 
 export function selectProductionSouthboundLock(
   lock: OperationalGowmLock,
-  previewRecipes: readonly GdpsLockedRecipe[] = []
+  previewRecipes: readonly GdpsLockedRecipe[] = [],
+  historyEnabled = false
 ): OperationalGowmLock {
   const available = [...lock.defaultOperations, ...lock.previewOperations];
   const selected = PRODUCTION_STABLE_OPERATION_IDS.map((operationId) => {
@@ -362,6 +403,15 @@ export function selectProductionSouthboundLock(
     }
     return entry;
   });
+  if (historyEnabled) {
+    for (const operationId of HISTORICAL_PREVIEW_OPERATION_IDS) {
+      const entry = available.find((candidate) =>
+        candidate.operationId === operationId && candidate.operationVersion === "1.0" && candidate.maturity === "PREVIEW");
+      if (entry && !selectedPreview.some((candidate) => candidate.operationId === operationId)) selectedPreview.push(entry);
+    }
+    selectedPreview.sort((left, right) =>
+      `${left.operationId}@${left.operationVersion}`.localeCompare(`${right.operationId}@${right.operationVersion}`));
+  }
   return {
     ...lock,
     defaultOperations: selected,
@@ -507,7 +557,9 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const lock = operationalLock.lock;
   const gdps = configuredGdpsRecipes();
   const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded, gdps.recipes);
-  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes);
+  const allowPreview = process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES";
+  const history = historicalTraceConfigurationFromEnvironment();
+  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes, history.enabled && allowPreview);
   const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
   if (segmentedMode && segmentedMode !== "GOWM_GDPS_V021") {
     throw new ProductionStageModuleError("INVALID_WSGS_CROSS_SCOPE_GATEWAY_ROUTING");
@@ -552,7 +604,8 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     signer,
     model: createModel(modelPolicy),
     modelPolicy,
-    allowPreview: process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES",
+    allowPreview,
+    history,
     ...(gdps.consumerSnapshot ? { gdpsConsumerSnapshot: gdps.consumerSnapshot } : {}),
     ...(gdps.loaded ? { gdpsRecipeLock: gdps.loaded } : {}),
     gdpsRecipes: gdps.recipes,
@@ -606,7 +659,8 @@ async function liveAuthority(
   const lock = value.operationalLock.lock;
   const productionLock = selectProductionSouthboundLock(
     lock,
-    value.gdpsRecipes
+    value.gdpsRecipes,
+    value.history.enabled && value.allowPreview
   );
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
@@ -637,11 +691,21 @@ async function liveAuthority(
     value.gateway.listCapabilitySemantics(publicContext),
     value.gateway.listOperationAvailability(authenticatedContext)
   ]);
+  const operationAvailability = new Map(availability.operations.map((entry) => [
+    `${entry.operationId}@${entry.operationVersion}`,
+    entry.availability
+  ]));
+  const capturedLock: OperationalGowmLock = {
+    ...productionLock,
+    previewOperations: productionLock.previewOperations.filter((entry) =>
+      !historicalPreviewOperationIds.has(entry.operationId) ||
+      operationAvailability.get(`${entry.operationId}@${entry.operationVersion}`) === "AVAILABLE")
+  };
   const trustedCapabilitySnapshot = buildTrustedCapabilitySnapshot({
     catalog: catalog as never,
     semantics,
     availability,
-    southboundLock: validatedLock(productionLock),
+    southboundLock: validatedLock(capturedLock),
     southboundLockHash: value.operationalLock.lockHash,
     capturedAt: new Date()
   });
@@ -649,8 +713,10 @@ async function liveAuthority(
     catalog,
     semantics,
     availability,
-    required: allGatewayLocks(productionLock),
-    optional: [],
+    required: allGatewayLocks(productionLock)
+      .filter((entry) => !historicalPreviewOperationIds.has(entry.operationId)),
+    optional: allGatewayLocks(productionLock)
+      .filter((entry) => historicalPreviewOperationIds.has(entry.operationId)),
     expectedContractCatalogRevision: lock.contractCatalogRevision,
     expectedSemanticCatalogHash: lock.semanticCatalogHash
   });
@@ -667,7 +733,7 @@ async function liveAuthority(
     capabilityCatalog: catalog,
     semanticCatalog: semantics,
     availability,
-    southboundLock: validatedLock(productionLock),
+    southboundLock: validatedLock(capturedLock),
     ...(value.gdpsConsumerSnapshot ? { gdpsConsumerSnapshot: value.gdpsConsumerSnapshot } : {}),
     ...(value.segmentedScopeAuthority ? {
       segmentedScopeAuthorityBinding: {
@@ -1189,6 +1255,157 @@ function requestParts(context: PipelineStageContext): {
   };
 }
 
+function historicalFollowupSurface(sourceText: string): boolean {
+  return /(?:这段轨迹|排除暂停|只看运行阶段|有效执行时段|现在更新了吗|更新了吗|有更新吗)/u.test(sourceText);
+}
+
+function priorHistoricalFinding(value: unknown): HistoricalTraceFinding | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const finding = value as JsonObject;
+  if ((finding["findingKind"] !== "TASK_EXECUTION_INTERVAL" && finding["findingKind"] !== "HISTORICAL_TRAJECTORY") ||
+      typeof finding["reasonCode"] !== "string" || !Array.isArray(finding["warnings"])) return undefined;
+  if (!["COMPLETED", "PARTIAL", "PENDING", "NO_DATA", "INDETERMINATE"].includes(String(finding["status"]))) {
+    return undefined;
+  }
+  const { queryContext: _queryContext, comparison: _comparison, ...historicalFinding } = finding;
+  return structuredClone(historicalFinding) as unknown as HistoricalTraceFinding;
+}
+
+async function loadPriorHistoricalResult(
+  pool: Pool,
+  principal: GroundingIdentityV2 & { dataScope: string },
+  rawPointers: unknown[]
+): Promise<PriorHistoricalResult | undefined> {
+  const candidates: PriorHistoricalResult[] = [];
+  for (const rawPointer of rawPointers) {
+    const pointer = object(rawPointer, "HISTORICAL_PRIOR_POINTER_INVALID");
+    const groundingId = text(pointer["groundingId"], "HISTORICAL_PRIOR_GROUNDING_ID_INVALID");
+    const expectedHash = text(pointer["resultHash"], "HISTORICAL_PRIOR_RESULT_HASH_INVALID");
+    const selectedProductIds = Array.isArray(pointer["selectedProductIds"])
+      ? pointer["selectedProductIds"].filter((entry): entry is string => typeof entry === "string")
+      : [];
+    if (selectedProductIds.length === 0) continue;
+    const result = await pool.query<{ result_hash: string; result_bytes: Buffer }>(
+      `SELECT result_hash, result_bytes
+         FROM wsgs.grounding_result
+        WHERE grounding_id = $1 AND data_scope = $2 AND actor_id = $3`,
+      [groundingId, principal.dataScope, principal.actorId]
+    );
+    const row = result.rows[0];
+    if (!row) throw new ProductionStageModuleError("HISTORICAL_PRIOR_RESULT_NOT_FOUND");
+    const actualHash = `sha256:${createHash("sha256").update(row.result_bytes).digest("hex")}`;
+    if (row.result_hash !== expectedHash || actualHash !== expectedHash) {
+      throw new ProductionStageModuleError("HISTORICAL_PRIOR_RESULT_HASH_MISMATCH");
+    }
+    let priorResult: JsonObject;
+    try {
+      priorResult = object(JSON.parse(row.result_bytes.toString("utf8")) as unknown, "HISTORICAL_PRIOR_RESULT_INVALID");
+    } catch (error) {
+      if (error instanceof ProductionStageModuleError) throw error;
+      throw new ProductionStageModuleError("HISTORICAL_PRIOR_RESULT_INVALID");
+    }
+    const evidenceItems = Array.isArray(priorResult["evidenceItems"]) ? priorResult["evidenceItems"] : [];
+    const referenceProducts = Array.isArray(priorResult["referenceProducts"]) ? priorResult["referenceProducts"] : [];
+    for (const rawEvidence of evidenceItems) {
+      const evidence = object(rawEvidence, "HISTORICAL_PRIOR_EVIDENCE_INVALID");
+      if (!selectedProductIds.includes(String(evidence["evidenceProductId"] ?? ""))) continue;
+      const finding = priorHistoricalFinding(evidence["safePayload"]);
+      if (!finding) continue;
+      const queryContext = evidence["safePayload"] && typeof evidence["safePayload"] === "object" &&
+        !Array.isArray(evidence["safePayload"])
+        ? (evidence["safePayload"] as JsonObject)["queryContext"]
+        : undefined;
+      const contextValue = queryContext && typeof queryContext === "object" && !Array.isArray(queryContext)
+        ? queryContext as JsonObject
+        : {};
+      const taskReferenceKey = finding.taskReferenceKey ?? (contextValue["taskReferenceKey"] as HistoricalReferenceKey | undefined);
+      const subjectReferenceKey = finding.subjectReferenceKey ?? (contextValue["subjectReferenceKey"] as HistoricalReferenceKey | undefined);
+      const expectedReference = finding.findingKind === "HISTORICAL_TRAJECTORY"
+        ? finding.trajectory?.trajectoryReferenceKey
+        : finding.executionInterval?.executionIntervalReferenceKey;
+      const referenceProduct = referenceProducts
+        .map((entry) => object(entry, "HISTORICAL_PRIOR_REFERENCE_INVALID"))
+        .find((entry) => expectedReference !== undefined && canonicalSha256(entry["referenceKey"]) === canonicalSha256(expectedReference));
+      candidates.push({
+        finding,
+        ...(taskReferenceKey ? { taskReferenceKey } : {}),
+        ...(subjectReferenceKey ? { subjectReferenceKey } : {}),
+        phaseScope: contextValue["phaseScope"] === "ACTIVE_PHASES_ONLY" ? "ACTIVE_PHASES_ONLY" : "EXECUTION_ENVELOPE",
+        ...(referenceProduct && expectedReference ? {
+          reference: {
+            referenceKey: expectedReference,
+            referenceType: finding.findingKind,
+            revalidationRequired: referenceProduct["revalidationRequired"] === true,
+            ...(typeof referenceProduct["validUntil"] === "string" ? { validUntil: referenceProduct["validUntil"] } : {})
+          }
+        } : {})
+      });
+    }
+  }
+  if (candidates.length > 1) throw new ProductionStageModuleError("HISTORICAL_PRIOR_RESULT_AMBIGUOUS");
+  return candidates[0];
+}
+
+function historicalReferences(
+  references: ReferenceGroundingResult | undefined,
+  kind: "OPERATIONAL_TASK" | "WORLD_OBJECT"
+): HistoricalReferenceKey[] {
+  if (!references) return [];
+  return references.referenceProducts
+    .filter((entry) => entry.referenceKey.kind === kind && entry.revalidationRequired !== true)
+    .map((entry) => ({ ...entry.referenceKey }));
+}
+
+function bindHistoricalIntent(
+  intent: HistoricalTraceIntent,
+  references: ReferenceGroundingResult | undefined
+): HistoricalTraceIntent {
+  const tasks = historicalReferences(references, "OPERATIONAL_TASK");
+  const subjects = historicalReferences(references, "WORLD_OBJECT");
+  return {
+    ...intent,
+    ...(tasks.length === 1 ? { taskReferenceKey: tasks[0] } : {}),
+    ...(subjects.length === 1 ? { subjectReferenceKey: subjects[0] } : {})
+  };
+}
+
+function historicalOperationIds(intent: HistoricalTraceIntent): string[] {
+  if (intent.queryKind === "EXECUTION_INTERVAL") return ["operational-task.get-execution-intervals"];
+  return [
+    ...(intent.taskReferenceKey ? [] : ["operational-task.find"]),
+    "operational-task.get",
+    "operational-task.get-execution-intervals",
+    "history.get-trajectory"
+  ];
+}
+
+function historicalCapabilityGaps(authority: PersistedAuthority, intent: HistoricalTraceIntent): JsonObject[] {
+  const locks = allGatewayLocks(authority.southboundLock);
+  return historicalOperationIds(intent).flatMap((operationId) => {
+    const descriptor = authority.capabilityCatalog.capabilities.find((entry) =>
+      entry.operationId === operationId && entry.operationVersion === "1.0");
+    const lock = locks.find((entry) => entry.operationId === operationId && entry.operationVersion === "1.0");
+    const availability = authority.availability.operations.find((entry) =>
+      entry.operationId === operationId && entry.operationVersion === "1.0");
+    if (descriptor && lock && availability?.availability === "AVAILABLE") return [];
+    const reason = !descriptor || !lock ? "NOT_REGISTERED" : "OPERATION_UNAVAILABLE";
+    return [{
+      gapId: `history-gap-${canonicalSha256({ operationId, reason }).slice(7, 31)}`,
+      semanticCapability: `${operationId}@1.0`,
+      reason,
+      requiredForProduct: "WORLD_EVIDENCE",
+      blocking: true,
+      details: {
+        operationId,
+        descriptorAvailable: Boolean(descriptor),
+        operationAuthorized: Boolean(lock),
+        availability: availability?.availability ?? "UNKNOWN",
+        substituted: false
+      }
+    }];
+  });
+}
+
 export type RecipeOperationInputResult =
   | {
       status: "READY";
@@ -1449,6 +1666,88 @@ function mappedGap(gap: CapabilityGap | JsonObject): JsonObject {
   };
 }
 
+function historicalEvidence(
+  execution: HistoricalExecutionResult,
+  authority: PersistedAuthority,
+  groundingId: string,
+  configuration: HistoricalTraceConfiguration
+): {
+  status: "COMPLETED" | "PARTIAL";
+  evidenceItems: GroundingEvidenceItem[];
+  capabilityGaps: JsonObject[];
+  referenceProducts: JsonObject[];
+  warnings: string[];
+} {
+  if (!execution.finding) {
+    const gap = {
+      gapId: `history-gap-${canonicalSha256(execution).slice(7, 31)}`,
+      semanticCapability: "HISTORICAL_TRACE",
+      reason: "UNSUPPORTED_EXPRESSION",
+      requiredForProduct: "WORLD_EVIDENCE",
+      blocking: true,
+      details: { code: execution.reasonCode, substituted: false }
+    };
+    return { status: "PARTIAL", evidenceItems: [], capabilityGaps: [gap], referenceProducts: [], warnings: [] };
+  }
+  const finding = execution.finding;
+  const sourceOperation = execution.operations.at(-1) ?? (finding.findingKind === "HISTORICAL_TRAJECTORY"
+    ? "history.get-trajectory"
+    : "operational-task.get-execution-intervals");
+  const descriptor = authority.capabilityCatalog.capabilities.find((entry) => entry.operationId === sourceOperation);
+  if (!descriptor) throw new ProductionStageModuleError("HISTORICAL_CAPABILITY_DESCRIPTOR_MISSING");
+  const projected = projectHistoricalReference(finding, configuration.provisionalReferenceTtlMs);
+  const comparisonWarning = execution.comparison
+    ? [execution.comparison.changed ? "HISTORICAL_RESULT_CHANGED" : "HISTORICAL_RESULT_UNCHANGED"]
+    : [];
+  const warnings = [...finding.warnings, ...comparisonWarning];
+  const referenceProducts: JsonObject[] = projected ? [{
+    productId: `history-reference-${canonicalSha256(projected.referenceKey).slice(7, 31)}`,
+    productKind: "DERIVED_REFERENCE",
+    referenceKey: projected.referenceKey,
+    referenceType: projected.referenceType,
+    displayName: projected.referenceType === "HISTORICAL_TRAJECTORY" ? "Historical trajectory" : "Task execution interval",
+    sourceOperation,
+    sourceWorldVersion: 0,
+    revalidationRequired: projected.revalidationRequired,
+    ...(projected.validUntil ? { validUntil: projected.validUntil } : {}),
+    safeSummary: {
+      status: finding.status,
+      reasonCode: finding.reasonCode,
+      previewOnly: finding.trajectory?.inlineSamples.mode === "BOUNDED_PREVIEW"
+    }
+  }] : [];
+  const evidenceItem: GroundingEvidenceItem = {
+    evidenceProductId: `history-evidence-${canonicalSha256({ groundingId, sourceOperation, finding }).slice(7, 31)}`,
+    productKind: "CAPABILITY_RESULT",
+    authority: "GOWM_GATEWAY",
+    sourceOperation,
+    sourceProvider: sourceOperation === "history.get-trajectory" ? "gowm.historical-trace" : "gowm.operational-reality",
+    upstreamStatus: finding.status === "PENDING" ? "PARTIAL" : finding.status,
+    payloadSchemaUri: descriptor.outputSchemaUri,
+    payloadSchemaHash: descriptor.outputSchemaHash as `sha256:${string}`,
+    safePayload: {
+      ...finding,
+      queryContext: {
+        ...(execution.phaseScope ? { phaseScope: execution.phaseScope } : {}),
+        ...(execution.context?.taskReferenceKey ? { taskReferenceKey: execution.context.taskReferenceKey } : {}),
+        ...(execution.context?.subjectReferenceKey ? { subjectReferenceKey: execution.context.subjectReferenceKey } : {})
+      },
+      ...(execution.comparison ? { comparison: execution.comparison } : {})
+    },
+    receiptIds: [],
+    evidenceIds: [],
+    unknowns: finding.status === "PENDING" ? ["HISTORICAL_PROJECTION_PENDING"] : [],
+    warnings
+  };
+  return {
+    status: finding.status === "COMPLETED" ? "COMPLETED" : "PARTIAL",
+    evidenceItems: [evidenceItem],
+    capabilityGaps: [],
+    referenceProducts,
+    warnings
+  };
+}
+
 function resultDocument(context: PipelineStageContext, evidenceItems: GroundingEvidenceItem[] = []): JsonObject {
   const parts = requestParts(context);
   const deterministic = context.state["DETERMINISTIC_PARSE"] as DeterministicParseResult | undefined;
@@ -1456,13 +1755,18 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
   const graph = context.state["GROUNDING_GRAPH_BUILD"] as DegradedGroundingGraphResult | undefined;
   const references = context.state["REFERENCE_VALIDATE"] as ReferenceGroundingResult | undefined;
   const planning = context.state["REQUIREMENT_PLAN"] as RequirementPlanningResult | undefined;
-  const compiled = context.state["WORLD_QUERY_COMPILE"] as { compiled: CompileResult[]; capabilityGaps: JsonObject[] } | undefined;
-  const executed = context.state["GOWM_EXECUTE"] as { outcomes: Array<{ submission: WorldQuerySubmission; status: string; resultHash: string }> } | undefined;
+  const compiled = context.state["WORLD_QUERY_COMPILE"] as HistoricalCompilation | undefined;
+  const executed = context.state["GOWM_EXECUTE"] as {
+    outcomes: Array<{ submission: WorldQuerySubmission; status: string; resultHash: string }>;
+    historicalExecution?: HistoricalExecutionResult;
+  } | undefined;
   const normalized = context.state["EVIDENCE_NORMALIZE"] as {
     status: "COMPLETED" | "PARTIAL";
     evidenceItems: GroundingEvidenceItem[];
     capabilityGaps: JsonObject[];
     geospatialFindings?: JsonObject;
+    referenceProducts?: JsonObject[];
+    warnings?: string[];
   } | undefined;
   const gaps = [
     ...(planning?.capabilityGaps ?? []).map((entry) => mappedGap(entry as unknown as JsonObject)),
@@ -1473,7 +1777,8 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     ...(deterministic?.warnings ?? []),
     ...(semantic?.warnings ?? []),
     ...(graph?.warnings ?? []),
-    ...(references?.validationResults.flatMap((entry) => entry.warnings) ?? [])
+    ...(references?.validationResults.flatMap((entry) => entry.warnings) ?? []),
+    ...(normalized?.warnings ?? [])
   ];
   const ambiguities = references?.ambiguities ?? [];
   const unresolved = references?.unresolvedMentions ?? [];
@@ -1481,13 +1786,24 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     normalized?.status === "PARTIAL" || gaps.some((gap) => gap["blocking"] === true);
   const status = ambiguities.length > 0 ? "AMBIGUOUS" : unresolved.length > 0 && (references?.referenceProducts.length ?? 0) === 0
     ? "UNRESOLVED" : partial ? "PARTIAL" : "COMPLETED";
-  const queryRecords = executed?.outcomes.map((entry) => ({
+  const executedQueryRecords = executed?.outcomes.map((entry) => ({
     queryId: entry.submission.plan.queryId,
     status: ["COMPLETED", "PARTIAL", "FAILED", "CANCELLED"].includes(entry.status) ? entry.status : "FAILED",
     resultHash: entry.resultHash
-  })) ?? compiled?.compiled.flatMap((entry) => entry.status === "COMPILED" ? [{
+  })).concat(executed?.historicalExecution ? [{
+    queryId: compiled?.historicalPlan?.planHash ?? `history-${context.groundingId}`,
+    status: executed.historicalExecution.status === "CAPABILITY_GAP" ? "FAILED" :
+      executed.historicalExecution.status === "PENDING" ? "PARTIAL" : executed.historicalExecution.status,
+    resultHash: canonicalSha256(executed.historicalExecution)
+  }] : []);
+  const compiledQueryRecords = compiled?.compiled.flatMap((entry) => entry.status === "COMPILED" ? [{
     queryId: entry.submission.plan.queryId, status: "COMPLETED", resultHash: entry.planHash
-  }] : []) ?? [];
+  }] : []).concat(compiled?.historicalPlan ? [{
+    queryId: compiled.historicalPlan.planHash,
+    status: "COMPLETED",
+    resultHash: compiled.historicalPlan.planHash
+  }] : []);
+  const queryRecords = executedQueryRecords ?? compiledQueryRecords ?? [];
   const source = parts.source;
   const receipt = semantic?.receiptId ? [semantic.receiptId] : [];
   return {
@@ -1501,7 +1817,7 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     })) ?? [],
     ...(semantic ? { semanticFrame: semantic.frame } : {}),
     ...(graph ? { groundingGraph: graph.graph } : {}),
-    referenceProducts: references?.referenceProducts ?? [],
+    referenceProducts: [...(references?.referenceProducts ?? []), ...(normalized?.referenceProducts ?? [])],
     evidenceItems: normalized?.evidenceItems ?? evidenceItems,
     ...(normalized?.geospatialFindings === undefined
       ? {}
@@ -2355,10 +2671,21 @@ export async function createPipelineStageExecutor(
       const priorGroundings = Array.isArray(parts.capsule["priorGroundings"])
         ? parts.capsule["priorGroundings"]
         : [];
+      const sourceText = text(parts.source["originalText"], "SOURCE_TEXT_MISSING");
+      const priorHistorical = value.history.enabled && priorGroundings.length > 0 && historicalFollowupSurface(sourceText)
+        ? await loadPriorHistoricalResult(value.pool, identity(context), priorGroundings)
+        : undefined;
+      const followupDecision = priorHistorical
+        ? resolveHistoricalFollowup(sourceText, priorHistorical, value.history)
+        : undefined;
+      const historicalFollowup = followupDecision?.mode === "NOT_HISTORICAL" ? undefined : followupDecision;
       // W11 requires replay of the exact historical snapshot. The current
       // frozen 0.6.3 locks expose CONSISTENT_AT_START only, so accepting a
       // prior result here would silently weaken its authority boundary.
-      assertPriorGroundingReplaySupport(allGatewayLocks(authority.southboundLock), priorGroundings.length);
+      assertPriorGroundingReplaySupport(
+        allGatewayLocks(authority.southboundLock),
+        historicalFollowup ? 0 : priorGroundings.length
+      );
       const snapshot = authority.trustedCapabilitySnapshot;
       const snapshotId = `capability-snapshot-${canonicalSha256({
         groundingId: context.groundingId,
@@ -2399,6 +2726,8 @@ export async function createPipelineStageExecutor(
         capabilitySnapshotId: snapshotId,
         knownWorldReferences: parts.capsule["knownWorldReferences"],
         priorGroundings,
+        ...(priorHistorical ? { priorHistorical } : {}),
+        ...(historicalFollowup ? { historicalFollowup } : {}),
         mapSelections: parts.capsule["mapSelections"],
         externalCorrelationHints: parts.capsule["externalCorrelationHints"],
         externalPredicates: parts.capsule["externalPredicates"]
@@ -2523,6 +2852,18 @@ export async function createPipelineStageExecutor(
       const parts = requestParts(context);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const model = stageValue<PersistedSemanticModelResult>(context, "SEMANTIC_FRAME_VALIDATE");
+      const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
+      const loaded = stageValue<{
+        historicalFollowup?: HistoricalFollowupDecision;
+        priorHistorical?: PriorHistoricalResult;
+      }>(context, "LOAD_CONTEXT");
+      const projectedHistoricalIntent = projectHistoricalTraceIntent(
+        text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
+        value.history
+      );
+      const historicalIntent = loaded.historicalFollowup?.mode === "REQUERY"
+        ? loaded.historicalFollowup.intent
+        : projectedHistoricalIntent;
       const projected = value.gdpsDescriptor ? projectGeospatialProductIntent({
         frame: model.frame,
         originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
@@ -2535,6 +2876,13 @@ export async function createPipelineStageExecutor(
           ? { groundedProductIntents: [descriptorResolution.intent] }
           : {}),
         requestedProducts: parts.requestedProducts,
+        ...(historicalIntent ? {
+          historicalTrace: {
+            intent: bindHistoricalIntent(historicalIntent, references),
+            enabled: value.history.enabled && value.allowPreview,
+            ...(loaded.historicalFollowup?.mode === "REUSE" ? { priorFindingReusable: true } : {})
+          }
+        } : {}),
         executionPolicy: {
           readOnly: true,
           deadlineMs: integer(parts.policy["deadlineMs"], "DEADLINE_INVALID"),
@@ -2605,6 +2953,10 @@ export async function createPipelineStageExecutor(
     CAPABILITY_MATCH: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
       const planning = stageValue<RequirementPlanningResult>(context, "REQUIREMENT_PLAN");
+      if (planning.historicalIntent) {
+        if (planning.historicalPlan?.status === "PROJECTION_ONLY") return { matches: [], capabilityGaps: [] };
+        return { matches: [], capabilityGaps: historicalCapabilityGaps(authority, planning.historicalIntent) };
+      }
       const matches: JsonObject[] = [];
       const gaps: JsonObject[] = [];
       for (const recipeId of planning.selectedRecipeIds) {
@@ -2643,6 +2995,34 @@ export async function createPipelineStageExecutor(
       const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
       const compiled: CompileResult[] = [];
       const gaps = [...matched.capabilityGaps];
+      if (planning.historicalIntent) {
+        const loaded = stageValue<{
+          historicalFollowup?: HistoricalFollowupDecision;
+          priorHistorical?: PriorHistoricalResult;
+        }>(context, "LOAD_CONTEXT");
+        const material = {
+          schemaVersion: "wsgs-historical-query-dag/1.0" as const,
+          intent: planning.historicalIntent,
+          operations: planning.historicalPlan?.status === "PROJECTION_ONLY"
+            ? []
+            : historicalOperationIds(planning.historicalIntent)
+        };
+        const output: HistoricalCompilation = {
+          compiled,
+          capabilityGaps: gaps,
+          ...(loaded.historicalFollowup?.mode === "REUSE" && loaded.priorHistorical
+            ? { historicalReuse: loaded.priorHistorical }
+            : {}),
+          ...(loaded.historicalFollowup?.mode === "REQUERY" && loaded.historicalFollowup.compareWithPrior && loaded.priorHistorical
+            ? { historicalPriorForComparison: loaded.priorHistorical }
+            : {}),
+          historicalPlan: {
+            ...material,
+            planHash: canonicalSha256(material) as `sha256:${string}`
+          }
+        };
+        return output;
+      }
       for (const recipeId of planning.selectedRecipeIds) {
         const gdpsRecipe = value.gdpsRecipes.find((entry) => entry.semanticPattern === recipeId);
         const recipeInput = buildRecipeOperationInput({
@@ -2730,7 +3110,64 @@ export async function createPipelineStageExecutor(
     },
 
     GOWM_EXECUTE: async (context) => {
-      const compilation = stageValue<{ compiled: CompileResult[] }>(context, "WORLD_QUERY_COMPILE");
+      const compilation = stageValue<HistoricalCompilation>(context, "WORLD_QUERY_COMPILE");
+      if (compilation.historicalPlan) {
+        if (compilation.historicalReuse) {
+          const prior = compilation.historicalReuse;
+          const historicalExecution: HistoricalExecutionResult = {
+            status: prior.finding.status === "COMPLETED"
+              ? "COMPLETED"
+              : prior.finding.status === "PENDING" ? "PENDING" : "PARTIAL",
+            reasonCode: prior.finding.reasonCode,
+            finding: structuredClone(prior.finding),
+            phaseScope: prior.phaseScope,
+            ...(prior.taskReferenceKey ? {
+              context: {
+                status: "RESOLVED",
+                taskReferenceKey: prior.taskReferenceKey,
+                ...(prior.subjectReferenceKey ? { subjectReferenceKey: prior.subjectReferenceKey } : {}),
+                taskSource: "PRIOR_SELECTION"
+              }
+            } : {}),
+            operations: []
+          };
+          return { outcomes: [], historicalExecution };
+        }
+        if (compilation.capabilityGaps.length > 0) {
+          return {
+            outcomes: [],
+            historicalExecution: {
+              status: "CAPABILITY_GAP",
+              reasonCode: "HISTORICAL_CAPABILITY_UNAVAILABLE",
+              operations: []
+            } satisfies HistoricalExecutionResult
+          };
+        }
+        const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
+        const taskReferenceKeys = historicalReferences(references, "OPERATIONAL_TASK");
+        const subjectReferenceKeys = historicalReferences(references, "WORLD_OBJECT");
+        const executed = await executeHistoricalTrace({
+          intent: compilation.historicalPlan.intent,
+          configuration: value.history,
+          gateway: {
+            execute: async (operationId, input) => {
+              const lock = operationLock(persistedAuthority(context, value.gateway), operationId);
+              const envelope = await executeOperation(value, context, lock, input, `history-${operationId}`);
+              return envelopeValue(envelope, lock);
+            }
+          },
+          ...(taskReferenceKeys.length > 0 ? { taskReferenceKeys } : {}),
+          ...(subjectReferenceKeys.length > 0 ? { subjectReferenceKeys } : {})
+        });
+        const historicalExecution: HistoricalExecutionResult = {
+          ...executed,
+          phaseScope: compilation.historicalPlan.intent.phaseScope,
+          ...(compilation.historicalPriorForComparison?.finding && executed.finding ? {
+            comparison: compareHistoricalFindings(compilation.historicalPriorForComparison.finding, executed.finding)
+          } : {})
+        };
+        return { outcomes: [], historicalExecution };
+      }
       const caller = identity(context);
       const persisted = persistedAuthority(context, value.gateway);
       const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, persisted);
@@ -2895,7 +3332,13 @@ export async function createPipelineStageExecutor(
     EVIDENCE_NORMALIZE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
       const segmentedScopeAuthority = segmentedScopeAuthorityForPersisted(value, authority);
-      const execution = stageValue<{ outcomes: PersistedWorldQueryOutcome[] }>(context, "GOWM_EXECUTE");
+      const execution = stageValue<{
+        outcomes: PersistedWorldQueryOutcome[];
+        historicalExecution?: HistoricalExecutionResult;
+      }>(context, "GOWM_EXECUTE");
+      if (execution.historicalExecution) {
+        return historicalEvidence(execution.historicalExecution, authority, context.groundingId, value.history);
+      }
       const evidenceItems: GroundingEvidenceItem[] = [];
       const warnings: string[] = [];
       const evidenceProductsForPersistence: ExecutionEvidenceProduct[] = [];

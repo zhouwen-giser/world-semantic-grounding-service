@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import type { WorldQueryPlanV2 } from "./types.js";
 import { TypedWorldQueryCompiler, validateCompiledPlan } from "./index.js";
-import { compileInput } from "./test-fixtures.js";
+import { compileInput, historicalCompileInput } from "./test-fixtures.js";
 
 describe("TypedWorldQueryCompiler v2", () => {
   const compiler = new TypedWorldQueryCompiler();
@@ -46,6 +46,34 @@ describe("TypedWorldQueryCompiler v2", () => {
       status: "COMPILED",
       policy: { approximateInput: true, exactVerificationRequired: false }
     });
+  });
+
+  it("compiles interval and trajectory DAGs with a fail-closed interval precondition", () => {
+    const interval = compiler.compile(historicalCompileInput("HISTORICAL_EXECUTION_INTERVAL"));
+    expect(interval).toMatchObject({
+      status: "COMPILED",
+      submission: { plan: { nodes: [{ operation: { operationId: "operational-task.get-execution-intervals" } }] } }
+    });
+
+    const trajectory = compiler.compile(historicalCompileInput("HISTORICAL_TRAJECTORY"));
+    expect(trajectory.status).toBe("COMPILED");
+    if (trajectory.status !== "COMPILED") return;
+    expect(trajectory.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual([
+      "operational-task.get-execution-intervals", "history.get-trajectory"
+    ]);
+    expect(trajectory.submission.plan.nodes[1]).toMatchObject({
+      failurePolicy: "SKIP_IF_PRECONDITION_FALSE",
+      preconditions: [
+        { kind: "NODE_STATUS", nodeId: "Node_1", statuses: ["COMPLETED", "PARTIAL"] },
+        { kind: "VALUE_PRESENT", binding: { kind: "NODE_OUTPUT", nodeId: "Node_1", outputPort: "executionIntervalReferenceKey" } }
+      ]
+    });
+    expect(trajectory.submission.plan.nodes[1]?.inputs).toMatchObject({
+      executionIntervalReferenceKey: { kind: "NODE_OUTPUT", nodeId: "Node_1", targetPath: "/executionIntervalReferenceKey" },
+      subjectReferenceKey: { kind: "LITERAL", targetPath: "/subjectReferenceKey" },
+      sourceSelection: { kind: "LITERAL", value: { mode: "ONLY_CANDIDATE" } }
+    });
+    expect(() => validateCompiledPlan(trajectory.submission.plan, historicalCompileInput("HISTORICAL_TRAJECTORY").capabilities)).not.toThrow();
   });
 
   it("adds the locked exact verifier after a candidate-only H3 cover", () => {

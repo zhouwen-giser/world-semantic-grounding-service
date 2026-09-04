@@ -2,6 +2,22 @@ import type { StableRequirementRecipe } from "./types.js";
 
 export const stableRecipeCatalog = [
   {
+    recipeId: "HISTORICAL_EXECUTION_INTERVAL",
+    maturity: "PREVIEW",
+    requirements: ["READ_TASK_EXECUTION_INTERVAL"],
+    requestedProducts: ["WORLD_EVIDENCE", "OPERATIONAL_TASKS"],
+    defaultSnapshotPolicy: "LATEST_AT_START",
+    allowApproximation: false
+  },
+  {
+    recipeId: "HISTORICAL_TRAJECTORY",
+    maturity: "PREVIEW",
+    requirements: ["READ_OPERATIONAL_TASK", "READ_TASK_EXECUTION_INTERVAL", "READ_HISTORICAL_TRAJECTORY"],
+    requestedProducts: ["WORLD_EVIDENCE", "DERIVED_REFERENCES"],
+    defaultSnapshotPolicy: "LATEST_AT_START",
+    allowApproximation: false
+  },
+  {
     recipeId: "REFERENCE_IDENTITY",
     maturity: "STABLE",
     requirements: ["RESOLVE_REFERENCE", "VALIDATE_REFERENCE"],
