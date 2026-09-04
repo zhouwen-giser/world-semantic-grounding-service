@@ -97,7 +97,8 @@ Selection order is explicit task, unique known task, explicitly selected prior t
 ## Git Delivery
 
 - Branch: `codex/wsgs-v0.2.2-historical-trace-consumption`
-- Draft PR: pending final commit and push
+- Implementation commit: `977b3c987c7c2db89ca1f8b76d9fb3112ee6d635`
+- Draft PR: <https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/12>
 
 ## Final Marker
 
