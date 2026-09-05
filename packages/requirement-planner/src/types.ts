@@ -1,5 +1,6 @@
 import type { GroundingGraph } from "@wsgs/contracts";
 import type { GroundedGeospatialProductIntent } from "@wsgs/gdps-descriptor-consumer";
+import type { HistoricalRequirementPlan, HistoricalTraceIntent } from "@wsgs/historical-trace-consumer";
 
 export const requirementTypes = [
   "RESOLVE_REFERENCE",
@@ -30,6 +31,12 @@ export const requirementTypes = [
   "FIND_GEO_VECTOR_FEATURES_IN_AREA",
   "FIND_GEO_VECTOR_FEATURES_NEARBY",
   "FIND_GEO_VECTOR_INTERSECTIONS",
+  "FIND_RELEVANT_OPERATIONAL_TASK",
+  "READ_OPERATIONAL_TASK",
+  "READ_TASK_EXECUTION_INTERVAL",
+  "READ_HISTORICAL_TRAJECTORY",
+  "READ_TRAJECTORY_COMPLETENESS",
+  "READ_TRAJECTORY_GAPS",
   "EXACT_VERIFY",
   "VALIDATE_RESULT"
 ] as const;
@@ -118,7 +125,9 @@ export const stableRecipeIds = [
   "GDPS_GENERIC_FIND_RANGE",
   "GDPS_GENERIC_VECTOR_IN_AREA",
   "GDPS_GENERIC_VECTOR_NEARBY",
-  "GDPS_GENERIC_VECTOR_INTERSECTS"
+  "GDPS_GENERIC_VECTOR_INTERSECTS",
+  "HISTORICAL_EXECUTION_INTERVAL",
+  "HISTORICAL_TRAJECTORY"
 ] as const;
 
 export type StableRecipeId = (typeof stableRecipeIds)[number];
@@ -164,6 +173,11 @@ export interface RequirementPlannerInput {
   groundedProductIntents?: readonly GroundedGeospatialProductIntent[];
   requestedProducts: readonly string[];
   executionPolicy: WorldQueryExecutionPolicy;
+  historicalTrace?: {
+    intent: HistoricalTraceIntent;
+    enabled: boolean;
+    priorFindingReusable?: boolean;
+  };
 }
 
 export interface RequirementPlanningResult {
@@ -171,4 +185,6 @@ export interface RequirementPlanningResult {
   graph: WorldQueryRequirementGraph | null;
   selectedRecipeIds: StableRecipeId[];
   capabilityGaps: PlannerCapabilityGap[];
+  historicalIntent?: HistoricalTraceIntent;
+  historicalPlan?: HistoricalRequirementPlan;
 }

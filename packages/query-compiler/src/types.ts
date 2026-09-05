@@ -38,6 +38,8 @@ export type QuerySemanticPattern =
   | "GDPS_GENERIC_VECTOR_IN_AREA"
   | "GDPS_GENERIC_VECTOR_NEARBY"
   | "GDPS_GENERIC_VECTOR_INTERSECTS"
+  | "HISTORICAL_EXECUTION_INTERVAL"
+  | "HISTORICAL_TRAJECTORY"
   | "TERRAIN_VISIBILITY";
 
 export interface GdpsRecipeAuthorization {
@@ -132,6 +134,10 @@ export interface WorldQueryNode {
   };
   inputs: Record<string, WorldQueryInputBinding>;
   failurePolicy: "FAIL_FAST" | "ALLOW_PARTIAL" | "SKIP_IF_PRECONDITION_FALSE";
+  preconditions?: Array<
+    | { kind: "NODE_STATUS"; nodeId: string; statuses: Array<"COMPLETED" | "PARTIAL" | "NO_DATA"> }
+    | { kind: "VALUE_PRESENT"; binding: Extract<WorldQueryInputBinding, { kind: "NODE_OUTPUT" }> }
+  >;
   budget: {
     maximumRows: number;
     maximumCandidates: number;

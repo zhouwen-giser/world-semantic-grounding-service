@@ -1,8 +1,8 @@
 # N03 Phase Report — SourceProduct, TypedGap, and Provenance
 
-Decision: **PASS for N03 only**
+Decision: **PARTIAL for N03 only**
 
-Marker: `WSGS_V021_GEOSPATIAL_PROVENANCE_READY`
+Marker: `NOT_EMITTED`
 
 G1: `NOT_RUN`
 
@@ -23,9 +23,9 @@ productionQualified: `false`
 | Gate | Result |
 |---|---|
 | Focused source/gap/result/registry tests | PASS; 120/120 across 4 suites |
-| Focused execution evidence bound to current input set | PASS; `sha256:60d186987e5c5972899ffaed5d1fcf591a4e0abdb9b42a0c5184b6487b4f6cc9` |
+| Focused execution evidence bound to current input set | PASS; `sha256:768e071304796e11adc9c2fcdf77a9cf1a21b69d181606147aee889c04049754` |
 | Deterministic N03 materialization guard | PASS |
-| Real signed Gateway upstream gate | PASS |
+| Real signed Gateway upstream gate | NOT_RUN |
 | Direct Provider / database calls | 0 / 0 |
 
 The focused count is parsed from the actual Vitest JSON result and bound to the current N03 input-set hash; it is not a hard-coded estimate. Check mode validates the stored execution evidence without rerunning unchanged tests.
@@ -34,19 +34,18 @@ The focused count is parsed from the actual Vitest JSON result and bound to the 
 
 | Logical artifact | SHA-256 |
 |---|---|
-| `PROVENANCE_INTEGRITY` | `sha256:8267fd88c338eaba05a016895767e0f09b187e34a2bd84818ef0f1074917216d` |
-| `GAP_NORMALIZATION` | `sha256:7a070a49d9007074175d064ce206b118ba368decc472328f749508f9c2e6f64e` |
-| `SCOPE_NEGATIVE_CASES` | `sha256:8c462e6530cf7916ae65beea1601a3ff8c1dbc5b532cddce8a298089ef55e246` |
-| `FOCUSED_TEST_EXECUTION` | `sha256:60d186987e5c5972899ffaed5d1fcf591a4e0abdb9b42a0c5184b6487b4f6cc9` |
-| `PROVENANCE_REPORT` | `sha256:81093017814def18100c95035029268c5f1eb51851ff166a205099a215ac8307` |
-| `REAL_SIGNED_GATEWAY_UPSTREAM` | `sha256:e30ad4cb76d1abc074d71606362bb820aca6af77739218c8c2892200624b7b76` |
+| `PROVENANCE_INTEGRITY` | `sha256:140e04f1fbebf2f5c5512d99708f5cb63a95f51ed276fbec4c8e0203437439b3` |
+| `GAP_NORMALIZATION` | `sha256:2da8253498f9de9ffba64caf7c9088627233a394bbec3c8f548150b83fbf0461` |
+| `SCOPE_NEGATIVE_CASES` | `sha256:c64d002ed0b47bee27ef400a6049c67ec361b7da4c73a45fae83424ef35d7899` |
+| `FOCUSED_TEST_EXECUTION` | `sha256:768e071304796e11adc9c2fcdf77a9cf1a21b69d181606147aee889c04049754` |
+| `PROVENANCE_REPORT` | `sha256:4d63eb03d2c18fcf1c125363aba87555e37644f9730c795f0d1d5a20ce520ebc` |
 
-Input-set hash: `sha256:20cc0d065abd1c5177d68b0dbaf8305b29b8749e3257b1d3366e1134deaee8d5`.
+Input-set hash: `sha256:ec92c913c562da5b2733b327de867e60ba8f6113748e440c66e3e76f7a270420`.
 
 ## Qualification boundary
 
-- V21-G06: PASS.
-- Runtime qualification: PASS for N03 real upstream only.
+- V21-G06: NOT_RUN.
+- Runtime qualification: NOT_RUN.
 - Real SACS v0.4 cases: 0/18.
 - Consumer compatible: false.
 - G1: NOT_RUN.

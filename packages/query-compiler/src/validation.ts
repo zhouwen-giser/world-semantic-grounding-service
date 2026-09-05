@@ -77,6 +77,15 @@ function dependencies(plan: WorldQueryPlanV2): Map<string, Set<string>> {
       }
       dependencies.add(binding.nodeId);
     }
+    for (const precondition of node.preconditions ?? []) {
+      if (precondition.kind === "NODE_STATUS") {
+        if (!nodeIds.has(precondition.nodeId)) throw new Error("DANGLING_PLAN_PRECONDITION");
+        dependencies.add(precondition.nodeId);
+      } else if (precondition.binding.kind === "NODE_OUTPUT") {
+        if (!nodeIds.has(precondition.binding.nodeId)) throw new Error("DANGLING_PLAN_PRECONDITION");
+        dependencies.add(precondition.binding.nodeId);
+      }
+    }
     result.set(node.nodeId, dependencies);
   }
   return result;
@@ -132,6 +141,14 @@ function validateAgainstCapabilities(
         (sourcePort.valueKind === "GEOMETRY" || sourcePort.valueKind === "POSITION") &&
         sourcePort.unitSemantics !== "ANGULAR_DEGREES"
       ) throw new Error("COORDINATE_UNIT_MISMATCH");
+    }
+    for (const precondition of node.preconditions ?? []) {
+      if (precondition.kind !== "VALUE_PRESENT" || precondition.binding.kind !== "NODE_OUTPUT") continue;
+      const sourceDescriptor = descriptorsByNode.get(precondition.binding.nodeId);
+      const sourcePort = sourceDescriptor?.ports.outputs.find((port) => port.name === precondition.binding.outputPort);
+      if (!sourcePort || !samePort(precondition.binding.port, sourcePort) || precondition.binding.path !== sourcePort.path) {
+        throw new Error("PLAN_PRECONDITION_PORT_DRIFT");
+      }
     }
   }
   for (const output of plan.outputs) {
