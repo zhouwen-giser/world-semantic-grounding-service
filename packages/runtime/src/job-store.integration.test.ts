@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
@@ -71,7 +71,9 @@ integration("PostgreSQL durable job store", () => {
     const recorded = await pool.query<{ version: string; checksum_sha256: string | null }>(
       "SELECT version, checksum_sha256 FROM wsgs.schema_migration ORDER BY version"
     );
-    expect(recorded.rows).toHaveLength(2);
+    const versions = (await readdir(resolve(root, "database", "migrations")))
+      .filter((name) => /^\d+.*\.sql$/u.test(name)).sort();
+    expect(recorded.rows.map((row) => row.version)).toEqual(versions);
     expect(recorded.rows.every((row) => /^sha256:[0-9a-f]{64}$/u.test(row.checksum_sha256 ?? ""))).toBe(true);
     expect(await applyMigrations(pool, resolve(root, "database", "migrations"))).toEqual([]);
 

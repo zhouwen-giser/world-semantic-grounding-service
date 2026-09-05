@@ -61,7 +61,12 @@ export type GroundingPresentation =
   | { kind: "JOB"; value: unknown }
   | { kind: "RESULT"; value: unknown };
 
+export type GroundingReplayLookup = Pick<DurableGroundingSubmission,
+  "identity" | "idempotencyKey" | "payloadHash" | "contractSelection">;
+export type GroundingReplayOutcome = Exclude<DurableSubmissionOutcome, { kind: "CREATED" }>;
+
 export interface ProductionGroundingStore {
+  replay(lookup: GroundingReplayLookup): Promise<GroundingReplayOutcome | null>;
   submit(submission: DurableGroundingSubmission): Promise<DurableSubmissionOutcome>;
   waitForTerminal(
     identity: ScopedGroundingIdentity,
@@ -233,10 +238,6 @@ export class ProductionGroundingBackend {
       : LEGACY_GROUNDING_CONTRACT_SELECTION;
     const signal = explicitSignal ?? legacySignal;
     const negotiatedContract = parseGroundingContractSelection(contractSelection);
-    const readiness = await this.#config.readiness();
-    if (!readiness.ready) {
-      throw new ProductionBackendError("NOT_READY", "Required grounding capabilities are not ready");
-    }
     if (!idempotencyKey || idempotencyKey.length > 256) {
       throw new ProductionBackendError("INVALID_IDEMPOTENCY_KEY", "Idempotency key must contain 1 through 256 characters");
     }
@@ -266,6 +267,26 @@ export class ProductionGroundingBackend {
     const dataScope = this.#selectDataScope(identity, request);
     const scopedIdentity: ScopedGroundingIdentity = { ...identity, dataScope };
     const now = this.#now();
+    // Keep existing results available without asking an upstream service to
+    // admit new work. The store verifies payload, principal, authorization
+    // context and the persisted contract before returning any replay.
+    const payloadHash = isSacsGeospatialContract(negotiatedContract)
+      ? canonicalSha256({ request, contractSelection: negotiatedContract })
+      : canonicalSha256(request);
+    const replay = await this.#config.store.replay({
+      identity: scopedIdentity, idempotencyKey, payloadHash, contractSelection: negotiatedContract
+    });
+    if (replay) {
+      if (replay.kind === "REPLAY_RESULT") return { kind: "RESULT", value: replay.result };
+      if (preferAsync) return { kind: "JOB", value: replay.job };
+      return this.#config.store.waitForTerminal(
+        scopedIdentity, replay.groundingId, new Date(now + deadlineMs), negotiatedContract, signal
+      );
+    }
+    const readiness = await this.#config.readiness();
+    if (!readiness.ready) {
+      throw new ProductionBackendError("NOT_READY", "Required grounding capabilities are not ready");
+    }
     const groundingId = `grounding-${this.#newId()}`;
     const jobId = `job-${this.#newId()}`;
     const admissionSnapshot = await this.#config.captureAdmissionSnapshot({
@@ -275,12 +296,6 @@ export class ProductionGroundingBackend {
       jobId
     });
     assertAdmissionSnapshot(admissionSnapshot);
-    // Preserve the byte-locked 1.0 idempotency identity so retries of jobs
-    // admitted before v0.2.1 still replay. The additive 1.1 path binds its
-    // explicit profile selection to prevent cross-contract replay.
-    const payloadHash = isSacsGeospatialContract(negotiatedContract)
-      ? canonicalSha256({ request, contractSelection: negotiatedContract })
-      : canonicalSha256(request);
     const sealedRequest = await this.#config.sealer.seal(canonicalBytes(request), { groundingId, requestId });
     if (!(sealedRequest instanceof Uint8Array) || sealedRequest.byteLength === 0) {
       throw new ProductionBackendError("REQUEST_SEAL_FAILED", "Request sealer returned no ciphertext");

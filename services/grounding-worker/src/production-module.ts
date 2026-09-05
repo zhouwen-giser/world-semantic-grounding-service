@@ -119,6 +119,7 @@ import {
   type TrustedCapabilitySnapshot
 } from "@wsgs/trusted-capability-snapshot";
 import { Pool, type PoolClient } from "pg";
+import { shouldCancelUpstreamQuery } from "./upstream-cancellation.js";
 
 import {
   SegmentedWorldQueryError,
@@ -857,14 +858,14 @@ export function mergeKnownReferenceProducts(
   known: readonly JsonObject[]
 ): ReferenceGroundingResult {
   const result = resolved ?? normalizeReferenceResolution(null, []);
-  const seen = new Set(result.referenceProducts.map((entry) => JSON.stringify(entry.referenceKey)));
+  const seen = new Set(result.referenceProducts.map((entry) => canonicalSha256(referenceKey(entry.referenceKey))));
   const additions = known.flatMap((entry, index): ReferenceProduct[] => {
     const key = referenceKey(entry["referenceKey"]);
-    const canonicalKey = JSON.stringify(key);
+    const canonicalKey = canonicalSha256(key);
     if (seen.has(canonicalKey)) return [];
     seen.add(canonicalKey);
     return [{
-      productId: `known-reference-${index}-${createHash("sha256").update(canonicalKey).digest("hex").slice(0, 16)}`,
+      productId: `known-reference-${index}-${createHash("sha256").update(JSON.stringify(key)).digest("hex").slice(0, 16)}`,
       productKind: "RESOLVED_REFERENCE",
       referenceKey: key,
       referenceType: text(entry["referenceType"], "INVALID_REFERENCE_TYPE"),
@@ -2506,12 +2507,12 @@ export async function createPipelineStageExecutor(
       const validations = normalizeValidation(envelopeValue(envelope, lock));
       const evaluatedAt = new Date().toISOString();
       const validityTtlMs = environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000);
-      const byKey = new Map(validations.map((entry) => [JSON.stringify(entry.referenceKey), entry]));
+      const byKey = new Map(validations.map((entry) => [canonicalSha256(referenceKey(entry.referenceKey)), entry]));
       const validated = {
         ...result,
         validationResults: validations,
         referenceProducts: result.referenceProducts.map((product) => {
-          const validation = byKey.get(JSON.stringify(product.referenceKey));
+          const validation = byKey.get(canonicalSha256(referenceKey(product.referenceKey)));
           if (!validation) throw new ProductionStageModuleError("REFERENCE_VALIDATION_MISSING");
           return applyReferenceValidation(product, validation, evaluatedAt, validityTtlMs);
         })
@@ -2667,6 +2668,7 @@ export async function createPipelineStageExecutor(
           ? recipeInput.parameterValues["descriptorHash"]
           : gdpsRecipe?.descriptorConstraint?.descriptorHash;
         const result = compiler.compile({
+          groundingId: context.groundingId,
           requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
           idempotencyKey: `${idempotencyKey(context)}:${recipeId}`,
           pattern: recipeId as QuerySemanticPattern,
@@ -2828,7 +2830,10 @@ export async function createPipelineStageExecutor(
             ? await value.gateway.pollJob(text(accepted["jobId"], "WORLD_QUERY_JOB_ID_MISSING"), gatewayContext)
             : undefined;
         } catch (error) {
-          if (accepted) {
+          // A transport failure or an attempt timeout must leave the accepted
+          // query available for an idempotent retry. Only the actual job's
+          // cancellation or hard deadline can terminate upstream work.
+          if (accepted && shouldCancelUpstreamQuery(context.signal, context.deadlineAt)) {
             // The v0.6.3 cancellation authority is the world-query id, not the
             // generic job id. Never reuse the submit request binding, JTI, or
             // the already-aborted caller signal.

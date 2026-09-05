@@ -239,6 +239,22 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
       throw new PostgresWorkerStoreError("leaseMs must be an integer of at least 100");
     }
     const claimed = await transaction(this.pool, async (client) => {
+      // Deadline expiry is itself a terminal transition, including jobs that
+      // were never claimed or whose worker disappeared. Bound each sweep and
+      // skip locked rows so workers cannot block one another's settlements.
+      await client.query(
+        `WITH overdue AS (
+           SELECT job_id FROM wsgs.grounding_job
+            WHERE status IN ('ACCEPTED', 'RUNNING') AND cancel_requested_at IS NULL
+              AND deadline_at <= clock_timestamp()
+            ORDER BY deadline_at, job_id FOR UPDATE SKIP LOCKED LIMIT 100
+         )
+         UPDATE wsgs.grounding_job AS job
+            SET status = 'FAILED', finished_at = clock_timestamp(), error = $1::jsonb,
+                lease_token = NULL, lease_owner = NULL, lease_expires_at = NULL
+           FROM overdue WHERE job.job_id = overdue.job_id`,
+        [JSON.stringify(jobError("WORKER_DEADLINE_EXCEEDED", false))]
+      );
       const selected = await client.query<ClaimRow>(
         `SELECT job.job_id, job.grounding_id, request.request_id,
                 request.request_metadata->>'operation' AS operation,

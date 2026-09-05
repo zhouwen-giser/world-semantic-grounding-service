@@ -443,6 +443,8 @@ export class TypedWorldQueryCompiler {
       });
     }
     const queryId = stableId("query", canonical({
+      ...(input.groundingId === undefined ? {} : { groundingId: input.groundingId }),
+      idempotencyKey: input.idempotencyKey,
       requestId: input.requestId,
       templateId: rule.templateId,
       operationInput: input.operationInput,

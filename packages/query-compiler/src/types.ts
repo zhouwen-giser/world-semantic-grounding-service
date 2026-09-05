@@ -77,6 +77,8 @@ export interface MaturityPolicy {
 }
 
 export interface CompileInput {
+  /** Server-owned durable task identity; required by the production worker. */
+  groundingId?: string;
   requestId: string;
   idempotencyKey: string;
   pattern: QuerySemanticPattern;
