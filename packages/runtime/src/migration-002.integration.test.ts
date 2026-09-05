@@ -1,4 +1,4 @@
-import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
@@ -10,7 +10,7 @@ import { applyMigrations, runAssertions } from "./migrations.js";
 const databaseUrl = process.env["TEST_UPGRADE_DATABASE_URL"];
 const integration = databaseUrl ? describe : describe.skip;
 
-integration("001 to 002 production database upgrade", () => {
+integration("001 to current production database upgrade", () => {
   const pool = new Pool({ connectionString: databaseUrl });
   const root = resolve(import.meta.dirname, "..", "..", "..");
   let legacyMigrations: string;
@@ -92,25 +92,24 @@ integration("001 to 002 production database upgrade", () => {
     }
   });
 
-  it("applies additive 002, backfills actor fences, and passes schema assertions", async () => {
-    expect(await applyMigrations(pool, resolve(root, "database", "migrations"))).toEqual([
-      "002_wsgs_gowm_063_runtime.sql"
-    ]);
-    expect(await runAssertions(pool, resolve(root, "database", "assertions"))).toEqual([
-      "001_wsgs_core.sql",
-      "002_wsgs_gowm_063_runtime.sql"
-    ]);
+  it("applies current additive migrations, backfills actor fences, and passes schema assertions", async () => {
+    const migrationDirectory = resolve(root, "database", "migrations");
+    const assertionDirectory = resolve(root, "database", "assertions");
+    const versions = (await readdir(migrationDirectory)).filter((name) => /^\d+.*\.sql$/u.test(name)).sort();
+    const assertions = (await readdir(assertionDirectory)).filter((name) => /^\d+.*\.sql$/u.test(name)).sort();
+    expect(await applyMigrations(pool, migrationDirectory)).toEqual(versions.filter((name) => name !== "001_wsgs_core.sql"));
+    expect(await runAssertions(pool, assertionDirectory)).toEqual(assertions);
     const upgraded = await pool.query<{
       request_actor: string;
       job_actor: string;
       idempotency_actor: string;
-      checkpoint_table: string;
-      event_table: string;
+      checkpoint_table: boolean;
+      event_table: boolean;
     }>(
       `SELECT request.actor_id AS request_actor, job.actor_id AS job_actor,
               item.actor_id AS idempotency_actor,
-              to_regclass('wsgs.pipeline_checkpoint')::text AS checkpoint_table,
-              to_regclass('wsgs.pipeline_event')::text AS event_table
+              to_regclass('wsgs.pipeline_checkpoint') IS NOT NULL AS checkpoint_table,
+              to_regclass('wsgs.pipeline_event') IS NOT NULL AS event_table
          FROM wsgs.grounding_request AS request
          JOIN wsgs.grounding_job AS job USING (grounding_id)
          JOIN wsgs.idempotency AS item USING (grounding_id)
@@ -120,8 +119,8 @@ integration("001 to 002 production database upgrade", () => {
       request_actor: "principal-legacy",
       job_actor: "principal-legacy",
       idempotency_actor: "principal-legacy",
-      checkpoint_table: "pipeline_checkpoint",
-      event_table: "pipeline_event"
+      checkpoint_table: true,
+      event_table: true
     });
   });
 });

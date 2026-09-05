@@ -157,15 +157,22 @@ describe("GroundingWorker", () => {
   });
 
   it("heartbeats a long-running lease", async () => {
-    const store = new MemoryWorkerStore();
-    store.claims.push(claim());
-    const heartbeat = vi.spyOn(store, "heartbeat");
-    const result = await worker(store, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 55));
-      return success();
-    }).runOnce();
-    expect(result.kind).toBe("SUCCEEDED");
-    expect(heartbeat.mock.calls.length).toBeGreaterThanOrEqual(2);
+    vi.useFakeTimers();
+    try {
+      const store = new MemoryWorkerStore();
+      store.claims.push(claim());
+      const heartbeat = vi.spyOn(store, "heartbeat");
+      const running = worker(store, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 55));
+        return success();
+      }).runOnce();
+      await vi.advanceTimersByTimeAsync(55);
+      const result = await running;
+      expect(result.kind).toBe("SUCCEEDED");
+      expect(heartbeat.mock.calls.length).toBeGreaterThanOrEqual(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("aborts immediately when a heartbeat reports cancellation", async () => {

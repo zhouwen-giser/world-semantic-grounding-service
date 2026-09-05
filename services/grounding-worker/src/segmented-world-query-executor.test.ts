@@ -662,7 +662,13 @@ describe("segmented world-query executor", () => {
     expect(gateway.cancelWorldQuery).not.toHaveBeenCalled();
   });
 
-  it("uses a fresh bounded delegation to cancel an accepted segment after caller abort", async () => {
+  it.each([
+    [undefined, true],
+    ["WORKER_JOB_CANCELLED", true],
+    ["WORKER_LEASE_LOST", false],
+    ["WORKER_SHUTDOWN", false],
+    ["PIPELINE_STAGE_ATTEMPT_TIMEOUT", false]
+  ])("handles accepted segment interruption %s with owned cancellation only", async (code, shouldCancel) => {
     const controller = new AbortController();
     let classifySubmission: WorldQuerySubmission | undefined;
     const cancelWorldQuery = vi.fn(async () => ({ status: "CANCELLED" }));
@@ -704,14 +710,20 @@ describe("segmented world-query executor", () => {
       runtime: {
         gateway,
         signer,
-        onAccepted: async ({ nodeId }) => { if (nodeId === "classify") controller.abort(); }
+        onAccepted: async ({ nodeId }) => {
+          if (nodeId === "classify") controller.abort(code === undefined ? undefined : Object.assign(new Error(code), { code }));
+        }
       }
     })).rejects.toThrow("aborted");
-    expect(cancelWorldQuery).toHaveBeenCalledWith(
-      classifySubmission!.plan.queryId,
-      expect.objectContaining({ delegationToken: "signed.segment.token" })
-    );
-    expect(signer.sign).toHaveBeenCalledTimes(3);
+    if (shouldCancel) {
+      expect(cancelWorldQuery).toHaveBeenCalledWith(
+        classifySubmission!.plan.queryId,
+        expect.objectContaining({ delegationToken: "signed.segment.token" })
+      );
+    } else {
+      expect(cancelWorldQuery).not.toHaveBeenCalled();
+    }
+    expect(signer.sign).toHaveBeenCalledTimes(shouldCancel ? 3 : 2);
   });
 
   it("rejects missing identity authority before signing or submitting", async () => {

@@ -6,6 +6,8 @@ import type {
   DurableGroundingSubmission,
   DurableSubmissionOutcome,
   GroundingPresentation,
+  GroundingReplayLookup,
+  GroundingReplayOutcome,
   ProductionGroundingStore,
   ScopedGroundingIdentity
 } from "./backend.js";
@@ -188,6 +190,34 @@ async function readJob(
   return found.rows[0] ?? null;
 }
 
+async function readReplay(
+  client: Pick<Pool, "query"> | Pick<PoolClient, "query">,
+  lookup: GroundingReplayLookup,
+  forUpdate = false
+): Promise<GroundingReplayOutcome | null> {
+  const existing = await client.query<{
+    payload_hash: string; grounding_id: string; result_bytes: Buffer | null;
+  }>(
+    `SELECT payload_hash, grounding_id, result_bytes FROM wsgs.idempotency
+      WHERE data_scope = $1 AND actor_id = $2 AND idempotency_key = $3${forUpdate ? " FOR UPDATE" : ""}`,
+    [lookup.identity.dataScope, lookup.identity.actorId, lookup.idempotencyKey]
+  );
+  const replay = existing.rows[0];
+  if (!replay) return null;
+  if (replay.payload_hash !== lookup.payloadHash) throw new PostgresIdempotencyConflictError();
+  const job = await readJob(client, lookup.identity, replay.grounding_id);
+  // The historical idempotency key does not contain principal or authorization
+  // context. Always check both through readJob before disclosing stored bytes.
+  if (!job) throw new PostgresIdempotencyConflictError();
+  assertPersistedSelection(job, lookup.contractSelection);
+  if (replay.result_bytes) {
+    return { kind: "REPLAY_RESULT", groundingId: replay.grounding_id,
+      result: parseJsonObject(replay.result_bytes, "Idempotent grounding result") };
+  }
+  return { kind: "REPLAY_JOB", groundingId: replay.grounding_id,
+    jobId: job.job_id, job: presentation(job) };
+}
+
 export interface PostgresProductionGroundingStoreConfig {
   pollIntervalMs?: number;
 }
@@ -209,42 +239,17 @@ export class PostgresProductionGroundingStore implements ProductionGroundingStor
     }
   }
 
+  replay(lookup: GroundingReplayLookup): Promise<GroundingReplayOutcome | null> {
+    return readReplay(this.pool, lookup);
+  }
+
   async submit(submission: DurableGroundingSubmission): Promise<DurableSubmissionOutcome> {
     return transaction(this.pool, async (client) => {
       await client.query("SELECT pg_advisory_xact_lock($1::bigint)", [advisoryLockKey(submission)]);
-      const existing = await client.query<{
-        payload_hash: string;
-        grounding_id: string;
-        result_bytes: Buffer | null;
-      }>(
-        `SELECT payload_hash, grounding_id, result_bytes
-           FROM wsgs.idempotency
-          WHERE data_scope = $1 AND actor_id = $2 AND idempotency_key = $3
-          FOR UPDATE`,
-        [submission.identity.dataScope, submission.identity.actorId, submission.idempotencyKey]
-      );
-      const replay = existing.rows[0];
-      if (replay) {
-        if (replay.payload_hash !== submission.payloadHash) throw new PostgresIdempotencyConflictError();
-        const job = await readJob(client, submission.identity, replay.grounding_id);
-        // The historical idempotency key does not include principal_id. Never
-        // replay across principals that happen to share actor and data scope.
-        if (!job) throw new PostgresIdempotencyConflictError();
-        assertPersistedSelection(job, submission.contractSelection);
-        if (replay.result_bytes) {
-          return {
-            kind: "REPLAY_RESULT",
-            groundingId: replay.grounding_id,
-            result: parseJsonObject(replay.result_bytes, "Idempotent grounding result")
-          };
-        }
-        return {
-          kind: "REPLAY_JOB",
-          groundingId: replay.grounding_id,
-          jobId: job.job_id,
-          job: presentation(job)
-        };
-      }
+      // Recheck while holding the serialization lock: another request may
+      // have been admitted after the backend's read-only replay lookup.
+      const replay = await readReplay(client, submission, true);
+      if (replay) return replay;
 
       await client.query(
         `INSERT INTO wsgs.grounding_request(

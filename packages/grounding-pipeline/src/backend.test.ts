@@ -5,6 +5,7 @@ import {
   ProductionGroundingBackend,
   type DurableGroundingSubmission,
   type DurableSubmissionOutcome,
+  type GroundingReplayOutcome,
   type ProductionGroundingIdentity,
   type ProductionGroundingStore
 } from "./backend.js";
@@ -44,6 +45,7 @@ function request(text = "查询2号车"): Record<string, unknown> {
 }
 
 class MemoryBackendStore implements ProductionGroundingStore {
+  async replay(): Promise<GroundingReplayOutcome | null> { return null; }
   readonly submissions: DurableGroundingSubmission[] = [];
   outcome: DurableSubmissionOutcome = {
     kind: "CREATED",
@@ -235,5 +237,36 @@ describe("ProductionGroundingBackend", () => {
       code: "NOT_READY"
     });
     expect(fixture.store.submissions).toHaveLength(0);
+  });
+
+  it("replays persisted results and jobs without readiness, admission or encryption", async () => {
+    const fixture = backend();
+    const exact = { status: "COMPLETED", resultHash: canonicalSha256({ result: "stored" }) };
+    const replay = vi.spyOn(fixture.store, "replay");
+    const readiness = vi.fn(async () => ({ ready: false, reasons: ["MODEL_UNAVAILABLE"] }));
+    const captureAdmissionSnapshot = vi.fn(async () => { throw new Error("GATEWAY_UNAVAILABLE"); });
+    const value = new ProductionGroundingBackend({
+      store: fixture.store, sealer: { seal: fixture.seal }, readiness,
+      capabilities: async () => ({}), captureAdmissionSnapshot
+    });
+    replay.mockResolvedValue({ kind: "REPLAY_RESULT", groundingId: "grounding-existing", result: exact });
+    expect(await value.create(identity, "idem-replay", request(), true)).toEqual({ kind: "RESULT", value: exact });
+    expect(replay).toHaveBeenLastCalledWith({ identity: { ...identity, dataScope: "region-a" },
+      idempotencyKey: "idem-replay", payloadHash: canonicalSha256(request()),
+      contractSelection: { contractVersion: "sacs-wsgs-grounding/1.0", resultProfile: null, transportMode: "NONE" } });
+    replay.mockResolvedValue({ kind: "REPLAY_JOB", groundingId: "grounding-existing", jobId: "job-existing",
+      job: { status: "RUNNING" } });
+    expect(await value.create(identity, "idem-replay", request(), true)).toEqual({ kind: "JOB", value: { status: "RUNNING" } });
+    expect(await value.create(identity, "idem-replay", request(), false)).toEqual(fixture.store.waitValue);
+    expect(readiness).not.toHaveBeenCalled();
+    expect(captureAdmissionSnapshot).not.toHaveBeenCalled();
+    expect(fixture.seal).not.toHaveBeenCalled();
+    expect(fixture.store.submissions).toHaveLength(0);
+
+    const invalid = request();
+    (invalid["source"] as Record<string, unknown>)["originalTextSha256"] = canonicalSha256("wrong");
+    replay.mockClear();
+    await expect(value.create(identity, "idem-replay", invalid, true)).rejects.toMatchObject({ code: "SOURCE_HASH_MISMATCH" });
+    expect(replay).not.toHaveBeenCalled();
   });
 });

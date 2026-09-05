@@ -19,7 +19,7 @@ import {
 } from "@wsgs/grounding-pipeline";
 import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { Pool } from "pg";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { applyMigrations, runAssertions } from "../../../packages/runtime/src/migrations.js";
 import {
@@ -493,6 +493,131 @@ integration("W04 PostgreSQL production adapters", () => {
     ).rejects.toBeInstanceOf(PostgresIdempotencyConflictError);
     const count = await pool.query<{ count: string }>("SELECT count(*)::text AS count FROM wsgs.grounding_job");
     expect(count.rows[0]?.count).toBe("1");
+  });
+
+  it("expires queued, orphaned and deferred-retry jobs while fencing late workers", async () => {
+    const workerStore = new PostgresGroundingWorkerStore(pool, codec);
+    await backend.create(identity, "idem-orphan", request("orphan"), true);
+    const orphan = (await workerStore.claimNext("worker-orphan", 5_000))!;
+    await backend.create(identity, "idem-deferred", request("deferred"), true);
+    const retry = (await workerStore.claimNext("worker-retry", 5_000))!;
+    expect(await workerStore.settle(retry, {
+      kind: "RETRY", errorCode: "HTTP_503", retryable: true,
+      availableAt: new Date(Date.now() + 120_000)
+    })).toBe("APPLIED");
+    const queued = await backend.create(identity, "idem-queued", request("queued"), true);
+    const queuedId = (queued.value as Record<string, unknown>)["jobId"] as string;
+    const expiredIds = [orphan.jobId, retry.jobId, queuedId];
+    await pool.query(
+      "UPDATE wsgs.grounding_job SET deadline_at = clock_timestamp() - interval '1 second' WHERE job_id = ANY($1::text[])",
+      [expiredIds]
+    );
+
+    await backend.create(identity, "idem-live", request("live"), true);
+    // The same claim cycle expires all old jobs and can still claim new work.
+    const live = (await workerStore.claimNext("worker-live", 5_000))!;
+    expect(live.jobId).not.toBe(orphan.jobId);
+    const cancelled = await backend.create(identity, "idem-cancelled", request("cancelled"), true);
+    const cancelledId = (cancelled.value as Record<string, unknown>)["groundingId"] as string;
+    await backend.cancel(identity, cancelledId);
+    const deferred = await backend.create(identity, "idem-future", request("future"), true);
+    const deferredId = (deferred.value as Record<string, unknown>)["jobId"] as string;
+    await pool.query(
+      "UPDATE wsgs.grounding_job SET available_at = clock_timestamp() + interval '30 seconds' WHERE job_id = $1",
+      [deferredId]
+    );
+    expect(await workerStore.claimNext("worker-sweep", 5_000)).toBeNull();
+    const expired = await pool.query(
+      "SELECT status, error, finished_at, lease_token, lease_owner, lease_expires_at FROM wsgs.grounding_job WHERE job_id = ANY($1::text[])",
+      [expiredIds]
+    );
+    expect(expired.rows).toHaveLength(3);
+    for (const row of expired.rows) {
+      expect(row).toMatchObject({
+        status: "FAILED", error: { code: "WORKER_DEADLINE_EXCEEDED", retryable: false },
+        finished_at: expect.any(Date), lease_token: null, lease_owner: null, lease_expires_at: null
+      });
+    }
+    expect(await workerStore.settle(orphan, {
+      kind: "RETRY", errorCode: "HTTP_503", retryable: true, availableAt: new Date()
+    })).toBe("FENCE_REJECTED");
+    expect(await backend.get(identity, live.groundingId)).toMatchObject({ status: "RUNNING" });
+    expect(await backend.get(identity, cancelledId)).toMatchObject({ status: "CANCELLED" });
+    expect(await backend.get(identity, (deferred.value as Record<string, unknown>)["groundingId"] as string))
+      .toMatchObject({ status: "ACCEPTED" });
+  });
+
+  it("skips locked overdue rows and expires them on the next claim cycle", async () => {
+    const created = await backend.create(identity, "idem-locked", request("locked"), true);
+    const jobId = (created.value as Record<string, unknown>)["jobId"] as string;
+    await pool.query("UPDATE wsgs.grounding_job SET deadline_at = clock_timestamp() - interval '1 second' WHERE job_id = $1", [jobId]);
+    const locked = await pool.connect();
+    const workerStore = new PostgresGroundingWorkerStore(pool, codec);
+    try {
+      await locked.query("BEGIN");
+      await locked.query("SELECT job_id FROM wsgs.grounding_job WHERE job_id = $1 FOR UPDATE", [jobId]);
+      expect(await workerStore.claimNext("worker-other", 5_000)).toBeNull();
+      expect((await locked.query("SELECT status FROM wsgs.grounding_job WHERE job_id = $1", [jobId])).rows[0].status)
+        .toBe("ACCEPTED");
+    } finally {
+      await locked.query("ROLLBACK");
+      locked.release();
+    }
+    expect(await workerStore.claimNext("worker-next", 5_000)).toBeNull();
+    expect(await backend.get(identity, (created.value as Record<string, unknown>)["groundingId"] as string))
+      .toMatchObject({ status: "FAILED", error: { code: "WORKER_DEADLINE_EXCEEDED" } });
+  });
+
+  it("replays durable jobs and exact completed results offline without bypassing identity or payload checks", async () => {
+    const body = request("offline");
+    const created = await backend.create(identity, "idem-offline", body, true);
+    const readiness = vi.fn(async () => ({ ready: false, reasons: ["GATEWAY_UNAVAILABLE"] }));
+    const admission = vi.fn(async () => { throw new Error("ADMISSION_MUST_NOT_RUN"); });
+    const offline = new ProductionGroundingBackend({
+      store: backendStore, sealer: codec, readiness, capabilities: async () => ({}),
+      captureAdmissionSnapshot: admission
+    });
+    expect(await offline.create(identity, "idem-offline", body, true)).toEqual(created);
+    const worker = new GroundingWorker({
+      workerId: "worker-offline", store: new PostgresGroundingWorkerStore(pool, codec),
+      pipeline: new GroundingPipeline({ executor: executor([]), journal: new PostgresPipelineJournal(pool, codec) }),
+      leaseMs: 5_000, heartbeatMs: 500
+    });
+    expect(await worker.runOnce()).toMatchObject({ kind: "SUCCEEDED" });
+    const persisted = await pool.query("SELECT result_bytes FROM wsgs.idempotency WHERE idempotency_key = 'idem-offline'");
+    const exact = JSON.parse(persisted.rows[0].result_bytes.toString("utf8"));
+    expect(await offline.create(identity, "idem-offline", body, true)).toEqual({ kind: "RESULT", value: exact });
+    expect(await offline.create(identity, "idem-offline", body, false)).toEqual({ kind: "RESULT", value: exact });
+    for (const foreign of [
+      { ...identity, servicePrincipalId: "foreign-service" },
+      { ...identity, authorizationContextHash: `sha256:${"b".repeat(64)}` }
+    ]) {
+      await expect(offline.create(foreign, "idem-offline", body, true))
+        .rejects.toBeInstanceOf(PostgresIdempotencyConflictError);
+    }
+    await expect(offline.create(identity, "idem-offline", request("offline", "changed"), true))
+      .rejects.toBeInstanceOf(PostgresIdempotencyConflictError);
+    await expect(offline.create(identity, "idem-offline", body, true, SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION))
+      .rejects.toBeInstanceOf(PostgresIdempotencyConflictError);
+    expect(readiness).not.toHaveBeenCalled();
+    expect(admission).not.toHaveBeenCalled();
+    await expect(offline.create(identity, "idem-new-offline", request("new-offline"), true))
+      .rejects.toMatchObject({ code: "NOT_READY" });
+    expect(admission).not.toHaveBeenCalled();
+  });
+
+  it("serializes simultaneous first submissions after their replay lookups miss", async () => {
+    // Force all requests through the miss path to exercise the transaction recheck.
+    const replay = vi.spyOn(backendStore, "replay").mockResolvedValue(null);
+    try {
+      const replies = await Promise.all(Array.from({ length: 8 }, () =>
+        backend.create(identity, "idem-concurrent", request("concurrent"), true)));
+      const groundingIds = replies.map((reply) => (reply.value as Record<string, unknown>)["groundingId"]);
+      expect(new Set(groundingIds).size).toBe(1);
+      expect((await pool.query("SELECT count(*)::integer AS count FROM wsgs.grounding_job")).rows[0].count).toBe(1);
+    } finally {
+      replay.mockRestore();
+    }
   });
 
   it("recovers the last atomic checkpoint under a new generation without redoing completed stages", async () => {

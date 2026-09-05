@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { shouldCancelUpstreamQuery } from "./upstream-cancellation.js";
 
 import {
   authorizationContextHash,
@@ -791,7 +792,7 @@ export async function executeSegmentedWorldQuery(
         // A transient polling failure remains resumable through the exact
         // idempotency key. Once the caller has cancelled or the hard deadline
         // has elapsed, use a fresh delegation to avoid leaving an orphan job.
-        if (input.signal?.aborted || Date.now() >= input.deadlineAt.getTime()) {
+        if (shouldCancelUpstreamQuery(input.signal, input.deadlineAt)) {
           try {
             const cancelRequestId = boundedIdentifier(
               submission.requestId,

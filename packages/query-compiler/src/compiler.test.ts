@@ -7,6 +7,20 @@ import { compileInput } from "./test-fixtures.js";
 describe("TypedWorldQueryCompiler v2", () => {
   const compiler = new TypedWorldQueryCompiler();
 
+  it("isolates query ids by durable grounding while keeping retries stable", () => {
+    const input = compileInput("REFERENCE_CURRENT_STATE");
+    const compile = (groundingId: string, idempotencyKey = input.idempotencyKey) => {
+      const result = compiler.compile({ ...input, groundingId, idempotencyKey });
+      expect(result.status).toBe("COMPILED");
+      if (result.status !== "COMPILED") throw new Error("Expected a compiled query");
+      return result.submission;
+    };
+    const first = compile("grounding-actor-a");
+    expect(compile("grounding-actor-a")).toEqual(first);
+    expect(compile("grounding-actor-b").plan.queryId).not.toBe(first.plan.queryId);
+    expect(compile("grounding-actor-a", "another-key").plan.queryId).not.toBe(first.plan.queryId);
+  });
+
   it.each([
     ["REFERENCE_IDENTITY", ["reference.resolve", "reference.validate"]],
     ["REFERENCE_CURRENT_STATE", ["reference.resolve", "world.get-current-state"]],
