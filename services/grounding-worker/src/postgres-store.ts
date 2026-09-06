@@ -383,16 +383,18 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
         stage_generation: number;
         max_result_bytes: number;
         request_metadata: unknown;
+        deadline_expired: boolean;
       }>(
         `SELECT job.grounding_id, job.data_scope, job.actor_id, job.status, job.cancel_requested_at,
-                job.lease_token, job.stage_generation, job.max_result_bytes, request.request_metadata
+                job.lease_token, job.stage_generation, job.max_result_bytes, request.request_metadata,
+                job.deadline_at <= clock_timestamp() AS deadline_expired
            FROM wsgs.grounding_job AS job
            JOIN wsgs.grounding_request AS request ON request.grounding_id = job.grounding_id
           WHERE job.job_id = $1 FOR UPDATE OF job`,
         [fence.jobId]
       );
       const job = locked.rows[0];
-      if (!job || job.status !== "RUNNING" || job.cancel_requested_at !== null ||
+      if (!job || job.status !== "RUNNING" || job.cancel_requested_at !== null || job.deadline_expired ||
         job.lease_token !== fence.leaseToken || job.stage_generation !== fence.generation) {
         return "FENCE_REJECTED";
       }

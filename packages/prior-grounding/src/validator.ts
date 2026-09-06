@@ -1,4 +1,10 @@
 import {
+  createWorldAnalysisValidator,
+  type GroundingResult12,
+  type GroundingRequest12,
+  type WorldAnalysisChoice,
+} from "@wsgs/contracts";
+import {
   calculateManifestHash,
   canonicalJson,
   isSha256,
@@ -20,6 +26,73 @@ import type {
 } from "./types.js";
 
 type JsonObject = Record<string, unknown>;
+const validateWorldAnalysis = createWorldAnalysisValidator();
+
+export interface StoredPriorAnalysis {
+  groundingId: string;
+  servicePrincipalId: string;
+  actorId: string;
+  dataScope: string;
+  datasetScopes: string[];
+  authorizationContextHash: string;
+  resultHash: string;
+  resultBytes: Uint8Array;
+  expiresAt: string;
+}
+
+export interface ResolvedPriorAnalysisSelection {
+  result: GroundingResult12;
+  choice: WorldAnalysisChoice;
+  candidate: WorldAnalysisChoice["candidates"][number];
+}
+
+/** Resolve only stored public candidates, independently from ReferenceProduct selection. */
+export function resolveStoredAnalysisSelection(input: {
+  identity: PriorGroundingIdentity;
+  dataScope: string;
+  pointer: PriorGroundingPointer;
+  selection: NonNullable<GroundingRequest12["analysisSelections"]>[number];
+  stored: StoredPriorAnalysis | null;
+  now?: Date;
+}): ResolvedPriorAnalysisSelection {
+  const identity = validateIdentity(input.identity, input.dataScope);
+  const selection = object(input.selection, "SELECTION_INVALID");
+  if (Object.keys(selection).sort().join(",") !== "candidateId,choiceId,findingSetHash,priorGroundingId,priorResultHash") throw new PriorGroundingError("SELECTION_INVALID");
+  for (const key of ["candidateId", "choiceId", "priorGroundingId"]) boundedString(selection[key], "SELECTION_INVALID");
+  for (const key of ["findingSetHash", "priorResultHash"]) if (!isSha256(selection[key])) throw new PriorGroundingError("SELECTION_INVALID");
+  const pointer = object(input.pointer, "SELECTION_INVALID");
+  if (Object.keys(pointer).some(key => !pointerKeys.has(key)) || pointer["groundingId"] !== selection["priorGroundingId"] || pointer["resultHash"] !== selection["priorResultHash"]) throw new PriorGroundingError("SELECTION_INVALID");
+  const selectedProductIds = stringArray(pointer["selectedProductIds"], "INVALID_SELECTED_PRODUCT_IDS", 100);
+  const stored = input.stored;
+  if (!stored || stored.groundingId !== pointer["groundingId"] || stored.actorId !== identity.actorId || stored.servicePrincipalId !== identity.servicePrincipalId ||
+    stored.dataScope !== input.dataScope || stored.authorizationContextHash !== identity.authorizationContextHash || !sameScopeSet(stored.datasetScopes, identity.datasetScopes)) notFoundInScope();
+  if (stored.resultBytes.byteLength > 1048576 || stored.resultHash !== pointer["resultHash"]) throw new PriorGroundingError("SELECTION_INVALID");
+  let result: GroundingResult12;
+  try {
+    result = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(stored.resultBytes)) as GroundingResult12;
+  } catch { throw new PriorGroundingError("SELECTION_INVALID"); }
+  if (!validateWorldAnalysis("result", result).valid || result.groundingId !== stored.groundingId || result.resultHash !== stored.resultHash ||
+    result.worldAnalysisFindings.findingSetHash !== selection["findingSetHash"]) throw new PriorGroundingError("SELECTION_INVALID");
+  if (selectedProductIds.some(id => !result.referenceProducts.some(product => product.productId === id))) throw new PriorGroundingError("INVALID_SELECTED_PRODUCT_IDS");
+  const choice = result.worldAnalysisFindings.choices.find(value => value.choiceId === selection["choiceId"]);
+  const candidate = choice?.candidates.find(value => value.candidateId === selection["candidateId"]);
+  if (!choice || !candidate) throw new PriorGroundingError("SELECTION_INVALID");
+  const now = (input.now ?? new Date()).getTime();
+  const expiry = [Date.parse(stored.expiresAt), Date.parse(choice.validUntil)];
+  const sourceFindingId = "findingId" in candidate ? candidate.findingId : choice.sourceFindingId;
+  if (sourceFindingId !== undefined) {
+    const finding = result.worldAnalysisFindings.findings.find(value => value.findingId === sourceFindingId);
+    if (!finding) throw new PriorGroundingError("SELECTION_INVALID");
+    if (finding.validUntil !== undefined) expiry.push(Date.parse(finding.validUntil));
+  }
+  if ("referenceProductId" in candidate) {
+    const product = result.referenceProducts.find(value => value.productId === candidate.referenceProductId);
+    if (!product) throw new PriorGroundingError("SELECTION_INVALID");
+    if (product.validUntil !== undefined) expiry.push(Date.parse(product.validUntil));
+  }
+  if (!Number.isFinite(now) || expiry.some(value => !Number.isFinite(value) || value <= now)) throw new PriorGroundingError("SELECTION_EXPIRED");
+  return { result, choice, candidate };
+}
 
 const pointerKeys = new Set(["groundingId", "resultHash", "selectedProductIds"]);
 const manifestKeys = new Set([

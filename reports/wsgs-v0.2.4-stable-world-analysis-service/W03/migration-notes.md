@@ -20,5 +20,14 @@ historical metadata handling and terminal cancellation policy. It does not prove
 SQL execution, database locks, transactions, crash recovery or concurrent fencing.
 Those scopes must not be inferred from the six component tests.
 
+Additional recovery component coverage exercises the production Worker adapter
+with real AES-GCM request decoding and scripted SQL. It checks restored 1.2
+selection/semantic fields, two generations, stale completion, cancellation,
+deadline expiry and legacy/malformed metadata. The settlement lock query now
+also obtains `deadline_expired` from PostgreSQL's clock and rejects settlement
+after expiry. Previously it relied only on the Worker timer/deadline sweep,
+leaving a late-write window. No schema change is needed for this correction.
+The component test still does not execute PostgreSQL locking or its clock.
+
 Remaining: fresh 1.2 recovery/late-completion evidence and production HTTP
 integration, plus the independent choice authority required by W04.
