@@ -1,0 +1,13 @@
+{
+  "command": "npm run build",
+  "startedAt": "2026-09-06T17:32:51.990Z",
+  "finishedAt": "2026-09-06T17:32:52.864Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "4ae21b809f43c05eb18b1077615eb2d5ff48ec0f",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/gsap-registry-build.log",
+  "logSha256": "sha256:4fb00b542a3e62d4c9b59f3f17d25717833829aaee1a057178546c71b4471a5a"
+}

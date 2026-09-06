@@ -1,0 +1,13 @@
+{
+  "command": "npm test",
+  "startedAt": "2026-09-06T17:32:28.207Z",
+  "finishedAt": "2026-09-06T17:32:55.677Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "4ae21b809f43c05eb18b1077615eb2d5ff48ec0f",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/gsap-registry-tests.log",
+  "logSha256": "sha256:be250cd3fa7869e727f83a5948c5bf373e9448ca799f96757640c3d98e2caa0e"
+}
