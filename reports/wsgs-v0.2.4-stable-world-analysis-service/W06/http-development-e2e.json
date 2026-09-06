@@ -1,0 +1,47 @@
+{
+  "phase": "W06",
+  "status": "IN_PROGRESS",
+  "testedCommit": "af51bcd345c7b40d24d383fa6894365a5621ee64",
+  "commandEvidence": "initial-http.json",
+  "testFile": "tests/world-analysis-http.test.ts",
+  "testSupport": "tests/world-analysis-http-support.ts",
+  "casesPassed": 8,
+  "verificationLevels": {
+    "L0": { "status": "PASS", "scope": "Public schemas, hashes, unchanged legacy artifacts and normalizer regression" },
+    "L1": {
+      "status": "PARTIAL",
+      "scope": "Real loopback HTTP listener; actual API, backend, production stage factory, pipeline, worker, public mapper and worker result validation",
+      "actualStages": ["LOAD_CONTEXT", "DETERMINISTIC_PARSE", "SEMANTIC_MODEL_PARSE", "SEMANTIC_FRAME_VALIDATE", "GROUNDING_GRAPH_BUILD", "REFERENCE_RESOLVE", "REFERENCE_VALIDATE", "REQUIREMENT_PLAN", "CAPABILITY_MATCH", "WORLD_QUERY_COMPILE", "GOWM_EXECUTE", "EVIDENCE_NORMALIZE", "PRODUCT_ASSEMBLE", "RESULT_PERSIST"],
+      "controlledDependencies": ["Test-only memory request/result/checkpoint store", "Strict limited SQL bookkeeping adapter", "Locked public Gateway catalog fixture", "Existing MODEL_OPTIONAL behavior with no model configured"],
+      "notProven": ["Nonempty historical/GSAP HTTP consumption", "Gateway business operation requests", "Multi-round selection and action HTTP", "PostgreSQL crash durability", "Model accuracy", "Real provider deployment"]
+    },
+    "L2": { "status": "NOT_RUN", "scope": ["Real Gateway", "Real PostgreSQL", "Real model", "SACS end-to-end"] },
+    "L3": { "status": "DEFERRED", "scope": "Release, production qualification and device execution" }
+  },
+  "cases": [
+    { "id": "HTTP-INITIAL-01", "status": "PASS", "scope": "Synchronous 200 with empty analysis through validation, production stages, AES checkpoint and settlement" },
+    { "id": "HTTP-INITIAL-02", "status": "PASS", "scope": "Async 202, actual worker completion, stored terminal GET and repeated GET without reprojection" },
+    { "id": "HTTP-INITIAL-03", "status": "PASS", "scope": "Exact idempotency replay, changed-payload 409 and cross-profile GET 406" },
+    { "id": "HTTP-INITIAL-04", "status": "PASS", "scope": "Accepted cancellation prevents worker claim and result writes" },
+    { "id": "HTTP-INITIAL-05", "status": "PASS", "scope": "Queued deadline rejected by actual worker; no late result saved" },
+    { "id": "HTTP-INITIAL-06", "status": "PASS", "scope": "All fourteen production stages produce an explicit blocking CAPABILITY_UNAVAILABLE for disabled advanced history" },
+    { "id": "HTTP-INITIAL-07", "status": "PASS", "scope": "Legacy 1.0 production validation result has no analysis extension" },
+    { "id": "HTTP-INITIAL-08", "status": "PASS", "scope": "Legacy 1.1 production validation result has no analysis extension" }
+  ],
+  "defectFixed": {
+    "description": "Production pre-execution advancedFailure did not reach the public mapper, producing a non-success result with an empty analysis gap list",
+    "fix": "Pass the server-owned failure reason to the existing bounded mapper; preserve typed reference and selection failures as well as capability unavailability",
+    "regression": "HTTP-INITIAL-06 plus six production assembler cases",
+    "frozenContractChanged": false
+  },
+  "cleanup": { "bindHost": "127.0.0.1", "port": "OS-assigned (0)", "listenersClosedAfterEach": true, "workerStoppedAfterEach": true, "deploymentServicesStarted": false, "deviceOperations": false },
+  "remainingRequired": ["Historical trace with actual data", "Road association", "LAST CROSS complete and incomplete", "Metric Top-K", "Series selection and requery", "Rank to action candidate", "Missing-provider isolation for ordinary Grounding/GDPS", "Complete compile-only operation path", "All WA-055 through WA-063 evidence ledger rows"],
+  "developmentAttempts": [
+    "Initial request fixture omitted required source fields and used a capability-response product label instead of the actual request enum; corrected to the frozen request schema",
+    "Initial test codec opening passed extra AAD context fields; corrected to exact groundingId/requestId",
+    "Initial catalog fixture check used legacy locale-order canonical hashing; corrected to the Gateway's code-unit canonical hash",
+    "Initial availability fixture omitted required reasonCodes; corrected and independently validated by the real schema registry",
+    "The full fourteen-stage test then exposed the real missing-public-gap defect; fixed rather than weakening its assertion",
+    "A rerun initially loaded stale compiled workspace dependencies; the new HTTP npm command now builds first"
+  ]
+}
