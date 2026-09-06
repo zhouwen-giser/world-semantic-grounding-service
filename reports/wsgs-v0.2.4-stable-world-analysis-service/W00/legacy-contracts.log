@@ -1,0 +1,7 @@
+COMMAND ["node","validation/scripts/world-analysis-legacy-baseline.mjs","--capture"]
+START 2026-09-06T14:19:51.987Z
+COMMIT 0db24edf8490766346904c5ab71fd78fbf3afb5d
+{"status":"PASS","mode":"CAPTURE","files":68,"manifest":"reports/wsgs-v0.2.4-stable-world-analysis-service/W00/legacy-contract-hashes.json"}
+
+EXIT_CODE 0
+SIGNAL NONE

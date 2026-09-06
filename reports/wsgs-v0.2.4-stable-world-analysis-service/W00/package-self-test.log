@@ -1,0 +1,55 @@
+COMMAND ["node","WSGS_v0.2.4_Stable_World_Analysis_Codex_Goal/tools/self-test.mjs"]
+START 2026-09-06T14:19:56.620Z
+COMMIT 0db24edf8490766346904c5ab71fd78fbf3afb5d
+{
+  "status": "PACKAGE_VALIDATOR_SELF_TEST_PASS",
+  "tests": 7,
+  "results": [
+    {
+      "name": "valid package accepted",
+      "passed": true,
+      "exitCode": 0,
+      "output": "{\n  \"status\": \"TASK_PACKAGE_VALID\",\n  \"checkedFiles\": 29,\n  \"phases\": 8,\n  \"requiredAcceptance\": 72,\n  \"caseDesigns\": 24,\n  \"wsgsImplementationExecuted\": false,\n  \"publicContractFrozen\": false\n}"
+    },
+    {
+      "name": "tampered artifact rejected",
+      "passed": true,
+      "exitCode": 1,
+      "output": "TASK_PACKAGE_INVALID: Checksum mismatch: README_CN.md"
+    },
+    {
+      "name": "unexpected artifact rejected",
+      "passed": true,
+      "exitCode": 1,
+      "output": "TASK_PACKAGE_INVALID: Missing or unexpected package files"
+    },
+    {
+      "name": "missing artifact rejected",
+      "passed": true,
+      "exitCode": 1,
+      "output": "TASK_PACKAGE_INVALID: Missing or unexpected package files"
+    },
+    {
+      "name": "NOT_RUN template valid but not ready",
+      "passed": true,
+      "exitCode": 0,
+      "output": "REPORT_FORMAT_VALID_NOT_READY: Required 0/72; this is not service qualification"
+    },
+    {
+      "name": "NOT_RUN template cannot claim ready",
+      "passed": true,
+      "exitCode": 1,
+      "output": "REPORT_INVALID: NOT_READY: missing qualified DEV_READY status"
+    },
+    {
+      "name": "all-PASS without evidence rejected",
+      "passed": true,
+      "exitCode": 1,
+      "output": "REPORT_INVALID: PASS without evidence: WA-001"
+    }
+  ],
+  "wsgsTestsExecuted": false
+}
+
+EXIT_CODE 0
+SIGNAL NONE
