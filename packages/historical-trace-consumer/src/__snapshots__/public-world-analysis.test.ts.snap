@@ -63,8 +63,8 @@ exports[`public world analysis projection > maps validated metric-minimize-metri
     "METRIC_RANKING",
     "ACTION_TARGET_CANDIDATE",
   ],
-  "profileHash": "sha256:0866cc102cf0965ad0d7b65be51ae5b0c6d829dd6a5c482079e5205ce841148d",
-  "resultHash": "sha256:74770f02447008158e5bed43b88f78a305384a14872b16c075beb51acea1257a",
+  "profileHash": "sha256:b66118c6ac1421f8656c62f6e2251d50149caa1cb284486ec9592833318a38b5",
+  "resultHash": "sha256:90053a17de2b5a4f005e83bd8cb4e79b2a58a30e843a47d8e9e13e04f4ed8e34",
 }
 `;
 
@@ -75,8 +75,8 @@ exports[`public world analysis projection > maps validated metric-shared-campus 
     "METRIC_RANKING",
     "ACTION_TARGET_CANDIDATE",
   ],
-  "profileHash": "sha256:17b1b81ae6996210011ec338ee0ca7cf5c2596ff95cd13a862d05e05851b78df",
-  "resultHash": "sha256:9410482cc722d7f5b17909d5ef3fddccf5fbeb19a684d41ae2191767db6b0199",
+  "profileHash": "sha256:9bc324d20a5c0c96d5703c86433b636ad9f08bd7ecd364ec837038f24685f917",
+  "resultHash": "sha256:f7c433c6b9418d27df39e71b672ddf87ebbd77805e8138956368ae16538d6597",
 }
 `;
 

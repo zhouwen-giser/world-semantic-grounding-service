@@ -11,6 +11,7 @@ import {
 } from "@wsgs/gowm-contract-intake";
 import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation } from "./advanced-types.js";
 import type { HistoricalReferenceKey, TimeRange } from "./types.js";
+import type { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
 
 type Json = Record<string, unknown>;
 type Finding = WorldAnalysisFindings["findings"][number];
@@ -58,6 +59,7 @@ export interface PublicWorldAnalysisProjection {
 export function projectPublicWorldAnalysis(input: {
   context: PublicWorldAnalysisContext;
   contracts: AnalysisProviderContracts;
+  catalog?: MetricSemanticCatalog;
   advanced?: AdvancedHistoricalExecutionResult;
   foundation?: AdvancedHistoricalFoundation;
 }): PublicWorldAnalysisProjection {
@@ -169,6 +171,9 @@ export function projectPublicWorldAnalysis(input: {
         const result = input.contracts.validateResult(source.operationId, envelope.output.value);
         assertScope(result.trajectoryReferenceKey, result.subjectReferenceKey);
         const intent = input.advanced!.intent.analysis;
+        const concept = intent.kind === "METRIC_RANKING" ? input.catalog?.document.concepts.find(entry => entry.conceptId === intent.metricConceptId) : undefined;
+        if (!concept) throw new ProjectionError("METRIC_UNSUPPORTED");
+        if (concept.observedProperty !== result.metric.observedProperty || concept.measurementStage !== result.metric.measurementStage || concept.valueUnit !== result.metric.valueUnit) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
         if (intent.kind !== "METRIC_RANKING" || result.metric.observedProperty !== intent.metricSelector.observedProperty || result.metric.optimizationDirection !== intent.metricSelector.optimizationDirection || (intent.metricSelector.valueUnit && result.metric.valueUnit !== intent.metricSelector.valueUnit) || (intent.metricSelector.measurementStage && result.metric.measurementStage !== intent.metricSelector.measurementStage)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
         if (intent.metricSeriesSelection.mode === "EXPLICIT_SERIES" && result.selectedMetricSeries) {
           for (const name of ["sourceKey", "datastreamKey", "measurementKey"] as const) if (intent.metricSeriesSelection[name] && intent.metricSeriesSelection[name] !== result.selectedMetricSeries[name]) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");

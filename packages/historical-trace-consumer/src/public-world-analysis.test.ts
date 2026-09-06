@@ -5,8 +5,10 @@ import { createWorldAnalysisValidator, worldAnalysisCanonicalHash, worldAnalysis
 import { projectPublicWorldAnalysis, assemblePublicWorldAnalysisResult, boundPublicWorldAnalysisResult, WorldAnalysisResultTooLargeError, type PublicWorldAnalysisContext } from "./public-world-analysis.js";
 import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation } from "./advanced-types.js";
 import type { HistoricalReferenceKey } from "./types.js";
+import { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
 
 const contracts = new AnalysisProviderContracts();
+const catalog = new MetricSemanticCatalog();
 const validate = createWorldAnalysisValidator();
 const fixtureRoot = new URL("../../../validation/fixtures/advanced-history/", import.meta.url);
 const validUntil = "2026-09-06T12:01:00.000Z";
@@ -24,6 +26,12 @@ function fixture(name: string): ValidatedAnalysisEnvelope<AnalysisProviderResult
   function rewrite(value: unknown): void {
     if (!value || typeof value !== "object") return;
     const record = value as Record<string, unknown>;
+    // The Provider's generic latency demo is projected onto the actual catalog
+    // identity. This is controlled fixture data, never a claimed live mapping.
+    if (name === "metric-minimize-metric") {
+      if (record["observedProperty"] === "network.latency") record["observedProperty"] = "AVERAGE_ROUND_TRIP_TIME";
+      if (record["measurementStage"] === "NORMALIZED") record["measurementStage"] = "PARSED_NATIVE";
+    }
     if (record["namespace"] === "gowm" && typeof record["kind"] === "string" && typeof record["id"] === "string") record["id"] = key(record["kind"], record["id"]).id;
     for (const child of Object.values(value)) rewrite(child);
   }
@@ -57,10 +65,10 @@ function setup(name: string, action = false) {
   base.referenceProducts = referenceProducts;
   const context: PublicWorldAnalysisContext = { groundingId: base.groundingId, referenceProducts, evidenceItems: base.evidenceItems, foundationEvidenceIds: [base.evidenceItems[0]!.evidenceProductId], validUntil };
   const eventResult = operationId === "temporal-spatial.find-events" ? contracts.validateResult(operationId, output) : undefined;
-  const analysis = operationId === "trajectory.map-match" ? { kind: "ROAD_ASSOCIATION" as const, output: "ROAD_VISITS" as const } : eventResult ? { kind: "TEMPORAL_EVENT" as const, eventType: eventResult.requestedEventTypes[0]!, selection: eventResult.selectionResult ? { kind: eventResult.selectionResult.kind } : { kind: "ALL" as const } } : { kind: "METRIC_RANKING" as const, metricConceptId: "radio.rssi", metricSelector: { ...contracts.validateResult("spatiotemporal-metric.rank-locations", output).metric }, metricSeriesSelection: { mode: "ONLY_CANDIDATE" as const }, topK: 3, actionTargetRequested: action };
+  const analysis = operationId === "trajectory.map-match" ? { kind: "ROAD_ASSOCIATION" as const, output: "ROAD_VISITS" as const } : eventResult ? { kind: "TEMPORAL_EVENT" as const, eventType: eventResult.requestedEventTypes[0]!, selection: eventResult.selectionResult ? { kind: eventResult.selectionResult.kind } : { kind: "ALL" as const } } : { kind: "METRIC_RANKING" as const, metricConceptId: name === "metric-minimize-metric" ? "NETWORK_LATENCY" : "COMMUNICATION_RSSI", metricSelector: { ...contracts.validateResult("spatiotemporal-metric.rank-locations", output).metric }, metricSeriesSelection: { mode: "ONLY_CANDIDATE" as const }, topK: 3, actionTargetRequested: action };
   const advanced: AdvancedHistoricalExecutionResult = { status: "COMPLETED", reasonCode: output.reasonCode, intent: { historicalScope: foundation.intent, analysis }, foundation, analysisEvidence: [{ operationId, envelope }], findings: [], operations: [operationId] };
   if (name === "cross-last") advanced.analysisEvidence.unshift({ operationId: "trajectory.map-match", envelope: fixture("map-match") });
-  return { context, contracts, advanced, base };
+  return { context, contracts, catalog, advanced, base };
 }
 
 describe("public world analysis projection", () => {
@@ -282,5 +290,23 @@ describe("public world analysis projection", () => {
     expect(projection.component.findings).toEqual([]);
     expect(projection.component.gaps[0]?.gapKind).toBe("MULTI_EXECUTION_UNSUPPORTED");
     expect(projection.evidenceItems).toEqual(input.context.evidenceItems);
+  });
+  it("rejects a metric concept not present in the trusted catalog", () => {
+    const input = setup("metric-shared-campus", true);
+    if (input.advanced.intent.analysis.kind !== "METRIC_RANKING") throw new Error("Wrong fixture");
+    input.advanced.intent.analysis.metricConceptId = "MODEL_INVENTED_SCORE";
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.gaps[0]?.gapKind).toBe("METRIC_UNSUPPORTED");
+    expect(projection.component.findings.map(finding => finding.findingKind)).toEqual(["HISTORICAL_TRACE"]);
+  });
+  it("rejects Provider units that contradict the trusted metric catalog", () => {
+    const input = setup("metric-shared-campus", true);
+    const envelope = input.advanced.analysisEvidence[0]!.envelope;
+    const ranking = contracts.validateResult("spatiotemporal-metric.rank-locations", envelope.output.value);
+    ranking.metric.valueUnit = "percent";
+    reseal(envelope);
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.gaps[0]?.gapKind).toBe("UPSTREAM_CONTRACT_MISMATCH");
+    expect(projection.component.findings.map(finding => finding.findingKind)).toEqual(["HISTORICAL_TRACE"]);
   });
 });
