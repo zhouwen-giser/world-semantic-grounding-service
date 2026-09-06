@@ -35,8 +35,9 @@ The working tree was clean. Dedicated branch:
   public fingerprint hashing and scripted SQL read/replay isolation implemented.
   Recovery/late-worker and production HTTP evidence remain open; capabilities
   depend on W05. No W03 acceptance completion claimed.
-- W04 NOT_STARTED: actor/scope/hash/TTL-bound choices, semantic invalidation,
-  observed-position action candidates with three requirements and no authority.
+- W04 IN_PROGRESS (joint W03 preparation): stored public choice resolver reuses
+  prior-grounding identity/scope validation and checks hash/TTL/ownership.
+  Production multi-round wiring, semantic invalidation and action reuse remain open.
 - W05 NOT_STARTED: per-capability support/availability with exact dependencies,
   default opt-in, unrelated Grounding/GDPS isolation.
 - W06 NOT_STARTED: full regression and production-assembly local HTTP sync,

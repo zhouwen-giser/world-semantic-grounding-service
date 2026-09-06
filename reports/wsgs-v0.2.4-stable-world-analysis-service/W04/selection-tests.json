@@ -1,0 +1,13 @@
+{
+  "command": "npx vitest run packages/prior-grounding/src/analysis-selection.test.ts packages/prior-grounding/src/validator.test.ts services/grounding-worker/src/postgres-contract-recovery.test.ts",
+  "startedAt": "2026-09-06T16:03:43.845Z",
+  "finishedAt": "2026-09-06T16:03:54.264Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "a211c551255b3625235015c94c5991b2fcef9533",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/selection-tests.log",
+  "logSha256": "sha256:b13d527bfe7c3858f5893223e13f49ae14cce87ea64ef9b83bf09771ae94c033"
+}

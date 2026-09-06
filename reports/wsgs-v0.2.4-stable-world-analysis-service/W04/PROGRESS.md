@@ -20,3 +20,10 @@ This entry point is not yet wired to the production multi-round context loader.
 Private source authority retention, text ordinal disambiguation/conflicts,
 semantic requery decisions and action-target reuse remain open. No W04 Required
 row is marked PASS solely on this helper's tests.
+
+Implementation commit: a211c55. `selection-tests.json` records 41 passing tests
+across the existing prior validator, new selection validator and Worker recovery
+adapter. `selection-build.json` records a passing independent build. The W03
+`recovery-check.json` records the complete check: 852 passing and 29 skipped
+tests, no failures, 836 frozen contract assertions and 68 legacy byte checks.
+Real PostgreSQL, Gateway, model and SACS remain NOT_RUN.

@@ -1,0 +1,13 @@
+{
+  "command": "npm run build",
+  "startedAt": "2026-09-06T16:03:49.614Z",
+  "finishedAt": "2026-09-06T16:03:50.905Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "a211c551255b3625235015c94c5991b2fcef9533",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/selection-build.log",
+  "logSha256": "sha256:e1fc63f594ea0ba3e166f5591b351d35348b6f0ba87cdb97a0ec8877f9c5047f"
+}

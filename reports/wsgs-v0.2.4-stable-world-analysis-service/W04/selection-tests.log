@@ -1,0 +1,15 @@
+COMMAND ["npx","vitest","run","packages/prior-grounding/src/analysis-selection.test.ts","packages/prior-grounding/src/validator.test.ts","services/grounding-worker/src/postgres-contract-recovery.test.ts"]
+START 2026-09-06T16:03:43.845Z
+COMMIT a211c551255b3625235015c94c5991b2fcef9533
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  3 passed (3)
+      Tests  41 passed (41)
+   Start at  00:03:47
+   Duration  6.78s (transform 5.82s, setup 0ms, import 15.35s, tests 449ms, environment 1ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE
