@@ -56,6 +56,7 @@ export interface QueryTemplateRule {
   maturity: "STABLE" | "PREVIEW";
   allowDegraded: boolean;
   previewAuthorizationRequired?: boolean;
+  analysisAuthorizationRequired?: boolean;
   defaultSnapshotMode?: SnapshotMode;
   steps: readonly QueryTemplateStep[];
 }
@@ -83,6 +84,11 @@ const stringLiteralPort: SchemaPort = {
   schemaHash: "sha256:a71d355802de7ff21b9c9d9214a1ba71b3648866bcf1b7c0f4ff3b656485c6d5",
   valueKind: "ANY",
   unitSemantics: "UNSPECIFIED"
+};
+const arrayLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:array",
+  schemaHash: "sha256:8e1e4dd66e9483d8341c51dc5ec424d8e6510ae35cdbc53040d0bab497459945",
+  valueKind: "ANY", unitSemantics: "UNSPECIFIED"
 };
 
 const schemaVersionLiteral: QueryTemplateLiteralBinding = {
@@ -400,7 +406,39 @@ function gdpsAreaStep(
   };
 }
 
+const analysisStep = (stepId: string, operationKey: string, relations: string[], spatialSemantics: string): QueryTemplateStep => ({
+  stepId, costWeight: 2, failurePolicy: "FAIL_FAST", links: [],
+  requirement: contract(operationKey, {
+    domain: "ANALYSIS", relationSemantics: relations, acceptedReferenceKinds: ["HISTORICAL_TRAJECTORY"],
+    producedReferenceKinds: [], spatialSemantics, timeSemantics: "HISTORICAL", resultNature: "DERIVED",
+    inputPorts: [requestPort()], outputPorts: [resultPort()]
+  })
+});
+const mapMatchStep = analysisStep("map-match", "trajectory.map-match@0.1", ["SNAPPED_TO_NETWORK"], "CANDIDATE");
+const temporalStep = analysisStep("find-events", "temporal-spatial.find-events@0.1", ["TEMPORALLY_OVERLAPS"], "CANDIDATE");
+const rankingStep = analysisStep("rank-locations", "spatiotemporal-metric.rank-locations@0.1", ["CORRELATES_WITH"], "AGGREGATED");
+const crossStep: QueryTemplateStep = {
+  ...temporalStep,
+  failurePolicy: "SKIP_IF_PRECONDITION_FALSE",
+  links: [{ sourceStepId: "map-match", outputPort: "result", inputName: "mapMatchResult", targetPath: "/source/mapMatchResult" }],
+  literalBindings: [
+    { ...schemaVersionLiteral, value: "0.1" },
+    { inputName: "sourceKind", value: "MAP_MATCH_RESULT", targetPath: "/source/kind", port: stringLiteralPort },
+    { inputName: "eventTypes", value: ["CROSS"], targetPath: "/eventTypes", port: arrayLiteralPort },
+    { inputName: "profile", value: "CAMPUS_TASK_DEFAULT", targetPath: "/profile", port: stringLiteralPort }
+  ],
+  requestBindings: [{ inputName: "selection", path: "/selection", targetPath: "/selection", literalFromParameter: true }],
+  preconditions: [
+    { kind: "NODE_STATUS", sourceStepId: "map-match", statuses: ["COMPLETED", "PARTIAL"] },
+    { kind: "VALUE_PRESENT", sourceStepId: "map-match", outputPort: "result" }
+  ]
+};
+
 export const queryTemplateRules: readonly QueryTemplateRule[] = [
+  { templateId: "advanced-historical-road-association", pattern: "HISTORICAL_ROAD_ASSOCIATION", maturity: "PREVIEW", allowDegraded: false, analysisAuthorizationRequired: true, steps: [mapMatchStep] },
+  { templateId: "advanced-historical-temporal-event", pattern: "HISTORICAL_TEMPORAL_EVENT", maturity: "PREVIEW", allowDegraded: false, analysisAuthorizationRequired: true, steps: [temporalStep] },
+  { templateId: "advanced-historical-cross-event", pattern: "HISTORICAL_CROSS_EVENT", maturity: "PREVIEW", allowDegraded: false, analysisAuthorizationRequired: true, steps: [mapMatchStep, crossStep] },
+  { templateId: "advanced-historical-metric-ranking", pattern: "HISTORICAL_METRIC_RANKING", maturity: "PREVIEW", allowDegraded: false, analysisAuthorizationRequired: true, steps: [rankingStep] },
   {
     templateId: "historical-execution-interval",
     pattern: "HISTORICAL_EXECUTION_INTERVAL",

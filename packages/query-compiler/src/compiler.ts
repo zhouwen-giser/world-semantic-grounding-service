@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isVerifiedAnalysisAuthorization } from "@wsgs/gowm-contract-intake";
 import type { CapabilityDescriptor, CapabilityPort } from "@wsgs/gowm-gateway-client";
 import { CapabilityMatcher, capabilityGap } from "./matcher.js";
 import {
@@ -224,7 +225,25 @@ export class TypedWorldQueryCompiler {
     if (!rule) {
       return gap(input, "UNSUPPORTED_EXPRESSION", { pattern: input.pattern, substituted: false });
     }
-    if (rule.maturity === "PREVIEW" && !input.maturityPolicy.allowPreview) {
+    if (rule.analysisAuthorizationRequired) {
+      if (!input.advancedHistoryEnabled) return gap(input, "MATURITY_NOT_ALLOWED", { reasonCode: "ADVANCED_HISTORY_DISABLED" });
+      for (const step of rule.steps) {
+        const key = step.requirement.allowedOperationKeys?.[0];
+        const auth = input.analysisProviderAuthorizations?.find(entry => `${entry.operationId}@${entry.operationVersion}` === key);
+        const lock = input.operationLocks.find(entry => `${entry.operationId}@${entry.operationVersion}` === key);
+        const contractReason = !auth || !isVerifiedAnalysisAuthorization(auth) ? "ANALYSIS_PROVIDER_CONTRACT_INVALID" :
+          !lock ? input.operationLocks.some(entry => entry.operationId === auth.operationId) ? "ANALYSIS_OPERATION_VERSION_MISMATCH" : "ANALYSIS_CAPABILITY_NOT_REGISTERED" :
+          auth.inputSchemaHash !== lock.inputSchemaHash ? "ANALYSIS_INPUT_SCHEMA_MISMATCH" :
+          auth.outputSchemaHash !== lock.outputSchemaHash ? "ANALYSIS_OUTPUT_SCHEMA_MISMATCH" :
+          auth.semanticProfileHash !== lock.semanticProfileHash ? "ANALYSIS_SEMANTIC_PROFILE_MISMATCH" :
+          lock.maturity !== "PREVIEW" ? "ANALYSIS_PROVIDER_CONTRACT_DRIFT" : undefined;
+        if (contractReason || !lock) return gap(input, "SCHEMA_MISMATCH", { reasonCode: contractReason, operationKey: key });
+        if (lock.requiredPermissions === undefined || !lock.requiredPermissions.every(permission => input.grantedPermissions?.includes(permission))) {
+          return gap(input, "OPERATION_UNAVAILABLE", { reasonCode: "ANALYSIS_PERMISSION_REQUIRED", operationKey: key });
+        }
+      }
+    }
+    if (rule.maturity === "PREVIEW" && !input.maturityPolicy.allowPreview && !rule.analysisAuthorizationRequired) {
       return gap(input, "MATURITY_NOT_ALLOWED", {
         pattern: input.pattern,
         recipeMaturity: rule.maturity,
@@ -262,7 +281,7 @@ export class TypedWorldQueryCompiler {
         semanticProfiles: input.semanticProfiles,
         operationLocks: input.operationLocks,
         availability: input.availability,
-        maturityPolicy: input.maturityPolicy,
+        maturityPolicy: rule.analysisAuthorizationRequired ? { allowPreview: true } : input.maturityPolicy,
         degradedPolicy: input.degradedPolicy ?? (rule.allowDegraded ? "ALLOW" : "REJECT"),
         observedAt
       });

@@ -1,0 +1,662 @@
+{
+  "providerProtocolVersion": "1.0",
+  "requestId": "map-match-request-1",
+  "operation": {
+    "operationId": "trajectory.map-match",
+    "operationVersion": "0.1"
+  },
+  "status": "COMPLETED",
+  "output": {
+    "schemaUri": "urn:gowm:analysis:map-matching:result:0.1",
+    "schemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5",
+    "value": {
+      "schemaVersion": "0.1",
+      "status": "COMPLETED",
+      "reasonCode": "CLASSIFIED_WITH_OFF_NETWORK_SEGMENTS",
+      "matchingLevel": "TASK_LEVEL_APPROXIMATE",
+      "algorithm": "CAMPUS_NEAREST_TOPOLOGY_V1",
+      "networkRole": "REFERENCE_MODEL_NOT_PHYSICAL_TRUTH",
+      "analysisId": "mma_86f5b447168bf6f3a807928e54f7c56f",
+      "trajectoryReferenceKey": {
+        "namespace": "gowm",
+        "kind": "HISTORICAL_TRAJECTORY",
+        "id": "wrf_fixture_trajectory",
+        "version": "1"
+      },
+      "subjectReferenceKey": {
+        "namespace": "gowm",
+        "kind": "WORLD_OBJECT",
+        "id": "wrf_fixture_vehicle",
+        "version": "7"
+      },
+      "networkContext": {
+        "graphKey": "campus-road-network",
+        "graphVersionId": "00000000-0000-4000-8000-000000000002",
+        "graphVersion": "fixture-v1",
+        "topologyHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "contentHash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "datasetReferenceKey": {
+          "namespace": "gowm",
+          "kind": "DATASET",
+          "id": "wrf_fixture_network",
+          "version": "1"
+        },
+        "timeBasis": "CURRENT_ACTIVE_TOPOLOGY"
+      },
+      "inputCompleteness": {
+        "temporalCoverageRatio": 0.67,
+        "sampleCount": 10,
+        "sequenceCount": 3,
+        "gapCount": 1,
+        "prefixComplete": true,
+        "suffixComplete": true,
+        "finalizationState": "SEALED"
+      },
+      "roadVisits": [
+        {
+          "sequenceNo": 1,
+          "visitNo": 1,
+          "sourceFeatureReferenceId": "road-a",
+          "roadDisplayName": "Alpha Road",
+          "edgeKeys": [
+            "edge-a"
+          ],
+          "startTime": "2026-09-01T00:00:00.000Z",
+          "endTime": "2026-09-01T00:00:05.000Z",
+          "entryPosition": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "exitPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.00005,
+              31
+            ]
+          },
+          "matchedSampleCount": 2,
+          "bridgedAmbiguousSampleCount": 0,
+          "confidence": 0.945
+        },
+        {
+          "sequenceNo": 1,
+          "visitNo": 2,
+          "sourceFeatureReferenceId": "road-b",
+          "roadDisplayName": "Beta Road",
+          "edgeKeys": [
+            "edge-b"
+          ],
+          "startTime": "2026-09-01T00:00:10.000Z",
+          "endTime": "2026-09-01T00:00:15.000Z",
+          "entryPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.0001,
+              31.00003
+            ]
+          },
+          "exitPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.0001,
+              31.00008
+            ]
+          },
+          "matchedSampleCount": 2,
+          "bridgedAmbiguousSampleCount": 0,
+          "confidence": 0.9275
+        },
+        {
+          "sequenceNo": 2,
+          "visitNo": 1,
+          "sourceFeatureReferenceId": "road-a",
+          "edgeKeys": [
+            "edge-a"
+          ],
+          "startTime": "2026-09-01T00:02:00.000Z",
+          "endTime": "2026-09-01T00:02:00.000Z",
+          "entryPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.00003,
+              31
+            ]
+          },
+          "exitPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.00003,
+              31
+            ]
+          },
+          "matchedSampleCount": 1,
+          "bridgedAmbiguousSampleCount": 0,
+          "confidence": 0.95
+        },
+        {
+          "sequenceNo": 2,
+          "visitNo": 2,
+          "sourceFeatureReferenceId": "road-c",
+          "edgeKeys": [
+            "edge-c"
+          ],
+          "startTime": "2026-09-01T00:02:15.000Z",
+          "endTime": "2026-09-01T00:02:15.000Z",
+          "entryPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.00018,
+              31.00012
+            ]
+          },
+          "exitPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.00018,
+              31.00012
+            ]
+          },
+          "matchedSampleCount": 1,
+          "bridgedAmbiguousSampleCount": 0,
+          "confidence": 0.95
+        }
+      ],
+      "offNetworkSegments": [
+        {
+          "sequenceNo": 2,
+          "segmentNo": 1,
+          "startTime": "2026-09-01T00:02:05.000Z",
+          "endTime": "2026-09-01T00:02:10.000Z",
+          "sampleCount": 2,
+          "estimatedLengthM": 6.518760857618299,
+          "entryPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.00008,
+              31.00004
+            ]
+          },
+          "exitPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.00013,
+              31.00008
+            ]
+          },
+          "precedingRoadVisitNo": 1,
+          "followingRoadVisitNo": 2,
+          "pathPreview": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                121.00008,
+                31.00004
+              ],
+              [
+                121.00013,
+                31.00008
+              ]
+            ]
+          },
+          "interpretationHint": "UNMAPPED_PATH_CANDIDATE",
+          "confidence": 0.85,
+          "reasonCodes": [
+            "CONTINUOUS_VALID_MOTION_OUTSIDE_REFERENCE_NETWORK"
+          ]
+        },
+        {
+          "sequenceNo": 3,
+          "segmentNo": 1,
+          "startTime": "2026-09-01T00:03:00.000Z",
+          "endTime": "2026-09-01T00:03:05.000Z",
+          "sampleCount": 2,
+          "estimatedLengthM": 3.6223803960222236,
+          "entryPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.001,
+              31.001
+            ]
+          },
+          "exitPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.00103,
+              31.00102
+            ]
+          },
+          "pathPreview": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                121.001,
+                31.001
+              ],
+              [
+                121.00103,
+                31.00102
+              ]
+            ]
+          },
+          "interpretationHint": "UNKNOWN",
+          "confidence": 0.7,
+          "reasonCodes": [
+            "VALID_MOTION_WITHOUT_NETWORK_ASSOCIATION"
+          ]
+        }
+      ],
+      "ambiguousSegments": [],
+      "junctionPassCandidates": [
+        {
+          "sequenceNo": 1,
+          "transitionNo": 1,
+          "fromEdgeKey": "edge-a",
+          "toEdgeKey": "edge-b",
+          "fromSourceFeatureReferenceId": "road-a",
+          "toSourceFeatureReferenceId": "road-b",
+          "viaNodeKey": "j1",
+          "incidentEdgeCount": 3,
+          "distinctRoadFeatureCount": 3,
+          "eventTimeEstimate": "2026-09-01T00:00:10.000Z",
+          "eventTimeWindow": {
+            "start": "2026-09-01T00:00:05.000Z",
+            "end": "2026-09-01T00:00:10.000Z"
+          },
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.0001,
+              31
+            ]
+          },
+          "confidence": 0.9175,
+          "reasonCodes": [
+            "TOPOLOGY_SHARED_NODE_TRANSITION"
+          ]
+        }
+      ],
+      "networkDataIssueCandidates": [
+        {
+          "issueType": "MISSING_PATH_CANDIDATE",
+          "observedPeriod": {
+            "start": "2026-09-01T00:02:05.000Z",
+            "end": "2026-09-01T00:02:10.000Z"
+          },
+          "geometryPreview": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                121.00008,
+                31.00004
+              ],
+              [
+                121.00013,
+                31.00008
+              ]
+            ]
+          },
+          "relatedRoadFeatureReferenceIds": [
+            "road-a",
+            "road-c"
+          ],
+          "observationCount": 2,
+          "confidence": 0.85,
+          "reasonCodes": [
+            "REFERENCE_NETWORK_MAY_OMIT_TRAVERSABLE_PATH"
+          ]
+        }
+      ],
+      "qualityBreaks": [],
+      "upstreamGaps": [
+        {
+          "gapNo": 1,
+          "gapKind": "SOURCE_COVERAGE_GAP",
+          "start": "2026-09-01T00:01:00.000Z",
+          "end": "2026-09-01T00:02:00.000Z",
+          "reasonCodes": [
+            "FIXTURE_GAP"
+          ]
+        }
+      ],
+      "associationCompleteness": {
+        "inputPrefixComplete": true,
+        "inputSuffixComplete": true,
+        "associationPrefixComplete": true,
+        "associationSuffixComplete": false,
+        "offNetworkPeriods": [
+          {
+            "start": "2026-09-01T00:02:05.000Z",
+            "end": "2026-09-01T00:02:10.000Z"
+          },
+          {
+            "start": "2026-09-01T00:03:00.000Z",
+            "end": "2026-09-01T00:03:05.000Z"
+          }
+        ],
+        "ambiguousPeriods": [],
+        "qualityBreakPeriods": [],
+        "upstreamGapPeriods": [
+          {
+            "start": "2026-09-01T00:01:00.000Z",
+            "end": "2026-09-01T00:02:00.000Z"
+          }
+        ]
+      },
+      "summary": {
+        "sourceSampleCount": 10,
+        "acceptedSampleCount": 10,
+        "rejectedSampleCount": 0,
+        "onNetworkSampleCount": 6,
+        "offNetworkSampleCount": 4,
+        "ambiguousSampleCount": 0,
+        "acceptedRatio": 1,
+        "onNetworkAcceptedRatio": 0.6,
+        "roadVisitCount": 4,
+        "offNetworkSegmentCount": 2,
+        "ambiguousSegmentCount": 0,
+        "junctionPassCandidateCount": 1
+      },
+      "pointAssociationPreview": [
+        {
+          "sampleId": "1:1",
+          "sequenceNo": 1,
+          "observedAt": "2026-09-01T00:00:00.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "status": "ON_NETWORK",
+          "edgeKey": "edge-a",
+          "sourceFeatureReferenceId": "road-a",
+          "distanceM": 1,
+          "confidence": 0.95,
+          "reasonCodes": [
+            "UNIQUE_STRONG_CANDIDATE"
+          ]
+        },
+        {
+          "sampleId": "1:2",
+          "sequenceNo": 1,
+          "observedAt": "2026-09-01T00:00:05.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.00005,
+              31
+            ]
+          },
+          "status": "ON_NETWORK",
+          "edgeKey": "edge-a",
+          "sourceFeatureReferenceId": "road-a",
+          "distanceM": 1.2,
+          "confidence": 0.94,
+          "reasonCodes": [
+            "CONTINUOUS_EDGE_SUPPORT"
+          ]
+        },
+        {
+          "sampleId": "1:3",
+          "sequenceNo": 1,
+          "observedAt": "2026-09-01T00:00:10.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.0001,
+              31.00003
+            ]
+          },
+          "status": "ON_NETWORK",
+          "edgeKey": "edge-b",
+          "sourceFeatureReferenceId": "road-b",
+          "distanceM": 1.1,
+          "confidence": 0.8949999999999999,
+          "reasonCodes": [
+            "ADJACENT_EDGE_SUPPORT"
+          ]
+        },
+        {
+          "sampleId": "1:4",
+          "sequenceNo": 1,
+          "observedAt": "2026-09-01T00:00:15.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.0001,
+              31.00008
+            ]
+          },
+          "status": "ON_NETWORK",
+          "edgeKey": "edge-b",
+          "sourceFeatureReferenceId": "road-b",
+          "distanceM": 0.8,
+          "confidence": 0.96,
+          "reasonCodes": [
+            "CONTINUOUS_EDGE_SUPPORT"
+          ]
+        },
+        {
+          "sampleId": "2:1",
+          "sequenceNo": 2,
+          "observedAt": "2026-09-01T00:02:00.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.00003,
+              31
+            ]
+          },
+          "status": "ON_NETWORK",
+          "edgeKey": "edge-a",
+          "sourceFeatureReferenceId": "road-a",
+          "distanceM": 1,
+          "confidence": 0.95,
+          "reasonCodes": [
+            "UNIQUE_STRONG_CANDIDATE"
+          ]
+        },
+        {
+          "sampleId": "2:2",
+          "sequenceNo": 2,
+          "observedAt": "2026-09-01T00:02:05.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.00008,
+              31.00004
+            ]
+          },
+          "status": "OFF_NETWORK_VALID",
+          "confidence": 0.9,
+          "reasonCodes": [
+            "NO_NETWORK_CANDIDATE"
+          ]
+        },
+        {
+          "sampleId": "2:3",
+          "sequenceNo": 2,
+          "observedAt": "2026-09-01T00:02:10.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.00013,
+              31.00008
+            ]
+          },
+          "status": "OFF_NETWORK_VALID",
+          "confidence": 0.9,
+          "reasonCodes": [
+            "NO_NETWORK_CANDIDATE"
+          ]
+        },
+        {
+          "sampleId": "2:4",
+          "sequenceNo": 2,
+          "observedAt": "2026-09-01T00:02:15.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.00018,
+              31.00012
+            ]
+          },
+          "status": "ON_NETWORK",
+          "edgeKey": "edge-c",
+          "sourceFeatureReferenceId": "road-c",
+          "distanceM": 1,
+          "confidence": 0.95,
+          "reasonCodes": [
+            "UNIQUE_STRONG_CANDIDATE"
+          ]
+        },
+        {
+          "sampleId": "3:1",
+          "sequenceNo": 3,
+          "observedAt": "2026-09-01T00:03:00.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.001,
+              31.001
+            ]
+          },
+          "status": "OFF_NETWORK_VALID",
+          "confidence": 0.9,
+          "reasonCodes": [
+            "NO_NETWORK_CANDIDATE"
+          ]
+        },
+        {
+          "sampleId": "3:2",
+          "sequenceNo": 3,
+          "observedAt": "2026-09-01T00:03:05.000Z",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.00103,
+              31.00102
+            ]
+          },
+          "status": "OFF_NETWORK_VALID",
+          "confidence": 0.9,
+          "reasonCodes": [
+            "NO_NETWORK_CANDIDATE"
+          ]
+        }
+      ],
+      "rejectedSamplePreview": [],
+      "warnings": [
+        "networkRole=REFERENCE_MODEL_NOT_PHYSICAL_TRUTH",
+        "matchingLevel=TASK_LEVEL_APPROXIMATE",
+        "profileDigest=sha256:83d8a015a36f4c6fd29d4dec9f4475c1754c2de9dd1018cb420a105064f25e67",
+        "upstream gaps are hard analysis boundaries"
+      ]
+    }
+  },
+  "dataSnapshot": {
+    "consistency": "PINNED",
+    "capturedAt": "2026-09-06T04:22:57.657Z",
+    "scopeDigest": "sha256:4c7160af58d7427b7911d80ff72220569793c55ea88cb0e67e7a826940bd4870",
+    "resources": [
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "wrf_fixture_trajectory",
+          "version": "1"
+        },
+        "authority": "GOWM Historical Trajectory",
+        "pinning": "PINNED",
+        "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "DERIVED_REFERENCE",
+          "id": "campus-road-network",
+          "version": "fixture-v1"
+        },
+        "authority": "GOWM Network Graph",
+        "pinning": "PINNED",
+        "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    ]
+  },
+  "computeSnapshot": {
+    "provider": {
+      "providerId": "gowm.analysis.map-matching",
+      "providerVersion": "0.1.0",
+      "implementationDigest": "sha256:147eba60a49393a884727f53c3e4d0564ef82b0d427e4aabcb18a469c7b37639"
+    },
+    "operation": {
+      "operationId": "trajectory.map-match",
+      "operationVersion": "0.1"
+    },
+    "engine": {
+      "name": "CAMPUS_NEAREST_TOPOLOGY_V1",
+      "version": "0.1"
+    },
+    "policy": {
+      "version": "CAMPUS_TASK_DEFAULT/0.1",
+      "digest": "sha256:1b9809c8f34438dc9c361f57c2e3ab809252f34f1c107ac38ddf132887a8454e"
+    },
+    "schemas": {
+      "inputSchemaHash": "sha256:fce48b61109ed5bf776700ea123892e6ef6ed868c70fed68c5ed2f4fedc56bc5",
+      "outputSchemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5"
+    }
+  },
+  "receipts": [
+    {
+      "receiptId": "receipt:684da825-7521-42b5-af8a-4050de07f261",
+      "operationId": "trajectory.map-match",
+      "operationVersion": "0.1",
+      "providerId": "gowm.analysis.map-matching",
+      "providerVersion": "0.1.0",
+      "inputHash": "sha256:e958ccc171d83f449cf68b1a8193925fe20a7e48eb865bb9edd3c73b61148f2d",
+      "outputHash": "sha256:02c522a372a40751ce65c868d8f18f1ecddf2d97b09afb63baac6b9fda28ee82",
+      "computeSnapshotHash": "sha256:2c77dbc6a340ed405b7ad9adc868f605512f2644afd6a1287226bd79544905e9",
+      "generatedAt": "2026-09-06T04:22:57.668Z",
+      "durationMs": 9.216425999999956,
+      "method": {
+        "engine": "CAMPUS_NEAREST_TOPOLOGY_V1",
+        "engineVersion": "0.1",
+        "methodId": "campus-nearest-topology",
+        "methodVersion": "0.1"
+      },
+      "changes": {
+        "repairApplied": false,
+        "typeChanged": false
+      },
+      "warnings": [
+        "networkRole=REFERENCE_MODEL_NOT_PHYSICAL_TRUTH",
+        "matchingLevel=TASK_LEVEL_APPROXIMATE",
+        "profileDigest=sha256:83d8a015a36f4c6fd29d4dec9f4475c1754c2de9dd1018cb420a105064f25e67",
+        "upstream gaps are hard analysis boundaries"
+      ]
+    }
+  ],
+  "evidenceReferences": [],
+  "warnings": [
+    "networkRole=REFERENCE_MODEL_NOT_PHYSICAL_TRUTH",
+    "matchingLevel=TASK_LEVEL_APPROXIMATE",
+    "profileDigest=sha256:83d8a015a36f4c6fd29d4dec9f4475c1754c2de9dd1018cb420a105064f25e67",
+    "upstream gaps are hard analysis boundaries"
+  ],
+  "consumption": {
+    "inputBytes": 176,
+    "outputBytes": 8524,
+    "rows": 13,
+    "candidates": 6
+  },
+  "execution": {
+    "providerId": "gowm.analysis.map-matching",
+    "providerVersion": "0.1.0",
+    "elapsedMs": 9.216425999999956,
+    "resultHash": "sha256:02c522a372a40751ce65c868d8f18f1ecddf2d97b09afb63baac6b9fda28ee82"
+  }
+}

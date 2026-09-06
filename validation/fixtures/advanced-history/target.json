@@ -1,0 +1,39 @@
+{
+  "targetId": "yard",
+  "displayName": "A区",
+  "targetType": "AREA",
+  "crs": "EPSG:4326",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          121.00005,
+          30.99995
+        ],
+        [
+          121.00015,
+          30.99995
+        ],
+        [
+          121.00015,
+          31.00005
+        ],
+        [
+          121.00005,
+          31.00005
+        ],
+        [
+          121.00005,
+          30.99995
+        ]
+      ]
+    ]
+  },
+  "referenceKey": {
+    "namespace": "gowm",
+    "kind": "WORLD_OBJECT",
+    "id": "wrf_fixture_area",
+    "version": "1"
+  }
+}

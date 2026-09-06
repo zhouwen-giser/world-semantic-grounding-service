@@ -1,0 +1,191 @@
+{
+  "providerProtocolVersion": "1.0",
+  "requestId": "temporal-events-request-1",
+  "operation": {
+    "operationId": "temporal-spatial.find-events",
+    "operationVersion": "0.1"
+  },
+  "status": "COMPLETED",
+  "output": {
+    "schemaUri": "urn:gowm:analysis:temporal-events:result:0.1",
+    "schemaHash": "sha256:4c6b87a97523aa904591f31b43086e74a7097b43c19ff09a25d0d2fa9b3cd2b4",
+    "value": {
+      "schemaVersion": "0.1",
+      "analysisLevel": "TASK_LEVEL_APPROXIMATE",
+      "algorithm": "CAMPUS_TEMPORAL_EVENTS_V1",
+      "analysisId": "tsa_9d6e827ddfb3c87d78f860d7ed0104dd",
+      "subjectReferenceKey": {
+        "namespace": "gowm",
+        "kind": "WORLD_OBJECT",
+        "id": "wrf_temporal_vehicle",
+        "version": "1"
+      },
+      "source": {
+        "kind": "HISTORICAL_TRAJECTORY",
+        "trajectoryReferenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "wrf_temporal_area",
+          "version": "1"
+        },
+        "finalizationState": "SEALED"
+      },
+      "requestedEventTypes": [
+        "DWELL"
+      ],
+      "events": [
+        {
+          "eventType": "DWELL",
+          "sequenceNo": 1,
+          "blockNo": 1,
+          "target": {
+            "kind": "SPATIAL_TARGET",
+            "targetId": "yard",
+            "referenceKey": {
+              "namespace": "gowm",
+              "kind": "WORLD_OBJECT",
+              "id": "wrf_fixture_area",
+              "version": "1"
+            },
+            "displayName": "A区",
+            "targetType": "AREA"
+          },
+          "temporalExtent": {
+            "kind": "INTERVAL",
+            "startTime": "2026-09-01T00:00:07.222Z",
+            "endTime": "2026-09-01T00:00:47.222Z",
+            "durationSeconds": 40,
+            "startTimeWindow": {
+              "start": "2026-09-01T00:00:05.000Z",
+              "end": "2026-09-01T00:00:10.000Z"
+            },
+            "endTimeWindow": {
+              "start": "2026-09-01T00:00:45.000Z",
+              "end": "2026-09-01T00:00:50.000Z"
+            }
+          },
+          "confidence": 0.9,
+          "certainty": "CONFIRMED_IN_AVAILABLE_DATA",
+          "reasonCodes": [
+            "DWELL_DURATION_THRESHOLD_MET"
+          ],
+          "eventId": "tse_4f2b961e53e311df2a51b4b804b22d69"
+        }
+      ],
+      "completeness": {
+        "sourcePrefixComplete": true,
+        "sourceSuffixComplete": true,
+        "completeForAllEvents": true,
+        "upstreamGapPeriods": [],
+        "qualityBreakPeriods": [],
+        "offNetworkPeriods": [],
+        "ambiguousAssociationPeriods": [],
+        "blockingPeriods": []
+      },
+      "summary": {
+        "sourceSampleCount": 12,
+        "targetCount": 1,
+        "detectedEventCount": 1,
+        "returnedEventCount": 1,
+        "enterCount": 0,
+        "exitCount": 0,
+        "dwellCount": 1,
+        "stopCount": 0,
+        "passNearCount": 0,
+        "crossCount": 0,
+        "truncated": false
+      },
+      "warnings": [
+        "analysisLevel=TASK_LEVEL_APPROXIMATE"
+      ],
+      "status": "COMPLETED",
+      "reasonCode": "EVENTS_FOUND"
+    }
+  },
+  "dataSnapshot": {
+    "consistency": "PINNED",
+    "capturedAt": "2026-09-06T04:22:57.732Z",
+    "scopeDigest": "sha256:b5f450c9469f48dbdf6f9237e0f8dc952e00ffb32a82f195f5f444b1a69d7dfe",
+    "resources": [
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "wrf_temporal_area",
+          "version": "1"
+        },
+        "authority": "GOWM Historical Trajectory",
+        "pinning": "PINNED",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "worldVersion": 1
+      }
+    ]
+  },
+  "computeSnapshot": {
+    "provider": {
+      "providerId": "gowm.analysis.temporal-events",
+      "providerVersion": "0.1.0",
+      "implementationDigest": "sha256:f8b0398698eef79ca8c136d15b6ae872364601d7e05feb1524d21940ffb70263"
+    },
+    "operation": {
+      "operationId": "temporal-spatial.find-events",
+      "operationVersion": "0.1"
+    },
+    "engine": {
+      "name": "CAMPUS_TEMPORAL_EVENTS_V1",
+      "version": "0.1",
+      "digest": "sha256:2db4102a57cf6ff783eabd2bae9a303ae233c8f8558e7baaa8301e6ab6dc408d"
+    },
+    "policy": {
+      "version": "CAMPUS_TASK_DEFAULT/0.1",
+      "digest": "sha256:ede94a8b792f6eeddeb7ecce0e42783bbb3442f8b7e763ff81f928f21a4dbb1a"
+    },
+    "schemas": {
+      "inputSchemaHash": "sha256:a176f1be958f8d5f87069e8d305d3fa4b1b7bcb7b7c6a1db7f6c076ae1c467db",
+      "outputSchemaHash": "sha256:4c6b87a97523aa904591f31b43086e74a7097b43c19ff09a25d0d2fa9b3cd2b4"
+    }
+  },
+  "receipts": [
+    {
+      "receiptId": "receipt:0103e1af-c04e-42dd-b2cc-8aeffe763ca3",
+      "operationId": "temporal-spatial.find-events",
+      "operationVersion": "0.1",
+      "providerId": "gowm.analysis.temporal-events",
+      "providerVersion": "0.1.0",
+      "inputHash": "sha256:d0573c95a4502cd32710d75b88d99fb920a9652035cccc0e0ccbed42548136d8",
+      "outputHash": "sha256:563aff9cd63399ea4b1b51eb324fd8a64714c76e4692224c2be70abcc8790694",
+      "computeSnapshotHash": "sha256:dc2526ee1dfaeb6737555826a06b907200061a94709094a9dddf4f03cf71c226",
+      "generatedAt": "2026-09-06T04:22:57.733Z",
+      "durationMs": 1.3312980000000607,
+      "method": {
+        "engine": "CAMPUS_TEMPORAL_EVENTS_V1",
+        "engineVersion": "0.1",
+        "methodId": "campus-temporal-events",
+        "methodVersion": "0.1"
+      },
+      "changes": {
+        "repairApplied": false,
+        "typeChanged": false
+      },
+      "warnings": [
+        "analysisLevel=TASK_LEVEL_APPROXIMATE"
+      ]
+    }
+  ],
+  "evidenceReferences": [],
+  "warnings": [
+    "analysisLevel=TASK_LEVEL_APPROXIMATE"
+  ],
+  "consumption": {
+    "inputBytes": 583,
+    "outputBytes": 1729,
+    "rows": 13,
+    "candidates": 12
+  },
+  "execution": {
+    "providerId": "gowm.analysis.temporal-events",
+    "providerVersion": "0.1.0",
+    "elapsedMs": 1.3312980000000607,
+    "resultHash": "sha256:563aff9cd63399ea4b1b51eb324fd8a64714c76e4692224c2be70abcc8790694"
+  }
+}

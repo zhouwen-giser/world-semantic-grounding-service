@@ -1,0 +1,108 @@
+import { createHash } from "node:crypto";
+import { analysisHash, type MetricSeriesIdentity } from "@wsgs/gowm-contract-intake";
+import { canReuseAdvancedFoundation } from "./advanced-executor.js";
+import { parseAdvancedHistoricalIntent } from "./advanced-intent.js";
+import type { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
+import type { AdvancedHistoricalFoundation, AdvancedHistoricalIntent, AdvancedHistoryConfiguration, AdvancedIntentResolution } from "./advanced-types.js";
+
+type Json = Record<string, unknown>;
+export interface PriorAdvancedHistory {
+  intent: AdvancedHistoricalIntent; foundation: AdvancedHistoricalFoundation;
+  evidenceItems: Json[]; sourceGroundingId: string; sourceResultHash: string;
+}
+export interface AdvancedFollowup {
+  resolution: AdvancedIntentResolution; reusableFoundation?: AdvancedHistoricalFoundation;
+  reuse?: { findings: Json[]; source: PriorAdvancedHistory }; compare: boolean;
+  prior?: PriorAdvancedHistory;
+}
+function object(value: unknown): value is Json { return !!value && typeof value === "object" && !Array.isArray(value); }
+
+// Only invoke on server-owned result_bytes after an actor/data-scope restricted
+// lookup. Client context payloads are never accepted by this decoder.
+export function decodeStoredAdvancedHistory(bytes: Buffer, storedHash: string, expectedHash: string,
+  selectedProductIds: readonly string[]): PriorAdvancedHistory | undefined {
+  const actual = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+  if (storedHash !== expectedHash || actual !== expectedHash) throw new Error("HISTORICAL_PRIOR_RESULT_HASH_MISMATCH");
+  const result: unknown = JSON.parse(bytes.toString("utf8"));
+  if (!object(result) || !Array.isArray(result["evidenceItems"])) return undefined;
+  const items = result["evidenceItems"].filter(object).filter(item => item["productKind"] === "CAPABILITY_RESULT" &&
+    selectedProductIds.includes(String(item["evidenceProductId"])) && object(item["safePayload"]) &&
+    typeof item["safePayload"]["findingKind"] === "string" && String(item["safePayload"]["findingKind"]).startsWith("HISTORICAL_"));
+  const contexts = items.map(item => (item["safePayload"] as Json)["queryContext"]).filter(object)
+    .filter(ctx => object(ctx["intent"]) && object(ctx["foundation"]));
+  if (!contexts.length) return undefined;
+  if (new Set(contexts.map(ctx => analysisHash(ctx["intent"]))).size !== 1) throw new Error("HISTORICAL_PRIOR_RESULT_AMBIGUOUS");
+  const context = contexts[0]!;
+  const foundation = context["foundation"] as unknown as AdvancedHistoricalFoundation;
+  if (context["foundationHash"] !== analysisHash(foundation)) return undefined;
+  if (!foundation.reference?.referenceKey || !foundation.intent || !foundation.finding?.trajectory ||
+      !["COMPLETED", "PARTIAL"].includes(foundation.finding.status) || foundation.finding.trajectory.finalization.state === "CONFLICTED" ||
+      analysisHash(foundation.reference.referenceKey) !== analysisHash(foundation.finding.trajectory.trajectoryReferenceKey)) return undefined;
+  return { intent: context["intent"] as unknown as AdvancedHistoricalIntent, foundation,
+    evidenceItems: items, sourceGroundingId: String(result["groundingId"]), sourceResultHash: actual };
+}
+
+export function resolveAdvancedFollowup(text: string, prior: PriorAdvancedHistory, catalog: MetricSemanticCatalog,
+  config: AdvancedHistoryConfiguration, now = Date.now()): AdvancedFollowup {
+  const resolution = parseAdvancedHistoricalIntent(text, catalog, config, { ...prior.intent,
+    historicalScope: { ...prior.intent.historicalScope, ...prior.foundation.intent } });
+  const compare = /更新了吗|有更新/u.test(text);
+  if (resolution.status !== "PARSED") return { resolution, compare };
+  const intent = resolution.intent;
+  const reusable = !compare && canReuseAdvancedFoundation(prior.foundation, intent, now);
+  const result: AdvancedFollowup = { resolution, compare, prior, ...(reusable ? { reusableFoundation: prior.foundation } : {}) };
+  const payloads = prior.evidenceItems.map(item => item["safePayload"]).filter(object);
+  const rank = payloads.find(payload => payload["findingKind"] === "HISTORICAL_METRIC_RANKING");
+  if (rank && object(rank["metricCatalog"]) && rank["metricCatalog"]["hash"] !== catalog.hash) {
+    return { resolution: { status: "UNRESOLVED", reasonCode: "METRIC_CATALOG_CHANGED" }, compare: false };
+  }
+  if (intent.analysis.kind === "METRIC_RANKING" && rank && /使用\s*\S+/u.test(text)) {
+    const selected = /使用\s*([^\s。？?]+)/u.exec(text)?.[1];
+    const candidates = Array.isArray(rank["metricSeriesCandidates"]) ? rank["metricSeriesCandidates"].filter(object) : [];
+    const matches = candidates.filter(candidate => {
+      const identity = candidate["identity"];
+      return object(identity) && ["sourceKey", "datastreamKey", "measurementKey"].some(key => identity[key] === selected);
+    });
+    if (matches.length !== 1) return { resolution: { status: "UNRESOLVED", reasonCode: "METRIC_SERIES_AMBIGUOUS" }, compare: false };
+    const identity = matches[0]!["identity"] as unknown as MetricSeriesIdentity;
+    intent.analysis.metricSeriesSelection = { mode: "EXPLICIT_SERIES", sourceKey: identity.sourceKey,
+      datastreamKey: identity.datastreamKey, measurementKey: identity.measurementKey };
+    return result;
+  }
+  if (!reusable) return result;
+  if (intent.analysis.kind === "METRIC_RANKING" && rank && prior.intent.analysis.kind === "METRIC_RANKING" &&
+    analysisHash(intent.analysis.metricSelector) === analysisHash(prior.intent.analysis.metricSelector) &&
+    analysisHash(intent.analysis.metricSeriesSelection) === analysisHash(prior.intent.analysis.metricSeriesSelection) &&
+    intent.analysis.selectedRank && Array.isArray(rank["candidates"])) {
+    const selectedRank = intent.analysis.selectedRank;
+    const selected = rank["candidates"].filter(object).find(candidate => candidate["rank"] === selectedRank);
+    if (!selected || !["COMPLETED", "PARTIAL"].includes(String(rank["status"]))) return result;
+    const findings: Json[] = [{ ...rank, candidates: [selected], queryContext: { intent, foundation: prior.foundation, foundationHash: analysisHash(prior.foundation) } }];
+    if (intent.analysis.actionTargetRequested) {
+      findings.push({ findingKind: "HISTORICAL_ACTION_TARGET_CANDIDATE", status: rank["status"], candidateDomain: "PAST_OBSERVED_LOCATIONS",
+        position: selected["position"], sourceRank: selected["rank"], metric: { conceptId: intent.analysis.metricConceptId,
+          observedProperty: intent.analysis.metricSelector.observedProperty, value: selected["representativeValue"],
+          ...(intent.analysis.metricSelector.valueUnit ? { unit: intent.analysis.metricSelector.valueUnit } : {}),
+          optimizationDirection: intent.analysis.metricSelector.optimizationDirection },
+        sourceAnalysisId: rank["analysisId"], sourceTrajectoryReferenceKey: prior.foundation.reference.referenceKey,
+        representativeMeasurementId: selected["representativeMeasurementId"], representativeObservedAt: selected["observedAt"],
+        currentValidationRequired: true, routePlanningRequired: true, executionAuthorized: false,
+        warnings: ["CURRENT_VALIDATION_REQUIRED", "ROUTE_PLANNING_REQUIRED", "EXECUTION_NOT_AUTHORIZED"],
+        queryContext: { intent, foundation: prior.foundation, foundationHash: analysisHash(prior.foundation) } });
+    }
+    result.reuse = { findings, source: prior };
+  }
+  const events = payloads.find(payload => payload["findingKind"] === "HISTORICAL_TEMPORAL_EVENT");
+  if (intent.analysis.kind === "TEMPORAL_EVENT" && intent.analysis.selection.kind === "LAST" && events &&
+    prior.intent.analysis.kind === "TEMPORAL_EVENT" && intent.analysis.eventType === prior.intent.analysis.eventType &&
+    intent.analysis.targetMention === prior.intent.analysis.targetMention &&
+    events["truncated"] !== true && object(events["summary"]) && events["summary"]["truncated"] === false &&
+    object(events["completeness"]) && events["completeness"]["sourceSuffixComplete"] === true &&
+    events["completeness"]["completeForAllEvents"] === true && Array.isArray(events["events"]) && events["events"].length > 0) {
+    const selected = events["events"].at(-1) as Json;
+    result.reuse = { source: prior, findings: [{ ...events, events: [selected],
+      selection: { kind: "LAST", selectedEventId: selected["eventId"], confirmed: true, reasonCode: "LAST_EVENT_CONFIRMED", blockingPeriods: [] },
+      queryContext: { intent, foundation: prior.foundation, foundationHash: analysisHash(prior.foundation) } }] };
+  }
+  return result;
+}

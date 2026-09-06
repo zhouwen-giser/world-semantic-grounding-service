@@ -20,7 +20,7 @@ const latestPattern = /(?:本次|最近一次|这次)/u;
 const taskPattern = /任务[A-Za-z0-9_-]+/u;
 const subjectPattern = /(?:[A-Za-z0-9]+|[一二三四五六七八九十百千]+)号车/u;
 
-function chineseInteger(value: string): number | null {
+export function chineseInteger(value: string): number | null {
   if (/^[1-9][0-9]*$/u.test(value)) {
     const result = Number(value);
     return Number.isSafeInteger(result) && result <= 1_000_000 ? result : null;
@@ -38,7 +38,7 @@ function chineseInteger(value: string): number | null {
   return digits[value] ?? null;
 }
 
-function executionSelection(text: string, allLimit: number): HistoricalExecutionSelection {
+export function executionSelection(text: string, allLimit: number): HistoricalExecutionSelection {
   if (allPattern.test(text)) return { kind: "ALL", limit: allLimit };
   const numbered = /第\s*([1-9][0-9]*|[一二三四五六七八九十]+)\s*(?:次|回)/u.exec(text);
   if (numbered?.[1]) {

@@ -22,6 +22,11 @@ import {
 } from "@wsgs/gdps-descriptor-consumer";
 import {
   GOWM_SOUTHBOUND_LOCK_RAW_SHA256,
+  AnalysisProviderContracts,
+  ANALYSIS_OPERATION_IDS,
+  analysisHash,
+  type AnalysisProviderAuthorization,
+  type SpatialEventTarget,
   loadOperationalGowmLock,
   loadWorldQueryParameterSchemaHash,
   type LoadedOperationalGowmLock,
@@ -60,6 +65,21 @@ import {
 import {
   compareHistoricalFindings,
   executeHistoricalTrace,
+  executeAdvancedHistoricalAnalysis,
+  canReuseAdvancedFoundation,
+  advancedHistoryConfigurationFromEnvironment,
+  parseAdvancedHistoricalIntent,
+  MetricSemanticCatalog,
+  decodeStoredAdvancedHistory,
+  resolveAdvancedFollowup,
+  type PriorAdvancedHistory,
+  type AdvancedFollowup,
+  type AdvancedHistoricalFoundation,
+  boundAdvancedSafePayload,
+  type AdvancedHistoryConfiguration,
+  type AdvancedHistoricalExecutionResult,
+  type AdvancedIntentResolution,
+  type AdvancedHistoricalIntent,
   historicalTraceConfigurationFromEnvironment,
   projectHistoricalReference,
   projectHistoricalTraceIntent,
@@ -196,7 +216,7 @@ export const HISTORICAL_PREVIEW_OPERATION_IDS = Object.freeze([
   "history.get-trajectory"
 ] as const);
 
-const historicalPreviewOperationIds = new Set<string>(HISTORICAL_PREVIEW_OPERATION_IDS);
+const optionalHistoryOperationIds = new Set<string>([...HISTORICAL_PREVIEW_OPERATION_IDS, ...ANALYSIS_OPERATION_IDS]);
 
 /**
  * Stable grounding recipes combine world-independent catalog resolution with
@@ -253,6 +273,9 @@ interface Runtime {
   modelPolicy: SemanticModelPolicyMode;
   allowPreview: boolean;
   history: HistoricalTraceConfiguration;
+  advancedHistory: AdvancedHistoryConfiguration;
+  analysisContracts?: AnalysisProviderContracts;
+  metricCatalog: MetricSemanticCatalog;
   gdpsConsumerSnapshot?: GdpsConsumerSnapshotExtension;
   gdpsRecipeLock?: LoadedGdpsRecipeLock;
   gdpsRecipes: GdpsLockedRecipe[];
@@ -277,6 +300,9 @@ interface HistoricalCompilation {
   historicalPlan?: HistoricalCompiledPlan;
   historicalReuse?: PriorHistoricalResult;
   historicalPriorForComparison?: PriorHistoricalResult;
+  advancedIntent?: AdvancedHistoricalIntent;
+  advancedResolution?: AdvancedIntentResolution;
+  advancedFollowup?: AdvancedFollowup;
 }
 
 type PersistedSemanticModelResult = SemanticModelPolicyResult & { receiptId?: string };
@@ -377,7 +403,8 @@ function allGatewayLocks(lock: OperationalGowmLock): OperationLock[] {
 export function selectProductionSouthboundLock(
   lock: OperationalGowmLock,
   previewRecipes: readonly GdpsLockedRecipe[] = [],
-  historyEnabled = false
+  historyEnabled = false,
+  analysisAuthorizations: readonly AnalysisProviderAuthorization[] = []
 ): OperationalGowmLock {
   const available = [...lock.defaultOperations, ...lock.previewOperations];
   const selected = PRODUCTION_STABLE_OPERATION_IDS.map((operationId) => {
@@ -405,13 +432,18 @@ export function selectProductionSouthboundLock(
     return entry;
   });
   if (historyEnabled) {
-    for (const operationId of HISTORICAL_PREVIEW_OPERATION_IDS) {
+    for (const { operationId, operationVersion } of HISTORICAL_PREVIEW_OPERATION_IDS.map(operationId => ({ operationId, operationVersion: "1.0" }))) {
       const entry = available.find((candidate) =>
-        candidate.operationId === operationId && candidate.operationVersion === "1.0" && candidate.maturity === "PREVIEW");
+        candidate.operationId === operationId && candidate.operationVersion === operationVersion && candidate.maturity === "PREVIEW");
       if (entry && !selectedPreview.some((candidate) => candidate.operationId === operationId)) selectedPreview.push(entry);
     }
     selectedPreview.sort((left, right) =>
       `${left.operationId}@${left.operationVersion}`.localeCompare(`${right.operationId}@${right.operationVersion}`));
+  }
+  for (const auth of analysisAuthorizations) {
+    const entry = available.find(candidate => candidate.operationId === auth.operationId && candidate.operationVersion === auth.operationVersion &&
+      candidate.maturity === "PREVIEW" && candidate.inputSchemaHash === auth.inputSchemaHash && candidate.outputSchemaHash === auth.outputSchemaHash && candidate.semanticProfileHash === auth.semanticProfileHash);
+    if (entry && !selectedPreview.some(candidate => candidate.operationId === entry.operationId && candidate.operationVersion === entry.operationVersion)) selectedPreview.push(entry);
   }
   return {
     ...lock,
@@ -560,7 +592,10 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const gdpsDescriptor = configuredGdpsDescriptor(gdps.loaded, gdps.recipes);
   const allowPreview = process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES";
   const history = historicalTraceConfigurationFromEnvironment();
-  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes, history.enabled && allowPreview);
+  const advancedHistory = advancedHistoryConfigurationFromEnvironment();
+  const analysisContracts = advancedHistory.enabled ? new AnalysisProviderContracts(advancedHistory.contractRoot) : undefined;
+  const metricCatalog = MetricSemanticCatalog.load(advancedHistory.metricCatalogPath);
+  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes, history.enabled && (allowPreview || advancedHistory.enabled), analysisContracts?.authorizations);
   const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
   if (segmentedMode && segmentedMode !== "GOWM_GDPS_V021") {
     throw new ProductionStageModuleError("INVALID_WSGS_CROSS_SCOPE_GATEWAY_ROUTING");
@@ -607,6 +642,9 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
     modelPolicy,
     allowPreview,
     history,
+    advancedHistory,
+    ...(analysisContracts ? { analysisContracts } : {}),
+    metricCatalog,
     ...(gdps.consumerSnapshot ? { gdpsConsumerSnapshot: gdps.consumerSnapshot } : {}),
     ...(gdps.loaded ? { gdpsRecipeLock: gdps.loaded } : {}),
     gdpsRecipes: gdps.recipes,
@@ -661,7 +699,8 @@ async function liveAuthority(
   const productionLock = selectProductionSouthboundLock(
     lock,
     value.gdpsRecipes,
-    value.history.enabled && value.allowPreview
+    value.history.enabled && (value.allowPreview || value.advancedHistory.enabled),
+    value.analysisContracts?.authorizations
   );
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
     servicePrincipalId: principal.servicePrincipalId,
@@ -699,8 +738,15 @@ async function liveAuthority(
   const capturedLock: OperationalGowmLock = {
     ...productionLock,
     previewOperations: productionLock.previewOperations.filter((entry) =>
-      !historicalPreviewOperationIds.has(entry.operationId) ||
+      !optionalHistoryOperationIds.has(entry.operationId) ||
       operationAvailability.get(`${entry.operationId}@${entry.operationVersion}`) === "AVAILABLE")
+      .filter(entry => {
+        if (!ANALYSIS_OPERATION_IDS.includes(entry.operationId as typeof ANALYSIS_OPERATION_IDS[number])) return true;
+        const descriptor = catalog.capabilities.find(candidate => candidate.operationId === entry.operationId && candidate.operationVersion === entry.operationVersion);
+        const semantic = semantics.profiles.find(candidate => candidate.operationId === entry.operationId && candidate.operationVersion === entry.operationVersion);
+        return descriptor?.maturity === "PREVIEW" && descriptor.inputSchemaHash === entry.inputSchemaHash && descriptor.outputSchemaHash === entry.outputSchemaHash &&
+          semantic?.semanticProfileHash === entry.semanticProfileHash && analysisHash(semantic.semanticProfile) === entry.semanticProfileHash;
+      })
   };
   const trustedCapabilitySnapshot = buildTrustedCapabilitySnapshot({
     catalog: catalog as never,
@@ -715,9 +761,9 @@ async function liveAuthority(
     semantics,
     availability,
     required: allGatewayLocks(productionLock)
-      .filter((entry) => !historicalPreviewOperationIds.has(entry.operationId)),
+      .filter((entry) => !optionalHistoryOperationIds.has(entry.operationId)),
     optional: allGatewayLocks(productionLock)
-      .filter((entry) => historicalPreviewOperationIds.has(entry.operationId)),
+      .filter((entry) => optionalHistoryOperationIds.has(entry.operationId)),
     expectedContractCatalogRevision: lock.contractCatalogRevision,
     expectedSemanticCatalogHash: lock.semanticCatalogHash
   });
@@ -954,7 +1000,8 @@ async function executeOperation(
   context: PipelineStageContext,
   lock: OperationLock,
   input: JsonObject,
-  suffix: string
+  suffix: string,
+  budget?: { maximumRows: number; maximumCandidates: number; maximumOutputBytes: number; maximumExecutionMs: number }
 ): Promise<JsonObject> {
   const caller = identity(context);
   const authority = persistedAuthority(context, value.gateway);
@@ -974,11 +1021,12 @@ async function executeOperation(
   const callerMaximumResultBytes = integer(callerPolicy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID");
   const maximumResultBytes = Math.min(
     callerMaximumResultBytes,
+    budget?.maximumOutputBytes ?? callerMaximumResultBytes,
     descriptor.limits.maximumOutputBytes ?? callerMaximumResultBytes
   );
   const deadlineAt = new Date(Math.min(
     context.deadlineAt.getTime(),
-    Date.now() + descriptor.execution.maximumTimeoutMs
+    Date.now() + Math.min(descriptor.execution.maximumTimeoutMs, budget?.maximumExecutionMs ?? descriptor.execution.maximumTimeoutMs)
   ));
   const preferredExecution = descriptor.execution.mode === "SYNC"
     ? "SYNC" as const
@@ -996,10 +1044,10 @@ async function executeOperation(
     executionPolicy: {
       deadlineAt: deadlineAt.toISOString(),
       maximumResultBytes,
-      ...(descriptor.limits.maximumRows === undefined ? {} : { maximumRows: descriptor.limits.maximumRows }),
+      ...(descriptor.limits.maximumRows === undefined && !budget ? {} : { maximumRows: Math.min(descriptor.limits.maximumRows ?? budget!.maximumRows, budget?.maximumRows ?? descriptor.limits.maximumRows!) }),
       ...(descriptor.limits.maximumCandidates === undefined
         ? {}
-        : { maximumCandidates: descriptor.limits.maximumCandidates }),
+        : { maximumCandidates: Math.min(descriptor.limits.maximumCandidates, budget?.maximumCandidates ?? descriptor.limits.maximumCandidates) }),
       maximumCostClass: descriptor.execution.costClass,
       preferredExecution
     }
@@ -1272,6 +1320,24 @@ function priorHistoricalFinding(value: unknown): HistoricalTraceFinding | undefi
   return structuredClone(historicalFinding) as unknown as HistoricalTraceFinding;
 }
 
+async function loadPriorAdvancedResult(pool: Pool, principal: GroundingIdentityV2 & { dataScope: string }, pointers: unknown[]): Promise<PriorAdvancedHistory | undefined> {
+  const candidates: PriorAdvancedHistory[] = [];
+  for (const raw of pointers) {
+    const pointer = object(raw, "HISTORICAL_PRIOR_POINTER_INVALID");
+    const selected = Array.isArray(pointer["selectedProductIds"]) ? pointer["selectedProductIds"].filter((id): id is string => typeof id === "string") : [];
+    if (!selected.length) continue;
+    const records = await pool.query<{ result_hash: string; result_bytes: Buffer }>(
+      `SELECT result_hash, result_bytes FROM wsgs.grounding_result WHERE grounding_id = $1 AND data_scope = $2 AND actor_id = $3`,
+      [text(pointer["groundingId"], "HISTORICAL_PRIOR_GROUNDING_ID_INVALID"), principal.dataScope, principal.actorId]);
+    const record = records.rows[0];
+    if (!record) throw new ProductionStageModuleError("HISTORICAL_PRIOR_RESULT_NOT_FOUND");
+    const prior = decodeStoredAdvancedHistory(record.result_bytes, record.result_hash, text(pointer["resultHash"], "HISTORICAL_PRIOR_RESULT_HASH_INVALID"), selected);
+    if (prior) candidates.push(prior);
+  }
+  if (candidates.length > 1) throw new ProductionStageModuleError("HISTORICAL_PRIOR_RESULT_AMBIGUOUS");
+  return candidates[0];
+}
+
 async function loadPriorHistoricalResult(
   pool: Pool,
   principal: GroundingIdentityV2 & { dataScope: string },
@@ -1355,6 +1421,27 @@ function historicalReferences(
   return references.referenceProducts
     .filter((entry) => entry.referenceKey.kind === kind && entry.revalidationRequired !== true)
     .map((entry) => ({ ...entry.referenceKey }));
+}
+
+function advancedSubjectReferences(references: ReferenceGroundingResult, intent: AdvancedHistoricalIntent): HistoricalReferenceKey[] {
+  const mention = intent.historicalScope.subjectMention;
+  if (!mention) return historicalReferences(references, "WORLD_OBJECT");
+  const productIds = new Set(references.mentions.filter(entry => entry.surfaceText === mention).flatMap(entry => entry.candidateProductIds));
+  return references.referenceProducts.filter(entry => entry.referenceKey.kind === "WORLD_OBJECT" && !entry.revalidationRequired &&
+    (entry.displayName === mention || productIds.has(entry.productId))).map(entry => entry.referenceKey);
+}
+
+export function historicalFoundationForAdvanced(prior: PriorHistoricalResult | undefined, intent: AdvancedHistoricalIntent,
+  sourceText: string): AdvancedHistoricalFoundation | undefined {
+  if (!prior?.finding.trajectory || prior.reference?.referenceType !== "HISTORICAL_TRAJECTORY" || !prior.taskReferenceKey || !prior.subjectReferenceKey) return undefined;
+  const scope = intent.historicalScope;
+  // Legacy historical evidence did not persist the original execution selector.
+  // Never relabel that trajectory as a newly requested execution or source.
+  if (/第.*次(?:任务|执行)|本次|最近一次|更新了吗|有更新/u.test(sourceText) || scope.executionSelection.kind !== "LATEST" || scope.sourceSelection.mode !== "ONLY_CANDIDATE") return undefined;
+  if (scope.subjectMention && (!scope.subjectReferenceKey || analysisHash(scope.subjectReferenceKey) !== analysisHash(prior.subjectReferenceKey))) return undefined;
+  if (scope.taskMention && (!scope.taskReferenceKey || analysisHash(scope.taskReferenceKey) !== analysisHash(prior.taskReferenceKey))) return undefined;
+  return { intent: { ...scope, taskReferenceKey: prior.taskReferenceKey, subjectReferenceKey: prior.subjectReferenceKey, phaseScope: prior.phaseScope },
+    finding: prior.finding, reference: prior.reference };
 }
 
 function bindHistoricalIntent(
@@ -1667,9 +1754,84 @@ function mappedGap(gap: CapabilityGap | JsonObject): JsonObject {
   };
 }
 
+async function resolveAdvancedTarget(value: Runtime, context: PipelineStageContext, mention: string): Promise<SpatialEventTarget | { reasonCode: string }> {
+  const authority = persistedAuthority(context, value.gateway);
+  const resolveLock = operationLock(authority, "reference.resolve");
+  const resolved = envelopeValue(await executeOperation(value, context, resolveLock, {
+    schemaVersion: "1.0", mentions: [{ mentionId: "advanced-target", surfaceText: mention }],
+    context: { language: "zh-CN", anchorReferenceKeys: [] }, limitPerMention: 2
+  }, `advanced-target-resolve-${analysisHash(mention).slice(7)}`), resolveLock);
+  if (!resolved) return { reasonCode: "TARGET_REFERENCE_UNRESOLVED" };
+  const resolutions = object(resolved, "TARGET_REFERENCE_UNRESOLVED")["resolutions"];
+  const resolution = Array.isArray(resolutions) && resolutions.length === 1 ? object(resolutions[0], "TARGET_REFERENCE_UNRESOLVED") : undefined;
+  const candidates = resolution?.["candidates"];
+  if (!Array.isArray(candidates) || candidates.length === 0) return { reasonCode: "TARGET_REFERENCE_UNRESOLVED" };
+  if (candidates.length !== 1 || resolution?.["status"] === "AMBIGUOUS") return { reasonCode: "TARGET_CONTEXT_AMBIGUOUS" };
+  const descriptor = object(object(candidates[0], "TARGET_REFERENCE_UNRESOLVED")["candidate"], "TARGET_REFERENCE_UNRESOLVED");
+  const key = referenceKey(descriptor["referenceKey"]);
+  const geometryLock = operationLock(authority, "world.get-geometry");
+  const geometryResult = envelopeValue(await executeOperation(value, context, geometryLock, { schemaVersion: "1.0", referenceKey: key },
+    `advanced-target-geometry-${analysisHash(key).slice(7)}`), geometryLock);
+  if (!geometryResult) return { reasonCode: "TARGET_GEOMETRY_UNAVAILABLE" };
+  const body = object(geometryResult, "TARGET_GEOMETRY_UNAVAILABLE");
+  if (canonicalSha256(body["referenceKey"]) !== canonicalSha256(key)) return { reasonCode: "TARGET_GEOMETRY_UNAVAILABLE" };
+  const facts = body["facts"];
+  const geometryFact = Array.isArray(facts) ? facts.map(entry => object(entry, "TARGET_GEOMETRY_UNAVAILABLE")).filter(entry => entry["factKind"] === "CURRENT_GEOMETRY") : [];
+  if (geometryFact.length !== 1) return { reasonCode: "TARGET_GEOMETRY_UNAVAILABLE" };
+  const fact = geometryFact[0]!;
+  if (fact["crs"] !== "EPSG:4326") return { reasonCode: "TARGET_GEOMETRY_UNSUPPORTED" };
+  const geometry = object(fact["geometry"], "TARGET_GEOMETRY_UNAVAILABLE");
+  const type = geometry["type"];
+  const targetType = type === "Point" ? "POINT" : type === "LineString" || type === "MultiLineString" ? "LINE" : type === "Polygon" || type === "MultiPolygon" ? "AREA" : undefined;
+  if (!targetType) return { reasonCode: "TARGET_GEOMETRY_UNSUPPORTED" };
+  try {
+    return value.analysisContracts!.validateTarget({ targetId: key.id, referenceKey: key, displayName: String(descriptor["displayName"] ?? mention),
+      targetType, geometry, crs: "EPSG:4326" });
+  } catch { return { reasonCode: "TARGET_GEOMETRY_UNSUPPORTED" }; }
+}
+
+export function advancedEvidence(execution: AdvancedHistoricalExecutionResult | undefined, failure: string | undefined,
+  authority: Pick<PersistedAuthority, "capabilityCatalog">, groundingId: string, runtime: Pick<Runtime, "history" | "advancedHistory">) {
+  const code = failure ?? execution?.reasonCode ?? "HISTORICAL_FOUNDATION_REQUIRED";
+  const referenceProducts: JsonObject[] = [];
+  if (execution?.foundation) {
+    const foundation = execution.foundation;
+    referenceProducts.push(...historicalEvidence({ status: "COMPLETED", reasonCode: foundation.finding.reasonCode,
+      finding: foundation.finding, operations: ["history.get-trajectory"] }, authority, groundingId, runtime.history).referenceProducts);
+  }
+  const evidenceItems: GroundingEvidenceItem[] = (execution?.findings ?? []).flatMap(finding => {
+    const kind = finding["findingKind"];
+    const operationId = kind === "HISTORICAL_ROAD_ASSOCIATION" ? "trajectory.map-match" :
+      kind === "HISTORICAL_TEMPORAL_EVENT" ? "temporal-spatial.find-events" : "spatiotemporal-metric.rank-locations";
+    const evidence = execution!.analysisEvidence.find(entry => entry.operationId === operationId);
+    if (!evidence) return [];
+    const envelope = evidence.envelope;
+    const safePayload = boundAdvancedSafePayload({ ...finding, dataSnapshot: envelope.dataSnapshot, computeSnapshot: envelope.computeSnapshot,
+      queryContext: { intent: execution!.intent, foundation: execution!.foundation, foundationHash: analysisHash(execution!.foundation), target: execution!.target },
+      ...(execution!.comparison ? { comparison: execution!.comparison } : {}) }, runtime.advancedHistory);
+    return [{
+      evidenceProductId: `advanced-history-${canonicalSha256({ groundingId, operationId, kind, safePayload }).slice(7, 31)}`,
+      productKind: "CAPABILITY_RESULT" as const, authority: "GOWM_GATEWAY" as const,
+      sourceOperation: operationId, sourceProvider: envelope.execution.providerId,
+      upstreamStatus: envelope.output.value.status, payloadSchemaUri: envelope.output.schemaUri, payloadSchemaHash: envelope.output.schemaHash,
+      safePayload, receiptIds: envelope.receipts.map(entry => entry.receiptId), evidenceIds: envelope.evidenceReferences.map(entry => entry.evidenceId),
+      unknowns: operationId === "spatiotemporal-metric.rank-locations" ? ["METRIC_TEMPORAL_COMPLETENESS_UNKNOWN"] : [],
+      warnings: [...new Set([...(safePayload["warnings"] as string[] ?? []), ...envelope.warnings])].slice(0, runtime.advancedHistory.maximumWarnings)
+    }];
+  });
+  const incomplete = !execution || ["CAPABILITY_GAP", "UNRESOLVED", "FAILED", "PENDING"].includes(execution.status);
+  const truncated = evidenceItems.some(item => object(item.safePayload, "ADVANCED_HISTORY_RESULT_INVALID")["truncated"] === true);
+  return { status: execution?.status === "COMPLETED" && !truncated ? "COMPLETED" as const : "PARTIAL" as const,
+    advancedStatus: execution?.status ?? "UNRESOLVED", evidenceItems, referenceProducts,
+    capabilityGaps: incomplete ? [{ gapId: `advanced-gap-${canonicalSha256(code).slice(7, 31)}`, semanticCapability: "ADVANCED_HISTORICAL_ANALYSIS",
+      reason: "UNSUPPORTED_EXPRESSION", requiredForProduct: "WORLD_EVIDENCE", blocking: true, details: { code, substituted: false } }] : [],
+    warnings: evidenceItems.flatMap(item => item.warnings)
+  };
+}
+
 function historicalEvidence(
   execution: HistoricalExecutionResult,
-  authority: PersistedAuthority,
+  authority: Pick<PersistedAuthority, "capabilityCatalog">,
   groundingId: string,
   configuration: HistoricalTraceConfiguration
 ): {
@@ -1760,6 +1922,7 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
   const executed = context.state["GOWM_EXECUTE"] as {
     outcomes: Array<{ submission: WorldQuerySubmission; status: string; resultHash: string }>;
     historicalExecution?: HistoricalExecutionResult;
+    advancedExecution?: AdvancedHistoricalExecutionResult;
   } | undefined;
   const normalized = context.state["EVIDENCE_NORMALIZE"] as {
     status: "COMPLETED" | "PARTIAL";
@@ -1768,6 +1931,7 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     geospatialFindings?: JsonObject;
     referenceProducts?: JsonObject[];
     warnings?: string[];
+    advancedStatus?: string;
   } | undefined;
   const gaps = [
     ...(planning?.capabilityGaps ?? []).map((entry) => mappedGap(entry as unknown as JsonObject)),
@@ -1785,7 +1949,8 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
   const unresolved = references?.unresolvedMentions ?? [];
   const partial = semantic?.completionStatus === "PARTIAL" || graph?.completionStatus === "PARTIAL" ||
     normalized?.status === "PARTIAL" || gaps.some((gap) => gap["blocking"] === true);
-  const status = ambiguities.length > 0 ? "AMBIGUOUS" : unresolved.length > 0 && (references?.referenceProducts.length ?? 0) === 0
+  const status = normalized?.advancedStatus && ["AMBIGUOUS", "UNRESOLVED", "FAILED"].includes(normalized.advancedStatus) ? normalized.advancedStatus :
+    ambiguities.length > 0 ? "AMBIGUOUS" : unresolved.length > 0 && (references?.referenceProducts.length ?? 0) === 0
     ? "UNRESOLVED" : partial ? "PARTIAL" : "COMPLETED";
   const executedQueryRecords = executed?.outcomes.map((entry) => ({
     queryId: entry.submission.plan.queryId,
@@ -1796,7 +1961,8 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
     status: executed.historicalExecution.status === "CAPABILITY_GAP" ? "FAILED" :
       executed.historicalExecution.status === "PENDING" ? "PARTIAL" : executed.historicalExecution.status,
     resultHash: canonicalSha256(executed.historicalExecution)
-  }] : []);
+  }] : []).concat(executed?.advancedExecution?.planHash ? [{ queryId: executed.advancedExecution.planHash,
+    status: executed.advancedExecution.status === "COMPLETED" ? "COMPLETED" : "PARTIAL", resultHash: canonicalSha256(executed.advancedExecution) }] : []);
   const compiledQueryRecords = compiled?.compiled.flatMap((entry) => entry.status === "COMPILED" ? [{
     queryId: entry.submission.plan.queryId, status: "COMPLETED", resultHash: entry.planHash
   }] : []).concat(compiled?.historicalPlan ? [{
@@ -2673,7 +2839,11 @@ export async function createPipelineStageExecutor(
         ? parts.capsule["priorGroundings"]
         : [];
       const sourceText = text(parts.source["originalText"], "SOURCE_TEXT_MISSING");
-      const priorHistorical = value.history.enabled && priorGroundings.length > 0 && historicalFollowupSurface(sourceText)
+      const priorAdvanced = value.advancedHistory.enabled && priorGroundings.length > 0
+        ? await loadPriorAdvancedResult(value.pool, identity(context), priorGroundings) : undefined;
+      const advancedFollowup = priorAdvanced ? resolveAdvancedFollowup(sourceText, priorAdvanced, value.metricCatalog, value.advancedHistory) : undefined;
+      const parsedAdvanced = parseAdvancedHistoricalIntent(sourceText, value.metricCatalog, value.advancedHistory);
+      const priorHistorical = value.history.enabled && priorGroundings.length > 0 && (historicalFollowupSurface(sourceText) || parsedAdvanced.status === "PARSED")
         ? await loadPriorHistoricalResult(value.pool, identity(context), priorGroundings)
         : undefined;
       const followupDecision = priorHistorical
@@ -2685,7 +2855,7 @@ export async function createPipelineStageExecutor(
       // prior result here would silently weaken its authority boundary.
       assertPriorGroundingReplaySupport(
         allGatewayLocks(authority.southboundLock),
-        historicalFollowup ? 0 : priorGroundings.length
+        historicalFollowup || advancedFollowup?.resolution.status === "PARSED" || priorHistorical && parsedAdvanced.status === "PARSED" ? 0 : priorGroundings.length
       );
       const snapshot = authority.trustedCapabilitySnapshot;
       const snapshotId = `capability-snapshot-${canonicalSha256({
@@ -2729,6 +2899,7 @@ export async function createPipelineStageExecutor(
         priorGroundings,
         ...(priorHistorical ? { priorHistorical } : {}),
         ...(historicalFollowup ? { historicalFollowup } : {}),
+        ...(advancedFollowup ? { advancedFollowup } : {}),
         mapSelections: parts.capsule["mapSelections"],
         externalCorrelationHints: parts.capsule["externalCorrelationHints"],
         externalPredicates: parts.capsule["externalPredicates"]
@@ -2798,6 +2969,7 @@ export async function createPipelineStageExecutor(
     },
 
     REFERENCE_RESOLVE: async (context) => {
+      if ((!value.advancedHistory.enabled || !value.history.enabled) && parseAdvancedHistoricalIntent(String(requestParts(context).source["originalText"]), value.metricCatalog, value.advancedHistory).status !== "NOT_ADVANCED") return normalizeReferenceResolution(null, []);
       const authority = persistedAuthority(context, value.gateway);
       const graph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
@@ -2821,6 +2993,7 @@ export async function createPipelineStageExecutor(
     },
 
     REFERENCE_VALIDATE: async (context) => {
+      if ((!value.advancedHistory.enabled || !value.history.enabled) && parseAdvancedHistoricalIntent(String(requestParts(context).source["originalText"]), value.metricCatalog, value.advancedHistory).status !== "NOT_ADVANCED") return normalizeReferenceResolution(null, []);
       const authority = persistedAuthority(context, value.gateway);
       const resolved = context.state["REFERENCE_RESOLVE"] as ReferenceGroundingResult | undefined;
       const parts = requestParts(context);
@@ -2857,7 +3030,20 @@ export async function createPipelineStageExecutor(
       const loaded = stageValue<{
         historicalFollowup?: HistoricalFollowupDecision;
         priorHistorical?: PriorHistoricalResult;
+        advancedFollowup?: AdvancedFollowup;
       }>(context, "LOAD_CONTEXT");
+      const advancedResolution = loaded.advancedFollowup?.resolution ?? parseAdvancedHistoricalIntent(text(parts.source["originalText"], "SOURCE_TEXT_MISSING"), value.metricCatalog, value.advancedHistory);
+      if (advancedResolution.status !== "NOT_ADVANCED") {
+        if (advancedResolution.status === "PARSED") {
+          const bound = bindHistoricalIntent({ ...advancedResolution.intent.historicalScope, queryKind: "HISTORICAL_TRAJECTORY", maximumInlinePoints: 0 }, references);
+          advancedResolution.intent.historicalScope = { ...advancedResolution.intent.historicalScope,
+            ...(bound.taskReferenceKey ? { taskReferenceKey: bound.taskReferenceKey } : {}),
+            ...(bound.subjectReferenceKey ? { subjectReferenceKey: bound.subjectReferenceKey } : {}) };
+          const subjects = advancedSubjectReferences(references, advancedResolution.intent);
+          if (subjects.length === 1) advancedResolution.intent.historicalScope.subjectReferenceKey = subjects[0]!;
+        }
+        return { status: "PLANNED", graph: null, selectedRecipeIds: [], capabilityGaps: [], advancedResolution };
+      }
       const projectedHistoricalIntent = projectHistoricalTraceIntent(
         text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
         value.history
@@ -2953,7 +3139,8 @@ export async function createPipelineStageExecutor(
 
     CAPABILITY_MATCH: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
-      const planning = stageValue<RequirementPlanningResult>(context, "REQUIREMENT_PLAN");
+      const planning = stageValue<RequirementPlanningResult & { advancedResolution?: AdvancedIntentResolution }>(context, "REQUIREMENT_PLAN");
+      if (planning.advancedResolution) return { matches: [], capabilityGaps: [] };
       if (planning.historicalIntent) {
         if (planning.historicalPlan?.status === "PROJECTION_ONLY") return { matches: [], capabilityGaps: [] };
         return { matches: [], capabilityGaps: historicalCapabilityGaps(authority, planning.historicalIntent) };
@@ -2989,13 +3176,21 @@ export async function createPipelineStageExecutor(
 
     WORLD_QUERY_COMPILE: async (context) => {
       const authority = persistedAuthority(context, value.gateway);
-      const planning = stageValue<RequirementPlanningResult>(context, "REQUIREMENT_PLAN");
+      const planning = stageValue<RequirementPlanningResult & { advancedResolution?: AdvancedIntentResolution }>(context, "REQUIREMENT_PLAN");
       const matched = stageValue<{ capabilityGaps: JsonObject[] }>(context, "CAPABILITY_MATCH");
       const parts = requestParts(context);
       const groundingGraph = stageValue<DegradedGroundingGraphResult>(context, "GROUNDING_GRAPH_BUILD");
       const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
       const compiled: CompileResult[] = [];
       const gaps = [...matched.capabilityGaps];
+      if (planning.advancedResolution) {
+        const output: HistoricalCompilation = { compiled: [], capabilityGaps: [], advancedResolution: planning.advancedResolution,
+          ...(stageValue<{ advancedFollowup?: AdvancedFollowup }>(context, "LOAD_CONTEXT").advancedFollowup ? { advancedFollowup: stageValue<{ advancedFollowup: AdvancedFollowup }>(context, "LOAD_CONTEXT").advancedFollowup } : {}),
+          ...(planning.advancedResolution.status === "PARSED" ? { advancedIntent: planning.advancedResolution.intent } : {}) };
+        if (request(context)["mode"] === "COMPILE_WORLD_QUERY") return resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output,
+          EVIDENCE_NORMALIZE: { status: "PARTIAL", evidenceItems: [], capabilityGaps: [], warnings: ["HISTORICAL_FOUNDATION_REQUIRED"] } } });
+        return output;
+      }
       if (planning.historicalIntent) {
         const loaded = stageValue<{
           historicalFollowup?: HistoricalFollowupDecision;
@@ -3113,6 +3308,58 @@ export async function createPipelineStageExecutor(
 
     GOWM_EXECUTE: async (context) => {
       const compilation = stageValue<HistoricalCompilation>(context, "WORLD_QUERY_COMPILE");
+      if (compilation.advancedResolution) {
+        if (!compilation.advancedIntent || !value.advancedHistory.enabled || !value.history.enabled || !value.analysisContracts) {
+          return { outcomes: [], advancedFailure: compilation.advancedResolution.status === "UNRESOLVED" ? compilation.advancedResolution.reasonCode :
+            !value.advancedHistory.enabled ? "ADVANCED_HISTORY_DISABLED" : "ADVANCED_HISTORY_REQUIRES_HISTORY" };
+        }
+        const authority = persistedAuthority(context, value.gateway);
+        const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
+        const parts = requestParts(context);
+        if (compilation.advancedFollowup?.reuse && canReuseAdvancedFoundation(compilation.advancedFollowup.reuse.source.foundation, compilation.advancedIntent, Date.now())) return { outcomes: [], advancedReuse: compilation.advancedFollowup.reuse };
+        const loaded = stageValue<{ priorHistorical?: PriorHistoricalResult }>(context, "LOAD_CONTEXT");
+        const prior = loaded.priorHistorical;
+        const reusableFoundation = compilation.advancedFollowup?.reusableFoundation ??
+          historicalFoundationForAdvanced(prior, compilation.advancedIntent, String(parts.source["originalText"]));
+        const advancedExecution = await executeAdvancedHistoricalAnalysis({
+          intent: compilation.advancedIntent, configuration: value.advancedHistory, history: value.history,
+          contracts: value.analysisContracts, catalog: value.metricCatalog, deadlineAt: context.deadlineAt,
+          ...(reusableFoundation ? { reusableFoundation } : {}),
+          taskReferenceKeys: historicalReferences(references, "OPERATIONAL_TASK"), subjectReferenceKeys: advancedSubjectReferences(references, compilation.advancedIntent),
+          compileContext: { groundingId: context.groundingId, requestId: String(request(context)["requestId"]), idempotencyKey: idempotencyKey(context),
+            capabilities: authority.capabilityCatalog.capabilities, semanticProfiles: authority.semanticCatalog.profiles,
+            operationLocks: allGatewayLocks(authority.southboundLock), availability: authority.availability.operations,
+            grantedPermissions: identity(context).permissions, parameterSchemaHash: value.parameterSchemaHash,
+            budgets: { maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"), maximumDepth: 2,
+              maximumRows: 250000, maximumCandidates: 250000, maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+              maximumExecutionMs: Math.max(1, context.deadlineAt.getTime() - Date.now()) } },
+          foundationGateway: { execute: async (operationId, input) => {
+            const lock = operationLock(authority, operationId);
+            const envelope = await executeOperation(value, context, lock, input, `advanced-foundation-${operationId}-${analysisHash(input).slice(7)}`);
+            // Historical domain NO_DATA / INDETERMINATE are meaningful payloads.
+            const output = object(envelope["output"], "GATEWAY_OUTPUT_MISSING");
+            if (output["schemaHash"] !== lock.outputSchemaHash) throw new ProductionStageModuleError("GATEWAY_OUTPUT_SCHEMA_MISMATCH");
+            return output["value"];
+          } },
+          gateway: { execute: async (operationId, input, execution) => {
+            const lock = operationLock(authority, operationId);
+            return executeOperation(value, context, lock, input, `advanced-${execution.idempotencyKey.slice(7)}`, execution.budget);
+          } },
+          resolveTarget: async mention => resolveAdvancedTarget(value, context, mention)
+        });
+        if (compilation.advancedFollowup?.compare && compilation.advancedFollowup.prior) {
+          const priorResult = compilation.advancedFollowup.prior;
+          const previousFindings = priorResult.evidenceItems.map(item => object(item["safePayload"], "HISTORICAL_PRIOR_EVIDENCE_INVALID"));
+          const changedFields = [
+            ["trajectory.version", priorResult.foundation.reference.referenceKey.version, advancedExecution.foundation?.reference.referenceKey.version],
+            ["finalization", priorResult.foundation.finding.trajectory?.finalization, advancedExecution.foundation?.finding.trajectory?.finalization],
+            ...["status", "reasonCode", "selectedMetricSeries", "candidates"].map(key => [key, previousFindings.map(f => f[key]), advancedExecution.findings.map(f => f[key])]),
+            ["analysis.input", priorResult.intent.analysis, advancedExecution.intent.analysis]
+          ].filter(([, oldValue, newValue]) => analysisHash(oldValue) !== analysisHash(newValue)).map(([key]) => String(key));
+          advancedExecution.comparison = { changed: changedFields.length > 0, changedFields };
+        }
+        return { outcomes: [], advancedExecution };
+      }
       if (compilation.historicalPlan) {
         if (compilation.historicalReuse) {
           const prior = compilation.historicalReuse;
@@ -3340,7 +3587,25 @@ export async function createPipelineStageExecutor(
       const execution = stageValue<{
         outcomes: PersistedWorldQueryOutcome[];
         historicalExecution?: HistoricalExecutionResult;
+        advancedExecution?: AdvancedHistoricalExecutionResult;
+        advancedFailure?: string;
+        advancedReuse?: NonNullable<AdvancedFollowup["reuse"]>;
       }>(context, "GOWM_EXECUTE");
+      if (execution.advancedReuse) {
+        const reused = execution.advancedReuse;
+        const reuseConfiguration = { ...value.advancedHistory, maximumSafePayloadBytes: Math.min(value.advancedHistory.maximumSafePayloadBytes,
+          Math.max(256, Math.floor(integer(requestParts(context).policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID") / (2 + reused.findings.length)))) };
+        const evidenceItems = reused.findings.map(finding => {
+          const original = reused.source.evidenceItems.find(item => object(item["safePayload"], "HISTORICAL_PRIOR_EVIDENCE_INVALID")["findingKind"] === finding["findingKind"]) ?? reused.source.evidenceItems[0]!;
+          return { ...original, evidenceProductId: `advanced-reuse-${canonicalSha256({ groundingId: context.groundingId, finding }).slice(7, 31)}`,
+            safePayload: boundAdvancedSafePayload({ ...finding, reusedFrom: { groundingId: reused.source.sourceGroundingId, resultHash: reused.source.sourceResultHash } }, reuseConfiguration) };
+        });
+        return { status: "PARTIAL", advancedStatus: "PARTIAL", evidenceItems, capabilityGaps: [], referenceProducts: [], warnings: [] };
+      }
+      if (execution.advancedExecution || execution.advancedFailure) return advancedEvidence(execution.advancedExecution, execution.advancedFailure, authority, context.groundingId, {
+        history: value.history, advancedHistory: { ...value.advancedHistory, maximumSafePayloadBytes: Math.min(value.advancedHistory.maximumSafePayloadBytes,
+          Math.max(256, Math.floor(integer(requestParts(context).policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID") / (2 + (execution.advancedExecution?.findings.length ?? 1))))) }
+      });
       if (execution.historicalExecution) {
         return historicalEvidence(execution.historicalExecution, authority, context.groundingId, value.history);
       }

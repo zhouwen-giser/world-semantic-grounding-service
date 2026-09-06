@@ -177,6 +177,8 @@ export async function executeHistoricalTrace(input: {
     trajectoryFinding = normalizeHistoricalTrajectoryResult(await input.gateway.execute("history.get-trajectory", trajectoryInput));
   }
   trajectoryFinding.taskReferenceKey = resolvedContext.taskReferenceKey;
+  trajectoryFinding.subjectReferenceKey = resolvedContext.subjectReferenceKey;
+  trajectoryFinding.executionInterval = interval;
   return {
     status: trajectoryFinding.status === "PENDING" ? "PENDING" : trajectoryFinding.status === "COMPLETED" ? "COMPLETED" : "PARTIAL",
     reasonCode: trajectoryFinding.reasonCode,

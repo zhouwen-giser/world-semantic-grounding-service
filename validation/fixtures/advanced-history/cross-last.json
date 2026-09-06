@@ -1,0 +1,310 @@
+{
+  "providerProtocolVersion": "1.0",
+  "requestId": "temporal-events-request-1",
+  "operation": {
+    "operationId": "temporal-spatial.find-events",
+    "operationVersion": "0.1"
+  },
+  "status": "PARTIAL",
+  "output": {
+    "schemaUri": "urn:gowm:analysis:temporal-events:result:0.1",
+    "schemaHash": "sha256:4c6b87a97523aa904591f31b43086e74a7097b43c19ff09a25d0d2fa9b3cd2b4",
+    "value": {
+      "schemaVersion": "0.1",
+      "analysisLevel": "TASK_LEVEL_APPROXIMATE",
+      "algorithm": "CAMPUS_TEMPORAL_EVENTS_V1",
+      "analysisId": "tsa_e9e52c1b7d0514721f2f6fb8940e2677",
+      "requestedEventTypes": [
+        "CROSS"
+      ],
+      "events": [
+        {
+          "eventType": "CROSS",
+          "sequenceNo": 1,
+          "target": {
+            "kind": "NETWORK_JUNCTION",
+            "junction": {
+              "identityKind": "NETWORK_LOCAL_IDENTITY",
+              "graphVersionId": "00000000-0000-4000-8000-000000000002",
+              "graphVersion": "fixture-v1",
+              "viaNodeKey": "j1",
+              "position": {
+                "type": "Point",
+                "coordinates": [
+                  121.0001,
+                  31
+                ]
+              },
+              "incidentEdgeCount": 3,
+              "distinctRoadFeatureCount": 3,
+              "incomingRoad": {
+                "sourceFeatureReferenceId": "road-a",
+                "displayName": "Alpha Road"
+              },
+              "outgoingRoad": {
+                "sourceFeatureReferenceId": "road-b",
+                "displayName": "Beta Road"
+              }
+            }
+          },
+          "temporalExtent": {
+            "kind": "INSTANT",
+            "eventTimeEstimate": "2026-09-01T00:00:10.000Z",
+            "eventTimeWindow": {
+              "start": "2026-09-01T00:00:05.000Z",
+              "end": "2026-09-01T00:00:10.000Z"
+            }
+          },
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.0001,
+              31
+            ]
+          },
+          "confidence": 0.9175,
+          "certainty": "CONFIRMED_IN_AVAILABLE_DATA",
+          "reasonCodes": [
+            "T2_JUNCTION_PASS_CANDIDATE",
+            "TOPOLOGY_SHARED_NODE_TRANSITION"
+          ],
+          "eventId": "tse_718b5fbdd973122fb479edb448176ff7"
+        }
+      ],
+      "selectionResult": {
+        "kind": "LAST",
+        "selectedEventId": "tse_718b5fbdd973122fb479edb448176ff7",
+        "confirmed": false,
+        "reasonCode": "LAST_EVENT_NOT_CERTAIN",
+        "blockingPeriods": [
+          {
+            "kind": "UPSTREAM_GAP",
+            "range": {
+              "start": "2026-09-01T00:01:00.000Z",
+              "end": "2026-09-01T00:02:00.000Z"
+            },
+            "reasonCodes": [
+              "FIXTURE_GAP"
+            ]
+          },
+          {
+            "kind": "OFF_NETWORK_PERIOD",
+            "range": {
+              "start": "2026-09-01T00:02:05.000Z",
+              "end": "2026-09-01T00:02:10.000Z"
+            },
+            "reasonCodes": [
+              "CONTINUOUS_VALID_MOTION_OUTSIDE_REFERENCE_NETWORK"
+            ]
+          },
+          {
+            "kind": "OFF_NETWORK_PERIOD",
+            "range": {
+              "start": "2026-09-01T00:03:00.000Z",
+              "end": "2026-09-01T00:03:05.000Z"
+            },
+            "reasonCodes": [
+              "VALID_MOTION_WITHOUT_NETWORK_ASSOCIATION"
+            ]
+          }
+        ]
+      },
+      "completeness": {
+        "sourcePrefixComplete": true,
+        "sourceSuffixComplete": false,
+        "completeForAllEvents": false,
+        "upstreamGapPeriods": [
+          {
+            "start": "2026-09-01T00:01:00.000Z",
+            "end": "2026-09-01T00:02:00.000Z"
+          }
+        ],
+        "qualityBreakPeriods": [],
+        "offNetworkPeriods": [
+          {
+            "start": "2026-09-01T00:02:05.000Z",
+            "end": "2026-09-01T00:02:10.000Z"
+          },
+          {
+            "start": "2026-09-01T00:03:00.000Z",
+            "end": "2026-09-01T00:03:05.000Z"
+          }
+        ],
+        "ambiguousAssociationPeriods": [],
+        "blockingPeriods": [
+          {
+            "kind": "UPSTREAM_GAP",
+            "range": {
+              "start": "2026-09-01T00:01:00.000Z",
+              "end": "2026-09-01T00:02:00.000Z"
+            },
+            "reasonCodes": [
+              "FIXTURE_GAP"
+            ]
+          },
+          {
+            "kind": "OFF_NETWORK_PERIOD",
+            "range": {
+              "start": "2026-09-01T00:02:05.000Z",
+              "end": "2026-09-01T00:02:10.000Z"
+            },
+            "reasonCodes": [
+              "CONTINUOUS_VALID_MOTION_OUTSIDE_REFERENCE_NETWORK"
+            ]
+          },
+          {
+            "kind": "OFF_NETWORK_PERIOD",
+            "range": {
+              "start": "2026-09-01T00:03:00.000Z",
+              "end": "2026-09-01T00:03:05.000Z"
+            },
+            "reasonCodes": [
+              "VALID_MOTION_WITHOUT_NETWORK_ASSOCIATION"
+            ]
+          }
+        ]
+      },
+      "summary": {
+        "sourceSampleCount": 10,
+        "targetCount": 0,
+        "detectedEventCount": 1,
+        "returnedEventCount": 1,
+        "enterCount": 0,
+        "exitCount": 0,
+        "dwellCount": 0,
+        "stopCount": 0,
+        "passNearCount": 0,
+        "crossCount": 1,
+        "truncated": false
+      },
+      "warnings": [
+        "analysisLevel=TASK_LEVEL_APPROXIMATE",
+        "CROSS findings consume only T2 junctionPassCandidates",
+        "network association blockers limit event-search completeness"
+      ],
+      "status": "PARTIAL",
+      "reasonCode": "LAST_EVENT_NOT_CERTAIN",
+      "subjectReferenceKey": {
+        "namespace": "gowm",
+        "kind": "WORLD_OBJECT",
+        "id": "wrf_fixture_vehicle",
+        "version": "7"
+      },
+      "source": {
+        "kind": "MAP_MATCH_RESULT",
+        "mapMatchAnalysisId": "mma_86f5b447168bf6f3a807928e54f7c56f",
+        "mapMatchResultHash": "sha256:02c522a372a40751ce65c868d8f18f1ecddf2d97b09afb63baac6b9fda28ee82",
+        "trajectoryReferenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "wrf_fixture_trajectory",
+          "version": "1"
+        },
+        "networkContext": {
+          "graphVersionId": "00000000-0000-4000-8000-000000000002",
+          "graphVersion": "fixture-v1",
+          "topologyHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      }
+    }
+  },
+  "dataSnapshot": {
+    "consistency": "BEST_EFFORT",
+    "capturedAt": "2026-09-06T04:22:57.694Z",
+    "scopeDigest": "sha256:b5f450c9469f48dbdf6f9237e0f8dc952e00ffb32a82f195f5f444b1a69d7dfe",
+    "resources": [
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "wrf_fixture_trajectory",
+          "version": "1"
+        },
+        "authority": "GOWM Historical Trajectory",
+        "pinning": "BEST_EFFORT"
+      },
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "DERIVED_REFERENCE",
+          "id": "campus-road-network",
+          "version": "fixture-v1"
+        },
+        "authority": "GOWM Network Graph",
+        "pinning": "PINNED",
+        "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    ]
+  },
+  "computeSnapshot": {
+    "provider": {
+      "providerId": "gowm.analysis.temporal-events",
+      "providerVersion": "0.1.0",
+      "implementationDigest": "sha256:f8b0398698eef79ca8c136d15b6ae872364601d7e05feb1524d21940ffb70263"
+    },
+    "operation": {
+      "operationId": "temporal-spatial.find-events",
+      "operationVersion": "0.1"
+    },
+    "engine": {
+      "name": "CAMPUS_TEMPORAL_EVENTS_V1",
+      "version": "0.1",
+      "digest": "sha256:28e448b464d2dd4b38df7e44821bc8526a232a47dddc425ee1fe20746750e02f"
+    },
+    "policy": {
+      "version": "CAMPUS_TASK_DEFAULT/0.1",
+      "digest": "sha256:65dad8cca99575270478161544b8d34891818b61bc07b6aeca8ca0f704589754"
+    },
+    "schemas": {
+      "inputSchemaHash": "sha256:a176f1be958f8d5f87069e8d305d3fa4b1b7bcb7b7c6a1db7f6c076ae1c467db",
+      "outputSchemaHash": "sha256:4c6b87a97523aa904591f31b43086e74a7097b43c19ff09a25d0d2fa9b3cd2b4"
+    }
+  },
+  "receipts": [
+    {
+      "receiptId": "receipt:20940005-912e-49ea-a3b3-e1ee962b38a4",
+      "operationId": "temporal-spatial.find-events",
+      "operationVersion": "0.1",
+      "providerId": "gowm.analysis.temporal-events",
+      "providerVersion": "0.1.0",
+      "inputHash": "sha256:b8af538512645f14813616b3e9ff59c824ce74508e7da47bd96c8340b2b1f468",
+      "outputHash": "sha256:f32e07a5a1b4003c3e29c95736f3b6b93e61d9d38188d34da459ab5fb1a8edb5",
+      "computeSnapshotHash": "sha256:9d1028b4ef4b9844b34d29665d228884a935f25183cfabfeb65b72ef41081816",
+      "generatedAt": "2026-09-06T04:22:57.712Z",
+      "durationMs": 15.501009000000067,
+      "method": {
+        "engine": "CAMPUS_TEMPORAL_EVENTS_V1",
+        "engineVersion": "0.1",
+        "methodId": "campus-temporal-events",
+        "methodVersion": "0.1"
+      },
+      "changes": {
+        "repairApplied": false,
+        "typeChanged": false
+      },
+      "warnings": [
+        "analysisLevel=TASK_LEVEL_APPROXIMATE",
+        "CROSS findings consume only T2 junctionPassCandidates",
+        "network association blockers limit event-search completeness"
+      ]
+    }
+  ],
+  "evidenceReferences": [],
+  "warnings": [
+    "analysisLevel=TASK_LEVEL_APPROXIMATE",
+    "CROSS findings consume only T2 junctionPassCandidates",
+    "network association blockers limit event-search completeness"
+  ],
+  "consumption": {
+    "inputBytes": 8653,
+    "outputBytes": 3709,
+    "rows": 0,
+    "candidates": 1
+  },
+  "execution": {
+    "providerId": "gowm.analysis.temporal-events",
+    "providerVersion": "0.1.0",
+    "elapsedMs": 15.501009000000067,
+    "resultHash": "sha256:f32e07a5a1b4003c3e29c95736f3b6b93e61d9d38188d34da459ab5fb1a8edb5"
+  }
+}

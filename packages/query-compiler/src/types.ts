@@ -7,6 +7,7 @@ import type {
   OperationLock,
   SnapshotSupport
 } from "@wsgs/gowm-gateway-client";
+import type { AnalysisProviderAuthorization } from "@wsgs/gowm-contract-intake";
 
 export type QuerySemanticPattern =
   | "REFERENCE_IDENTITY"
@@ -40,6 +41,10 @@ export type QuerySemanticPattern =
   | "GDPS_GENERIC_VECTOR_INTERSECTS"
   | "HISTORICAL_EXECUTION_INTERVAL"
   | "HISTORICAL_TRAJECTORY"
+  | "HISTORICAL_ROAD_ASSOCIATION"
+  | "HISTORICAL_TEMPORAL_EVENT"
+  | "HISTORICAL_CROSS_EVENT"
+  | "HISTORICAL_METRIC_RANKING"
   | "TERRAIN_VISIBILITY";
 
 export interface GdpsRecipeAuthorization {
@@ -93,6 +98,9 @@ export interface CompileInput {
   operationLocks: OperationLock[];
   availability: OperationAvailability[];
   maturityPolicy: MaturityPolicy;
+  analysisProviderAuthorizations?: readonly AnalysisProviderAuthorization[];
+  advancedHistoryEnabled?: boolean;
+  grantedPermissions?: readonly string[];
   /** @deprecated Use gdpsRecipeAuthorization; names alone do not authorize PREVIEW operations. */
   previewRecipeIds?: readonly QuerySemanticPattern[];
   /** Exact descriptor and recipe lock entry authorizing a GDPS PREVIEW compilation. */

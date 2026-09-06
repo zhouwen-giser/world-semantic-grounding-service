@@ -5,5 +5,10 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": "./dist/index.js"
+  "exports": "./dist/index.js",
+  "dependencies": {
+    "@wsgs/gowm-contract-intake": "0.2.1",
+    "@wsgs/query-compiler": "0.2.1",
+    "ajv": "8.20.0"
+  }
 }
