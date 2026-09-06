@@ -1,0 +1,19 @@
+{
+  "commit": "a4023f545e7d43beac316abc3ad510f96ccfea61",
+  "sources": [
+    {
+      "path": "contracts/manifests/providers/historical-trace-provider.json",
+      "sha256": "sha256:d572017f23d621d90d4187e8ba159915afddb13e6d39d20dcc1e31329753f94a"
+    },
+    {
+      "path": "contracts/manifests/providers/operational-reality-provider.json",
+      "sha256": "sha256:22a707851fa34c18059953fae430fd49fcff89f48ebc49d1e9c80ffdebf102e3"
+    },
+    {
+      "path": "contracts/consumers/wsgs-southbound-operation-lock-v2.json",
+      "sha256": "sha256:494795c496fe6fae99b4b76a7c14f4341b28abb5af754a43b1530d0c676b325f"
+    }
+  ],
+  "fixtureSha256": "sha256:16af15ff1971f7e52e32dfcf48d74e9cf04eb2053fe4ab7bced95d0174d3deb1",
+  "scope": "Four real history descriptors and their exact source lock entries; no endpoints, credentials or live data"
+}

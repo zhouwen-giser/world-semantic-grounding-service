@@ -47,6 +47,14 @@ required follow-on work. No database URL or deployment credential is used.
   without entering GOWM_EXECUTE, including the default-disabled typed gap.
 - Unchanged 1.0 and 1.1 public results through the same production path.
 
+The discovery suite adds a second real local HTTP Gateway listener. Northbound
+HS256 service tokens are authenticated by the actual API, and the Gateway
+verifies RS256 delegation from the actual worker discovery function. Real pinned
+history and GSAP descriptors are combined with the baseline public catalog in a
+test-only hash-locked deployment. It covers caller changes, permission omission,
+T2 unavailability, metadata failure and unauthenticated rejection. Model readiness
+is controlled false; admission throws if reached. No business operation executes.
+
 Nonempty historical trace, roads, CROSS complete/incomplete, Top-K, structured
 series/rank/action rounds and provider-missing isolation still need HTTP cases.
 Do not treat this initial suite as the complete W06 gate or production readiness.

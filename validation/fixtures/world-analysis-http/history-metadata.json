@@ -1,0 +1,419 @@
+{
+  "capabilities": [
+    {
+      "operationId": "history.get-trajectory",
+      "operationVersion": "1.0",
+      "semanticProfile": {
+        "profileVersion": "1.1",
+        "domain": "ANALYSIS",
+        "acceptedReferenceKinds": [
+          "WORLD_OBJECT",
+          "SPATIAL_OBJECT",
+          "LAYER_FEATURE",
+          "OPERATIONAL_TASK",
+          "DERIVED_REFERENCE",
+          "TASK_EXECUTION_INTERVAL",
+          "HISTORY_METHOD_PROFILE"
+        ],
+        "producedReferenceKinds": [
+          "HISTORICAL_TRAJECTORY",
+          "TRACKLET_VERSION",
+          "TRACKLET_FINALIZATION",
+          "HISTORY_INPUT_SET"
+        ],
+        "relationSemantics": [
+          "TEMPORALLY_OVERLAPS"
+        ],
+        "spatialSemantics": "EXACT",
+        "timeSemantics": "HISTORICAL",
+        "resultNature": "DERIVED",
+        "negativeEvidencePolicy": "NO_DATA_IS_UNKNOWN",
+        "freshnessSemantics": "SNAPSHOT_CURRENTNESS",
+        "domainStatus": {
+          "path": "/status",
+          "mapping": {
+            "COMPLETED": "COMPLETED",
+            "PARTIAL": "PARTIAL",
+            "NO_DATA": "NO_DATA",
+            "INDETERMINATE": "INDETERMINATE"
+          }
+        },
+        "notes": [
+          "The operation returns one stored source-selected trajectory revision and never performs hidden multi-source fusion.",
+          "Every interval, tracklet, finalization, watermark, profile, and analysis-space input is frozen by the returned snapshot or its HISTORY_INPUT_SET resource.",
+          "When no as-of revision or outcome exists, the Provider only idempotently enqueues the exact frozen request and returns PROJECTION_PENDING; construction remains worker-owned.",
+          "The v0.7.1 Provider returns only a bounded preview and does not advertise an artifactReference until a scope-aware artifact registry round trip is qualified."
+        ]
+      },
+      "semanticRole": "DOMAIN_ANALYSIS",
+      "dataBinding": "WORLD_SNAPSHOT_BOUND",
+      "resultSemantics": "DERIVED_ANALYSIS",
+      "executionBindings": [
+        "SYNC_HTTP",
+        "VERSIONED_SQL_CONTRACT"
+      ],
+      "criticalPathPolicy": "REMOTE_ONLY",
+      "maturity": "PREVIEW",
+      "inputSchemaUri": "urn:gowm:v0.7:historical-trajectory-query",
+      "inputSchemaHash": "sha256:cbdbe331192d1e78d3b525a47a5db40f4fbaac477bab2fc37bc700ad9f4ed464",
+      "outputSchemaUri": "urn:gowm:v0.7.1:historical-trajectory-result",
+      "outputSchemaHash": "sha256:d51c07904cc18ec3a67c3bbaebf904f781d407378fc42e9e91debbfc04f1b02d",
+      "scopePolicy": "DATA_SCOPE_REQUIRED",
+      "execution": {
+        "mode": "SYNC",
+        "defaultTimeoutMs": 5000,
+        "maximumTimeoutMs": 30000,
+        "costClass": "MEDIUM"
+      },
+      "limits": {
+        "maximumInputBytes": 1048576,
+        "maximumOutputBytes": 16777216,
+        "maximumRows": 1000,
+        "maximumCandidates": 5000
+      },
+      "snapshotPolicy": {
+        "dataSnapshot": "REQUIRED",
+        "computeSnapshot": "REQUIRED",
+        "resourceResolution": "DISCOVER_RESOURCES"
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "request",
+            "schemaUri": "urn:gowm:v0.7:historical-trajectory-query",
+            "schemaHash": "sha256:cbdbe331192d1e78d3b525a47a5db40f4fbaac477bab2fc37bc700ad9f4ed464",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "result",
+            "schemaUri": "urn:gowm:v0.7.1:historical-trajectory-result",
+            "schemaHash": "sha256:d51c07904cc18ec3a67c3bbaebf904f781d407378fc42e9e91debbfc04f1b02d",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ]
+      }
+    },
+    {
+      "operationId": "operational-task.find",
+      "operationVersion": "1.0",
+      "semanticProfile": {
+        "profileVersion": "1.0",
+        "domain": "WORLD_STATE",
+        "acceptedReferenceKinds": [
+          "DATASET",
+          "DERIVED_REFERENCE",
+          "LAYER",
+          "LAYER_FEATURE",
+          "OPERATIONAL_TASK",
+          "QUERY_RESULT",
+          "REFERENCE_SET",
+          "SPATIAL_OBJECT",
+          "WORLD_OBJECT"
+        ],
+        "producedReferenceKinds": [
+          "DATASET",
+          "DERIVED_REFERENCE",
+          "LAYER",
+          "LAYER_FEATURE",
+          "OPERATIONAL_TASK",
+          "QUERY_RESULT",
+          "REFERENCE_SET",
+          "SPATIAL_OBJECT",
+          "WORLD_OBJECT"
+        ],
+        "relationSemantics": [],
+        "spatialSemantics": "NONE",
+        "timeSemantics": "SNAPSHOT",
+        "resultNature": "PROJECTION",
+        "negativeEvidencePolicy": "NO_DATA_IS_UNKNOWN",
+        "freshnessSemantics": "SNAPSHOT_CURRENTNESS"
+      },
+      "semanticRole": "PROJECTION_QUERY",
+      "dataBinding": "WORLD_SNAPSHOT_BOUND",
+      "resultSemantics": "WORLD_PROJECTION",
+      "executionBindings": [
+        "SYNC_HTTP",
+        "VERSIONED_SQL_CONTRACT"
+      ],
+      "criticalPathPolicy": "REMOTE_ONLY",
+      "maturity": "PREVIEW",
+      "inputSchemaUri": "urn:gowm:v0.4:operational-query-request",
+      "inputSchemaHash": "sha256:8a0a79c862deaa88c082958698f19726fde04c9209a2ea3cc72da4b3d67c8c59",
+      "outputSchemaUri": "urn:gowm:v0.4:operational-query-result",
+      "outputSchemaHash": "sha256:abfcc547d9c47126954507a1b75f5df1baa3b4a9b2432be280c5f2b9ee63633d",
+      "scopePolicy": "DATA_SCOPE_REQUIRED",
+      "execution": {
+        "mode": "SYNC",
+        "defaultTimeoutMs": 10000,
+        "maximumTimeoutMs": 30000,
+        "costClass": "MEDIUM"
+      },
+      "limits": {
+        "maximumInputBytes": 1048576,
+        "maximumOutputBytes": 16777216,
+        "maximumRows": 1000,
+        "maximumCandidates": 5000
+      },
+      "snapshotPolicy": {
+        "dataSnapshot": "REQUIRED",
+        "computeSnapshot": "REQUIRED"
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "request",
+            "schemaUri": "urn:gowm:v0.4:operational-query-request",
+            "schemaHash": "sha256:8a0a79c862deaa88c082958698f19726fde04c9209a2ea3cc72da4b3d67c8c59",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "result",
+            "schemaUri": "urn:gowm:v0.4:operational-query-result",
+            "schemaHash": "sha256:abfcc547d9c47126954507a1b75f5df1baa3b4a9b2432be280c5f2b9ee63633d",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ]
+      }
+    },
+    {
+      "operationId": "operational-task.get",
+      "operationVersion": "1.0",
+      "semanticProfile": {
+        "profileVersion": "1.0",
+        "domain": "WORLD_STATE",
+        "acceptedReferenceKinds": [
+          "DATASET",
+          "DERIVED_REFERENCE",
+          "LAYER",
+          "LAYER_FEATURE",
+          "OPERATIONAL_TASK",
+          "QUERY_RESULT",
+          "REFERENCE_SET",
+          "SPATIAL_OBJECT",
+          "WORLD_OBJECT"
+        ],
+        "producedReferenceKinds": [
+          "DATASET",
+          "DERIVED_REFERENCE",
+          "LAYER",
+          "LAYER_FEATURE",
+          "OPERATIONAL_TASK",
+          "QUERY_RESULT",
+          "REFERENCE_SET",
+          "SPATIAL_OBJECT",
+          "WORLD_OBJECT"
+        ],
+        "relationSemantics": [],
+        "spatialSemantics": "NONE",
+        "timeSemantics": "SNAPSHOT",
+        "resultNature": "PROJECTION",
+        "negativeEvidencePolicy": "NO_DATA_IS_UNKNOWN",
+        "freshnessSemantics": "SNAPSHOT_CURRENTNESS"
+      },
+      "semanticRole": "PROJECTION_QUERY",
+      "dataBinding": "WORLD_SNAPSHOT_BOUND",
+      "resultSemantics": "WORLD_PROJECTION",
+      "executionBindings": [
+        "SYNC_HTTP",
+        "VERSIONED_SQL_CONTRACT"
+      ],
+      "criticalPathPolicy": "REMOTE_ONLY",
+      "maturity": "PREVIEW",
+      "inputSchemaUri": "urn:gowm:v0.4:operational-query-request",
+      "inputSchemaHash": "sha256:8a0a79c862deaa88c082958698f19726fde04c9209a2ea3cc72da4b3d67c8c59",
+      "outputSchemaUri": "urn:gowm:v0.4:operational-task-snapshot",
+      "outputSchemaHash": "sha256:f4e3e990d88efe86de91096166db66689b73209ef5f3cd1d65ddb182534c017c",
+      "scopePolicy": "DATA_SCOPE_REQUIRED",
+      "execution": {
+        "mode": "SYNC",
+        "defaultTimeoutMs": 10000,
+        "maximumTimeoutMs": 30000,
+        "costClass": "MEDIUM"
+      },
+      "limits": {
+        "maximumInputBytes": 1048576,
+        "maximumOutputBytes": 16777216,
+        "maximumRows": 1000,
+        "maximumCandidates": 5000
+      },
+      "snapshotPolicy": {
+        "dataSnapshot": "REQUIRED",
+        "computeSnapshot": "REQUIRED"
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "request",
+            "schemaUri": "urn:gowm:v0.4:operational-query-request",
+            "schemaHash": "sha256:8a0a79c862deaa88c082958698f19726fde04c9209a2ea3cc72da4b3d67c8c59",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "result",
+            "schemaUri": "urn:gowm:v0.4:operational-task-snapshot",
+            "schemaHash": "sha256:f4e3e990d88efe86de91096166db66689b73209ef5f3cd1d65ddb182534c017c",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ]
+      }
+    },
+    {
+      "operationId": "operational-task.get-execution-intervals",
+      "operationVersion": "1.0",
+      "semanticProfile": {
+        "profileVersion": "1.1",
+        "domain": "TEMPORAL",
+        "acceptedReferenceKinds": [
+          "OPERATIONAL_TASK"
+        ],
+        "producedReferenceKinds": [
+          "TASK_EXECUTION_INTERVAL",
+          "TASK_EXECUTION_EVENT_SET",
+          "TASK_EXECUTION_INTERVAL_INPUT_SET",
+          "HISTORY_METHOD_PROFILE"
+        ],
+        "relationSemantics": [],
+        "spatialSemantics": "NONE",
+        "timeSemantics": "INTERVAL",
+        "resultNature": "PROJECTION",
+        "negativeEvidencePolicy": "NO_DATA_IS_UNKNOWN",
+        "freshnessSemantics": "SNAPSHOT_CURRENTNESS",
+        "domainStatus": {
+          "path": "/status",
+          "mapping": {
+            "COMPLETED": "COMPLETED",
+            "PARTIAL": "PARTIAL",
+            "NO_DATA": "NO_DATA",
+            "INDETERMINATE": "INDETERMINATE"
+          }
+        },
+        "notes": [
+          "Intervals are immutable as-of projections over scoped Operational Task Events.",
+          "Open database ranges are rendered only through the effective snapshot capturedAt.",
+          "Interval input event sets remain bound to their immutable revisions while the current event set advances independently at capturedAt."
+        ]
+      },
+      "semanticRole": "PROJECTION_QUERY",
+      "dataBinding": "WORLD_SNAPSHOT_BOUND",
+      "resultSemantics": "WORLD_PROJECTION",
+      "executionBindings": [
+        "SYNC_HTTP",
+        "VERSIONED_SQL_CONTRACT"
+      ],
+      "criticalPathPolicy": "REMOTE_ONLY",
+      "maturity": "PREVIEW",
+      "inputSchemaUri": "urn:gowm:v0.7.1:task-execution-interval-query",
+      "inputSchemaHash": "sha256:ca009622642a4ad35183eb7168fc85e867ca7004aeb572340a1dcce3d4a2d010",
+      "outputSchemaUri": "urn:gowm:v0.7.1:task-execution-interval-result",
+      "outputSchemaHash": "sha256:1927cc0a68542eeaa8887f698748578ea23b9b305d97b3cafb73dd7dc53011ee",
+      "scopePolicy": "DATA_SCOPE_REQUIRED",
+      "execution": {
+        "mode": "SYNC",
+        "defaultTimeoutMs": 10000,
+        "maximumTimeoutMs": 30000,
+        "costClass": "MEDIUM"
+      },
+      "limits": {
+        "maximumInputBytes": 1048576,
+        "maximumOutputBytes": 16777216,
+        "maximumRows": 1000,
+        "maximumCandidates": 5000
+      },
+      "snapshotPolicy": {
+        "dataSnapshot": "REQUIRED",
+        "computeSnapshot": "REQUIRED",
+        "resourceResolution": "DISCOVER_RESOURCES"
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "request",
+            "schemaUri": "urn:gowm:v0.7.1:task-execution-interval-query",
+            "schemaHash": "sha256:ca009622642a4ad35183eb7168fc85e867ca7004aeb572340a1dcce3d4a2d010",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "result",
+            "schemaUri": "urn:gowm:v0.7.1:task-execution-interval-result",
+            "schemaHash": "sha256:1927cc0a68542eeaa8887f698748578ea23b9b305d97b3cafb73dd7dc53011ee",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          },
+          {
+            "name": "executionIntervalReferenceKey",
+            "path": "/intervals/0/executionIntervalReferenceKey",
+            "schemaUri": "urn:gowm:v0.7:reference-key",
+            "schemaHash": "sha256:7e343abf625147fba0cec228a88c640ee630f6c3a1a22b5e4bcf90e56190c861",
+            "valueKind": "REFERENCE_KEY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ]
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operationId": "history.get-trajectory",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:cbdbe331192d1e78d3b525a47a5db40f4fbaac477bab2fc37bc700ad9f4ed464",
+      "outputSchemaHash": "sha256:d51c07904cc18ec3a67c3bbaebf904f781d407378fc42e9e91debbfc04f1b02d",
+      "semanticProfileHash": "sha256:e5d7d097098a8c3f57e4c98d58575be25fc4779bf0c365457cebd0e0584b2dc2",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "operational-task.find",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:8a0a79c862deaa88c082958698f19726fde04c9209a2ea3cc72da4b3d67c8c59",
+      "outputSchemaHash": "sha256:abfcc547d9c47126954507a1b75f5df1baa3b4a9b2432be280c5f2b9ee63633d",
+      "semanticProfileHash": "sha256:2457793708b3c144eae88ee189d57bdf01816d58472dec8ce02b88106fdbca3b",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "operational-task.get-execution-intervals",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:ca009622642a4ad35183eb7168fc85e867ca7004aeb572340a1dcce3d4a2d010",
+      "outputSchemaHash": "sha256:1927cc0a68542eeaa8887f698748578ea23b9b305d97b3cafb73dd7dc53011ee",
+      "semanticProfileHash": "sha256:54bc15f64bb7b406c7fa007aad556d806736f8ae4d003ad866e031fd5ddd5744",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    },
+    {
+      "operationId": "operational-task.get",
+      "operationVersion": "1.0",
+      "inputSchemaHash": "sha256:8a0a79c862deaa88c082958698f19726fde04c9209a2ea3cc72da4b3d67c8c59",
+      "outputSchemaHash": "sha256:f4e3e990d88efe86de91096166db66689b73209ef5f3cd1d65ddb182534c017c",
+      "semanticProfileHash": "sha256:2457793708b3c144eae88ee189d57bdf01816d58472dec8ce02b88106fdbca3b",
+      "maturity": "PREVIEW",
+      "requiredPermissions": [
+        "data:read"
+      ],
+      "snapshotSupport": "CONSISTENT_AT_START"
+    }
+  ]
+}

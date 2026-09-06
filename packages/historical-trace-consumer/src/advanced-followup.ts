@@ -19,6 +19,50 @@ export interface AdvancedFollowup {
   publicReuse?: AdvancedHistoricalExecutionResult;
 }
 
+/** Combine independently authenticated choices from one saved result, without reusing a derived target across reference changes. */
+export function resolvePublicAdvancedFollowups(text: string, result: GroundingResult12,
+  selections: readonly { choiceId: string; candidateId: string }[], prior: AdvancedHistoricalExecutionResult,
+  catalog: MetricSemanticCatalog, config: AdvancedHistoryConfiguration, now = Date.now()): AdvancedFollowup {
+  const reject = (): AdvancedFollowup => ({ resolution: { status: "UNRESOLVED", reasonCode: "SELECTION_AMBIGUOUS" }, compare: false });
+  if (selections.length === 0 || selections.length > 8 || new Set(selections.map(value => value.choiceId)).size !== selections.length) return reject();
+  if (selections.length === 1) return resolvePublicAdvancedFollowup(text, result, selections[0]!.choiceId, selections[0]!.candidateId, prior, catalog, config, now);
+  if (advancedSelectionRank(text) !== undefined) return reject();
+  const entries = selections.map(selection => {
+    const choice = result.worldAnalysisFindings.choices.find(value => value.choiceId === selection.choiceId);
+    return { selection, choice, candidate: choice?.candidates.find(value => value.candidateId === selection.candidateId) };
+  });
+  if (entries.some(entry => !entry.choice || !entry.candidate) || entries.filter(entry => !("referenceProductId" in entry.candidate!)).length > 1) return reject();
+  const references = entries.filter(entry => "referenceProductId" in entry.candidate!);
+  const derived = entries.filter(entry => !("referenceProductId" in entry.candidate!));
+  let current = prior;
+  let followup: AdvancedFollowup | undefined;
+  const roles = new Set<string>();
+  for (const entry of [...references, ...derived]) {
+    followup = resolvePublicAdvancedFollowup(text, result, entry.selection.choiceId, entry.selection.candidateId, current, catalog, config, now);
+    if (followup.resolution.status !== "PARSED") return followup;
+    if ("referenceProductId" in entry.candidate!) {
+      const productId = entry.candidate!.referenceProductId;
+      const product = result.referenceProducts.find(value => value.productId === productId);
+      if (!product) return reject();
+      const intent = followup.resolution.intent;
+      const selected = analysisHash(product.referenceKey);
+      const target = intent.analysis.kind === "TEMPORAL_EVENT" ? intent.analysis.targetReferenceKey : undefined;
+      const role = product.referenceKey.kind === "OPERATIONAL_TASK" ? "task" : target && analysisHash(target) === selected ? "target" : "subject";
+      if (roles.has(role)) return reject();
+      roles.add(role);
+    }
+    current = { ...prior, intent: followup.resolution.intent };
+  }
+  if (!followup || followup.resolution.status !== "PARSED") return reject();
+  // All referenced objects must pass current reference validation and execute a
+  // new query. A rank from the old subject/task must not pick a new-world target.
+  if (references.length) {
+    delete followup.publicReuse; delete followup.reusableFoundation; delete followup.reuse;
+    if (followup.resolution.intent.analysis.kind === "METRIC_RANKING") delete followup.resolution.intent.analysis.selectedRank;
+  }
+  return followup;
+}
+
 /** Called only after the stored Choice and its private checkpoint have been authorized. */
 export function resolvePublicAdvancedFollowup(text: string, result: GroundingResult12, choiceId: string, candidateId: string,
   prior: AdvancedHistoricalExecutionResult, catalog: MetricSemanticCatalog, config: AdvancedHistoryConfiguration, now = Date.now()): AdvancedFollowup {

@@ -78,7 +78,7 @@ import {
   MetricSemanticCatalog,
   decodeStoredAdvancedHistory,
   resolveAdvancedFollowup,
-  resolvePublicAdvancedFollowup,
+  resolvePublicAdvancedFollowups,
   advancedSelectionRank,
   type PriorAdvancedHistory,
   type AdvancedFollowup,
@@ -2937,28 +2937,33 @@ export async function createPipelineStageExecutor(
       const publicSelectionRequested = isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION)) &&
         (structuredSelections.length > 0 || priorGroundings.length > 0 && ordinal !== undefined);
       let publicAnalysisAuthority: PriorAnalysisAuthority | undefined;
+      const publicAnalysisAuthorities: PriorAnalysisAuthority[] = [];
       let publicFollowup: AdvancedFollowup | undefined;
       const publicKnownReferences: JsonObject[] = [];
       if (publicSelectionRequested) {
         try {
-          if (structuredSelections.length > 1 || priorGroundings.length !== 1 || !options.priorAnalysisJournal) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
-          publicAnalysisAuthority = await loadPriorAnalysisAuthority({ pool: value.pool, journal: options.priorAnalysisJournal,
+          if (structuredSelections.length > 8 || priorGroundings.length !== 1 || !options.priorAnalysisJournal || structuredSelections.length > 1 && ordinal !== undefined) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
+          for (const selection of structuredSelections.length ? structuredSelections : [undefined]) {
+            publicAnalysisAuthorities.push(await loadPriorAnalysisAuthority({ pool: value.pool, journal: options.priorAnalysisJournal,
             identity: { ...identity(context), authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest }, dataScope: identity(context).dataScope, pointer: priorGroundings[0] as PriorGroundingPointer,
-            ...(structuredSelections[0] ? { selection: structuredSelections[0] as NonNullable<GroundingRequest12["analysisSelections"]>[number] } : {}),
-            ...(ordinal === undefined ? {} : { ordinal }) });
-          if ("referenceProductId" in publicAnalysisAuthority.candidate) {
-            const selectedId = publicAnalysisAuthority.candidate.referenceProductId;
-            const product = publicAnalysisAuthority.result.referenceProducts.find(item => item.productId === selectedId)!;
-            const ambiguity = publicAnalysisAuthority.result.ambiguities.find(item => item.candidateProductIds.includes(selectedId));
+            ...(selection ? { selection: selection as NonNullable<GroundingRequest12["analysisSelections"]>[number] } : {}),
+            ...(ordinal === undefined ? {} : { ordinal }) }));
+          }
+          publicAnalysisAuthority = publicAnalysisAuthorities[0]!;
+          for (const selected of publicAnalysisAuthorities) if ("referenceProductId" in selected.candidate) {
+            const selectedId = selected.candidate.referenceProductId;
+            const product = selected.result.referenceProducts.find(item => item.productId === selectedId)!;
+            const ambiguity = selected.result.ambiguities.find(item => item.candidateProductIds.includes(selectedId));
             publicKnownReferences.push({ referenceKey: product.referenceKey, referenceType: product.referenceType,
-              sourceMessageId: publicAnalysisAuthority.result.source.messageId, sourceGroundingId: publicAnalysisAuthority.result.groundingId,
+              sourceMessageId: selected.result.source.messageId, sourceGroundingId: selected.result.groundingId,
               ...(ambiguity ? { alias: ambiguity.surfaceText } : {}), ...(product.validUntil ? { validUntil: product.validUntil } : {}) });
           }
-          if (publicAnalysisAuthority.advanced) publicFollowup = resolvePublicAdvancedFollowup(sourceText, publicAnalysisAuthority.result,
-            publicAnalysisAuthority.choice.choiceId, publicAnalysisAuthority.candidate.candidateId,
+          if (publicAnalysisAuthority.advanced) publicFollowup = resolvePublicAdvancedFollowups(sourceText, publicAnalysisAuthority.result,
+            publicAnalysisAuthorities.map(selected => ({ choiceId: selected.choice.choiceId, candidateId: selected.candidate.candidateId })),
             publicAnalysisAuthority.advanced, value.metricCatalog, value.advancedHistory);
         } catch (error) {
           if (!(error instanceof PriorGroundingError)) throw error;
+          publicAnalysisAuthority = undefined; publicAnalysisAuthorities.length = 0; publicKnownReferences.length = 0;
           publicFollowup = { resolution: { status: "UNRESOLVED", reasonCode: error.code }, compare: false };
         }
       }
@@ -3024,6 +3029,7 @@ export async function createPipelineStageExecutor(
         ...(historicalFollowup ? { historicalFollowup } : {}),
         ...(advancedFollowup ? { advancedFollowup } : {}),
         ...(publicAnalysisAuthority ? { publicAnalysisAuthority } : {}),
+        ...(publicAnalysisAuthorities.length ? { publicAnalysisAuthorities } : {}),
         mapSelections: parts.capsule["mapSelections"],
         externalCorrelationHints: parts.capsule["externalCorrelationHints"],
         externalPredicates: parts.capsule["externalPredicates"]
@@ -3445,8 +3451,11 @@ export async function createPipelineStageExecutor(
         const authority = persistedAuthority(context, value.gateway);
         const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
         const parts = requestParts(context);
-        const selectedAuthority = stageValue<{ publicAnalysisAuthority?: PriorAnalysisAuthority }>(context, "LOAD_CONTEXT").publicAnalysisAuthority;
-        if (selectedAuthority && "referenceProductId" in selectedAuthority.candidate) {
+        const selectionContext = stageValue<{ publicAnalysisAuthority?: PriorAnalysisAuthority; publicAnalysisAuthorities?: PriorAnalysisAuthority[] }>(context, "LOAD_CONTEXT");
+        const selectedAuthorities = selectionContext.publicAnalysisAuthorities ?? (selectionContext.publicAnalysisAuthority ? [selectionContext.publicAnalysisAuthority] : []);
+        for (const selectedAuthority of selectedAuthorities) {
+          if (Date.parse(selectedAuthority.choice.validUntil) <= Date.now()) return { outcomes: [], advancedFailure: "SELECTION_EXPIRED" };
+          if (!("referenceProductId" in selectedAuthority.candidate)) continue;
           const selectedId = selectedAuthority.candidate.referenceProductId;
           const selectedKey = selectedAuthority.result.referenceProducts.find(product => product.productId === selectedId)!.referenceKey;
           const validated = references.referenceProducts.find(product => canonicalSha256(product.referenceKey) === canonicalSha256(selectedKey));

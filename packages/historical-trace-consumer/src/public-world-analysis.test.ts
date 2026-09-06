@@ -6,7 +6,7 @@ import { projectPublicWorldAnalysis, assemblePublicWorldAnalysisResult, boundPub
 import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation } from "./advanced-types.js";
 import type { HistoricalReferenceKey } from "./types.js";
 import { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
-import { resolvePublicAdvancedFollowup } from "./advanced-followup.js";
+import { resolvePublicAdvancedFollowup, resolvePublicAdvancedFollowups } from "./advanced-followup.js";
 import { advancedHistoryConfigurationFromEnvironment } from "./advanced-config.js";
 
 const contracts = new AnalysisProviderContracts();
@@ -74,6 +74,53 @@ function setup(name: string, action = false) {
 }
 
 describe("public world analysis projection", () => {
+  it.each([false, true])("combines independently selected subject and task without old target reuse (reverse=%s)", reverse => {
+    const input = setup("metric-shared-campus", true);
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const choices = first.referenceProducts.slice(0, 2).map((product, index) => ({ choiceId: `combined-${index}`,
+      choiceKind: index === 0 ? "REFERENCE_SELECTION" as const : "TASK_SELECTION" as const,
+      promptCode: "REFERENCE_AMBIGUOUS", validUntil, candidates: [{ candidateId: `candidate-${index}`, displayName: product.displayName, referenceProductId: product.productId }] }));
+    first.worldAnalysisFindings.choices.push(...choices);
+    first.worldAnalysisFindings.findingSetHash = worldAnalysisFindingSetHash(first.worldAnalysisFindings); first.resultHash = worldAnalysisResultHash(first);
+    expect(validate("result", first).valid).toBe(true);
+    const selections = choices.map(choice => ({ choiceId: choice.choiceId, candidateId: choice.candidates[0]!.candidateId }));
+    const followup = resolvePublicAdvancedFollowups("选择这些对象", first, reverse ? selections.reverse() : selections, input.advanced, catalog,
+      advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.resolution).toMatchObject({ status: "PARSED", intent: { historicalScope: {
+      subjectReferenceKey: first.referenceProducts[0]!.referenceKey, taskReferenceKey: first.referenceProducts[1]!.referenceKey } } });
+    expect(followup.publicReuse).toBeUndefined(); expect(followup.reusableFoundation).toBeUndefined();
+  });
+  it.each(["ordinal", "same-role", "duplicate-choice"])("rejects ambiguous combined selections: %s", mode => {
+    const input = setup("metric-shared-campus");
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const product = first.referenceProducts[0]!;
+    const choices = [0, 1].map(index => ({ choiceId: `combined-${index}`, choiceKind: "REFERENCE_SELECTION" as const,
+      promptCode: "REFERENCE_AMBIGUOUS", validUntil, candidates: [{ candidateId: `candidate-${index}`, displayName: product.displayName, referenceProductId: product.productId }] }));
+    first.worldAnalysisFindings.choices.push(...choices);
+    const selections = choices.map(choice => ({ choiceId: choice.choiceId, candidateId: choice.candidates[0]!.candidateId }));
+    if (mode === "duplicate-choice") selections[1] = selections[0]!;
+    const followup = resolvePublicAdvancedFollowups(mode === "ordinal" ? "选择第一个" : "选择这些对象", first, selections, input.advanced, catalog,
+      advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.resolution).toEqual({ status: "UNRESOLVED", reasonCode: "SELECTION_AMBIGUOUS" });
+  });
+  it("does not carry an old rank or action result across a combined reference selection", () => {
+    const input = setup("metric-shared-campus", true);
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const ranking = first.worldAnalysisFindings.choices.find(choice => choice.choiceKind === "RANKED_LOCATION_SELECTION")!;
+    const product = first.referenceProducts[0]!;
+    const reference = { choiceId: "combined-subject", choiceKind: "REFERENCE_SELECTION" as const, promptCode: "REFERENCE_AMBIGUOUS", validUntil,
+      candidates: [{ candidateId: "combined-subject-candidate", displayName: product.displayName, referenceProductId: product.productId }] };
+    first.worldAnalysisFindings.choices.push(reference);
+    const followup = resolvePublicAdvancedFollowups("回到这个位置", first, [
+      { choiceId: ranking.choiceId, candidateId: ranking.candidates[0]!.candidateId },
+      { choiceId: reference.choiceId, candidateId: reference.candidates[0]!.candidateId }
+    ], input.advanced, catalog, advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.resolution.status).toBe("PARSED");
+    if (followup.resolution.status !== "PARSED") throw new Error("expected parsed combined selection");
+    expect(followup.resolution.intent.analysis).toMatchObject({ kind: "METRIC_RANKING", actionTargetRequested: true });
+    expect(followup.resolution.intent.analysis).not.toHaveProperty("selectedRank");
+    expect(followup.publicReuse).toBeUndefined(); expect(followup.reusableFoundation).toBeUndefined();
+  });
   it("keeps a WORLD_OBJECT event target distinct from the historical subject", () => {
     const input = setup("enter");
     const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));

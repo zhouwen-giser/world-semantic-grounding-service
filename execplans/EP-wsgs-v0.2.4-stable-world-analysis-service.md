@@ -50,6 +50,10 @@ The working tree was clean. Dedicated branch:
   multiround scenarios remain open; this is not full WA-058 through WA-061 PASS.
 - W07 NOT_STARTED: isolated consumer handoff, independent final review, all
   72 evidence-backed rows, report verifier and dedicated Draft PR.
+  Preparation only: disposable offline bundle builder and consumer verifier
+  exercise copied frozen contracts plus six explicit validator dependencies.
+  No permanent handoff is published and no W07 acceptance completion is claimed;
+  W06 remains the preceding gate. See W07/handoff-preparation.json for exact scope.
 
 ## Contract Discipline
 
