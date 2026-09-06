@@ -15,6 +15,28 @@ function fixture() {
 }
 
 describe("stored 1.2 analysis selection authority", () => {
+  it("infers an ordinal only from one authenticated stored Choice", () => {
+    const { selection: _selection, ...input } = fixture();
+    expect(resolveStoredAnalysisSelection({ ...input, ordinal: 2 }).candidate).toMatchObject({ candidateId: "candidate-2", rank: 2 });
+    expect(() => resolveStoredAnalysisSelection({ ...input, ordinal: 100 })).toThrow("SELECTION_INVALID");
+    input.stored.resultBytes = Buffer.from(JSON.stringify({ ...example("ranking"), warnings: ["tampered"] }));
+    expect(() => resolveStoredAnalysisSelection({ ...input, ordinal: 2 })).toThrow("SELECTION_INVALID");
+  });
+  it("clarifies multiple saved Choices rather than choosing one by position", () => {
+    const { selection: _selection, ...input } = fixture();
+    const result = example("all-choices");
+    input.stored.resultBytes = Buffer.from(JSON.stringify(result));
+    input.stored.resultHash = result.resultHash;
+    input.pointer.resultHash = result.resultHash;
+    expect(() => resolveStoredAnalysisSelection({ ...input, ordinal: 2 })).toThrow("SELECTION_AMBIGUOUS");
+  });
+  it("rejects conflicting ordinal and explicit candidate", () => {
+    expect(() => resolveStoredAnalysisSelection({ ...fixture(), ordinal: 1 })).toThrow("SELECTION_AMBIGUOUS");
+  });
+  it.each([0, -1, 101, 1.5, NaN])("rejects invalid ordinal %s", ordinal => {
+    const { selection: _selection, ...input } = fixture();
+    expect(() => resolveStoredAnalysisSelection({ ...input, ordinal })).toThrow("SELECTION_INVALID");
+  });
   it("resolves a saved rank candidate without requiring a fake ReferenceProduct", () => {
     const input = fixture();
     const resolved = resolveStoredAnalysisSelection(input);

@@ -23,6 +23,7 @@ const codePattern = /^[A-Z][A-Z0-9_:.@/-]{0,255}$/u;
 const codes = (values: readonly string[]) => [...new Set(values.filter(value => codePattern.test(value)))].slice(0, 100);
 const range = (value: TimeRange) => ({ start: value.start, end: value.end, bounds: value.bounds ?? "UNSPECIFIED" });
 const stableId = (prefix: string, value: unknown) => `${prefix}-${hash(value).slice(7, 39)}`;
+export const publicWorldAnalysisEventId = (groundingId: string, sourceId: string, eventId: string) => stableId("event", { groundingId, source: { sourceId, eventId } });
 
 class ProjectionError extends Error {
   constructor(readonly gapKind: GapKind) { super(gapKind); }
@@ -165,9 +166,27 @@ export function projectPublicWorldAnalysis(input: {
         const value = {
           ...base("TEMPORAL_EVENT", sourceId, result.status, result.subjectReferenceKey, [evidenceId], [...result.warnings, result.reasonCode], result.events.length),
           ...optionalReference("trajectoryReferenceProductId", result.source.trajectoryReferenceKey),
-          ...projectEvents(result, eventId => id("event", { sourceId, eventId }), reference, evidenceId)
+          ...projectEvents(result, eventId => publicWorldAnalysisEventId(context.groundingId, sourceId, eventId), reference, evidenceId)
         };
-        findings.push(accept(value, "temporal-event"));
+        const selected = input.advanced?.publicEventSelection;
+        if (selected) {
+          if (selected.sourceResultHash !== sourceId || !result.events.some(event => event.eventId === selected.eventId)) throw new ProjectionError("SELECTION_INVALID");
+          const selectedId = publicWorldAnalysisEventId(context.groundingId, sourceId, selected.eventId);
+          const projected = value as Json;
+          projected["events"] = (projected["events"] as Json[]).filter(event => event["eventId"] === selectedId);
+          const display = projected["display"] as Json;
+          projected["display"] = { returnedCount: 1, sourceCount: display["sourceCount"] ?? result.events.length, truncated: display["truncated"] === true || result.events.length > 1 };
+          const proof = projected["selection"] as Json | undefined;
+          if (proof && proof["selectedEventId"] !== selectedId) delete projected["selection"];
+        }
+        const eventFinding = accept(value, "temporal-event");
+        findings.push(eventFinding);
+        if (eventFinding.findingKind === "TEMPORAL_EVENT" && eventFinding.events.length > 0) {
+          choices.push({ choiceId: id("choice", { sourceId, kind: "event" }), choiceKind: "EVENT_SELECTION",
+            promptCode: "EVENT_SELECTION", validUntil: context.validUntil, sourceFindingId: eventFinding.findingId,
+            candidates: eventFinding.events.map((event, index) => ({ candidateId: id("candidate", { sourceId, eventId: event.eventId }),
+              displayName: `${event.eventType} ${index + 1}`, findingId: eventFinding.findingId, eventId: event.eventId })) });
+        }
       } else {
         const result = input.contracts.validateResult(source.operationId, envelope.output.value);
         assertScope(result.trajectoryReferenceKey, result.subjectReferenceKey);

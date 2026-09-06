@@ -30,7 +30,8 @@ export async function loadPriorAnalysisAuthority(input: {
   identity: PriorGroundingIdentity;
   dataScope: string;
   pointer: PriorGroundingPointer;
-  selection: NonNullable<GroundingRequest12["analysisSelections"]>[number];
+  selection?: NonNullable<GroundingRequest12["analysisSelections"]>[number];
+  ordinal?: number;
   now?: Date;
 }): Promise<PriorAnalysisAuthority> {
   const found = await input.pool.query<PriorRow>(

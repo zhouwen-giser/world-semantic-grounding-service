@@ -37,5 +37,6 @@ export interface AdvancedHistoricalExecutionResult {
   findings: Record<string, unknown>[];
   operations: string[];
   planHash?: string;
+  publicEventSelection?: { sourceResultHash: string; eventId: string };
   comparison?: { changed: boolean; changedFields: string[] };
 }

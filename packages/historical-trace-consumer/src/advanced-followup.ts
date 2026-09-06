@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { GroundingResult12 } from "@wsgs/contracts";
 import { analysisHash, type MetricSeriesIdentity } from "@wsgs/gowm-contract-intake";
 import { canReuseAdvancedFoundation } from "./advanced-executor.js";
+import { publicWorldAnalysisEventId } from "./public-world-analysis.js";
 import { advancedSelectionRank, parseAdvancedHistoricalIntent } from "./advanced-intent.js";
 import type { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
 import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation, AdvancedHistoricalIntent, AdvancedHistoryConfiguration, AdvancedIntentResolution } from "./advanced-types.js";
@@ -25,13 +26,32 @@ export function resolvePublicAdvancedFollowup(text: string, result: GroundingRes
   const choice = result.worldAnalysisFindings.choices.find(value => value.choiceId === choiceId);
   const candidate = choice?.candidates.find(value => value.candidateId === candidateId);
   if (!choice || !candidate || !prior.foundation) return reject("SELECTION_INVALID");
+  const ordinals = (text.match(/第\s*(?:[1-9][0-9]*|[一二三四五六七八九十]+)\s*个/gu) ?? []).map(advancedSelectionRank);
+  if (new Set(ordinals).size > 1) return reject("SELECTION_AMBIGUOUS");
   const parsed = parseAdvancedHistoricalIntent(text, catalog, config, prior.intent);
   if (parsed.status === "UNRESOLVED") return { resolution: parsed, compare: false };
   if (parsed.status === "NOT_ADVANCED" && !/选择|选中|就这个|这个位置|使用|第.*个|^use\b|^select\b|回到|返回|前往/iu.test(text)) return reject("SELECTION_AMBIGUOUS");
   const intent = structuredClone(parsed.status === "PARSED" ? parsed.intent : prior.intent);
   const compare = /更新|重查|重新|最新|最近一次|本次|第.*次(?:任务|执行)|refresh|recompute/iu.test(text);
   const ordinal = advancedSelectionRank(text);
-  if (ordinal !== undefined && (!("rank" in candidate) || ordinal !== candidate.rank)) return reject("SELECTION_AMBIGUOUS");
+  if (ordinal !== undefined && ("rank" in candidate ? ordinal !== candidate.rank : choice.candidates.findIndex(value => value.candidateId === candidateId) + 1 !== ordinal)) return reject("SELECTION_AMBIGUOUS");
+  if (choice.choiceKind === "EVENT_SELECTION" && "eventId" in candidate && intent.analysis.kind === "TEMPORAL_EVENT" && prior.intent.analysis.kind === "TEMPORAL_EVENT") {
+    const reusable = !compare && canReuseAdvancedFoundation(prior.foundation, intent, now);
+    const followup: AdvancedFollowup = { resolution: { status: "PARSED", intent }, compare, ...(reusable ? { reusableFoundation: prior.foundation } : {}) };
+    if (!reusable || analysisHash(intent.analysis) !== analysisHash(prior.intent.analysis)) return followup;
+    const sourceFinding = result.worldAnalysisFindings.findings.find(value => value.findingId === candidate.findingId);
+    if (sourceFinding?.findingKind !== "TEMPORAL_EVENT" || !sourceFinding.events.some(event => event.eventId === candidate.eventId)) return reject("SELECTION_INVALID");
+    for (const source of prior.analysisEvidence) {
+      if (source.operationId !== "temporal-spatial.find-events" || !("events" in source.envelope.output.value)) continue;
+      const sourceHash = source.envelope.execution.resultHash;
+      const selected = source.envelope.output.value.events.find(event => publicWorldAnalysisEventId(result.groundingId, sourceHash, event.eventId) === candidate.eventId);
+      if (selected) {
+        followup.publicReuse = { ...structuredClone(prior), intent, publicEventSelection: { sourceResultHash: sourceHash, eventId: selected.eventId } };
+        return followup;
+      }
+    }
+    return reject("SELECTION_INVALID");
+  }
   if (intent.analysis.kind !== "METRIC_RANKING" || prior.intent.analysis.kind !== "METRIC_RANKING") return reject("SELECTION_AMBIGUOUS");
   intent.analysis.actionTargetRequested = /回到|返回|前往|^去|让.*去/iu.test(text);
   const sameMetric = intent.analysis.metricConceptId === prior.intent.analysis.metricConceptId && analysisHash(intent.analysis.metricSelector) === analysisHash(prior.intent.analysis.metricSelector);

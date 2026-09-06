@@ -51,17 +51,23 @@ export function resolveStoredAnalysisSelection(input: {
   identity: PriorGroundingIdentity;
   dataScope: string;
   pointer: PriorGroundingPointer;
-  selection: NonNullable<GroundingRequest12["analysisSelections"]>[number];
+  selection?: NonNullable<GroundingRequest12["analysisSelections"]>[number];
+  ordinal?: number;
   stored: StoredPriorAnalysis | null;
   now?: Date;
 }): ResolvedPriorAnalysisSelection {
   const identity = validateIdentity(input.identity, input.dataScope);
-  const selection = object(input.selection, "SELECTION_INVALID");
-  if (Object.keys(selection).sort().join(",") !== "candidateId,choiceId,findingSetHash,priorGroundingId,priorResultHash") throw new PriorGroundingError("SELECTION_INVALID");
-  for (const key of ["candidateId", "choiceId", "priorGroundingId"]) boundedString(selection[key], "SELECTION_INVALID");
-  for (const key of ["findingSetHash", "priorResultHash"]) if (!isSha256(selection[key])) throw new PriorGroundingError("SELECTION_INVALID");
+  let selection = input.selection === undefined ? undefined : object(input.selection, "SELECTION_INVALID");
+  if (selection) {
+    if (Object.keys(selection).sort().join(",") !== "candidateId,choiceId,findingSetHash,priorGroundingId,priorResultHash") throw new PriorGroundingError("SELECTION_INVALID");
+    for (const key of ["candidateId", "choiceId", "priorGroundingId"]) boundedString(selection[key], "SELECTION_INVALID");
+    for (const key of ["findingSetHash", "priorResultHash"]) if (!isSha256(selection[key])) throw new PriorGroundingError("SELECTION_INVALID");
+  }
+  if (input.ordinal !== undefined && (!Number.isSafeInteger(input.ordinal) || input.ordinal < 1 || input.ordinal > 100)) throw new PriorGroundingError("SELECTION_INVALID");
+  if (!selection && input.ordinal === undefined) throw new PriorGroundingError("SELECTION_INVALID");
   const pointer = object(input.pointer, "SELECTION_INVALID");
-  if (Object.keys(pointer).some(key => !pointerKeys.has(key)) || pointer["groundingId"] !== selection["priorGroundingId"] || pointer["resultHash"] !== selection["priorResultHash"]) throw new PriorGroundingError("SELECTION_INVALID");
+  if (Object.keys(pointer).some(key => !pointerKeys.has(key)) || !isSha256(pointer["resultHash"]) ||
+    selection && (pointer["groundingId"] !== selection["priorGroundingId"] || pointer["resultHash"] !== selection["priorResultHash"])) throw new PriorGroundingError("SELECTION_INVALID");
   const selectedProductIds = stringArray(pointer["selectedProductIds"], "INVALID_SELECTED_PRODUCT_IDS", 100);
   const stored = input.stored;
   if (!stored || stored.groundingId !== pointer["groundingId"] || stored.actorId !== identity.actorId || stored.servicePrincipalId !== identity.servicePrincipalId ||
@@ -72,11 +78,21 @@ export function resolveStoredAnalysisSelection(input: {
     result = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(stored.resultBytes)) as GroundingResult12;
   } catch { throw new PriorGroundingError("SELECTION_INVALID"); }
   if (!validateWorldAnalysis("result", result).valid || result.groundingId !== stored.groundingId || result.resultHash !== stored.resultHash ||
-    result.worldAnalysisFindings.findingSetHash !== selection["findingSetHash"]) throw new PriorGroundingError("SELECTION_INVALID");
+    selection && result.worldAnalysisFindings.findingSetHash !== selection["findingSetHash"]) throw new PriorGroundingError("SELECTION_INVALID");
+  if (!selection) {
+    if (result.worldAnalysisFindings.choices.length !== 1) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
+    const unique = result.worldAnalysisFindings.choices[0]!;
+    const inferred = unique.choiceKind === "RANKED_LOCATION_SELECTION"
+      ? unique.candidates.find(value => value.rank === input.ordinal) : unique.candidates[input.ordinal! - 1];
+    if (!inferred) throw new PriorGroundingError("SELECTION_INVALID");
+    selection = { priorGroundingId: result.groundingId, priorResultHash: result.resultHash,
+      findingSetHash: result.worldAnalysisFindings.findingSetHash, choiceId: unique.choiceId, candidateId: inferred.candidateId };
+  }
   if (selectedProductIds.some(id => !result.referenceProducts.some(product => product.productId === id))) throw new PriorGroundingError("INVALID_SELECTED_PRODUCT_IDS");
   const choice = result.worldAnalysisFindings.choices.find(value => value.choiceId === selection["choiceId"]);
   const candidate = choice?.candidates.find(value => value.candidateId === selection["candidateId"]);
   if (!choice || !candidate) throw new PriorGroundingError("SELECTION_INVALID");
+  if (input.ordinal !== undefined && ("rank" in candidate ? candidate.rank : choice.candidates.findIndex(value => value.candidateId === candidate.candidateId) + 1) !== input.ordinal) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
   const now = (input.now ?? new Date()).getTime();
   const expiry = [Date.parse(stored.expiresAt), Date.parse(choice.validUntil)];
   const sourceFindingId = "findingId" in candidate ? candidate.findingId : choice.sourceFindingId;

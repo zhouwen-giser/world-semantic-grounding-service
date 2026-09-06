@@ -77,6 +77,7 @@ import {
   decodeStoredAdvancedHistory,
   resolveAdvancedFollowup,
   resolvePublicAdvancedFollowup,
+  advancedSelectionRank,
   type PriorAdvancedHistory,
   type AdvancedFollowup,
   type AdvancedHistoricalFoundation,
@@ -2877,15 +2878,19 @@ export async function createPipelineStageExecutor(
         : [];
       const sourceText = text(parts.source["originalText"], "SOURCE_TEXT_MISSING");
       const selectionValues = request(context)["analysisSelections"];
-      const publicSelectionRequested = isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION)) && Array.isArray(selectionValues) && selectionValues.length > 0;
+      const ordinal = advancedSelectionRank(sourceText);
+      const structuredSelections = Array.isArray(selectionValues) ? selectionValues : [];
+      const publicSelectionRequested = isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION)) &&
+        (structuredSelections.length > 0 || priorGroundings.length > 0 && ordinal !== undefined);
       let publicAnalysisAuthority: PriorAnalysisAuthority | undefined;
       let publicFollowup: AdvancedFollowup | undefined;
       if (publicSelectionRequested) {
         try {
-          if (selectionValues.length !== 1 || priorGroundings.length !== 1 || !options.priorAnalysisJournal) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
+          if (structuredSelections.length > 1 || priorGroundings.length !== 1 || !options.priorAnalysisJournal) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
           publicAnalysisAuthority = await loadPriorAnalysisAuthority({ pool: value.pool, journal: options.priorAnalysisJournal,
             identity: { ...identity(context), authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest }, dataScope: identity(context).dataScope, pointer: priorGroundings[0] as PriorGroundingPointer,
-            selection: selectionValues[0] as NonNullable<GroundingRequest12["analysisSelections"]>[number] });
+            ...(structuredSelections[0] ? { selection: structuredSelections[0] as NonNullable<GroundingRequest12["analysisSelections"]>[number] } : {}),
+            ...(ordinal === undefined ? {} : { ordinal }) });
           publicFollowup = resolvePublicAdvancedFollowup(sourceText, publicAnalysisAuthority.result,
             publicAnalysisAuthority.choice.choiceId, publicAnalysisAuthority.candidate.candidateId,
             publicAnalysisAuthority.advanced, value.metricCatalog, value.advancedHistory);

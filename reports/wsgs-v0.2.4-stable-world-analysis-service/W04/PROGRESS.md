@@ -55,3 +55,28 @@ tests and 29 skipped tests, with frozen contracts/architecture/type checks PASS.
 `followup-build.json` records the independent build. The initial two-turn test
 incorrectly named the action point `position`; it was corrected to the frozen
 contract's `target` field, with no contract/schema changes.
+
+## Ordinal and Event Increment
+
+Natural-language ordinals are now inferred only after full stored-result and
+scope validation, and only when exactly one Choice exists. Missing ranks,
+multiple Choices and conflicts with an explicit candidate are rejected. The
+production context loader derives this ordinal internally; no public request
+field was added. Multiple contradictory ordinals in the same text are clarified.
+
+Runtime temporal findings now emit the already-frozen EVENT_SELECTION menu.
+Selecting an event resolves its stable public ID against the original native
+event in the private full envelope. Projection filters display entries only;
+upstream envelopes, completeness and FIRST/LAST proof are not manufactured.
+Existing proof is omitted if it refers to a different event. Missing native
+events yield SELECTION_INVALID rather than replacement coordinates.
+
+Six runtime event hash snapshots changed because their components now include
+event menus. The W01 frozen artifacts and historical W02 evidence were not
+rewritten. This change closes an implementation omission discovered while
+testing event choices; previous reports must not be read as proof that the old
+runtime emitted those menus.
+
+Remaining: reference/task Choice consumption, combined selections, requery
+reference propagation and full production HTTP multiround evidence. W03/W04
+completion is still unproven.

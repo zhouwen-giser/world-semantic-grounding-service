@@ -74,6 +74,25 @@ function setup(name: string, action = false) {
 }
 
 describe("public world analysis projection", () => {
+  it("selects a saved event from its complete source without inventing FIRST/LAST proof", () => {
+    const input = setup("stop");
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const choice = first.worldAnalysisFindings.choices.find(value => value.choiceKind === "EVENT_SELECTION")!;
+    const candidate = choice.candidates[0]!;
+    const followup = resolvePublicAdvancedFollowup("选择这个事件", first, choice.choiceId, candidate.candidateId, input.advanced, catalog,
+      advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.publicReuse?.publicEventSelection).toBeDefined();
+    const second = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis({ ...input, advanced: followup.publicReuse! }));
+    const selected = second.worldAnalysisFindings.findings.find(value => value.findingKind === "TEMPORAL_EVENT")!;
+    const original = first.worldAnalysisFindings.findings.find(value => value.findingKind === "TEMPORAL_EVENT")!;
+    expect(selected.events).toEqual([original.events[0]]);
+    expect(selected.selection).toEqual(original.selection);
+    expect(validate("result", second)).toEqual({ valid: true, errors: [] });
+    expect(followup.publicReuse!.analysisEvidence).toEqual(input.advanced.analysisEvidence);
+    const forged = structuredClone(followup.publicReuse!);
+    forged.publicEventSelection!.eventId = "missing-event";
+    expect(projectPublicWorldAnalysis({ ...input, advanced: forged }).component.gaps).toEqual(expect.arrayContaining([expect.objectContaining({ gapKind: "SELECTION_INVALID" })]));
+  });
   it("reuses the exact selected visited candidate for an explicit two-turn action", () => {
     const input = setup("metric-shared-campus");
     const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
@@ -105,6 +124,8 @@ describe("public world analysis projection", () => {
     const config = advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" });
     const conflict = resolvePublicAdvancedFollowup("第二个位置", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
     expect(conflict.resolution).toMatchObject({ status: "UNRESOLVED", reasonCode: "SELECTION_AMBIGUOUS" });
+    const multiple = resolvePublicAdvancedFollowup("第一个，还是第二个位置", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
+    expect(multiple.resolution).toMatchObject({ status: "UNRESOLVED", reasonCode: "SELECTION_AMBIGUOUS" });
     const query = resolvePublicAdvancedFollowup("第一个位置", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
     expect(query.publicReuse?.intent.analysis).toMatchObject({ actionTargetRequested: false });
     const unrelated = resolvePublicAdvancedFollowup("现在在哪里", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
