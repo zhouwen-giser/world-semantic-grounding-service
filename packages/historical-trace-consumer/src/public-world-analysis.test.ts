@@ -1,0 +1,286 @@
+import { readFileSync } from "node:fs";
+import { describe, it, expect } from "vitest";
+import { AnalysisProviderContracts, analysisHash, type AnalysisOperationId, type ValidatedAnalysisEnvelope, type AnalysisProviderResultTypes } from "@wsgs/gowm-contract-intake";
+import { createWorldAnalysisValidator, worldAnalysisCanonicalHash, worldAnalysisFindingSetHash, worldAnalysisResultHash, type GroundingResult12 } from "@wsgs/contracts";
+import { projectPublicWorldAnalysis, assemblePublicWorldAnalysisResult, boundPublicWorldAnalysisResult, WorldAnalysisResultTooLargeError, type PublicWorldAnalysisContext } from "./public-world-analysis.js";
+import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation } from "./advanced-types.js";
+import type { HistoricalReferenceKey } from "./types.js";
+
+const contracts = new AnalysisProviderContracts();
+const validate = createWorldAnalysisValidator();
+const fixtureRoot = new URL("../../../validation/fixtures/advanced-history/", import.meta.url);
+const validUntil = "2026-09-06T12:01:00.000Z";
+const baseResult = (): GroundingResult12 => JSON.parse(readFileSync(new URL("../../../contracts/wsgs-v0.2.4-world-analysis/examples/empty.json", import.meta.url), "utf8")) as GroundingResult12;
+const key = (kind: string, id: string): HistoricalReferenceKey => ({ namespace: "gowm", kind, id: `wrf_${analysisHash(id).slice(7, 39)}`, version: "1" });
+function reseal(envelope: ValidatedAnalysisEnvelope<AnalysisProviderResultTypes[AnalysisOperationId]>): void {
+  envelope.status = envelope.output.value.status;
+  envelope.execution.resultHash = analysisHash(envelope.output.value);
+  for (const receipt of envelope.receipts) receipt.outputHash = envelope.execution.resultHash;
+}
+
+// Explicit controlled projection of repository Provider fixtures, not live data.
+function fixture(name: string): ValidatedAnalysisEnvelope<AnalysisProviderResultTypes[AnalysisOperationId]> {
+  const envelope = JSON.parse(readFileSync(new URL(`${name}.json`, fixtureRoot), "utf8"));
+  function rewrite(value: unknown): void {
+    if (!value || typeof value !== "object") return;
+    const record = value as Record<string, unknown>;
+    if (record["namespace"] === "gowm" && typeof record["kind"] === "string" && typeof record["id"] === "string") record["id"] = key(record["kind"], record["id"]).id;
+    for (const child of Object.values(value)) rewrite(child);
+  }
+  rewrite(envelope);
+  if (name === "cross-last") envelope.output.value.source.mapMatchResultHash = analysisHash(fixture("map-match").output.value);
+  envelope.execution.resultHash = analysisHash(envelope.output.value);
+  for (const receipt of envelope.receipts) {
+    receipt.outputHash = envelope.execution.resultHash;
+    receipt.computeSnapshotHash = analysisHash(envelope.computeSnapshot);
+  }
+  return contracts.validateEnvelope(envelope.operation.operationId, envelope);
+}
+function setup(name: string, action = false) {
+  const envelope = fixture(name);
+  const operationId = envelope.operation.operationId as AnalysisOperationId;
+  const output = envelope.output.value;
+  const trajectoryKey = "trajectoryReferenceKey" in output ? output.trajectoryReferenceKey : output.source.trajectoryReferenceKey;
+  const subjectKey = output.subjectReferenceKey ?? key("ENTITY", "ugv1");
+  const taskKey = key("OPERATIONAL_TASK", "task-1");
+  const intervalKey = key("TASK_EXECUTION_INTERVAL", "interval-1");
+  const knownKeys = [subjectKey, taskKey, intervalKey, trajectoryKey];
+  if ("events" in output) for (const event of output.events) if (event.target?.kind === "SPATIAL_TARGET" && event.target.referenceKey) knownKeys.push(event.target.referenceKey);
+  const referenceProducts: GroundingResult12["referenceProducts"] = knownKeys.map((referenceKey, index) => ({ productId: index === 0 ? "ugv1" : `product-${index}`, productKind: "RESOLVED_REFERENCE", referenceKey: { ...referenceKey, namespace: "gowm" }, referenceType: referenceKey.kind, displayName: referenceKey.kind, sourceOperation: "history.get-trajectory", sourceWorldVersion: 1, validUntil }));
+  const interval = { start: "2026-09-01T08:00:00.000Z", end: "2026-09-01T08:10:00.000Z", bounds: "[)" as const };
+  const foundation: AdvancedHistoricalFoundation = { intent: { taskReferenceKey: taskKey, subjectReferenceKey: subjectKey, executionSelection: { kind: "LATEST" }, phaseScope: "ACTIVE_PHASES_ONLY", sourceSelection: { mode: "ONLY_CANDIDATE" } }, reference: { referenceKey: trajectoryKey, referenceType: "HISTORICAL_TRAJECTORY", revalidationRequired: false }, finding: {
+    findingKind: "HISTORICAL_TRAJECTORY", status: "COMPLETED", reasonCode: "TRAJECTORY_AVAILABLE", warnings: [], taskReferenceKey: taskKey, subjectReferenceKey: subjectKey,
+    executionInterval: { executionIntervalReferenceKey: intervalKey, executionNo: 2, revisionNo: 1, lifecycleState: "COMPLETED", selectedPeriods: [interval], activePeriods: [interval], pausedPeriods: [], derivationKind: "EXPLICIT", stabilityState: "SEALED", envelopeDurationMs: 600000, activeDurationMs: 600000, pausedDurationMs: 0 },
+    trajectory: { trajectoryReferenceKey: trajectoryKey, requestedPeriods: [interval], definedPeriods: [interval], excludedPeriods: [], gaps: [], inputTrackletVersions: [], completeness: { temporalCoverageRatio: 1, sampleCount: 3, sequenceCount: 1, gapCount: 0, prefixComplete: true, suffixComplete: true }, finalization: { state: "SEALED" }, inlineSamples: { mode: "BOUNDED_PREVIEW", points: [], truncated: true } }
+  } };
+  const base = baseResult();
+  base.referenceProducts = referenceProducts;
+  const context: PublicWorldAnalysisContext = { groundingId: base.groundingId, referenceProducts, evidenceItems: base.evidenceItems, foundationEvidenceIds: [base.evidenceItems[0]!.evidenceProductId], validUntil };
+  const eventResult = operationId === "temporal-spatial.find-events" ? contracts.validateResult(operationId, output) : undefined;
+  const analysis = operationId === "trajectory.map-match" ? { kind: "ROAD_ASSOCIATION" as const, output: "ROAD_VISITS" as const } : eventResult ? { kind: "TEMPORAL_EVENT" as const, eventType: eventResult.requestedEventTypes[0]!, selection: eventResult.selectionResult ? { kind: eventResult.selectionResult.kind } : { kind: "ALL" as const } } : { kind: "METRIC_RANKING" as const, metricConceptId: "radio.rssi", metricSelector: { ...contracts.validateResult("spatiotemporal-metric.rank-locations", output).metric }, metricSeriesSelection: { mode: "ONLY_CANDIDATE" as const }, topK: 3, actionTargetRequested: action };
+  const advanced: AdvancedHistoricalExecutionResult = { status: "COMPLETED", reasonCode: output.reasonCode, intent: { historicalScope: foundation.intent, analysis }, foundation, analysisEvidence: [{ operationId, envelope }], findings: [], operations: [operationId] };
+  if (name === "cross-last") advanced.analysisEvidence.unshift({ operationId: "trajectory.map-match", envelope: fixture("map-match") });
+  return { context, contracts, advanced, base };
+}
+
+describe("public world analysis projection", () => {
+  it.each(["map-match", "cross-last", "enter", "exit", "dwell", "stop", "pass_near", "metric-shared-campus", "metric-minimize-metric"])("maps validated %s through the full public result", name => {
+    const input = setup(name, name.startsWith("metric-"));
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.gaps, JSON.stringify(projection.component)).toEqual([]);
+    const result = assemblePublicWorldAnalysisResult(input.base, projection);
+    expect(validate("result", result)).toEqual({ valid: true, errors: [] });
+    expect(result.worldAnalysisFindings.findings.length).toBeGreaterThanOrEqual(2);
+    expect(projectPublicWorldAnalysis(input)).toEqual(projection);
+    expect({ profileHash: result.worldAnalysisFindings.findingSetHash, resultHash: result.resultHash, kinds: result.worldAnalysisFindings.findings.map(finding => finding.findingKind) }).toMatchSnapshot();
+  });
+  it("keeps independent history but rejects a tampered Provider result", () => {
+    const input = setup("metric-shared-campus");
+    input.advanced.analysisEvidence[0]!.envelope.execution.resultHash = `sha256:${"0".repeat(64)}`;
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.findings.map(finding => finding.findingKind)).toEqual(["HISTORICAL_TRACE"]);
+    expect(projection.component.gaps[0]?.gapKind).toBe("UPSTREAM_CONTRACT_MISMATCH");
+    expect(assemblePublicWorldAnalysisResult(input.base, projection).status).toBe("PARTIAL");
+  });
+  it("does not fabricate missing authoritative reference products", () => {
+    const input = setup("metric-shared-campus");
+    input.context.referenceProducts = [];
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.findings).toEqual([]);
+    expect(projection.component.gaps.every(gap => gap.gapKind === "REFERENCE_MISSING")).toBe(true);
+    expect(projection.evidenceItems).toEqual(input.context.evidenceItems);
+  });
+  it("uses median as the ranking score and visited Point as the action source", () => {
+    const input = setup("metric-shared-campus", true);
+    const projection = projectPublicWorldAnalysis(input);
+    const ranking = projection.component.findings.find(finding => finding.findingKind === "METRIC_RANKING");
+    const action = projection.component.findings.find(finding => finding.findingKind === "ACTION_TARGET_CANDIDATE");
+    expect(ranking?.findingKind).toBe("METRIC_RANKING");
+    expect(action?.findingKind).toBe("ACTION_TARGET_CANDIDATE");
+    if (ranking?.findingKind !== "METRIC_RANKING" || action?.findingKind !== "ACTION_TARGET_CANDIDATE") throw new Error("Missing projections");
+    const candidate = ranking.candidates.find(item => item.candidateId === action.sourceCandidateId)!;
+    expect(candidate.rankingBasis.rankingValue).toBe(candidate.statistics.median);
+    expect(action.target).toEqual(candidate.representativeVisitedPosition);
+    expect(action.requirements).toEqual({ currentValidationRequired: true, routePlanningRequired: true, executionConfirmationRequired: true });
+    expect(action.executionAuthorized).toBe(false);
+    expect(worldAnalysisCanonicalHash(projection.component)).toBe(worldAnalysisCanonicalHash(projectPublicWorldAnalysis(input).component));
+  });
+  it("does not treat optional Top-K follow-up choices as an unresolved required choice", () => {
+    const input = setup("metric-shared-campus");
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.choices[0]?.choiceKind).toBe("RANKED_LOCATION_SELECTION");
+    expect(projection.status).not.toBe("AMBIGUOUS");
+    expect(projection.component.findings.some(finding => finding.findingKind === "ACTION_TARGET_CANDIDATE")).toBe(false);
+  });
+  it("rejects CROSS without its validated complete map-match predecessor", () => {
+    const input = setup("cross-last");
+    input.advanced.analysisEvidence.shift();
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.findings.some(finding => finding.findingKind === "TEMPORAL_EVENT")).toBe(false);
+    expect(projection.component.gaps[0]?.gapKind).toBe("UPSTREAM_CONTRACT_MISMATCH");
+  });
+  it("retains selected ranking source and exact action geometry within a smaller byte budget", () => {
+    const input = setup("metric-shared-campus", true);
+    const full = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const ranking = full.worldAnalysisFindings.findings.find(finding => finding.findingKind === "METRIC_RANKING");
+    if (ranking?.findingKind !== "METRIC_RANKING") throw new Error("Missing ranking");
+    const sourceCandidate = ranking.candidates[0]!;
+    ranking.candidates = Array.from({ length: 60 }, (_, index) => ({ ...structuredClone(sourceCandidate), candidateId: index ? `extra-${index}` : sourceCandidate.candidateId, rank: index + 1 }));
+    ranking.display = { returnedCount: 60, sourceCount: 60, truncated: false };
+    // Remove the artificial source fixture menu; this test pins the action source.
+    full.worldAnalysisFindings.choices = [];
+    full.worldAnalysisFindings.findingSetHash = worldAnalysisFindingSetHash(full.worldAnalysisFindings);
+    full.resultHash = worldAnalysisResultHash(full);
+    expect(validate("result", full)).toEqual({ valid: true, errors: [] });
+    const budget = Math.floor(Buffer.byteLength(JSON.stringify(full)) / 2);
+    const bounded = boundPublicWorldAnalysisResult(full, { maxResultBytes: budget });
+    expect(Buffer.byteLength(JSON.stringify(bounded))).toBeLessThanOrEqual(budget);
+    expect(validate("result", bounded)).toEqual({ valid: true, errors: [] });
+    const action = bounded.worldAnalysisFindings.findings.find(finding => finding.findingKind === "ACTION_TARGET_CANDIDATE");
+    expect(action?.findingKind).toBe("ACTION_TARGET_CANDIDATE");
+    if (action?.findingKind !== "ACTION_TARGET_CANDIDATE") throw new Error("Lost action");
+    expect(action.target).toEqual(sourceCandidate.representativeVisitedPosition);
+    expect(bounded.worldAnalysisFindings.findings.find(finding => finding.findingKind === "METRIC_RANKING")?.display.truncated).toBe(true);
+    expect(full.worldAnalysisFindings.findings.find(finding => finding.findingKind === "METRIC_RANKING")?.display.truncated).toBe(false);
+  });
+  it("uses a compact valid gap when dependencies cannot fit, and an explicit error below that floor", () => {
+    const input = setup("metric-shared-campus", true);
+    const full = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const bounded = boundPublicWorldAnalysisResult(full, { maxResultBytes: 1600 });
+    expect(Buffer.byteLength(JSON.stringify(bounded))).toBeLessThanOrEqual(1600);
+    expect(bounded.worldAnalysisFindings.findings).toEqual([]);
+    expect(bounded.worldAnalysisFindings.gaps[0]?.gapKind).toBe("RESULT_TRUNCATED");
+    expect(validate("result", bounded).valid).toBe(true);
+    expect(() => boundPublicWorldAnalysisResult(full, { maxResultBytes: 100 })).toThrow(WorldAnalysisResultTooLargeError);
+  });
+  it("preserves subrange, gaps, pause exclusions and provisional finalization without interpolation", () => {
+    const input = setup("metric-shared-campus");
+    const foundation = input.advanced.foundation!;
+    const period = { start: "2026-09-01T08:03:00.000Z", end: "2026-09-01T08:04:00.000Z", bounds: "[)" as const };
+    foundation.finding.status = "PARTIAL";
+    foundation.finding.executionInterval!.pausedPeriods = [period];
+    foundation.finding.trajectory!.excludedPeriods = [{ ...period, exclusionKind: "EXCLUDED_PAUSED_PHASE" }];
+    foundation.finding.trajectory!.gaps = [{ ...period, gapKind: "UNKNOWN_GAP", reasonCodes: ["SOURCE_UNAVAILABLE"] }];
+    foundation.finding.trajectory!.finalization.state = "PROVISIONAL";
+    const projection = projectPublicWorldAnalysis({ context: input.context, contracts, foundation });
+    const trace = projection.component.findings[0];
+    expect(trace?.findingKind).toBe("HISTORICAL_TRACE");
+    if (trace?.findingKind !== "HISTORICAL_TRACE") throw new Error("Missing trace");
+    expect(trace.pausedPeriods).toEqual([period]);
+    expect(trace.excludedPeriods[0]?.period).toEqual(period);
+    expect(trace.trajectoryGaps[0]?.kind).toBe("UNKNOWN_GAP");
+    expect(trace.coverage.finalizationState).toBe("PROVISIONAL");
+    expect(projection.status).toBe("PARTIAL");
+  });
+  it("preserves off-network interpretation and does not manufacture road ReferenceProducts", () => {
+    const input = setup("map-match");
+    const projection = projectPublicWorldAnalysis(input);
+    const road = projection.component.findings.find(finding => finding.findingKind === "ROAD_ASSOCIATION");
+    if (road?.findingKind !== "ROAD_ASSOCIATION") throw new Error("Missing road");
+    expect(road.networkRole).toBe("REFERENCE_MODEL_NOT_PHYSICAL_TRUTH");
+    expect(road.offNetworkSegments.length).toBeGreaterThan(0);
+    expect(road.lastConfirmedRoad?.absoluteFinalRoadClaimed).toBe(false);
+    expect(input.context.referenceProducts.some(product => road.roadVisits.some(visit => visit.sourceFeatureId === product.productId))).toBe(false);
+    const upstream = contracts.validateResult("trajectory.map-match", input.advanced.analysisEvidence[0]!.envelope.output.value);
+    expect(road.offNetworkSegments.map(segment => segment.interpretationHint)).toEqual(upstream.offNetworkSegments.map(segment => segment.interpretationHint));
+  });
+  it("keeps series ambiguity explicit rather than merging measurements", () => {
+    const input = setup("metric-ambiguous-series");
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.status).toBe("AMBIGUOUS");
+    expect(projection.component.choices[0]?.choiceKind).toBe("METRIC_SERIES_SELECTION");
+    expect(projection.component.findings.some(finding => finding.findingKind === "ACTION_TARGET_CANDIDATE")).toBe(false);
+    expect(validate("result", assemblePublicWorldAnalysisResult(input.base, projection)).valid).toBe(true);
+  });
+  it("retains FIRST uncertainty and its prefix blocker", () => {
+    const input = setup("enter");
+    const envelope = input.advanced.analysisEvidence[0]!.envelope;
+    const events = contracts.validateResult("temporal-spatial.find-events", envelope.output.value);
+    if (input.advanced.intent.analysis.kind !== "TEMPORAL_EVENT") throw new Error("Wrong fixture");
+    input.advanced.intent.analysis.selection = { kind: "FIRST" };
+    Object.assign(events, { status: "PARTIAL" });
+    events.completeness.sourcePrefixComplete = false;
+    events.completeness.completeForAllEvents = false;
+    const blocker = { kind: "UPSTREAM_GAP" as const, range: { start: "2026-09-01T08:00:00Z", end: "2026-09-01T08:01:00Z" }, reasonCodes: ["SOURCE_PREFIX_INCOMPLETE"] };
+    events.completeness.blockingPeriods = [blocker];
+    events.selectionResult = { kind: "FIRST", selectedEventId: events.events[0]!.eventId, confirmed: false, reasonCode: "FIRST_EVENT_NOT_CERTAIN", blockingPeriods: [blocker] };
+    reseal(envelope);
+    const projection = projectPublicWorldAnalysis(input);
+    const finding = projection.component.findings.find(item => item.findingKind === "TEMPORAL_EVENT");
+    if (finding?.findingKind !== "TEMPORAL_EVENT") throw new Error(JSON.stringify(projection.component.gaps));
+    expect(finding.selection?.confirmed).toBe(false);
+    expect(finding.selection?.confirmationScope).toBe("NOT_CONFIRMED");
+    expect(finding.selection?.blockingPeriods[0]?.kind).toBe("UPSTREAM_GAP");
+    expect(projection.status).toBe("PARTIAL");
+    expect(validate("result", assemblePublicWorldAnalysisResult(input.base, projection)).valid).toBe(true);
+  });
+  it("retains the selected LAST event and proof when only unrelated display entries exceed limits", () => {
+    const input = setup("enter");
+    const envelope = input.advanced.analysisEvidence[0]!.envelope;
+    const events = contracts.validateResult("temporal-spatial.find-events", envelope.output.value);
+    if (input.advanced.intent.analysis.kind !== "TEMPORAL_EVENT") throw new Error("Wrong fixture");
+    input.advanced.intent.analysis.selection = { kind: "LAST" };
+    const first = events.events[0]!;
+    events.events = Array.from({ length: 120 }, (_, index) => ({ ...structuredClone(first), eventId: `tse_${analysisHash(index).slice(7, 39)}`, sequenceNo: index + 1 }));
+    events.selectionResult = { kind: "LAST", selectedEventId: events.events[119]!.eventId, confirmed: true, reasonCode: "LAST_EVENT_CONFIRMED", blockingPeriods: [] };
+    events.summary.detectedEventCount = 120;
+    events.summary.returnedEventCount = 120;
+    reseal(envelope);
+    contracts.validateEnvelope("temporal-spatial.find-events", envelope);
+    const projection = projectPublicWorldAnalysis(input);
+    const finding = projection.component.findings.find(item => item.findingKind === "TEMPORAL_EVENT");
+    if (finding?.findingKind !== "TEMPORAL_EVENT") throw new Error(JSON.stringify(projection.component.gaps));
+    expect(finding.events).toHaveLength(100);
+    expect(finding.events.some(event => event.eventId === finding.selection?.selectedEventId)).toBe(true);
+    expect(finding.selection?.confirmed).toBe(true);
+    expect(finding.display.truncated).toBe(true);
+    expect(projection.status).toBe("COMPLETED");
+    expect(validate("result", assemblePublicWorldAnalysisResult(input.base, projection)).valid).toBe(true);
+  });
+  it("changes both public hashes when a validated representative position changes", () => {
+    const input = setup("metric-shared-campus", true);
+    const before = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const envelope = input.advanced.analysisEvidence[0]!.envelope;
+    const ranking = contracts.validateResult("spatiotemporal-metric.rank-locations", envelope.output.value);
+    ranking.candidates[0]!.representativeVisitedPosition.coordinates[0] += 0.0001;
+    reseal(envelope);
+    const after = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    expect(after.worldAnalysisFindings.findingSetHash).not.toBe(before.worldAnalysisFindings.findingSetHash);
+    expect(after.resultHash).not.toBe(before.resultHash);
+  });
+  it("retains ambiguous network association as uncertainty, not an authoritative road reference", () => {
+    const input = setup("map-match");
+    const envelope = input.advanced.analysisEvidence[0]!.envelope;
+    const map = contracts.validateResult("trajectory.map-match", envelope.output.value);
+    const visit = map.roadVisits[0]!;
+    const period = { start: visit.startTime, end: visit.endTime };
+    map.ambiguousSegments.push({ ...period, sequenceNo: 1, segmentNo: 1, sampleCount: 1, candidateRoadFeatureReferenceIds: ["road-A", "road-B"], confidence: 0.4 });
+    map.associationCompleteness.ambiguousPeriods.push(period);
+    reseal(envelope);
+    const projection = projectPublicWorldAnalysis(input);
+    const finding = projection.component.findings.find(item => item.findingKind === "ROAD_ASSOCIATION");
+    if (finding?.findingKind !== "ROAD_ASSOCIATION") throw new Error(JSON.stringify(projection.component.gaps));
+    expect(finding.ambiguousSegments[0]?.candidateFeatureIds).toEqual(["road-A", "road-B"]);
+    expect(finding.blockingPeriods.some(item => item.kind === "AMBIGUOUS_ASSOCIATION_PERIOD")).toBe(true);
+    expect(validate("result", assemblePublicWorldAnalysisResult(input.base, projection)).valid).toBe(true);
+  });
+  it("does not project derived analysis from a conflicted foundation", () => {
+    const input = setup("metric-shared-campus", true);
+    input.advanced.foundation!.finding.status = "INDETERMINATE";
+    input.advanced.foundation!.finding.trajectory!.finalization.state = "CONFLICTED";
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.findings.map(finding => finding.findingKind)).toEqual(["HISTORICAL_TRACE"]);
+    expect(projection.component.gaps[0]?.gapKind).toBe("HISTORICAL_DATA_INCOMPLETE");
+    expect(projection.status).toBe("PARTIAL");
+  });
+  it.each(["ALL", "MULTIPLE_INTERVALS"])("rejects %s rather than merging execution scopes", mode => {
+    const input = setup("metric-shared-campus", true);
+    const foundation = input.advanced.foundation!;
+    if (mode === "ALL") foundation.intent.executionSelection = { kind: "ALL", limit: 2 };
+    else foundation.finding.executionIntervals = [foundation.finding.executionInterval!, { ...foundation.finding.executionInterval!, executionNo: 3 }];
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.findings).toEqual([]);
+    expect(projection.component.gaps[0]?.gapKind).toBe("MULTI_EXECUTION_UNSUPPORTED");
+    expect(projection.evidenceItems).toEqual(input.context.evidenceItems);
+  });
+});
