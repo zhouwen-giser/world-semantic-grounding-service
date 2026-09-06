@@ -1,4 +1,26 @@
 export const WSGS_VERSION = "0.2.1" as const;
+export {
+  createPublicValidator as createWorldAnalysisValidator,
+  canonicalJson as worldAnalysisCanonicalJson,
+  canonicalHash as worldAnalysisCanonicalHash,
+  findingSetHash as worldAnalysisFindingSetHash,
+  resultHash as worldAnalysisResultHash,
+  aggregateAnalysisStatus,
+  contractVersion as WORLD_ANALYSIS_CONTRACT_VERSION,
+  resultProfile as WORLD_ANALYSIS_RESULT_PROFILE
+} from "./world-analysis-contract.js";
+export type { GroundingResult12 } from "./world-analysis/generated/grounding-result-1.2.js";
+export type { GroundingRequest12 } from "./world-analysis/generated/grounding-request-1.2.js";
+export type { GroundingJob12 } from "./world-analysis/generated/grounding-job-1.2.js";
+export type { GroundingCapabilities12 } from "./world-analysis/generated/capabilities-1.2.js";
+export type { WorldAnalysisFindings } from "./world-analysis/generated/world-analysis-findings.js";
+export type { HistoricalTrace } from "./world-analysis/generated/historical-trace.js";
+export type { RoadAssociation } from "./world-analysis/generated/road-association.js";
+export type { TemporalEvent } from "./world-analysis/generated/temporal-event.js";
+export type { MetricRanking } from "./world-analysis/generated/metric-ranking.js";
+export type { ActionTargetCandidate } from "./world-analysis/generated/action-target-candidate.js";
+export type { Choice as WorldAnalysisChoice } from "./world-analysis/generated/choice.js";
+export type { Gap as WorldAnalysisGap } from "./world-analysis/generated/gap.js";
 export const WSGS_CONTRACT_VERSION = "sacs-wsgs-grounding/1.1" as const;
 export const WSGS_LEGACY_CONTRACT_VERSION = "sacs-wsgs-grounding/1.0" as const;
 export const SACS_GEOSPATIAL_FINDINGS_PROFILE = "sacs-wsgs-geospatial-findings/1.0" as const;
@@ -127,4 +149,3 @@ export type {
 export type {
   UrnWsgsLockedGdpsRecipe20 as LockedGdpsRecipeContract
 } from "./generated-internal-v02/gdps/locked-gdps-recipe.js";
-
