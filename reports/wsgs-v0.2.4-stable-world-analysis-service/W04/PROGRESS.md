@@ -48,3 +48,10 @@ listener or the entire production stage factory. Open: event/reference/task
 choices, multiple structured selections, natural-language-only ordinal selection,
 requery reference propagation, and L1 production HTTP multiround evidence.
 W03 and W04 remain IN_PROGRESS.
+
+Wiring implementation commit: a2b321d. `followup-check.json` records 863 passing
+tests and 29 skipped tests, with frozen contracts/architecture/type checks PASS.
+`followup-action-tests.json` records 43 passing focused tests and
+`followup-build.json` records the independent build. The initial two-turn test
+incorrectly named the action point `position`; it was corrected to the frozen
+contract's `target` field, with no contract/schema changes.
