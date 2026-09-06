@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0",
+  "status": "PASS",
+  "legacyFiles": 68,
+  "byteIdentical": true,
+  "legacyRequestAcceptsOrdinaryRequest": true,
+  "legacyRequestRejectsAnalysisSelections": true,
+  "legacyResultRejectsWorldExtension": true,
+  "geospatial11RejectsWorldExtension": true,
+  "new12AllowsGeospatialComponent": true,
+  "worldComponentRequiredIn12": true,
+  "exactPairAuthorizationMatrixCases": 60,
+  "serverNegotiationRuntimeValidated": false,
+  "verification": "validation/scripts/verify-world-analysis-contract.mjs",
+  "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+}

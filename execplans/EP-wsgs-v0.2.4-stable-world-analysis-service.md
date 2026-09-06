@@ -23,10 +23,11 @@ The working tree was clean. Dedicated branch:
 
 - W00 COMPLETE: package integrity, ancestry, actual request/storage/recovery
   path, immutable legacy byte hashes, independent baseline commands and evidence.
-- W01 IN_PROGRESS: closed 1.2 request/result/job/capabilities schemas; five
-  findings, bounded choices/gaps/selections, semantics, hash vectors, types,
-  examples, OpenAPI and frozen manifest. Commit freeze before runtime changes.
-- W02 NOT_STARTED: validated public normalizer, provenance closure, explicit
+- W01 COMPLETE: freeze commit e05e6d4d5ac8de617857edc8e81b935e5efc7daf;
+  45 schemas, 15 generated types, 44 full examples and 836 assertions PASS.
+  One uncommitted candidate explicitly withdrawn for stale document state;
+  original locks retained. Final freeze precedes all new runtime work.
+- W02 IN_PROGRESS: validated public normalizer, provenance closure, explicit
   input completeness versus display truncation, deterministic bounded output.
 - W03 NOT_STARTED: exact negotiation throughout API/backend/worker/store/GET,
   idempotency and recovery; append-only migration only if needed.

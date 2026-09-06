@@ -1,0 +1,13 @@
+{
+  "command": "npm run verify:world-analysis-contract",
+  "startedAt": "2026-09-06T14:53:11.929Z",
+  "finishedAt": "2026-09-06T14:53:15.910Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "e05e6d4d5ac8de617857edc8e81b935e5efc7daf",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log",
+  "logSha256": "sha256:7e43b526042577ae8861e8b0f4ac6d28e802217b36fa440e6bad3616293c1135"
+}

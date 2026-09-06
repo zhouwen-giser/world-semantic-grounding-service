@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "1.0",
+  "status": "PASS",
+  "phase": "W01",
+  "freezeCommit": "e05e6d4d5ac8de617857edc8e81b935e5efc7daf",
+  "contractPath": "contracts/wsgs-v0.2.4-world-analysis",
+  "releaseLockHash": "sha256:45f027673834f3d9e654a889eea25eaf81522f594af8dddf6939b91a0dd4c41a",
+  "commandEvidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.json",
+  "schemaCount": 45,
+  "generatedTypeCount": 15,
+  "exampleCount": 44,
+  "assertionCount": 836,
+  "legacyFilesByteUnchanged": 68,
+  "runtimeImplementationStartedAtFreeze": false,
+  "liveServicesUsed": false,
+  "withdrawnCandidates": [
+    "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/withdrawn-candidate-1/WITHDRAWAL.md"
+  ],
+  "acceptance": [
+    {
+      "id": "WA-010",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    },
+    {
+      "id": "WA-011",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    },
+    {
+      "id": "WA-012",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    },
+    {
+      "id": "WA-013",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    },
+    {
+      "id": "WA-014",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    },
+    {
+      "id": "WA-015",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    },
+    {
+      "id": "WA-016",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    },
+    {
+      "id": "WA-017",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    },
+    {
+      "id": "WA-018",
+      "status": "PASS",
+      "evidence": [
+        "contracts/wsgs-v0.2.4-world-analysis/SEMANTICS.md",
+        "validation/scripts/verify-world-analysis-contract.mjs",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log"
+      ]
+    }
+  ]
+}
