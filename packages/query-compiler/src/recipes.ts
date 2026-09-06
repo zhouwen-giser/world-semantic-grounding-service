@@ -44,6 +44,10 @@ export interface QueryTemplateStep {
   links: readonly QueryTemplateLink[];
   requestBindings?: readonly QueryTemplateRequestBinding[];
   literalBindings?: readonly QueryTemplateLiteralBinding[];
+  preconditions?: readonly (
+    | { kind: "NODE_STATUS"; sourceStepId: string; statuses: readonly ("COMPLETED" | "PARTIAL" | "NO_DATA")[] }
+    | { kind: "VALUE_PRESENT"; sourceStepId: string; outputPort: string }
+  )[];
 }
 
 export interface QueryTemplateRule {
@@ -86,6 +90,68 @@ const schemaVersionLiteral: QueryTemplateLiteralBinding = {
   value: "1.0",
   targetPath: "/schemaVersion",
   port: stringLiteralPort
+};
+
+const historicalIntervalStep: QueryTemplateStep = {
+  stepId: "read-task-execution-interval",
+  costWeight: 2,
+  failurePolicy: "FAIL_FAST",
+  links: [],
+  requirement: contract("operational-task.get-execution-intervals@1.0", {
+    domain: "TEMPORAL",
+    relationSemantics: [],
+    acceptedReferenceKinds: ["OPERATIONAL_TASK"],
+    producedReferenceKinds: ["TASK_EXECUTION_INTERVAL"],
+    spatialSemantics: "NONE",
+    timeSemantics: "INTERVAL",
+    resultNature: "PROJECTION",
+    inputPorts: [requestPort()],
+    outputPorts: [
+      resultPort(),
+      { name: "executionIntervalReferenceKey", valueKind: "REFERENCE_KEY", unitSemantics: "UNSPECIFIED" }
+    ]
+  })
+};
+
+const historicalTrajectoryStep: QueryTemplateStep = {
+  stepId: "read-historical-trajectory",
+  costWeight: 3,
+  failurePolicy: "SKIP_IF_PRECONDITION_FALSE",
+  links: [{
+    sourceStepId: "read-task-execution-interval",
+    outputPort: "executionIntervalReferenceKey",
+    inputName: "executionIntervalReferenceKey",
+    targetPath: "/executionIntervalReferenceKey"
+  }],
+  requestBindings: [
+    { inputName: "subjectReferenceKey", path: "/subjectReferenceKey", targetPath: "/subjectReferenceKey", literalFromParameter: true },
+    { inputName: "phaseScope", path: "/phaseScope", targetPath: "/phaseScope", literalFromParameter: true },
+    { inputName: "sourceSelection", path: "/sourceSelection", targetPath: "/sourceSelection", literalFromParameter: true },
+    {
+      inputName: "sourceSelectionProfileReferenceKey", path: "/sourceSelectionProfileReferenceKey",
+      targetPath: "/sourceSelectionProfileReferenceKey", literalFromParameter: true
+    },
+    {
+      inputName: "analysisSpaceReferenceKey", path: "/analysisSpaceReferenceKey",
+      targetPath: "/analysisSpaceReferenceKey", literalFromParameter: true, optional: true
+    },
+    { inputName: "maximumInlinePoints", path: "/maximumInlinePoints", targetPath: "/maximumInlinePoints", literalFromParameter: true }
+  ],
+  preconditions: [
+    { kind: "NODE_STATUS", sourceStepId: "read-task-execution-interval", statuses: ["COMPLETED", "PARTIAL"] },
+    { kind: "VALUE_PRESENT", sourceStepId: "read-task-execution-interval", outputPort: "executionIntervalReferenceKey" }
+  ],
+  requirement: contract("history.get-trajectory@1.0", {
+    domain: "ANALYSIS",
+    relationSemantics: ["TEMPORALLY_OVERLAPS"],
+    acceptedReferenceKinds: ["WORLD_OBJECT", "TASK_EXECUTION_INTERVAL", "HISTORY_METHOD_PROFILE"],
+    producedReferenceKinds: ["HISTORICAL_TRAJECTORY", "TRACKLET_VERSION", "TRACKLET_FINALIZATION", "HISTORY_INPUT_SET"],
+    spatialSemantics: "EXACT",
+    timeSemantics: "HISTORICAL",
+    resultNature: "DERIVED",
+    inputPorts: [requestPort()],
+    outputPorts: [resultPort()]
+  })
 };
 
 function contract(
@@ -335,6 +401,20 @@ function gdpsAreaStep(
 }
 
 export const queryTemplateRules: readonly QueryTemplateRule[] = [
+  {
+    templateId: "historical-execution-interval",
+    pattern: "HISTORICAL_EXECUTION_INTERVAL",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [historicalIntervalStep]
+  },
+  {
+    templateId: "historical-trajectory",
+    pattern: "HISTORICAL_TRAJECTORY",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [historicalIntervalStep, historicalTrajectoryStep]
+  },
   {
     templateId: "reference-identity",
     pattern: "REFERENCE_IDENTITY",

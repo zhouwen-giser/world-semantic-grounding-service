@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type { GroundingGraph } from "@wsgs/contracts";
 import type { GroundedGeospatialProductIntent } from "@wsgs/gdps-descriptor-consumer";
+import { planHistoricalRequirements } from "@wsgs/historical-trace-consumer";
 
 import { stableRecipeCatalog } from "./catalog.js";
 import {
@@ -89,6 +90,12 @@ const outputByRequirement: Record<RequirementType, string> = {
   FIND_GEO_VECTOR_FEATURES_IN_AREA: "geospatialVectorFeatures",
   FIND_GEO_VECTOR_FEATURES_NEARBY: "geospatialVectorFeatures",
   FIND_GEO_VECTOR_INTERSECTIONS: "geospatialVectorIntersections",
+  FIND_RELEVANT_OPERATIONAL_TASK: "operationalTasks",
+  READ_OPERATIONAL_TASK: "operationalTask",
+  READ_TASK_EXECUTION_INTERVAL: "taskExecutionIntervals",
+  READ_HISTORICAL_TRAJECTORY: "historicalTrajectory",
+  READ_TRAJECTORY_COMPLETENESS: "trajectoryCompleteness",
+  READ_TRAJECTORY_GAPS: "trajectoryGaps",
   EXACT_VERIFY: "verifiedReferences",
   VALIDATE_RESULT: "validatedResult"
 };
@@ -122,6 +129,12 @@ const targetByRequirement: Record<RequirementType, string> = {
   FIND_GEO_VECTOR_FEATURES_IN_AREA: "/selector",
   FIND_GEO_VECTOR_FEATURES_NEARBY: "/point",
   FIND_GEO_VECTOR_INTERSECTIONS: "/geometry",
+  FIND_RELEVANT_OPERATIONAL_TASK: "/actorReferenceKeys",
+  READ_OPERATIONAL_TASK: "/referenceKey",
+  READ_TASK_EXECUTION_INTERVAL: "/taskReferenceKey",
+  READ_HISTORICAL_TRAJECTORY: "/executionIntervalReferenceKey",
+  READ_TRAJECTORY_COMPLETENESS: "/completeness",
+  READ_TRAJECTORY_GAPS: "/gaps",
   EXACT_VERIFY: "/candidates",
   VALIDATE_RESULT: "/result"
 };
@@ -460,6 +473,13 @@ function inputsForRequirement(
         }))
       };
     }
+    case "FIND_RELEVANT_OPERATIONAL_TASK":
+    case "READ_OPERATIONAL_TASK":
+    case "READ_TASK_EXECUTION_INTERVAL":
+    case "READ_HISTORICAL_TRAJECTORY":
+    case "READ_TRAJECTORY_COMPLETENESS":
+    case "READ_TRAJECTORY_GAPS":
+      return { ...common, referenceNodeIds: signals.referenceNodeIds };
     case "SEARCH_CATALOG":
       return {
         ...common,
@@ -506,6 +526,7 @@ export class SemanticRequirementPlanner {
     validateGroundingGraphInput(input.groundingGraph);
     validateExecutionPolicy(input.executionPolicy);
     const products = normalizeRequestedProducts(input.requestedProducts);
+    if (input.historicalTrace) return this.#planHistorical(input, products);
     const signals = collectSignals(input.groundingGraph);
     const groundedProductIntents = [...(input.groundedProductIntents ?? [])]
       .sort((left, right) => left.intentId.localeCompare(right.intentId));
@@ -744,6 +765,79 @@ export class SemanticRequirementPlanner {
       graph,
       selectedRecipeIds: [...selected.keys()].sort(),
       capabilityGaps: gaps.sort((left, right) => left.gapId.localeCompare(right.gapId))
+    };
+  }
+
+  #planHistorical(input: RequirementPlannerInput, products: RequestedProduct[]): RequirementPlanningResult {
+    const historical = input.historicalTrace!;
+    const projected = planHistoricalRequirements({
+      intent: historical.intent,
+      historyEnabled: historical.enabled,
+      ...(historical.priorFindingReusable === undefined ? {} : { priorFindingReusable: historical.priorFindingReusable })
+    });
+    const requiredForProduct = firstRequestedProduct(products, ["WORLD_EVIDENCE", "OPERATIONAL_TASKS", "DERIVED_REFERENCES"]);
+    if (projected.status === "CAPABILITY_GAP") {
+      const reason = projected.reason ?? "HISTORY_CAPABILITY_DISABLED";
+      return {
+        status: "CAPABILITY_GAP",
+        graph: null,
+        selectedRecipeIds: [],
+        capabilityGaps: [makeGap("UNSUPPORTED_EXPRESSION", reason, requiredForProduct, [])],
+        historicalIntent: historical.intent,
+        historicalPlan: projected
+      };
+    }
+    if (projected.status === "PROJECTION_ONLY") {
+      return {
+        status: "NO_WORLD_QUERY_REQUIRED",
+        graph: null,
+        selectedRecipeIds: [],
+        capabilityGaps: [],
+        historicalIntent: historical.intent,
+        historicalPlan: projected
+      };
+    }
+    const graphId = stableId("requirement-graph", { historicalIntent: historical.intent, products: [...products].sort() });
+    const requirements: WorldQueryRequirement[] = projected.requirements.map((requirementType, index) => ({
+      requirementId: stableId("requirement", { graphId, requirementType, index }),
+      requirementType,
+      requiredForProduct,
+      required: true,
+      allowApproximation: false,
+      inputs: {
+        queryKind: historical.intent.queryKind,
+        executionSelection: historical.intent.executionSelection as PlannerJson,
+        phaseScope: historical.intent.phaseScope,
+        sourceSelection: historical.intent.sourceSelection as PlannerJson,
+        maximumInlinePoints: historical.intent.maximumInlinePoints
+      },
+      outputs: [outputByRequirement[requirementType]]
+    }));
+    const dependencies: RequirementDependency[] = requirements.slice(1).map((requirement, index) => ({
+      fromRequirementId: requirements[index]!.requirementId,
+      toRequirementId: requirement.requirementId,
+      outputName: requirements[index]!.outputs[0]!,
+      targetPath: targetByRequirement[requirement.requirementType]
+    }));
+    const graph: WorldQueryRequirementGraph = {
+      schemaVersion: "1.0",
+      graphId,
+      requirements,
+      dependencies,
+      graphHash: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    };
+    graph.graphHash = canonicalRequirementGraphHash(graph);
+    validateWorldQueryRequirementGraph(graph);
+    const recipeId: StableRecipeId = historical.intent.queryKind === "EXECUTION_INTERVAL"
+      ? "HISTORICAL_EXECUTION_INTERVAL"
+      : "HISTORICAL_TRAJECTORY";
+    return {
+      status: "PLANNED",
+      graph,
+      selectedRecipeIds: [recipeId],
+      capabilityGaps: [],
+      historicalIntent: historical.intent,
+      historicalPlan: projected
     };
   }
 }

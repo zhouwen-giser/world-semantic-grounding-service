@@ -4,9 +4,9 @@
   "version": "0.2.1",
   "profile": "sacs-wsgs-geospatial-findings/1.0",
   "transportMode": "RESULT_EXTENSION",
-  "inputSetHash": "sha256:20cc0d065abd1c5177d68b0dbaf8305b29b8749e3257b1d3366e1134deaee8d5",
+  "inputSetHash": "sha256:ec92c913c562da5b2733b327de867e60ba8f6113748e440c66e3e76f7a270420",
   "inputHashes": {
-    "PACKAGE_MANIFEST": "sha256:6847ee8aae6f86d0ad5521622f732ea943365e7d4efe2b356f620b2101790c76",
+    "PACKAGE_MANIFEST": "sha256:e69c408cb316ad6d746b167109526ad15bea39ee89d3e291aedb8d898e2fa163",
     "N03_EVIDENCE_GENERATOR": "sha256:3532e184051b781eb3c61b0ae92eba322f066577bd59737a9e8648868c6507ab",
     "N03_REAL_GATE": "sha256:2f3f27e33f8e80d8c29b4225117f4775da541ab84b21bfa21d8f60a4695d79df",
     "GDPS_FINDING_CONTRACT_CLOSURE": "sha256:cae599a37dee703c166f8f0f4f8ddda61e90bb2eb97a93797178cf5296cdd770",
@@ -38,7 +38,7 @@
     "focusedExecutedCases": 120,
     "focusedExpectedCases": 120,
     "focusedSuiteCount": 4,
-    "focusedExecutionEvidenceHash": "sha256:60d186987e5c5972899ffaed5d1fcf591a4e0abdb9b42a0c5184b6487b4f6cc9",
+    "focusedExecutionEvidenceHash": "sha256:768e071304796e11adc9c2fcdf77a9cf1a21b69d181606147aee889c04049754",
     "focusedExecutionClaimEmbedded": true
   },
   "canonicalization": "UTF8_CRLF_CR_NORMALIZED_TO_LF_SHA256",
@@ -46,24 +46,20 @@
   "localPathsIncluded": false,
   "requestIdentifiersIncluded": false,
   "internalTopologyIncluded": false,
-  "status": "PASS",
-  "marker": "WSGS_V021_GEOSPATIAL_PROVENANCE_READY",
+  "status": "PARTIAL",
+  "marker": null,
   "evidenceReports": {
-    "PROVENANCE_INTEGRITY": "sha256:8267fd88c338eaba05a016895767e0f09b187e34a2bd84818ef0f1074917216d",
-    "GAP_NORMALIZATION": "sha256:7a070a49d9007074175d064ce206b118ba368decc472328f749508f9c2e6f64e",
-    "SCOPE_NEGATIVE_CASES": "sha256:8c462e6530cf7916ae65beea1601a3ff8c1dbc5b532cddce8a298089ef55e246",
-    "FOCUSED_TEST_EXECUTION": "sha256:60d186987e5c5972899ffaed5d1fcf591a4e0abdb9b42a0c5184b6487b4f6cc9"
+    "PROVENANCE_INTEGRITY": "sha256:140e04f1fbebf2f5c5512d99708f5cb63a95f51ed276fbec4c8e0203437439b3",
+    "GAP_NORMALIZATION": "sha256:2da8253498f9de9ffba64caf7c9088627233a394bbec3c8f548150b83fbf0461",
+    "SCOPE_NEGATIVE_CASES": "sha256:c64d002ed0b47bee27ef400a6049c67ec361b7da4c73a45fae83424ef35d7899",
+    "FOCUSED_TEST_EXECUTION": "sha256:768e071304796e11adc9c2fcdf77a9cf1a21b69d181606147aee889c04049754"
   },
-  "evidenceSetHash": "sha256:555f2e5a309338c600c76fe7940efafd0d899d12bc0c5ff548a8ae8128adbbc1",
+  "evidenceSetHash": "sha256:f8d87d56c0c6fbb3d50ade5167bf84fa1fce13402a7de454ccdf769401eba3e9",
   "unitQualification": "PASS",
-  "realUpstreamQualification": "PASS",
-  "realUpstreamEvidence": {
-    "logicalId": "REAL_SIGNED_GATEWAY_UPSTREAM",
-    "artifactSha256": "sha256:e30ad4cb76d1abc074d71606362bb820aca6af77739218c8c2892200624b7b76"
-  },
+  "realUpstreamQualification": "NOT_RUN",
   "acceptance": {
     "acceptanceId": "V21-G06",
-    "status": "PASS"
+    "status": "NOT_RUN"
   },
   "productionQualified": false
 }

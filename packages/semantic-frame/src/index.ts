@@ -43,7 +43,8 @@ const nonEntitySurfaces = new Set([
 ]);
 const canonicalReferenceKinds = new Set([
   "WORLD_OBJECT", "SPATIAL_OBJECT", "DATA_SCOPE", "DATASET", "LAYER", "LAYER_FEATURE",
-  "QUERY_RESULT", "DERIVED_REFERENCE", "REFERENCE_SET", "OPERATIONAL_TASK"
+  "QUERY_RESULT", "DERIVED_REFERENCE", "REFERENCE_SET", "OPERATIONAL_TASK",
+  "TASK_EXECUTION_INTERVAL", "HISTORICAL_TRAJECTORY"
 ]);
 
 function stableIdentifier(prefix: string, value: unknown): string {
@@ -69,6 +70,7 @@ function namedEntityCandidates(sourceText: string): Array<{ surfaceText: string;
     // Vehicle identifiers are bounded labels, not arbitrary preceding prose;
     // e.g. "为什么2号车..." must anchor "2号车", never "为什么2号车".
     { expression: /(?:[A-Za-z0-9]+|[一二三四五六七八九十百千]+)号车/gu, expectedKinds: ["WORLD_OBJECT"] },
+    { expression: /任务[A-Za-z0-9_-]+/gu, expectedKinds: ["OPERATIONAL_TASK"] },
     { expression: /[\p{L}\p{N}]+路/gu, expectedKinds: ["LAYER_FEATURE"] },
     { expression: /[A-Za-z0-9一二三四五六七八九十]+区/gu, expectedKinds: ["LAYER_FEATURE"] }
   ];
@@ -190,6 +192,16 @@ export function stabilizeSemanticFrame(frame: WorldSemanticFrame, originalText: 
   if (/(?:水体|surface\s+water)/iu.test(originalText)) addSemanticRelation("FIND_WATER");
   if (/(?:建筑物|buildings?)/iu.test(originalText)) addSemanticRelation("FIND_BUILDINGS");
   if (/(?:地形类别|terrain\s+class)/iu.test(originalText)) addSemanticRelation("TERRAIN_CLASS");
+  if (/(?:什么时候(?:开始|结束|开始执行)|执行了多久|是否仍在执行|暂停过几次|实际?(?:执行|运行)时段|执行区间|执行记录)/u.test(originalText)) {
+    addSemanticRelation("TASK_EXECUTION_INTERVAL");
+  }
+  if (/(?:任务轨迹|执行轨迹|走过哪里|行驶路径|经过的位置|历史轨迹|轨迹是什么|轨迹是什麼)/u.test(originalText)) {
+    addSemanticRelation("HISTORICAL_TRAJECTORY");
+  }
+  if (/(?:轨迹.*(?:完整|连续)|有没有缺失)/u.test(originalText)) addSemanticRelation("TRAJECTORY_COMPLETENESS");
+  if (/(?:(?:哪些|什么)时间.*没有轨迹|轨迹.*缺失时段|定位中断时间|有哪些缺失)/u.test(originalText)) {
+    addSemanticRelation("TRAJECTORY_GAPS");
+  }
   const productPreference = /(?:使用|采用|use)\s*([a-z][a-z0-9-]{2,63})\s*(?:数据|data)?/iu.exec(originalText);
   if (productPreference?.[1]) addSemanticRelation(`EXPLICIT_PRODUCT_PREFERENCE:${productPreference[1].toLowerCase()}`);
   const proposedRelations = frame.relationExpressions.flatMap((expression) => {

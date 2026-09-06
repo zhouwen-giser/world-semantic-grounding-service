@@ -151,7 +151,7 @@ describe("SemanticRequirementPlanner", () => {
     ];
     expect([...observed].sort()).toEqual([...originalKinds].sort());
     expect(stableRecipeCatalog.filter((entry) => entry.maturity === "STABLE")).toHaveLength(9);
-    expect(stableRecipeCatalog.filter((entry) => entry.maturity === "PREVIEW")).toHaveLength(14);
+    expect(stableRecipeCatalog.filter((entry) => entry.maturity === "PREVIEW")).toHaveLength(16);
   });
 
   it("creates typed dependencies and rejects a dependency cycle", () => {
@@ -166,6 +166,37 @@ describe("SemanticRequirementPlanner", () => {
       targetPath: "/mentions"
     });
     expect(() => validateWorldQueryRequirementGraph(cyclic)).toThrow(/DEPENDENCY_CYCLE/u);
+  });
+
+  it("plans historical interval and trajectory requirements without changing northbound products", () => {
+    const historicalConfiguration = { maximumInlinePoints: 128, allIntervalsLimit: 50 };
+    const intervalIntent = {
+      queryKind: "EXECUTION_INTERVAL" as const,
+      executionSelection: { kind: "ALL" as const, limit: 50 },
+      phaseScope: "EXECUTION_ENVELOPE" as const,
+      sourceSelection: { mode: "ONLY_CANDIDATE" as const },
+      maximumInlinePoints: 128
+    };
+    const interval = new SemanticRequirementPlanner().plan({
+      groundingGraph: graph(mention()), requestedProducts: ["WORLD_EVIDENCE"], executionPolicy: policy,
+      historicalTrace: { intent: intervalIntent, enabled: true }
+    });
+    expect(interval.selectedRecipeIds).toEqual(["HISTORICAL_EXECUTION_INTERVAL"]);
+    expect(plannedGraph(interval).requirements.map((entry) => entry.requirementType)).toEqual(["READ_TASK_EXECUTION_INTERVAL"]);
+
+    const trajectory = new SemanticRequirementPlanner().plan({
+      groundingGraph: graph(mention()), requestedProducts: ["WORLD_EVIDENCE"], executionPolicy: policy,
+      historicalTrace: {
+        intent: { ...intervalIntent, queryKind: "HISTORICAL_TRAJECTORY", executionSelection: { kind: "LATEST" } },
+        enabled: true
+      }
+    });
+    expect(trajectory.selectedRecipeIds).toEqual(["HISTORICAL_TRAJECTORY"]);
+    expect(plannedGraph(trajectory).requirements.map((entry) => entry.requirementType)).toEqual([
+      "READ_OPERATIONAL_TASK", "READ_TASK_EXECUTION_INTERVAL", "READ_HISTORICAL_TRAJECTORY"
+    ]);
+    expect(requestedProducts).not.toContain("HISTORICAL_TRAJECTORY");
+    expect(historicalConfiguration).toEqual({ maximumInlinePoints: 128, allIntervalsLimit: 50 });
   });
 
   it("rejects unknown products, duplicates, and requirement budget overflow", () => {

@@ -1,5 +1,7 @@
 # WSGS 0.2 Operations Runbook
 
+The optional GOWM task-interval and historical-trajectory integration is documented in [historical trace consumption](historical-trace-consumption.md). It is disabled by default and requires both `WSGS_ALLOW_PREVIEW_CAPABILITIES=YES` and `WSGS_HISTORY_TRACE_ENABLED=YES`, plus the exact operation lock from the current GOWM deployment. Missing historical capabilities do not make stable WSGS readiness fail.
+
 ## Current qualification state
 
 WSGS 0.2.0 is a blocked integration candidate, not a production release. Repeated real semantic-model runs passed. The signed Sample World operational-candidate gate reports **8 trusted PASS / 2 BLOCKED**: its exact lock, live contract/binding/semantic authority, five-operation signed availability, direct sync calls, World Query `202`/poll, cancellation, and receipt retrieval pass.

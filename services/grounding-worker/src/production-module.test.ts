@@ -12,6 +12,7 @@ import type { Pool } from "pg";
 import { describe, expect, it } from "vitest";
 
 import {
+  HISTORICAL_PREVIEW_OPERATION_IDS,
   PRODUCTION_STABLE_OPERATION_IDS,
   PRODUCTION_WORLD_QUERY_SNAPSHOT_POLICY,
   applyReferenceValidation,
@@ -212,6 +213,22 @@ describe("production stage module authority boundaries", () => {
     expect(selected.defaultOperations.map((entry) => entry.operationId)).toEqual(PRODUCTION_STABLE_OPERATION_IDS);
     expect(selected.previewOperations).toEqual([]);
     expect(lock.defaultOperations.length + lock.previewOperations.length).toBeGreaterThan(selected.defaultOperations.length);
+  });
+
+  it("admits available historical preview operations only when history is enabled", () => {
+    const lock = JSON.parse(readFileSync(resolve(
+      import.meta.dirname,
+      "..", "..", "..",
+      "contracts", "upstream", "gowm-0.6.3", "extracted", "package", "bundle", "locks",
+      "wsgs-southbound-operation-lock-v2.json"
+    ), "utf8")) as Parameters<typeof selectProductionSouthboundLock>[0];
+    const disabled = selectProductionSouthboundLock(lock);
+    const enabled = selectProductionSouthboundLock(lock, [], true);
+    expect(disabled.previewOperations).toEqual([]);
+    expect(enabled.previewOperations.map((entry) => entry.operationId)).toEqual(
+      HISTORICAL_PREVIEW_OPERATION_IDS.filter((operationId) =>
+        [...lock.defaultOperations, ...lock.previewOperations].some((entry) => entry.operationId === operationId)).sort()
+    );
   });
 
   it("admits only the PREVIEW operation selected by an exact GDPS recipe", () => {

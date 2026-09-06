@@ -52,6 +52,7 @@
     "gate:real:gowm:public-handoff": "tsx validation/scripts/verify-gowm-sample-handoff.ts",
     "gate:real:model": "tsx validation/scripts/real-model-gate.ts",
     "gate:real:readiness": "tsx validation/scripts/real-production-readiness-gate.ts",
+    "history:smoke": "tsx validation/scripts/history-smoke.ts",
     "gate:real:development": "tsx validation/scripts/real-development-pipeline-gate.ts",
     "gdps:w20:check": "node validation/scripts/generate-gdps-source-baseline.mjs",
     "gdps:w20:write": "node validation/scripts/generate-gdps-source-baseline.mjs --write",
