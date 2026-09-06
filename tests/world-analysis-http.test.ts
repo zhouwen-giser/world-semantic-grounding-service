@@ -136,6 +136,17 @@ describe("world analysis real local HTTP production pipeline", () => {
         "REFERENCE_RESOLVE", "REFERENCE_VALIDATE", "REQUIREMENT_PLAN", "CAPABILITY_MATCH", "WORLD_QUERY_COMPILE", "GOWM_EXECUTE",
         "EVIDENCE_NORMALIZE", "PRODUCT_ASSEMBLE", "RESULT_PERSIST"]);
   });
+  it("returns a public compile-only analysis result without entering execution", async () => {
+    const body = request("COMPILE_WORLD_QUERY", "让2号车回到通信最好的位置");
+    body.source.locale = "zh-CN"; body.requestedProducts = ["WORLD_QUERY"];
+    const response = await post(body); const result = await response.json();
+    expect(response.status, JSON.stringify(result)).toBe(200);
+    expect(validate("result", result)).toEqual({ valid: true, errors: [] });
+    expect(result.worldAnalysisFindings.gaps).toEqual([expect.objectContaining({ gapKind: "CAPABILITY_UNAVAILABLE", severity: "BLOCKING" })]);
+    expect(result.worldAnalysisFindings.findings).toEqual([]);
+    expect(store.records.some(record => record.event.stage === "GOWM_EXECUTE")).toBe(false);
+    expect(store.records.at(-1)?.event.stage).toBe("WORLD_QUERY_COMPILE");
+  });
   it.each(["1.0", "1.1"])("preserves %s public results on the same production path", async version => {
     const selected = version === "1.0" ? {} : { "WSGS-Contract-Version": "sacs-wsgs-grounding/1.1", "WSGS-Result-Profile": "sacs-wsgs-geospatial-findings/1.0" };
     const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { "content-type": "application/json", "idempotency-key": randomUUID(), ...selected }, body: JSON.stringify(request()) });

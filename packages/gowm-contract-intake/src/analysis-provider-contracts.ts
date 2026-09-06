@@ -85,6 +85,9 @@ export class AnalysisProviderContracts {
   readonly #validators = new Map<string, ValidateFunction>();
   readonly #envelope: ValidateFunction;
   readonly #target: ValidateFunction;
+  readonly #semanticProfileSchema: Record<string, unknown>;
+  readonly #capabilityDescriptorSchema: Record<string, unknown>;
+  readonly #dataSnapshotSchema: Record<string, unknown>;
 
   constructor(root = fileURLToPath(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url))) {
     try {
@@ -99,6 +102,15 @@ export class AnalysisProviderContracts {
         if (entry.path.endsWith(".json")) documents.set(entry.path, JSON.parse(bytes.toString()) as Record<string, unknown>);
       }
       // GOWM uses legal conditional subschemas without repeating parent types.
+      const semanticProfileSchema = documents.get("contracts/upstream/gowm-current/capability-semantic-profile-v1.1.schema.json");
+      assert(semanticProfileSchema, "ANALYSIS_PROVIDER_CONTRACT_INVALID");
+      this.#semanticProfileSchema = structuredClone(semanticProfileSchema);
+      const capabilityDescriptorSchema = documents.get("contracts/upstream/gowm-current/capability-descriptor.schema.json");
+      assert(capabilityDescriptorSchema, "ANALYSIS_PROVIDER_CONTRACT_INVALID");
+      this.#capabilityDescriptorSchema = structuredClone(capabilityDescriptorSchema);
+      const dataSnapshotSchema = documents.get("contracts/upstream/gowm-current/data-snapshot-context.schema.json");
+      assert(dataSnapshotSchema, "ANALYSIS_PROVIDER_CONTRACT_INVALID");
+      this.#dataSnapshotSchema = structuredClone(dataSnapshotSchema);
       const ajv = new Ajv2020Module.default({ allErrors: true, strict: true, strictTypes: false, strictRequired: false, strictTuples: false });
       addFormatsModule.default(ajv);
       const schemas = [...documents.entries()].filter(([, doc]) => typeof doc["$id"] === "string");
@@ -165,6 +177,18 @@ export class AnalysisProviderContracts {
       if (error instanceof AnalysisContractError) throw error;
       throw new AnalysisContractError("ANALYSIS_PROVIDER_CONTRACT_INVALID");
     }
+  }
+
+  semanticProfileSchema(): Record<string, unknown> {
+    return structuredClone(this.#semanticProfileSchema);
+  }
+
+  capabilityDescriptorSchema(): Record<string, unknown> {
+    return structuredClone(this.#capabilityDescriptorSchema);
+  }
+
+  dataSnapshotSchema(): Record<string, unknown> {
+    return structuredClone(this.#dataSnapshotSchema);
   }
 
   authorization(operationId: AnalysisOperationId): AnalysisProviderAuthorization {

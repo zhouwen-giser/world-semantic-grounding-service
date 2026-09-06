@@ -11,6 +11,10 @@ The existing 1.0 and 1.1 projections and authentication policies are unchanged.
 - `WSGS_ADVANCED_HISTORY_ENABLED=NO`: existing GSAP analysis opt-in, unchanged.
   Advanced history requires history enabled. Its three verified provider locks
   are selectively authorized; this does not enable global PREVIEW execution.
+  The opt-in Gateway registry uses hash-verified upstream profile 1.1,
+  capability descriptor and data snapshot schemas. History with its existing
+  PREVIEW opt-in uses the same metadata validation without authorizing GSAP
+  operations. Default legacy validation and frozen source files are unchanged.
 - `WSGS_WORLD_ANALYSIS_CONSUMER_PRINCIPALS_JSON=[]`: independent northbound
   profile allowlist. Adding a principal does not grant upstream operations.
 - `WSGS_READINESS_TIMEOUT_MS`: existing Gateway discovery deadline, default

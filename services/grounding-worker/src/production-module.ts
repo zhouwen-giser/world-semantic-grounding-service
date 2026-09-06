@@ -28,6 +28,7 @@ import {
 import {
   GOWM_SOUTHBOUND_LOCK_RAW_SHA256,
   AnalysisProviderContracts,
+  GowmConsumerSchemaRegistry,
   ANALYSIS_OPERATION_IDS,
   analysisHash,
   type AnalysisProviderAuthorization,
@@ -311,6 +312,7 @@ interface HistoricalCompilation {
   historicalPriorForComparison?: PriorHistoricalResult;
   advancedIntent?: AdvancedHistoricalIntent;
   advancedResolution?: AdvancedIntentResolution;
+  advancedFailure?: string;
   advancedFollowup?: AdvancedFollowup;
 }
 
@@ -604,6 +606,8 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const history = historicalTraceConfigurationFromEnvironment();
   const advancedHistory = advancedHistoryConfigurationFromEnvironment();
   const analysisContracts = advancedHistory.enabled ? new AnalysisProviderContracts(advancedHistory.contractRoot) : undefined;
+  const metadataContracts = analysisContracts ?? (history.enabled && allowPreview
+    ? new AnalysisProviderContracts(advancedHistory.contractRoot) : undefined);
   const metricCatalog = MetricSemanticCatalog.load(advancedHistory.metricCatalogPath);
   const productionLock = selectProductionSouthboundLock(lock, gdps.recipes, history.enabled && (allowPreview || advancedHistory.enabled), analysisContracts?.authorizations);
   const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
@@ -632,6 +636,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const gateway = new GowmGatewayClient({
     baseUrl: environmentText("GOWM_GATEWAY_BASE_URL"),
     credential: () => environmentText("GOWM_GATEWAY_TOKEN"),
+    ...(metadataContracts ? { schemaRegistry: new GowmConsumerSchemaRegistry({ analysisContracts: metadataContracts }) } : {}),
     timeoutMs: environmentInteger("GOWM_GATEWAY_TIMEOUT_MS", 10_000, 100, 120_000),
     maxRetries: environmentInteger("GOWM_GATEWAY_MAX_RETRIES", 2, 0, 5)
   });
@@ -2079,13 +2084,14 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
   // GSAP envelopes are projected independently from the legacy, size-bounded safePayload preview.
   if (executed?.advancedExecution) document["evidenceItems"] = (document["evidenceItems"] as GroundingEvidenceItem[])
     .filter(item => !ANALYSIS_OPERATION_IDS.includes(item.sourceOperation as typeof ANALYSIS_OPERATION_IDS[number]));
+  const failureReasonCode = executed?.advancedFailure ?? compiled?.advancedFailure;
   return assembleProductionWorldAnalysis({
     base: document, runFingerprint: context.runFingerprint,
     validUntil: new Date(Date.parse(String(stageValue<JsonObject>(context, "LOAD_CONTEXT")["startedAt"])) + 60_000).toISOString(),
     maxResultBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
     ...(runtime.analysisContracts ? { contracts: runtime.analysisContracts } : {}), catalog: runtime.metricCatalog,
     ...(executed?.advancedExecution ? { advanced: executed.advancedExecution } : {}),
-    ...(executed?.advancedFailure ? { failureReasonCode: executed.advancedFailure } : {}),
+    ...(failureReasonCode ? { failureReasonCode } : {}),
     ...(foundation ? { foundation } : {}), foundationEvidenceIds
   }) as unknown as JsonObject;
 }
@@ -3304,8 +3310,12 @@ export async function createPipelineStageExecutor(
         const output: HistoricalCompilation = { compiled: [], capabilityGaps: [], advancedResolution: planning.advancedResolution,
           ...(stageValue<{ advancedFollowup?: AdvancedFollowup }>(context, "LOAD_CONTEXT").advancedFollowup ? { advancedFollowup: stageValue<{ advancedFollowup: AdvancedFollowup }>(context, "LOAD_CONTEXT").advancedFollowup } : {}),
           ...(planning.advancedResolution.status === "PARSED" ? { advancedIntent: planning.advancedResolution.intent } : {}) };
-        if (request(context)["mode"] === "COMPILE_WORLD_QUERY") return resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output,
-          EVIDENCE_NORMALIZE: { status: "PARTIAL", evidenceItems: [], capabilityGaps: [], warnings: ["HISTORICAL_FOUNDATION_REQUIRED"] } } }, value);
+        if (context.operation === "COMPILE_WORLD_QUERY") {
+          output.advancedFailure = planning.advancedResolution.status === "UNRESOLVED" ? planning.advancedResolution.reasonCode :
+            !value.advancedHistory.enabled ? "ADVANCED_HISTORY_DISABLED" : !value.history.enabled ? "ADVANCED_HISTORY_REQUIRES_HISTORY" : "HISTORICAL_TRAJECTORY_REFERENCE_MISSING";
+          return resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output,
+            EVIDENCE_NORMALIZE: { status: "PARTIAL", evidenceItems: [], capabilityGaps: [], warnings: ["HISTORICAL_FOUNDATION_REQUIRED"] } } }, value);
+        }
         return output;
       }
       if (planning.historicalIntent) {
@@ -3334,7 +3344,9 @@ export async function createPipelineStageExecutor(
             planHash: canonicalSha256(material) as `sha256:${string}`
           }
         };
-        return output;
+        return context.operation === "COMPILE_WORLD_QUERY"
+          ? resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output } }, value)
+          : output;
       }
       for (const recipeId of planning.selectedRecipeIds) {
         const gdpsRecipe = value.gdpsRecipes.find((entry) => entry.semanticPattern === recipeId);

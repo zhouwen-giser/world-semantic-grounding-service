@@ -44,9 +44,9 @@ The working tree was clean. Dedicated branch:
   by component tests; complete HTTP failure isolation remains in W06.
 - W06 IN_PROGRESS: real local listener through ProductionGroundingBackend,
   production stage factory, GroundingPipeline, GroundingWorker, public projector,
-  AES checkpoint and validated in-memory settlement/GET. Eight HTTP cases cover
+  AES checkpoint and validated in-memory settlement/GET. Nine HTTP cases cover
   sync/async, default-disabled typed gap, cancellation, queued deadline,
-  idempotency/profile isolation and legacy 1.0/1.1. Nonempty history/GSAP and
+  idempotency/profile isolation, compile-only and legacy 1.0/1.1. Nonempty history/GSAP and
   multiround scenarios remain open; this is not full WA-058 through WA-061 PASS.
 - W07 NOT_STARTED: isolated consumer handoff, independent final review, all
   72 evidence-backed rows, report verifier and dedicated Draft PR.

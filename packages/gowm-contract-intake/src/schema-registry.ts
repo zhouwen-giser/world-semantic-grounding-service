@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import type { ErrorObject, ValidateFunction } from "ajv";
+import type { AnalysisProviderContracts } from "./analysis-provider-contracts.js";
 
 export type GowmConsumerSchemaPath =
   | "gowm-v0.6.2/capability-semantic-catalog-v1.schema.json"
@@ -43,6 +44,7 @@ export class GowmSchemaValidationError extends Error {
 
 export interface GowmSchemaRegistryOptions {
   schemaRoot?: string;
+  analysisContracts?: AnalysisProviderContracts;
 }
 
 function listJsonSchemas(root: string): string[] {
@@ -77,15 +79,29 @@ export class GowmConsumerSchemaRegistry {
     const schemaRoot = options.schemaRoot ?? fileURLToPath(
       new URL("../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/schemas/", import.meta.url)
     );
-    this.#ajv = new Ajv2020Module.default({ allErrors: true, strict: true, strictRequired: false });
+    this.#ajv = new Ajv2020Module.default({ allErrors: true, strict: true, strictRequired: false,
+      ...(options.analysisContracts ? { strictTypes: false } : {}) });
     addFormatsModule.default(this.#ajv);
     for (const filePath of listJsonSchemas(schemaRoot)) {
       const relativePath = portableRelative(schemaRoot, filePath);
       const schemaUri = pathToFileURL(filePath).href;
-      const schema = JSON.parse(readFileSync(filePath, "utf8")) as Record<string, unknown>;
+      // Only the opt-in registry accepts the schema from the hash-verified GSAP intake.
+      // The frozen files and default registry retain their original validation behavior.
+      const schema = options.analysisContracts && relativePath === "gowm-v0.6.2/capability-semantic-profile-v1.schema.json"
+        ? options.analysisContracts.semanticProfileSchema()
+        : options.analysisContracts && relativePath === "platform/capability-descriptor.schema.json"
+          ? options.analysisContracts.capabilityDescriptorSchema()
+        : options.analysisContracts && relativePath === "platform/data-snapshot-context.schema.json"
+          ? options.analysisContracts.dataSnapshotSchema()
+        : JSON.parse(readFileSync(filePath, "utf8")) as Record<string, unknown>;
       schema["$id"] = schemaUri;
       this.#schemaUris.set(relativePath, schemaUri);
       this.#ajv.addSchema(schema, schemaUri);
+    }
+    if (options.analysisContracts) {
+      // The verified descriptor retains this original relative reference after relocation.
+      const schemaUri = pathToFileURL(join(schemaRoot, "gowm-v0.7/capability-semantic-profile-v1.1.schema.json")).href;
+      this.#ajv.addSchema({ ...options.analysisContracts.semanticProfileSchema(), $id: schemaUri }, schemaUri);
     }
   }
 

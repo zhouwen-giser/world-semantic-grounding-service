@@ -43,6 +43,8 @@ required follow-on work. No database URL or deployment credential is used.
 - Cancellation before claim and expired deadline before execution.
 - All 14 stages for an advanced-history request under default-disabled flags,
   with an explicit blocking CAPABILITY_UNAVAILABLE public gap.
+- Compile-only advanced analysis returns the public result at WORLD_QUERY_COMPILE
+  without entering GOWM_EXECUTE, including the default-disabled typed gap.
 - Unchanged 1.0 and 1.1 public results through the same production path.
 
 Nonempty historical trace, roads, CROSS complete/incomplete, Top-K, structured
