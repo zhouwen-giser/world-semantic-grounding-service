@@ -1,0 +1,40 @@
+{
+  "phase": "W05",
+  "status": "IN_PROGRESS",
+  "testedCommit": "7703b4efa27a3afd1108c846f7a956755ee48c9f",
+  "scope": "Production capability projector and caller-filtered discovery implementation; controlled component tests and full repository regression. Not production HTTP or live infrastructure qualification.",
+  "remoteRefresh": {
+    "command": "git fetch --all --prune",
+    "exitCode": 0,
+    "beforeImplementationHead": "f3b13b0a6443120a5073b58224048e1f2d72449a",
+    "originMain": "565e52705bb7656d4623a04655001325ca61acd0",
+    "originHistorical": "825682205deeab6ff2e6808e5f5d5c38abfb1779"
+  },
+  "commands": [
+    { "evidence": "capabilities-tests.json", "status": "PASS", "exitCode": 0, "filesPassed": 2, "testsPassed": 24 },
+    { "evidence": "capabilities-check.json", "status": "PASS", "exitCode": 0, "filesPassed": 69, "filesSkipped": 4, "testsPassed": 900, "testsSkipped": 29 },
+    { "evidence": "capabilities-build.json", "status": "PASS", "exitCode": 0 }
+  ],
+  "covered": [
+    "Legal complete 1.2 capabilities even when optional discovery is absent or invalid",
+    "Supported versus available and only HISTORICAL_METRIC_CANDIDATE action source",
+    "Existing history/advanced default opt-in and independent profile principal allowlist preserved",
+    "Caller-scoped signed Gateway availability without model probe or readiness-principal cache reuse",
+    "Operation version, maturity, request/result schema hashes, recomputed semantic profile hash and metadata revision checks",
+    "Missing caller-filtered grant, expired/future observations, unavailable/degraded operation and unknown-reason sanitization",
+    "CROSS depends on T2 plus T3 plus trace; action target depends on T4 plus trace",
+    "T2/T3/T4 failures remain local to dependent public capabilities",
+    "68 frozen legacy artifact byte hashes and 836 public contract assertions unchanged"
+  ],
+  "open": [
+    "W03/W04 production-path local HTTP evidence and complete multi-round selection acceptance",
+    "Actual signed discovery transport with controlled Gateway HTTP listener",
+    "HTTP optional-provider failure isolation for ordinary Grounding/GDPS",
+    "Final WA-046 through WA-054 evidence ledger and phase closure"
+  ],
+  "notRun": ["Live Gateway", "Real PostgreSQL", "Real semantic model", "SACS consumer end-to-end"],
+  "attempts": [
+    "Before implementation commit, the first build failed because discovery incorrectly required ScopedGroundingIdentity.dataScope. Corrected to ProductionGroundingIdentity; independent final build passed."
+  ],
+  "qualification": { "productionReady": false, "newAggregateReadinessGate": false, "deviceExecution": false }
+}
