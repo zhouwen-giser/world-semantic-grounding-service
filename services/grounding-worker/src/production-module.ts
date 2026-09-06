@@ -1979,6 +1979,7 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     historicalExecution?: HistoricalExecutionResult;
     advancedExecution?: AdvancedHistoricalExecutionResult;
     publicReferenceProducts?: JsonObject[];
+    advancedFailure?: string;
   } | undefined;
   const normalized = context.state["EVIDENCE_NORMALIZE"] as {
     status: "COMPLETED" | "PARTIAL";
@@ -2084,6 +2085,7 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     maxResultBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
     ...(runtime.analysisContracts ? { contracts: runtime.analysisContracts } : {}), catalog: runtime.metricCatalog,
     ...(executed?.advancedExecution ? { advanced: executed.advancedExecution } : {}),
+    ...(executed?.advancedFailure ? { failureReasonCode: executed.advancedFailure } : {}),
     ...(foundation ? { foundation } : {}), foundationEvidenceIds
   }) as unknown as JsonObject;
 }

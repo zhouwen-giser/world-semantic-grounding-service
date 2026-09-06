@@ -62,6 +62,7 @@ export function projectPublicWorldAnalysis(input: {
   contracts?: AnalysisProviderContracts;
   catalog?: MetricSemanticCatalog;
   advanced?: AdvancedHistoricalExecutionResult;
+  failureReasonCode?: string;
   foundation?: AdvancedHistoricalFoundation;
 }): PublicWorldAnalysisProjection {
   const { context } = input;
@@ -232,9 +233,12 @@ export function projectPublicWorldAnalysis(input: {
       gap(error instanceof ProjectionError ? error.gapKind : "UPSTREAM_CONTRACT_MISMATCH", source.operationId);
     }
   }
-  if (input.advanced && !input.advanced.analysisEvidence.length) {
-    const reason = input.advanced.reasonCode;
+  if (input.failureReasonCode || input.advanced && !input.advanced.analysisEvidence.length) {
+    const reason = input.failureReasonCode ?? input.advanced!.reasonCode;
     const reasons: Record<string, GapKind> = {
+      ADVANCED_HISTORY_DISABLED: "CAPABILITY_UNAVAILABLE", ADVANCED_HISTORY_REQUIRES_HISTORY: "CAPABILITY_UNAVAILABLE",
+      REFERENCE_MISSING: "REFERENCE_MISSING", SELECTION_EXPIRED: "SELECTION_EXPIRED",
+      SELECTION_INVALID: "SELECTION_INVALID", SELECTION_AMBIGUOUS: "SELECTION_AMBIGUOUS",
       HISTORICAL_PROJECTION_PENDING: "HISTORICAL_PROJECTION_PENDING",
       HISTORICAL_TRAJECTORY_NO_DATA: "HISTORICAL_DATA_INCOMPLETE",
       HISTORICAL_TRAJECTORY_CONFLICTED: "HISTORICAL_DATA_INCOMPLETE",
@@ -248,7 +252,7 @@ export function projectPublicWorldAnalysis(input: {
       ADVANCED_HISTORY_DEADLINE_EXCEEDED: "UPSTREAM_TIMEOUT", ADVANCED_HISTORY_RESULT_INVALID: "UPSTREAM_CONTRACT_MISMATCH",
       ANALYSIS_PROVIDER_CONTRACT_INVALID: "UPSTREAM_CONTRACT_MISMATCH", ANALYSIS_PROVIDER_CONTRACT_DRIFT: "UPSTREAM_CONTRACT_MISMATCH"
     };
-    gap(reasons[reason] ?? (input.advanced.status === "FAILED" ? "UPSTREAM_FAILURE" : "CAPABILITY_UNAVAILABLE"), reason);
+    gap(reasons[reason] ?? (input.advanced?.status === "FAILED" ? "UPSTREAM_FAILURE" : "CAPABILITY_UNAVAILABLE"), reason);
   }
   return finish();
 

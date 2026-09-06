@@ -19,6 +19,7 @@ export function assembleProductionWorldAnalysis(input: {
   contracts?: ProjectionInput["contracts"];
   catalog?: ProjectionInput["catalog"];
   advanced?: ProjectionInput["advanced"];
+  failureReasonCode?: string;
   foundation?: ProjectionInput["foundation"];
   foundationEvidenceIds: string[];
 }): GroundingResult12 {
@@ -45,6 +46,7 @@ export function assembleProductionWorldAnalysis(input: {
     ...(input.contracts ? { contracts: input.contracts } : {}),
     ...(input.catalog ? { catalog: input.catalog } : {}),
     ...(input.advanced ? { advanced: input.advanced } : {}),
+    ...(input.failureReasonCode ? { failureReasonCode: input.failureReasonCode } : {}),
     ...(input.foundation ? { foundation: input.foundation } : {})
   });
   for (const ambiguity of base.ambiguities) {

@@ -11,6 +11,21 @@ function assemble(base: Record<string, unknown>) {
 }
 
 describe("production world-analysis consumer boundary", () => {
+  it.each([
+    ["ADVANCED_HISTORY_DISABLED", "CAPABILITY_UNAVAILABLE"],
+    ["ADVANCED_HISTORY_REQUIRES_HISTORY", "CAPABILITY_UNAVAILABLE"],
+    ["REFERENCE_MISSING", "REFERENCE_MISSING"],
+    ["SELECTION_EXPIRED", "SELECTION_EXPIRED"],
+    ["SELECTION_INVALID", "SELECTION_INVALID"],
+    ["SELECTION_AMBIGUOUS", "SELECTION_AMBIGUOUS"]
+  ])("preserves pre-execution %s as a typed public gap", (failureReasonCode, gapKind) => {
+    const base = example("empty"); base.status = "UNRESOLVED";
+    const result = assembleProductionWorldAnalysis({ base, failureReasonCode, runFingerprint: `sha256:${"b".repeat(64)}`,
+      validUntil: "2026-09-06T00:01:00Z", maxResultBytes: 1048576, foundationEvidenceIds: [] });
+    expect(result.worldAnalysisFindings.gaps).toEqual([expect.objectContaining({ gapKind, severity: "BLOCKING" })]);
+    expect(result.status).not.toBe("COMPLETED");
+    expect(validate("result", result)).toEqual({ valid: true, errors: [] });
+  });
   it.each(["WORLD_OBJECT", "OPERATIONAL_TASK"])("turns existing %s ambiguities into real-reference Choices", kind => {
     const base = example("empty");
     base.status = "AMBIGUOUS";

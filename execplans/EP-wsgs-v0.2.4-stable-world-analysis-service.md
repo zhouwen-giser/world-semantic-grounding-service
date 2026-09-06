@@ -42,8 +42,12 @@ The working tree was clean. Dedicated branch:
   caller-filtered signed discovery and per-operation contract/semantic/freshness
   checks implemented. Exact CROSS/action dependencies and default opt-in covered
   by component tests; complete HTTP failure isolation remains in W06.
-- W06 NOT_STARTED: full regression and production-assembly local HTTP sync,
-  async worker/GET, multiround, failure and compatibility evidence.
+- W06 IN_PROGRESS: real local listener through ProductionGroundingBackend,
+  production stage factory, GroundingPipeline, GroundingWorker, public projector,
+  AES checkpoint and validated in-memory settlement/GET. Eight HTTP cases cover
+  sync/async, default-disabled typed gap, cancellation, queued deadline,
+  idempotency/profile isolation and legacy 1.0/1.1. Nonempty history/GSAP and
+  multiround scenarios remain open; this is not full WA-058 through WA-061 PASS.
 - W07 NOT_STARTED: isolated consumer handoff, independent final review, all
   72 evidence-backed rows, report verifier and dedicated Draft PR.
 
