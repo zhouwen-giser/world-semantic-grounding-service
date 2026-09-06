@@ -1,0 +1,13 @@
+{
+  "command": "npm run build",
+  "startedAt": "2026-09-06T15:00:05.240Z",
+  "finishedAt": "2026-09-06T15:00:05.574Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "89b9b9acbab6c1cbc059d6d9bc1ce2b7eefaedde",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/runtime-contract-build.log",
+  "logSha256": "sha256:8e1305bab8a0caf76b28eaf36c659d103cf6aee423bf0f886dbb83d511849db8"
+}
