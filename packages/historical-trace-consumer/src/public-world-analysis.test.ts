@@ -6,6 +6,8 @@ import { projectPublicWorldAnalysis, assemblePublicWorldAnalysisResult, boundPub
 import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation } from "./advanced-types.js";
 import type { HistoricalReferenceKey } from "./types.js";
 import { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
+import { resolvePublicAdvancedFollowup } from "./advanced-followup.js";
+import { advancedHistoryConfigurationFromEnvironment } from "./advanced-config.js";
 
 const contracts = new AnalysisProviderContracts();
 const catalog = new MetricSemanticCatalog();
@@ -72,6 +74,44 @@ function setup(name: string, action = false) {
 }
 
 describe("public world analysis projection", () => {
+  it("reuses the exact selected visited candidate for an explicit two-turn action", () => {
+    const input = setup("metric-shared-campus");
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const choice = first.worldAnalysisFindings.choices.find(value => value.choiceKind === "RANKED_LOCATION_SELECTION")!;
+    const candidate = choice.candidates[1]!;
+    const followup = resolvePublicAdvancedFollowup("回到第二个位置", first, choice.choiceId, candidate.candidateId, input.advanced, catalog,
+      advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.publicReuse).toBeDefined();
+    const second = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis({ ...input, advanced: followup.publicReuse! }));
+    const action = second.worldAnalysisFindings.findings.find(value => value.findingKind === "ACTION_TARGET_CANDIDATE")!;
+    const rank = first.worldAnalysisFindings.findings.find(value => value.findingKind === "METRIC_RANKING")!;
+    expect(action.target).toEqual(rank.candidates[1]!.representativeVisitedPosition);
+    expect(action.sourceRank).toBe(2);
+    expect(action.executionAuthorized).toBe(false);
+    expect(validate("result", second)).toEqual({ valid: true, errors: [] });
+  });
+  it.each(["时延最低的位置", "最近一次任务通信最好的位置", "更新了吗"])("requeries instead of reusing the old selected target for %s", text => {
+    const input = setup("metric-shared-campus");
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const choice = first.worldAnalysisFindings.choices.find(value => value.choiceKind === "RANKED_LOCATION_SELECTION")!;
+    const followup = resolvePublicAdvancedFollowup(text, first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog,
+      advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.publicReuse).toBeUndefined();
+  });
+  it("rejects text/structured rank conflicts and never inherits an earlier action request", () => {
+    const input = setup("metric-shared-campus", true);
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const choice = first.worldAnalysisFindings.choices.find(value => value.choiceKind === "RANKED_LOCATION_SELECTION")!;
+    const config = advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" });
+    const conflict = resolvePublicAdvancedFollowup("第二个位置", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
+    expect(conflict.resolution).toMatchObject({ status: "UNRESOLVED", reasonCode: "SELECTION_AMBIGUOUS" });
+    const query = resolvePublicAdvancedFollowup("第一个位置", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
+    expect(query.publicReuse?.intent.analysis).toMatchObject({ actionTargetRequested: false });
+    const unrelated = resolvePublicAdvancedFollowup("现在在哪里", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
+    expect(unrelated.resolution).toMatchObject({ status: "UNRESOLVED", reasonCode: "SELECTION_AMBIGUOUS" });
+    input.advanced.findings.push({ metricCatalog: { hash: "stale-catalog" } });
+    expect(resolvePublicAdvancedFollowup("第一个位置", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z")).publicReuse).toBeUndefined();
+  });
   it.each(["map-match", "cross-last", "enter", "exit", "dwell", "stop", "pass_near", "metric-shared-campus", "metric-minimize-metric"])("maps validated %s through the full public result", name => {
     const input = setup(name, name.startsWith("metric-"));
     const projection = projectPublicWorldAnalysis(input);

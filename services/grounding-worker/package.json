@@ -22,6 +22,7 @@
     "@wsgs/grounding-pipeline": "0.2.1",
     "@wsgs/historical-trace-consumer": "0.2.1",
     "@wsgs/northbound-geospatial-findings": "0.2.1",
+    "@wsgs/prior-grounding": "0.2.1",
     "@wsgs/query-compiler": "0.2.1",
     "@wsgs/requirement-planner": "0.2.1",
     "@wsgs/semantic-frame": "0.2.1",

@@ -2,6 +2,9 @@ import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { assembleProductionWorldAnalysis } from "./world-analysis-result.js";
+import { loadPriorAnalysisAuthority, type PriorAnalysisAuthority } from "./prior-analysis-authority.js";
+import type { GroundingRequest12 } from "@wsgs/contracts";
+import { PriorGroundingError, type PriorGroundingPointer } from "@wsgs/prior-grounding";
 
 import type { GroundingIdentityV2 } from "@wsgs/delegated-identity";
 import { GowmDelegationSigner, createGroundingIdentity } from "@wsgs/delegated-identity";
@@ -73,6 +76,7 @@ import {
   MetricSemanticCatalog,
   decodeStoredAdvancedHistory,
   resolveAdvancedFollowup,
+  resolvePublicAdvancedFollowup,
   type PriorAdvancedHistory,
   type AdvancedFollowup,
   type AdvancedHistoricalFoundation,
@@ -103,6 +107,7 @@ import {
   isWorldAnalysisContract,
   parseGroundingContractSelection,
   type PipelineStage,
+  type PipelineJournal,
   type PipelineStageContext,
   type ProductionAdmissionSnapshot
 } from "@wsgs/grounding-pipeline";
@@ -311,6 +316,7 @@ type PersistedSemanticModelResult = SemanticModelPolicyResult & { receiptId?: st
 
 interface ProductionFactoryOptions {
   pool?: Pool;
+  priorAnalysisJournal?: Pick<PipelineJournal, "loadLatestCheckpoint">;
 }
 
 function object(value: unknown, code: string): JsonObject {
@@ -1925,6 +1931,7 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     outcomes: Array<{ submission: WorldQuerySubmission; status: string; resultHash: string }>;
     historicalExecution?: HistoricalExecutionResult;
     advancedExecution?: AdvancedHistoricalExecutionResult;
+    publicReferenceProducts?: JsonObject[];
   } | undefined;
   const normalized = context.state["EVIDENCE_NORMALIZE"] as {
     status: "COMPLETED" | "PARTIAL";
@@ -1986,7 +1993,8 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     })) ?? [],
     ...(semantic ? { semanticFrame: semantic.frame } : {}),
     ...(graph ? { groundingGraph: graph.graph } : {}),
-    referenceProducts: [...(references?.referenceProducts ?? []), ...(normalized?.referenceProducts ?? [])],
+    referenceProducts: [...(references?.referenceProducts ?? []), ...(normalized?.referenceProducts ?? []), ...(executed?.publicReferenceProducts ?? [])]
+      .filter((product, index, all) => !executed?.publicReferenceProducts || all.findIndex(other => canonicalSha256(other.referenceKey) === canonicalSha256(product.referenceKey)) === index),
     evidenceItems: normalized?.evidenceItems ?? evidenceItems,
     ...(normalized?.geospatialFindings === undefined
       ? {}
@@ -2868,11 +2876,29 @@ export async function createPipelineStageExecutor(
         ? parts.capsule["priorGroundings"]
         : [];
       const sourceText = text(parts.source["originalText"], "SOURCE_TEXT_MISSING");
-      const priorAdvanced = value.advancedHistory.enabled && priorGroundings.length > 0
+      const selectionValues = request(context)["analysisSelections"];
+      const publicSelectionRequested = isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION)) && Array.isArray(selectionValues) && selectionValues.length > 0;
+      let publicAnalysisAuthority: PriorAnalysisAuthority | undefined;
+      let publicFollowup: AdvancedFollowup | undefined;
+      if (publicSelectionRequested) {
+        try {
+          if (selectionValues.length !== 1 || priorGroundings.length !== 1 || !options.priorAnalysisJournal) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
+          publicAnalysisAuthority = await loadPriorAnalysisAuthority({ pool: value.pool, journal: options.priorAnalysisJournal,
+            identity: { ...identity(context), authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest }, dataScope: identity(context).dataScope, pointer: priorGroundings[0] as PriorGroundingPointer,
+            selection: selectionValues[0] as NonNullable<GroundingRequest12["analysisSelections"]>[number] });
+          publicFollowup = resolvePublicAdvancedFollowup(sourceText, publicAnalysisAuthority.result,
+            publicAnalysisAuthority.choice.choiceId, publicAnalysisAuthority.candidate.candidateId,
+            publicAnalysisAuthority.advanced, value.metricCatalog, value.advancedHistory);
+        } catch (error) {
+          if (!(error instanceof PriorGroundingError)) throw error;
+          publicFollowup = { resolution: { status: "UNRESOLVED", reasonCode: error.code }, compare: false };
+        }
+      }
+      const priorAdvanced = !publicSelectionRequested && value.advancedHistory.enabled && priorGroundings.length > 0
         ? await loadPriorAdvancedResult(value.pool, identity(context), priorGroundings) : undefined;
-      const advancedFollowup = priorAdvanced ? resolveAdvancedFollowup(sourceText, priorAdvanced, value.metricCatalog, value.advancedHistory) : undefined;
+      const advancedFollowup = publicFollowup ?? (priorAdvanced ? resolveAdvancedFollowup(sourceText, priorAdvanced, value.metricCatalog, value.advancedHistory) : undefined);
       const parsedAdvanced = parseAdvancedHistoricalIntent(sourceText, value.metricCatalog, value.advancedHistory);
-      const priorHistorical = value.history.enabled && priorGroundings.length > 0 && (historicalFollowupSurface(sourceText) || parsedAdvanced.status === "PARSED")
+      const priorHistorical = !publicSelectionRequested && value.history.enabled && priorGroundings.length > 0 && (historicalFollowupSurface(sourceText) || parsedAdvanced.status === "PARSED")
         ? await loadPriorHistoricalResult(value.pool, identity(context), priorGroundings)
         : undefined;
       const followupDecision = priorHistorical
@@ -2884,7 +2910,7 @@ export async function createPipelineStageExecutor(
       // prior result here would silently weaken its authority boundary.
       assertPriorGroundingReplaySupport(
         allGatewayLocks(authority.southboundLock),
-        historicalFollowup || advancedFollowup?.resolution.status === "PARSED" || priorHistorical && parsedAdvanced.status === "PARSED" ? 0 : priorGroundings.length
+        publicSelectionRequested || historicalFollowup || advancedFollowup?.resolution.status === "PARSED" || priorHistorical && parsedAdvanced.status === "PARSED" ? 0 : priorGroundings.length
       );
       const snapshot = authority.trustedCapabilitySnapshot;
       const snapshotId = `capability-snapshot-${canonicalSha256({
@@ -2929,6 +2955,7 @@ export async function createPipelineStageExecutor(
         ...(priorHistorical ? { priorHistorical } : {}),
         ...(historicalFollowup ? { historicalFollowup } : {}),
         ...(advancedFollowup ? { advancedFollowup } : {}),
+        ...(publicAnalysisAuthority ? { publicAnalysisAuthority } : {}),
         mapSelections: parts.capsule["mapSelections"],
         externalCorrelationHints: parts.capsule["externalCorrelationHints"],
         externalPredicates: parts.capsule["externalPredicates"]
@@ -3345,6 +3372,12 @@ export async function createPipelineStageExecutor(
         const authority = persistedAuthority(context, value.gateway);
         const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
         const parts = requestParts(context);
+        if (compilation.advancedFollowup?.publicReuse && canReuseAdvancedFoundation(compilation.advancedFollowup.publicReuse.foundation!, compilation.advancedIntent, Date.now())) {
+          const loaded = stageValue<{ publicAnalysisAuthority: PriorAnalysisAuthority }>(context, "LOAD_CONTEXT");
+          if (Date.parse(loaded.publicAnalysisAuthority.choice.validUntil) <= Date.now()) return { outcomes: [], advancedFailure: "SELECTION_EXPIRED" };
+          return { outcomes: [], advancedExecution: compilation.advancedFollowup.publicReuse,
+            publicReferenceProducts: loaded.publicAnalysisAuthority.result.referenceProducts };
+        }
         if (compilation.advancedFollowup?.reuse && canReuseAdvancedFoundation(compilation.advancedFollowup.reuse.source.foundation, compilation.advancedIntent, Date.now())) return { outcomes: [], advancedReuse: compilation.advancedFollowup.reuse };
         const loaded = stageValue<{ priorHistorical?: PriorHistoricalResult }>(context, "LOAD_CONTEXT");
         const prior = loaded.priorHistorical;

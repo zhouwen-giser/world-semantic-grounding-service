@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
+import type { GroundingResult12 } from "@wsgs/contracts";
 import { analysisHash, type MetricSeriesIdentity } from "@wsgs/gowm-contract-intake";
 import { canReuseAdvancedFoundation } from "./advanced-executor.js";
-import { parseAdvancedHistoricalIntent } from "./advanced-intent.js";
+import { advancedSelectionRank, parseAdvancedHistoricalIntent } from "./advanced-intent.js";
 import type { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
-import type { AdvancedHistoricalFoundation, AdvancedHistoricalIntent, AdvancedHistoryConfiguration, AdvancedIntentResolution } from "./advanced-types.js";
+import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation, AdvancedHistoricalIntent, AdvancedHistoryConfiguration, AdvancedIntentResolution } from "./advanced-types.js";
 
 type Json = Record<string, unknown>;
 export interface PriorAdvancedHistory {
@@ -14,6 +15,46 @@ export interface AdvancedFollowup {
   resolution: AdvancedIntentResolution; reusableFoundation?: AdvancedHistoricalFoundation;
   reuse?: { findings: Json[]; source: PriorAdvancedHistory }; compare: boolean;
   prior?: PriorAdvancedHistory;
+  publicReuse?: AdvancedHistoricalExecutionResult;
+}
+
+/** Called only after the stored Choice and its private checkpoint have been authorized. */
+export function resolvePublicAdvancedFollowup(text: string, result: GroundingResult12, choiceId: string, candidateId: string,
+  prior: AdvancedHistoricalExecutionResult, catalog: MetricSemanticCatalog, config: AdvancedHistoryConfiguration, now = Date.now()): AdvancedFollowup {
+  const reject = (reasonCode: string): AdvancedFollowup => ({ resolution: { status: "UNRESOLVED", reasonCode }, compare: false });
+  const choice = result.worldAnalysisFindings.choices.find(value => value.choiceId === choiceId);
+  const candidate = choice?.candidates.find(value => value.candidateId === candidateId);
+  if (!choice || !candidate || !prior.foundation) return reject("SELECTION_INVALID");
+  const parsed = parseAdvancedHistoricalIntent(text, catalog, config, prior.intent);
+  if (parsed.status === "UNRESOLVED") return { resolution: parsed, compare: false };
+  if (parsed.status === "NOT_ADVANCED" && !/选择|选中|就这个|这个位置|使用|第.*个|^use\b|^select\b|回到|返回|前往/iu.test(text)) return reject("SELECTION_AMBIGUOUS");
+  const intent = structuredClone(parsed.status === "PARSED" ? parsed.intent : prior.intent);
+  const compare = /更新|重查|重新|最新|最近一次|本次|第.*次(?:任务|执行)|refresh|recompute/iu.test(text);
+  const ordinal = advancedSelectionRank(text);
+  if (ordinal !== undefined && (!("rank" in candidate) || ordinal !== candidate.rank)) return reject("SELECTION_AMBIGUOUS");
+  if (intent.analysis.kind !== "METRIC_RANKING" || prior.intent.analysis.kind !== "METRIC_RANKING") return reject("SELECTION_AMBIGUOUS");
+  intent.analysis.actionTargetRequested = /回到|返回|前往|^去|让.*去/iu.test(text);
+  const sameMetric = intent.analysis.metricConceptId === prior.intent.analysis.metricConceptId && analysisHash(intent.analysis.metricSelector) === analysisHash(prior.intent.analysis.metricSelector);
+  const catalogChanged = prior.findings.some(finding => object(finding["metricCatalog"]) && finding["metricCatalog"]["hash"] !== catalog.hash);
+  const reusable = !compare && canReuseAdvancedFoundation(prior.foundation, intent, now);
+  const followup: AdvancedFollowup = { resolution: { status: "PARSED", intent }, compare,
+    ...(reusable ? { reusableFoundation: prior.foundation } : {}) };
+  if (choice.choiceKind === "METRIC_SERIES_SELECTION" && "series" in candidate) {
+    intent.analysis.metricSeriesSelection = { mode: "EXPLICIT_SERIES", sourceKey: candidate.series.sourceKey, datastreamKey: candidate.series.datastreamKey, measurementKey: candidate.series.measurementKey };
+    delete intent.analysis.selectedRank;
+    return followup;
+  }
+  if (choice.choiceKind !== "RANKED_LOCATION_SELECTION" || !("rank" in candidate)) return reject("SELECTION_AMBIGUOUS");
+  if (!sameMetric || !reusable || catalogChanged || analysisHash(intent.analysis.metricSeriesSelection) !== analysisHash(prior.intent.analysis.metricSeriesSelection)) {
+    if (ordinal === undefined) delete intent.analysis.selectedRank;
+    else intent.analysis.selectedRank = ordinal;
+    return followup;
+  }
+  intent.analysis.selectedRank = candidate.rank;
+  const ranking = result.worldAnalysisFindings.findings.find(value => value.findingId === candidate.findingId);
+  if (ranking?.findingKind !== "METRIC_RANKING" || !ranking.candidates.some(value => value.candidateId === candidateId && value.rank === candidate.rank)) return reject("SELECTION_INVALID");
+  followup.publicReuse = { ...structuredClone(prior), intent };
+  return followup;
 }
 function object(value: unknown): value is Json { return !!value && typeof value === "object" && !Array.isArray(value); }
 

@@ -28,7 +28,7 @@ function integerEnvironment(name: string, fallback: number, minimum: number): nu
   return value;
 }
 
-async function loadExecutor(pool: Pool): Promise<PipelineStageExecutor> {
+async function loadExecutor(pool: Pool, priorAnalysisJournal: PostgresPipelineJournal): Promise<PipelineStageExecutor> {
   const moduleSpecifier = process.env["WSGS_PIPELINE_MODULE"] ?? new URL("./production-module.js", import.meta.url).href;
   const importSpecifier = isAbsolute(moduleSpecifier) || moduleSpecifier.startsWith(".")
     ? pathToFileURL(resolve(moduleSpecifier)).href
@@ -38,7 +38,7 @@ async function loadExecutor(pool: Pool): Promise<PipelineStageExecutor> {
   if (typeof factory !== "function") {
     throw new Error("WSGS_PIPELINE_MODULE must export createPipelineStageExecutor()");
   }
-  const executor = await (factory as (options: { pool: Pool }) => unknown | Promise<unknown>)({ pool });
+  const executor = await (factory as (options: { pool: Pool; priorAnalysisJournal: PostgresPipelineJournal }) => unknown | Promise<unknown>)({ pool, priorAnalysisJournal });
   if (!executor || typeof executor !== "object" ||
     typeof (executor as Record<string, unknown>)["execute"] !== "function") {
     throw new Error("createPipelineStageExecutor() did not return a pipeline stage executor");
@@ -54,10 +54,10 @@ const pool = new Pool({
   application_name: "wsgs-grounding-worker"
 });
 await pool.query("SELECT 1 FROM wsgs.pipeline_checkpoint LIMIT 0");
-const executor = await loadExecutor(pool);
+const journal = new PostgresPipelineJournal(pool, codec);
+const executor = await loadExecutor(pool, journal);
 
 const store = new PostgresGroundingWorkerStore(pool, codec);
-const journal = new PostgresPipelineJournal(pool, codec);
 const pipeline = new GroundingPipeline({
   executor,
   journal,
