@@ -1,0 +1,42 @@
+{
+  "phase": "W03",
+  "status": "IN_PROGRESS",
+  "testedImplementationCommit": "aa7fb607827e6f4baa4b0e1fa42fd7fa06c9a0d0",
+  "completedBoundaries": [
+    "Independent server principal allowlist and exact 1.2 header pair",
+    "Versioned request and full capabilities/result/job validation",
+    "Strict stored contract union with metadata-free legacy fallback",
+    "Backend hashes the complete request and selected profile",
+    "Worker builds public analysis before durable result hashing",
+    "Actual run fingerprint and frozen public 1.2 hash algorithm",
+    "Reference/evidence whitelist, no public raw provider safePayload",
+    "Scripted-SQL production adapter replay and cross-profile rejection"
+  ],
+  "evidence": [
+    { "path": "transport-check.json", "status": "PASS", "command": "npm run check", "testFilesPassed": 65, "testFilesSkipped": 4, "testsPassed": 830, "testsSkipped": 29, "testsFailed": 0 },
+    { "path": "transport-tests.json", "status": "PASS", "testFilesPassed": 10, "testsPassed": 116, "testsSkipped": 0, "testsFailed": 0 },
+    { "path": "transport-build.json", "status": "PASS", "command": "npm run build" },
+    { "path": "transport-regression.json", "status": "PASS", "command": "npm test", "testFilesPassed": 65, "testFilesSkipped": 4, "testsPassed": 830, "testsSkipped": 29, "testsFailed": 0 }
+  ],
+  "scopeLimits": {
+    "apiTests": "Fastify injection with explicitly mocked high-level backend; protocol validation only, not L1",
+    "storeTests": "Real adapter methods with scripted SQL responses; not real PostgreSQL",
+    "workerRegression": "Existing controlled worker invariants; 1.2 crash/recovery integration still open",
+    "liveGateway": "NOT_RUN",
+    "livePostgreSQL": "NOT_RUN",
+    "liveModel": "NOT_RUN",
+    "liveConsumer": "NOT_RUN"
+  },
+  "openItems": [
+    "1.2 persisted recovery and late-completion evidence",
+    "Production capability publication and dependency availability in W05",
+    "Server-owned multi-round selection authority in W04",
+    "Actual production-assembly HTTP listener tests in W06",
+    "Complete WA-028 through WA-036 evidence mapping"
+  ],
+  "migrationRequired": false,
+  "migrationNotes": "migration-notes.md",
+  "oldPublicContractsChanged": false,
+  "stageComplete": false,
+  "productionQualified": false
+}
