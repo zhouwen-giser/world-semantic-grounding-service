@@ -80,3 +80,9 @@ runtime emitted those menus.
 Remaining: reference/task Choice consumption, combined selections, requery
 reference propagation and full production HTTP multiround evidence. W03/W04
 completion is still unproven.
+
+Ordinal/event implementation commit: 5ae13b5. `event-selection-check.json`
+records the complete check with 872 passing tests and 29 skipped tests.
+`event-selection-tests.json` records 65 passing focused tests;
+`event-selection-build.json` records the independent build. All commands exited
+zero. None of this evidence is a real HTTP or live PostgreSQL qualification.
