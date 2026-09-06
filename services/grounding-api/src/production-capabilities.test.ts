@@ -2,12 +2,14 @@ import { readFileSync, readdirSync } from "node:fs";
 
 import {
   LEGACY_GROUNDING_CONTRACT_SELECTION,
+  WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION,
   SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION
 } from "@wsgs/grounding-pipeline";
 import { describe, expect, it } from "vitest";
 
 import { groundingCapabilitiesForSelection } from "./production.js";
 import { compileApiSchemas } from "./schemas.js";
+import { createWorldAnalysisValidator } from "@wsgs/contracts";
 
 const legacySchemaDirectory = new URL("../../../contracts/wsgs-v0.1/contracts/", import.meta.url);
 const legacySchemas = Object.fromEntries(readdirSync(legacySchemaDirectory)
@@ -16,6 +18,13 @@ const legacySchemas = Object.fromEntries(readdirSync(legacySchemaDirectory)
 const validators = compileApiSchemas(legacySchemas);
 
 describe("groundingCapabilitiesForSelection", () => {
+  it.each([undefined, { capabilities: [] }, { capabilities: "untrusted" }])("returns legal 1.2 capabilities when discovery is missing or invalid", discovery => {
+    const result = groundingCapabilitiesForSelection(WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION, { ready: true, reasons: [] }, discovery);
+    expect(createWorldAnalysisValidator()("capabilities", result).valid).toBe(true);
+    expect(result["requiredCapabilitiesReady"]).toBe(true);
+    expect(result["worldAnalysis"]).toMatchObject({ supportedActionSources: ["HISTORICAL_METRIC_CANDIDATE"],
+      capabilities: expect.arrayContaining([expect.objectContaining({ supported: true, available: false, reasonCodes: ["SNAPSHOT_UNAVAILABLE"] })]) });
+  });
   it("preserves the exact legacy 1.0 capability document", () => {
     const capabilities = groundingCapabilitiesForSelection(
       LEGACY_GROUNDING_CONTRACT_SELECTION,

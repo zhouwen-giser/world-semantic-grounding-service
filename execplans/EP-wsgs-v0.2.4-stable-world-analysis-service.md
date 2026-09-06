@@ -38,8 +38,10 @@ The working tree was clean. Dedicated branch:
 - W04 IN_PROGRESS (joint W03 preparation): stored public choice resolver reuses
   prior-grounding identity/scope validation and checks hash/TTL/ownership.
   Production multi-round wiring, semantic invalidation and action reuse remain open.
-- W05 NOT_STARTED: per-capability support/availability with exact dependencies,
-  default opt-in, unrelated Grounding/GDPS isolation.
+- W05 IN_PROGRESS (joint W03/W04 evidence): production 1.2 capability document,
+  caller-filtered signed discovery and per-operation contract/semantic/freshness
+  checks implemented. Exact CROSS/action dependencies and default opt-in covered
+  by component tests; complete HTTP failure isolation remains in W06.
 - W06 NOT_STARTED: full regression and production-assembly local HTTP sync,
   async worker/GET, multiround, failure and compatibility evidence.
 - W07 NOT_STARTED: isolated consumer handoff, independent final review, all

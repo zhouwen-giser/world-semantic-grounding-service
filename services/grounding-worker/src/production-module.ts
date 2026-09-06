@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { assembleProductionWorldAnalysis } from "./world-analysis-result.js";
+import { projectWorldAnalysisAvailability } from "./world-analysis-capabilities.js";
 import { loadPriorAnalysisAuthority, type PriorAnalysisAuthority } from "./prior-analysis-authority.js";
 import type { GroundingRequest12 } from "@wsgs/contracts";
 import { PriorGroundingError, type PriorGroundingPointer } from "@wsgs/prior-grounding";
@@ -867,6 +868,36 @@ export async function captureAdmissionSnapshot(context: {
   // same model prompt a second time for every admitted business request.
   await liveAuthority(value);
   return (await liveAuthority(value, true, context.identity, false)).admission;
+}
+
+/** Discovery signs the caller's exact grants but does not run the model or capture an admission. */
+export async function discoverWorldAnalysis(identity: GroundingIdentityV2) {
+  const value = readinessRuntime();
+  const lock = value.operationalLock.lock;
+  const selected = selectProductionSouthboundLock(lock, value.gdpsRecipes,
+    value.history.enabled && (value.allowPreview || value.advancedHistory.enabled), value.analysisContracts?.authorizations);
+  const input = {
+    historyEnabled: value.history.enabled && (value.allowPreview || value.advancedHistory.enabled),
+    advancedEnabled: value.advancedHistory.enabled,
+    locks: allGatewayLocks(selected),
+    expectedCatalogRevision: lock.contractCatalogRevision,
+    expectedSemanticHash: lock.semanticCatalogHash
+  };
+  if (!input.historyEnabled && !input.advancedEnabled) return projectWorldAnalysisAvailability(input);
+  try {
+    const requestId = `wsgs-discovery-${randomUUID()}`;
+    const signed = await value.signer.sign({ kind: "WORLD_QUERY", identity, requestId,
+      plan: { nodes: input.locks.map((entry, index) => ({ nodeId: `Discovery_${index + 1}`,
+        operation: { operationId: entry.operationId, operationVersion: entry.operationVersion } })) },
+      dataScopes: identity.dataScopes, datasetScopes: identity.datasetScopes });
+    const deadlineAt = new Date(Date.now() + environmentInteger("WSGS_READINESS_TIMEOUT_MS", 15_000, 500, 120_000));
+    const catalog = await value.gateway.listCapabilities({ deadlineAt });
+    const semantics = await value.gateway.listCapabilitySemantics({ deadlineAt });
+    const availability = await value.gateway.listOperationAvailability({ deadlineAt, requestId, delegationToken: signed.token });
+    return projectWorldAnalysisAvailability({ ...input, catalog, semantics, availability });
+  } catch {
+    return projectWorldAnalysisAvailability(input);
+  }
 }
 
 function persistedAuthority(context: PipelineStageContext, gateway: GowmGatewayClient): PersistedAuthority {
