@@ -27,8 +27,9 @@ The working tree was clean. Dedicated branch:
   45 schemas, 15 generated types, 44 full examples and 836 assertions PASS.
   One uncommitted candidate explicitly withdrawn for stale document state;
   original locks retained. Final freeze precedes all new runtime work.
-- W02 IN_PROGRESS: validated public normalizer, provenance closure, explicit
-  input completeness versus display truncation, deterministic bounded output.
+- W02 COMPLETE: validated five-kind projection, provenance closure, explicit
+  completeness versus display truncation, 28 fixture tests, 157 related tests,
+  nine fixed hash pairs, bounded output and unchanged frozen contract PASS.
 - W03 NOT_STARTED: exact negotiation throughout API/backend/worker/store/GET,
   idempotency and recovery; append-only migration only if needed.
 - W04 NOT_STARTED: actor/scope/hash/TTL-bound choices, semantic invalidation,

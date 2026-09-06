@@ -1,0 +1,13 @@
+{
+  "command": "npm run verify:world-analysis-contract",
+  "startedAt": "2026-09-06T15:30:55.724Z",
+  "finishedAt": "2026-09-06T15:30:59.454Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "65704fbd87f15b9ae53eb2940600e60877a36dc1",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/frozen-contract.log",
+  "logSha256": "sha256:e746b4f0c63b23bb43a240de14e6a422ced14460a5cf7e0f890e69e6806add1d"
+}

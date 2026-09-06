@@ -1,0 +1,90 @@
+{
+  "source": "packages/historical-trace-consumer/src/__snapshots__/public-world-analysis.test.ts.snap",
+  "scope": "CONTROLLED_FIXTURE_NORMALIZATION_NOT_LIVE",
+  "vectors": [
+    {
+      "case": "public world analysis projection > maps validated cross-last through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "ROAD_ASSOCIATION",
+        "TEMPORAL_EVENT"
+      ],
+      "profileHash": "sha256:9a762ad573653138378a9653e601ce33acb9eb614c3ec4719e5011642f477cce",
+      "resultHash": "sha256:e26b7656cb51e4ffaf85598711077edf21a848a4f6db7c249e08b8fdf7136ecf"
+    },
+    {
+      "case": "public world analysis projection > maps validated dwell through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "TEMPORAL_EVENT"
+      ],
+      "profileHash": "sha256:ca79738731e67f0883d5fe529bdb965faee17d4b265fcf0f0c73b8bc1c3a775b",
+      "resultHash": "sha256:89cd755684d378be63eebd05da77c46e9e45d0ed3c764cc05ce1c613f749e0cf"
+    },
+    {
+      "case": "public world analysis projection > maps validated enter through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "TEMPORAL_EVENT"
+      ],
+      "profileHash": "sha256:5cb28d0a694bccc3be5a82dc244b15dc8477946db2642f84cc456d479d3cef5c",
+      "resultHash": "sha256:4dbfda14f89c604b591fa2e29f1501a0b3dec3f36866c3869e8260f4642d141e"
+    },
+    {
+      "case": "public world analysis projection > maps validated exit through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "TEMPORAL_EVENT"
+      ],
+      "profileHash": "sha256:4ad0437f2af47f1525a0ad8d4ae238b19d7b6239a9635633417a52b79baf41df",
+      "resultHash": "sha256:5e7b38bb0108388afae160bbc0893043fb203b42f7ec522dbf83a3570d716f0f"
+    },
+    {
+      "case": "public world analysis projection > maps validated map-match through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "ROAD_ASSOCIATION"
+      ],
+      "profileHash": "sha256:d8d690aed5467be9ea47ac3e736a1b0f85ea1b19d8af4606178ad6349cae986a",
+      "resultHash": "sha256:50c65ab7f1106fd51f86d292a4b015009156c3c65625a5006b33729b675d3410"
+    },
+    {
+      "case": "public world analysis projection > maps validated metric-minimize-metric through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "METRIC_RANKING",
+        "ACTION_TARGET_CANDIDATE"
+      ],
+      "profileHash": "sha256:b66118c6ac1421f8656c62f6e2251d50149caa1cb284486ec9592833318a38b5",
+      "resultHash": "sha256:90053a17de2b5a4f005e83bd8cb4e79b2a58a30e843a47d8e9e13e04f4ed8e34"
+    },
+    {
+      "case": "public world analysis projection > maps validated metric-shared-campus through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "METRIC_RANKING",
+        "ACTION_TARGET_CANDIDATE"
+      ],
+      "profileHash": "sha256:9bc324d20a5c0c96d5703c86433b636ad9f08bd7ecd364ec837038f24685f917",
+      "resultHash": "sha256:f7c433c6b9418d27df39e71b672ddf87ebbd77805e8138956368ae16538d6597"
+    },
+    {
+      "case": "public world analysis projection > maps validated pass_near through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "TEMPORAL_EVENT"
+      ],
+      "profileHash": "sha256:c10666eaadd1b40e40bfac9d7b173ff8ad25defed90fb2662171557ede3dd913",
+      "resultHash": "sha256:3fd8a7ea762850fdc8d4bebcccc6c5bcbab1e149961e9f10407bf0e3b9d4ae3a"
+    },
+    {
+      "case": "public world analysis projection > maps validated stop through the full public result 1",
+      "kinds": [
+        "HISTORICAL_TRACE",
+        "TEMPORAL_EVENT"
+      ],
+      "profileHash": "sha256:d53b7ca52c60a410fbcf9116d54e4300d3f6fe85bacc5597ae8ba8a5ed43ec96",
+      "resultHash": "sha256:84cc4e673917808d969c05100ee166a2822cbba3abc8bb69f5af7329e0eda87e"
+    }
+  ]
+}

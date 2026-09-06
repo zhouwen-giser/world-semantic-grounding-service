@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W02",
+  "status": "PASS",
+  "testedCommit": "65704fbd87f15b9ae53eb2940600e60877a36dc1",
+  "scope": "L0_PUBLIC_NORMALIZATION_NOT_HTTP_OR_LIVE_ACCEPTANCE",
+  "fixtureSmoke": {
+    "command": "npm run smoke:world-analysis:fixture",
+    "status": "PASS",
+    "testFiles": 1,
+    "testsPassed": 28,
+    "failed": 0,
+    "skipped": 0,
+    "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.json"
+  },
+  "relatedRegression": {
+    "testFiles": 4,
+    "testsPassed": 157,
+    "failed": 0,
+    "skipped": 0,
+    "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-regression.json"
+  },
+  "build": {
+    "status": "PASS",
+    "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-build.json"
+  },
+  "contract": {
+    "status": "PASS",
+    "legacyByteIdenticalFiles": 68,
+    "frozenAssertions": 836,
+    "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/frozen-contract.json"
+  },
+  "acceptance": [
+    {
+      "id": "WA-019",
+      "status": "PASS",
+      "note": "Validated Provider envelope/schema/hash checks and rejection of tampered envelopes",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    },
+    {
+      "id": "WA-020",
+      "status": "PASS",
+      "note": "Five public finding kinds projected and full-result validated across nine fixed golden cases",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    },
+    {
+      "id": "WA-021",
+      "status": "PASS",
+      "note": "Single execution, active/paused/excluded/gap periods, PROVISIONAL and CONFLICTED",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    },
+    {
+      "id": "WA-022",
+      "status": "PASS",
+      "note": "Road network context, off-network interpretation, ambiguity and last-confirmed scope",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    },
+    {
+      "id": "WA-023",
+      "status": "PASS",
+      "note": "All six events, FIRST uncertainty, LAST proof and selected event retained under display trimming",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    },
+    {
+      "id": "WA-024",
+      "status": "PASS",
+      "note": "Catalog-bound MAX/MIN, negative RSSI, series ambiguity, median versus representative sample",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    },
+    {
+      "id": "WA-025",
+      "status": "PASS",
+      "note": "Authoritative reference-key lookup, local evidence closure, no fabricated feature RP",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    },
+    {
+      "id": "WA-026",
+      "status": "PASS",
+      "note": "Pinned action source, byte budget, valid compact gap and explicit result-too-large floor",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    },
+    {
+      "id": "WA-027",
+      "status": "PASS",
+      "note": "Nine fixed hash pairs, repeat projection equality and changed-position sensitivity",
+      "evidence": [
+        "packages/historical-trace-consumer/src/public-world-analysis.ts",
+        "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
+        "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log"
+      ]
+    }
+  ],
+  "sourceBoundaries": {
+    "providerFixtures": "Controlled projection of repository fixtures. IDs transformed to public schema form and result/receipt integrity recomputed.",
+    "minimizeFixture": "Generic network.latency/NORMALIZED sample explicitly projected to catalog NETWORK_LATENCY/AVERAGE_ROUND_TRIP_TIME/PARSED_NATIVE. No live mapping claim.",
+    "historicalFoundation": "Explicit controlled test fixture; production integration is W03/W06.",
+    "directProviderHttp": false,
+    "directGowmDatabase": false,
+    "deviceExecution": false,
+    "liveGatewayUsed": false,
+    "postgresUsed": false,
+    "realModelUsed": false
+  },
+  "knownLimitations": [
+    "HTTP/API/worker/store integration is not yet implemented in W03.",
+    "Structured selection authorization and private authority persistence remain W04.",
+    "Provider availability projection remains W05.",
+    "L1 HTTP and isolated consumer handoff remain W06/W07."
+  ]
+}

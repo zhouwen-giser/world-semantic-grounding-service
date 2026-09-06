@@ -1,6 +1,7 @@
-# W02 In Progress
+# W02 Progress History
 
-Status: PARTIAL. No W02 acceptance row is claimed PASS yet.
+This is the retained initial progress note. W02 is now complete; see
+normalization-report.json and SELF_REVIEW.md for final evidence and boundaries.
 
 Completed prerequisite implementation at
 89b9b9acbab6c1cbc059d6d9bc1ce2b7eefaedde:
