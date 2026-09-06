@@ -5,12 +5,18 @@ import { Aes256GcmPayloadCodec, PostgresPipelineJournal, WORLD_ANALYSIS_GROUNDIN
 import { loadPriorAnalysisAuthority } from "./prior-analysis-authority.js";
 
 const example = (name: string) => JSON.parse(readFileSync(new URL(`../../../contracts/wsgs-v0.2.4-world-analysis/examples/${name}.json`, import.meta.url), "utf8"));
-async function fixture(change: "none" | "scope" | "hash" | "cipher" | "result" | "missing" = "none") {
-  const result = example("ranking"); const request = example("request-selection");
+async function fixture(change: "none" | "scope" | "hash" | "cipher" | "result" | "missing" | "reference" = "none") {
+  const result = example(change === "reference" ? "all-choices" : "ranking"); const request = example("request-selection");
+  if (change === "reference") {
+    const choice = result.worldAnalysisFindings.choices.find((value: { choiceKind: string }) => value.choiceKind === "REFERENCE_SELECTION");
+    request.contextCapsule.priorGroundings[0].resultHash = result.resultHash;
+    request.analysisSelections[0] = { priorGroundingId: result.groundingId, priorResultHash: result.resultHash,
+      findingSetHash: result.worldAnalysisFindings.findingSetHash, choiceId: choice.choiceId, candidateId: choice.candidates[0].candidateId };
+  }
   const identity = { servicePrincipalId: "service", actorId: "actor", dataScopes: ["scope"], datasetScopes: [], permissions: ["grounding.read"], authorizationContextHash: `sha256:${"a".repeat(64)}` as const };
   const advanced = { intent: { test: "server-owned" }, foundation: { test: "server-owned" }, analysisEvidence: [] };
   const state = { contractSelection: WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION,
-    PRODUCT_ASSEMBLE: { ...result, ...(change === "result" ? { resultHash: `sha256:${"f".repeat(64)}` } : {}) }, GOWM_EXECUTE: { advancedExecution: advanced } };
+    PRODUCT_ASSEMBLE: { ...result, ...(change === "result" ? { resultHash: `sha256:${"f".repeat(64)}` } : {}) }, GOWM_EXECUTE: change === "reference" ? {} : { advancedExecution: advanced } };
   const checkpoint: PipelineCheckpoint = { schemaVersion: "1.0", jobId: "job-1", operation: "EXECUTE_WORLD_QUERY", runFingerprint: result.execution.runFingerprint,
     nextStageIndex: 14, nextEventSequence: 28, state, previousRecordHash: `sha256:${"c".repeat(64)}`, lastCompletedStage: "RESULT_PERSIST" };
   const codec = new Aes256GcmPayloadCodec(Buffer.alloc(32, 8));
@@ -34,6 +40,12 @@ async function fixture(change: "none" | "scope" | "hash" | "cipher" | "result" |
     pointer: request.contextCapsule.priorGroundings[0], selection: request.analysisSelections[0], now: new Date("2026-09-06T02:00:01Z") } };
 }
 describe("private analysis authority restoration", () => {
+  it("restores an ordinary reference Choice without fabricating historical analysis", async () => {
+    const f = await fixture("reference");
+    const restored = await loadPriorAnalysisAuthority(f.input);
+    expect(restored.candidate).toHaveProperty("referenceProductId");
+    expect(restored.advanced).toBeUndefined();
+  });
   it("binds a scope-authorized stored Choice to its real decrypted checkpoint", async () => {
     const f = await fixture();
     expect((await loadPriorAnalysisAuthority(f.input)).advanced).toEqual(f.advanced);

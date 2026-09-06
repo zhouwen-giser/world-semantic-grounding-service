@@ -5,7 +5,7 @@ import { PriorGroundingError, resolveStoredAnalysisSelection, type PriorGroundin
 import type { AdvancedHistoricalExecutionResult } from "@wsgs/historical-trace-consumer";
 
 export interface PriorAnalysisAuthority extends ResolvedPriorAnalysisSelection {
-  advanced: AdvancedHistoricalExecutionResult;
+  advanced?: AdvancedHistoricalExecutionResult;
 }
 interface PriorRow {
   grounding_id: string;
@@ -59,6 +59,11 @@ export async function loadPriorAnalysisAuthority(input: {
   if (!assembled || assembled["groundingId"] !== row!.grounding_id || assembled["resultHash"] !== row!.result_hash) throw new PriorGroundingError("SELECTION_INVALID");
   const execution = record(checkpoint.state["GOWM_EXECUTE"]);
   const advanced = record(execution?.["advancedExecution"]);
+  if ("referenceProductId" in resolved.candidate) {
+    const compiled = record(checkpoint.state["WORLD_QUERY_COMPILE"]);
+    const intent = record(advanced?.["intent"]) ?? record(compiled?.["advancedIntent"]);
+    return { ...resolved, ...(intent ? { advanced: (advanced ?? { status: "UNRESOLVED", reasonCode: "REFERENCE_AMBIGUOUS", intent, analysisEvidence: [], findings: [], operations: [] }) as unknown as AdvancedHistoricalExecutionResult } : {}) };
+  }
   if (!advanced || !record(advanced["intent"]) || !record(advanced["foundation"]) || !Array.isArray(advanced["analysisEvidence"])) throw new PriorGroundingError("SELECTION_INVALID");
   return { ...resolved, advanced: advanced as unknown as AdvancedHistoricalExecutionResult };
 }

@@ -11,6 +11,20 @@ function assemble(base: Record<string, unknown>) {
 }
 
 describe("production world-analysis consumer boundary", () => {
+  it.each(["WORLD_OBJECT", "OPERATIONAL_TASK"])("turns existing %s ambiguities into real-reference Choices", kind => {
+    const base = example("empty");
+    base.status = "AMBIGUOUS";
+    base.referenceProducts = base.referenceProducts.slice(0, 2).map((product: Record<string, unknown>, index: number) => ({ ...product,
+      productId: `product-${index}`, referenceType: kind, referenceKey: { ...(product["referenceKey"] as Record<string, unknown>), kind } }));
+    base.ambiguities = [{ ambiguityId: "ambiguity-1", mentionId: "mention-1", surfaceText: "ambiguous object",
+      candidateProductIds: base.referenceProducts.map((product: { productId: string }) => product.productId), reason: "MULTIPLE_EXACT_MATCHES" }];
+    const result = assemble(base);
+    const choice = result.worldAnalysisFindings.choices[0]!;
+    expect(choice.choiceKind).toBe(kind === "OPERATIONAL_TASK" ? "TASK_SELECTION" : "REFERENCE_SELECTION");
+    expect(choice.candidates).toHaveLength(base.referenceProducts.length);
+    expect(choice.candidates[0]).toMatchObject({ referenceProductId: base.referenceProducts[0].productId });
+    expect(validate("result", result)).toEqual({ valid: true, errors: [] });
+  });
   it.each(["COMPLETED", "PARTIAL", "AMBIGUOUS", "UNRESOLVED", "FAILED", "CANCELLED"])("retains ordinary %s status with an empty analysis component", status => {
     const base = example("empty");
     base.status = status;

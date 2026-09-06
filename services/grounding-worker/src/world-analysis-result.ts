@@ -47,5 +47,21 @@ export function assembleProductionWorldAnalysis(input: {
     ...(input.advanced ? { advanced: input.advanced } : {}),
     ...(input.foundation ? { foundation: input.foundation } : {})
   });
+  for (const ambiguity of base.ambiguities) {
+    const candidates = base.referenceProducts.filter(product => ambiguity.candidateProductIds.includes(product.productId));
+    if (candidates.length === 0) continue;
+    if (projection.component.choices.length >= 32 || candidates.length > 100) {
+      projection.component.gaps.push({ gapId: `gap-${worldAnalysisCanonicalHash({ groundingId: base.groundingId, ambiguity: ambiguity.ambiguityId }).slice(7, 39)}`,
+        gapKind: "RESULT_TRUNCATED", severity: "WARNING", messageCode: "RESULT_TRUNCATED", findingIds: [], evidenceIds: [], detail: {} });
+      if (projection.component.choices.length >= 32) break;
+    }
+    const choiceId = `choice-${worldAnalysisCanonicalHash({ groundingId: base.groundingId, ambiguity: ambiguity.ambiguityId }).slice(7, 39)}`;
+    projection.component.choices.push({ choiceId, choiceKind: candidates.every(product => product.referenceKey.kind === "OPERATIONAL_TASK") ? "TASK_SELECTION" : "REFERENCE_SELECTION",
+      promptCode: "REFERENCE_AMBIGUOUS", validUntil: input.validUntil,
+      candidates: candidates.slice(0, 100).map(product => ({ candidateId: `candidate-${worldAnalysisCanonicalHash({ choiceId, productId: product.productId }).slice(7, 39)}`,
+        displayName: product.displayName, referenceProductId: product.productId })) });
+    projection.status = "AMBIGUOUS";
+  }
+  projection.component.findingSetHash = worldAnalysisFindingSetHash(projection.component);
   return assemblePublicWorldAnalysisResult(base, projection, { maxResultBytes: input.maxResultBytes });
 }

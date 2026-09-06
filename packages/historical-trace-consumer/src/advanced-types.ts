@@ -2,12 +2,12 @@ import type {
   AnalysisOperationId, AnalysisProviderResultTypes, EventSelection, MetricSelector, MetricSeriesSelection,
   TemporalEventType, ValidatedAnalysisEnvelope, SpatialEventTarget
 } from "@wsgs/gowm-contract-intake";
-import type { HistoricalTraceIntent, HistoricalTraceFinding, HistoricalReferenceProjection } from "./types.js";
+import type { HistoricalTraceIntent, HistoricalTraceFinding, HistoricalReferenceProjection, HistoricalReferenceKey } from "./types.js";
 
 export type HistoricalScopeIntent = Omit<HistoricalTraceIntent, "queryKind" | "maximumInlinePoints">;
 export type AdvancedAnalysisIntent =
   | { kind: "ROAD_ASSOCIATION"; output: "ROAD_VISITS" | "LAST_CONFIRMED_ROAD" | "OFF_NETWORK_SEGMENTS" | "NETWORK_DATA_ISSUES" }
-  | { kind: "TEMPORAL_EVENT"; eventType: TemporalEventType; selection: EventSelection; targetMention?: string }
+  | { kind: "TEMPORAL_EVENT"; eventType: TemporalEventType; selection: EventSelection; targetMention?: string; targetReferenceKey?: HistoricalReferenceKey }
   | { kind: "METRIC_RANKING"; metricConceptId: string; metricSelector: MetricSelector; metricSeriesSelection: MetricSeriesSelection; topK: number; selectedRank?: number; actionTargetRequested: boolean };
 export interface AdvancedHistoricalIntent { historicalScope: HistoricalScopeIntent; analysis: AdvancedAnalysisIntent }
 export type AdvancedIntentResolution = { status: "PARSED"; intent: AdvancedHistoricalIntent } | { status: "UNRESOLVED"; reasonCode: string } | { status: "NOT_ADVANCED" };

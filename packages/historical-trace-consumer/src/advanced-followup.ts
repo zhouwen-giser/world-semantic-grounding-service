@@ -25,13 +25,39 @@ export function resolvePublicAdvancedFollowup(text: string, result: GroundingRes
   const reject = (reasonCode: string): AdvancedFollowup => ({ resolution: { status: "UNRESOLVED", reasonCode }, compare: false });
   const choice = result.worldAnalysisFindings.choices.find(value => value.choiceId === choiceId);
   const candidate = choice?.candidates.find(value => value.candidateId === candidateId);
-  if (!choice || !candidate || !prior.foundation) return reject("SELECTION_INVALID");
+  if (!choice || !candidate) return reject("SELECTION_INVALID");
   const ordinals = (text.match(/第\s*(?:[1-9][0-9]*|[一二三四五六七八九十]+)\s*个/gu) ?? []).map(advancedSelectionRank);
   if (new Set(ordinals).size > 1) return reject("SELECTION_AMBIGUOUS");
   const parsed = parseAdvancedHistoricalIntent(text, catalog, config, prior.intent);
   if (parsed.status === "UNRESOLVED") return { resolution: parsed, compare: false };
   if (parsed.status === "NOT_ADVANCED" && !/选择|选中|就这个|这个位置|使用|第.*个|^use\b|^select\b|回到|返回|前往/iu.test(text)) return reject("SELECTION_AMBIGUOUS");
   const intent = structuredClone(parsed.status === "PARSED" ? parsed.intent : prior.intent);
+  if ("referenceProductId" in candidate) {
+    const product = result.referenceProducts.find(value => value.productId === candidate.referenceProductId);
+    if (!product) return reject("SELECTION_INVALID");
+    const targetAnalysis = intent.analysis.kind === "TEMPORAL_EVENT" && ["ENTER", "EXIT", "PASS_NEAR", "DWELL"].includes(intent.analysis.eventType) ? intent.analysis : undefined;
+    const targetRole = targetAnalysis && (result.ambiguities.some(ambiguity => ambiguity.surfaceText === targetAnalysis.targetMention && ambiguity.candidateProductIds.includes(product.productId)) ||
+      result.worldAnalysisFindings.findings.some(finding => finding.findingKind === "TEMPORAL_EVENT" && finding.events.some(event => event.target?.kind === "SPATIAL_TARGET" && event.target.referenceProductId === product.productId)));
+    if (product.referenceKey.kind === "OPERATIONAL_TASK") {
+      intent.historicalScope.taskReferenceKey = product.referenceKey;
+      delete intent.historicalScope.taskMention;
+    } else if (targetRole && targetAnalysis) {
+      targetAnalysis.targetReferenceKey = product.referenceKey;
+      targetAnalysis.targetMention = product.displayName;
+    } else if (["ENTITY", "WORLD_OBJECT"].includes(product.referenceKey.kind)) {
+      intent.historicalScope.subjectReferenceKey = product.referenceKey;
+      delete intent.historicalScope.subjectMention;
+    } else if (targetAnalysis) {
+      targetAnalysis.targetReferenceKey = product.referenceKey;
+      targetAnalysis.targetMention = product.displayName;
+    } else return reject("SELECTION_AMBIGUOUS");
+    if (intent.analysis.kind === "METRIC_RANKING") {
+      delete intent.analysis.selectedRank;
+      intent.analysis.actionTargetRequested = /回到|返回|前往|^去|让.*去/iu.test(text);
+    }
+    return { resolution: { status: "PARSED", intent }, compare: false };
+  }
+  if (!prior.foundation) return reject("SELECTION_INVALID");
   const compare = /更新|重查|重新|最新|最近一次|本次|第.*次(?:任务|执行)|refresh|recompute/iu.test(text);
   const ordinal = advancedSelectionRank(text);
   if (ordinal !== undefined && ("rank" in candidate ? ordinal !== candidate.rank : choice.candidates.findIndex(value => value.candidateId === candidateId) + 1 !== ordinal)) return reject("SELECTION_AMBIGUOUS");

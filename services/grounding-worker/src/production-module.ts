@@ -1763,20 +1763,27 @@ function mappedGap(gap: CapabilityGap | JsonObject): JsonObject {
   };
 }
 
-async function resolveAdvancedTarget(value: Runtime, context: PipelineStageContext, mention: string): Promise<SpatialEventTarget | { reasonCode: string }> {
+async function resolveAdvancedTarget(value: Runtime, context: PipelineStageContext, mention: string, selectedKey?: HistoricalReferenceKey): Promise<SpatialEventTarget | { reasonCode: string }> {
   const authority = persistedAuthority(context, value.gateway);
-  const resolveLock = operationLock(authority, "reference.resolve");
-  const resolved = envelopeValue(await executeOperation(value, context, resolveLock, {
-    schemaVersion: "1.0", mentions: [{ mentionId: "advanced-target", surfaceText: mention }],
-    context: { language: "zh-CN", anchorReferenceKeys: [] }, limitPerMention: 2
-  }, `advanced-target-resolve-${analysisHash(mention).slice(7)}`), resolveLock);
-  if (!resolved) return { reasonCode: "TARGET_REFERENCE_UNRESOLVED" };
-  const resolutions = object(resolved, "TARGET_REFERENCE_UNRESOLVED")["resolutions"];
-  const resolution = Array.isArray(resolutions) && resolutions.length === 1 ? object(resolutions[0], "TARGET_REFERENCE_UNRESOLVED") : undefined;
-  const candidates = resolution?.["candidates"];
-  if (!Array.isArray(candidates) || candidates.length === 0) return { reasonCode: "TARGET_REFERENCE_UNRESOLVED" };
-  if (candidates.length !== 1 || resolution?.["status"] === "AMBIGUOUS") return { reasonCode: "TARGET_CONTEXT_AMBIGUOUS" };
-  const descriptor = object(object(candidates[0], "TARGET_REFERENCE_UNRESOLVED")["candidate"], "TARGET_REFERENCE_UNRESOLVED");
+  let descriptor: JsonObject;
+  if (selectedKey) {
+    const validated = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE").referenceProducts.find(product => canonicalSha256(product.referenceKey) === canonicalSha256(selectedKey));
+    if (!validated || validated.revalidationRequired !== false || !validated.validUntil || Date.parse(validated.validUntil) <= Date.now()) return { reasonCode: "TARGET_REFERENCE_UNRESOLVED" };
+    descriptor = { referenceKey: validated.referenceKey, displayName: validated.displayName };
+  } else {
+    const resolveLock = operationLock(authority, "reference.resolve");
+    const resolved = envelopeValue(await executeOperation(value, context, resolveLock, {
+      schemaVersion: "1.0", mentions: [{ mentionId: "advanced-target", surfaceText: mention }],
+      context: { language: "zh-CN", anchorReferenceKeys: [] }, limitPerMention: 2
+    }, `advanced-target-resolve-${analysisHash(mention).slice(7)}`), resolveLock);
+    if (!resolved) return { reasonCode: "TARGET_REFERENCE_UNRESOLVED" };
+    const resolutions = object(resolved, "TARGET_REFERENCE_UNRESOLVED")["resolutions"];
+    const resolution = Array.isArray(resolutions) && resolutions.length === 1 ? object(resolutions[0], "TARGET_REFERENCE_UNRESOLVED") : undefined;
+    const candidates = resolution?.["candidates"];
+    if (!Array.isArray(candidates) || candidates.length === 0) return { reasonCode: "TARGET_REFERENCE_UNRESOLVED" };
+    if (candidates.length !== 1 || resolution?.["status"] === "AMBIGUOUS") return { reasonCode: "TARGET_CONTEXT_AMBIGUOUS" };
+    descriptor = object(object(candidates[0], "TARGET_REFERENCE_UNRESOLVED")["candidate"], "TARGET_REFERENCE_UNRESOLVED");
+  }
   const key = referenceKey(descriptor["referenceKey"]);
   const geometryLock = operationLock(authority, "world.get-geometry");
   const geometryResult = envelopeValue(await executeOperation(value, context, geometryLock, { schemaVersion: "1.0", referenceKey: key },
@@ -2884,6 +2891,7 @@ export async function createPipelineStageExecutor(
         (structuredSelections.length > 0 || priorGroundings.length > 0 && ordinal !== undefined);
       let publicAnalysisAuthority: PriorAnalysisAuthority | undefined;
       let publicFollowup: AdvancedFollowup | undefined;
+      const publicKnownReferences: JsonObject[] = [];
       if (publicSelectionRequested) {
         try {
           if (structuredSelections.length > 1 || priorGroundings.length !== 1 || !options.priorAnalysisJournal) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
@@ -2891,7 +2899,15 @@ export async function createPipelineStageExecutor(
             identity: { ...identity(context), authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest }, dataScope: identity(context).dataScope, pointer: priorGroundings[0] as PriorGroundingPointer,
             ...(structuredSelections[0] ? { selection: structuredSelections[0] as NonNullable<GroundingRequest12["analysisSelections"]>[number] } : {}),
             ...(ordinal === undefined ? {} : { ordinal }) });
-          publicFollowup = resolvePublicAdvancedFollowup(sourceText, publicAnalysisAuthority.result,
+          if ("referenceProductId" in publicAnalysisAuthority.candidate) {
+            const selectedId = publicAnalysisAuthority.candidate.referenceProductId;
+            const product = publicAnalysisAuthority.result.referenceProducts.find(item => item.productId === selectedId)!;
+            const ambiguity = publicAnalysisAuthority.result.ambiguities.find(item => item.candidateProductIds.includes(selectedId));
+            publicKnownReferences.push({ referenceKey: product.referenceKey, referenceType: product.referenceType,
+              sourceMessageId: publicAnalysisAuthority.result.source.messageId, sourceGroundingId: publicAnalysisAuthority.result.groundingId,
+              ...(ambiguity ? { alias: ambiguity.surfaceText } : {}), ...(product.validUntil ? { validUntil: product.validUntil } : {}) });
+          }
+          if (publicAnalysisAuthority.advanced) publicFollowup = resolvePublicAdvancedFollowup(sourceText, publicAnalysisAuthority.result,
             publicAnalysisAuthority.choice.choiceId, publicAnalysisAuthority.candidate.candidateId,
             publicAnalysisAuthority.advanced, value.metricCatalog, value.advancedHistory);
         } catch (error) {
@@ -2955,7 +2971,7 @@ export async function createPipelineStageExecutor(
       return {
         startedAt: new Date().toISOString(),
         capabilitySnapshotId: snapshotId,
-        knownWorldReferences: parts.capsule["knownWorldReferences"],
+        knownWorldReferences: [...(Array.isArray(parts.capsule["knownWorldReferences"]) ? parts.capsule["knownWorldReferences"] : []), ...publicKnownReferences],
         priorGroundings,
         ...(priorHistorical ? { priorHistorical } : {}),
         ...(historicalFollowup ? { historicalFollowup } : {}),
@@ -2972,7 +2988,7 @@ export async function createPipelineStageExecutor(
       return parseDeterministicReferences({
         originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
         focusSpans: Array.isArray(parts.source["focusSpans"]) ? parts.source["focusSpans"] as never[] : [],
-        knownWorldReferences: Array.isArray(parts.capsule["knownWorldReferences"]) ? parts.capsule["knownWorldReferences"] as never[] : [],
+        knownWorldReferences: stageValue<{ knownWorldReferences: never[] }>(context, "LOAD_CONTEXT").knownWorldReferences,
         mapSelections: Array.isArray(parts.capsule["mapSelections"]) ? parts.capsule["mapSelections"] as never[] : [],
         priorGroundings: Array.isArray(parts.capsule["priorGroundings"]) ? parts.capsule["priorGroundings"] as never[] : []
       });
@@ -3058,8 +3074,8 @@ export async function createPipelineStageExecutor(
       const authority = persistedAuthority(context, value.gateway);
       const resolved = context.state["REFERENCE_RESOLVE"] as ReferenceGroundingResult | undefined;
       const parts = requestParts(context);
-      const known = Array.isArray(parts.capsule["knownWorldReferences"])
-        ? parts.capsule["knownWorldReferences"].map((entry) => object(entry, "INVALID_KNOWN_REFERENCE")) : [];
+      const loadedKnown = stageValue<{ knownWorldReferences: unknown[] }>(context, "LOAD_CONTEXT").knownWorldReferences;
+      const known = loadedKnown.map((entry) => object(entry, "INVALID_KNOWN_REFERENCE"));
       const result = mergeKnownReferenceProducts(resolved, known);
       const references = result.referenceProducts.map((entry) => ({
         referenceKey: entry.referenceKey, requireCurrentSnapshot: true
@@ -3377,6 +3393,13 @@ export async function createPipelineStageExecutor(
         const authority = persistedAuthority(context, value.gateway);
         const references = stageValue<ReferenceGroundingResult>(context, "REFERENCE_VALIDATE");
         const parts = requestParts(context);
+        const selectedAuthority = stageValue<{ publicAnalysisAuthority?: PriorAnalysisAuthority }>(context, "LOAD_CONTEXT").publicAnalysisAuthority;
+        if (selectedAuthority && "referenceProductId" in selectedAuthority.candidate) {
+          const selectedId = selectedAuthority.candidate.referenceProductId;
+          const selectedKey = selectedAuthority.result.referenceProducts.find(product => product.productId === selectedId)!.referenceKey;
+          const validated = references.referenceProducts.find(product => canonicalSha256(product.referenceKey) === canonicalSha256(selectedKey));
+          if (!validated || validated.revalidationRequired !== false || !validated.validUntil || Date.parse(validated.validUntil) <= Date.now()) return { outcomes: [], advancedFailure: "REFERENCE_MISSING" };
+        }
         if (compilation.advancedFollowup?.publicReuse && canReuseAdvancedFoundation(compilation.advancedFollowup.publicReuse.foundation!, compilation.advancedIntent, Date.now())) {
           const loaded = stageValue<{ publicAnalysisAuthority: PriorAnalysisAuthority }>(context, "LOAD_CONTEXT");
           if (Date.parse(loaded.publicAnalysisAuthority.choice.validUntil) <= Date.now()) return { outcomes: [], advancedFailure: "SELECTION_EXPIRED" };
@@ -3412,7 +3435,8 @@ export async function createPipelineStageExecutor(
             const lock = operationLock(authority, operationId);
             return executeOperation(value, context, lock, input, `advanced-${execution.idempotencyKey.slice(7)}`, execution.budget);
           } },
-          resolveTarget: async mention => resolveAdvancedTarget(value, context, mention)
+          resolveTarget: async mention => resolveAdvancedTarget(value, context, mention,
+            compilation.advancedIntent!.analysis.kind === "TEMPORAL_EVENT" ? compilation.advancedIntent!.analysis.targetReferenceKey : undefined)
         });
         if (compilation.advancedFollowup?.compare && compilation.advancedFollowup.prior) {
           const priorResult = compilation.advancedFollowup.prior;
@@ -3425,7 +3449,8 @@ export async function createPipelineStageExecutor(
           ].filter(([, oldValue, newValue]) => analysisHash(oldValue) !== analysisHash(newValue)).map(([key]) => String(key));
           advancedExecution.comparison = { changed: changedFields.length > 0, changedFields };
         }
-        return { outcomes: [], advancedExecution };
+        const publicAuthority = stageValue<{ publicAnalysisAuthority?: PriorAnalysisAuthority }>(context, "LOAD_CONTEXT").publicAnalysisAuthority;
+        return { outcomes: [], advancedExecution, ...(publicAuthority ? { publicReferenceProducts: publicAuthority.result.referenceProducts } : {}) };
       }
       if (compilation.historicalPlan) {
         if (compilation.historicalReuse) {

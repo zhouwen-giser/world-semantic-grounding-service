@@ -74,6 +74,40 @@ function setup(name: string, action = false) {
 }
 
 describe("public world analysis projection", () => {
+  it("keeps a WORLD_OBJECT event target distinct from the historical subject", () => {
+    const input = setup("enter");
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const product = first.referenceProducts.at(-1)!;
+    first.worldAnalysisFindings.choices.push({ choiceId: "target-choice", choiceKind: "REFERENCE_SELECTION", promptCode: "REFERENCE_AMBIGUOUS", validUntil,
+      candidates: [{ candidateId: "target-candidate", displayName: product.displayName, referenceProductId: product.productId }] });
+    first.worldAnalysisFindings.findingSetHash = worldAnalysisFindingSetHash(first.worldAnalysisFindings);
+    first.resultHash = worldAnalysisResultHash(first);
+    expect(validate("result", first)).toEqual({ valid: true, errors: [] });
+    const followup = resolvePublicAdvancedFollowup("选择这个对象", first, "target-choice", "target-candidate", input.advanced, catalog,
+      advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.resolution).toMatchObject({ status: "PARSED", intent: { analysis: { targetReferenceKey: product.referenceKey }, historicalScope: { subjectReferenceKey: input.advanced.intent.historicalScope.subjectReferenceKey } } });
+    expect(followup.publicReuse).toBeUndefined();
+  });
+  it.each(["TASK_SELECTION", "REFERENCE_SELECTION"] as const)("requeries a selected real %s without reusing the old action", choiceKind => {
+    const input = setup("metric-shared-campus", true);
+    const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    const product = first.referenceProducts[choiceKind === "TASK_SELECTION" ? 1 : 0]!;
+    const choice = { choiceId: "reference-choice", choiceKind, promptCode: "REFERENCE_AMBIGUOUS", validUntil,
+      candidates: [{ candidateId: "reference-candidate", displayName: product.displayName, referenceProductId: product.productId }] };
+    first.worldAnalysisFindings.choices.push(choice);
+    first.worldAnalysisFindings.findingSetHash = worldAnalysisFindingSetHash(first.worldAnalysisFindings);
+    first.resultHash = worldAnalysisResultHash(first);
+    expect(validate("result", first)).toEqual({ valid: true, errors: [] });
+    const followup = resolvePublicAdvancedFollowup("选择这个对象", first, choice.choiceId, choice.candidates[0]!.candidateId, input.advanced, catalog,
+      advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.publicReuse).toBeUndefined();
+    expect(followup.reusableFoundation).toBeUndefined();
+    expect(followup.resolution.status).toBe("PARSED");
+    if (followup.resolution.status !== "PARSED") throw new Error("expected parsed choice");
+    expect(followup.resolution.intent.historicalScope[choiceKind === "TASK_SELECTION" ? "taskReferenceKey" : "subjectReferenceKey"]).toEqual(product.referenceKey);
+    expect(followup.resolution.intent.analysis).toMatchObject({ actionTargetRequested: false });
+    if (choiceKind === "REFERENCE_SELECTION") expect(product.productId).toBe("ugv1");
+  });
   it("selects a saved event from its complete source without inventing FIRST/LAST proof", () => {
     const input = setup("stop");
     const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));

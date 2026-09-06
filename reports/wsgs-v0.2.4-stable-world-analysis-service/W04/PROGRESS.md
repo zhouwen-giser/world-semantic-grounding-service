@@ -86,3 +86,26 @@ records the complete check with 872 passing tests and 29 skipped tests.
 `event-selection-tests.json` records 65 passing focused tests;
 `event-selection-build.json` records the independent build. All commands exited
 zero. None of this evidence is a real HTTP or live PostgreSQL qualification.
+
+## Reference and Task Increment
+
+Existing reference ambiguities now generate REFERENCE_SELECTION or TASK_SELECTION
+menus bound to actual ReferenceProduct IDs. Menu limits yield explicit truncation
+gaps. The prior loader accepts an ordinary reference Choice without fabricating
+historical analysis; when an advanced intent exists it restores that intent from
+the encrypted execution/compilation state.
+
+The selected stored product enters the existing KnownWorldReference parsing and
+reference.validate path. Task/subject changes build a new query and do not reuse
+old rankings or action intent. For target-dependent temporal events, an authorized
+selected spatial key drives geometry lookup after successful reference validation
+instead of resolving the ambiguous alias again. Target versus subject is inferred
+from stored ambiguity/event links, not solely WORLD_OBJECT kind; the tests cover
+a WORLD_OBJECT area remaining distinct from the historical subject and preserve
+the ordinary opaque product ID ugv1.
+
+Requeries propagate prior real ReferenceProducts so new normalized findings can
+resolve their actual source links. A failed/expired selected reference stops
+advanced execution. These stage connections are implemented and compile, but
+their full production execution still requires W06 HTTP evidence. Combined
+selections and final W04 acceptance mapping remain open.
