@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.3 advanced-history work item - unreleased
+
+- Intake exact GSAP T2/T3/T4 provider schemas, hashes, semantic profiles, and type-only models.
+- Add bounded, explicitly authorized historical road, event, cross-event, and metric query DAGs through the existing signed GOWM Gateway.
+- Preserve upstream provenance and completeness in CAPABILITY_RESULT evidence; enable hash-verified, scope-bound historical follow-ups and non-executable past-location candidates.
+- Add opt-in configuration, deterministic metric catalog, offline provider fixtures, contract/consumer/runtime tests, and explicit live-smoke qualification.
+- Development-only work item; release surfaces remain 0.2.1. No merge, tag, release, deployment, strict-replay, current-recommendation, or production qualification.
+
 ## 0.2.1 candidate - 2026-08-30
 
 - Unified mutable WSGS release surfaces at `0.2.1`, including `VERSION`, root and private workspace manifests, the workspace lockfile, the OCI image label, and the default `wsgs:0.2.1` image tag.

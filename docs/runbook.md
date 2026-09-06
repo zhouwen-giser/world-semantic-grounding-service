@@ -1,5 +1,7 @@
 # WSGS 0.2 Operations Runbook
 
+The opt-in GSAP T2/T3/T4 consumer is documented in [advanced historical analysis](advanced-historical-analysis.md). It requires both history and advanced-history flags, exact deployed operation locks, and the existing signed Gateway authority. Its narrowly verified PREVIEW authorization does not require globally enabling arbitrary PREVIEW operations. Missing analysis providers remain optional for ordinary WSGS readiness.
+
 The optional GOWM task-interval and historical-trajectory integration is documented in [historical trace consumption](historical-trace-consumption.md). It is disabled by default and requires both `WSGS_ALLOW_PREVIEW_CAPABILITIES=YES` and `WSGS_HISTORY_TRACE_ENABLED=YES`, plus the exact operation lock from the current GOWM deployment. Missing historical capabilities do not make stable WSGS readiness fail.
 
 ## Current qualification state
