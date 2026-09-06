@@ -1927,6 +1927,14 @@ function historicalEvidence(
   };
 }
 
+function knownReferenceValues(context: PipelineStageContext): unknown[] {
+  if (isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION))) {
+    return stageValue<{ knownWorldReferences: unknown[] }>(context, "LOAD_CONTEXT").knownWorldReferences;
+  }
+  const known = requestParts(context).capsule["knownWorldReferences"];
+  return Array.isArray(known) ? known : [];
+}
+
 function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenceItems: GroundingEvidenceItem[] = []): JsonObject {
   const parts = requestParts(context);
   const deterministic = context.state["DETERMINISTIC_PARSE"] as DeterministicParseResult | undefined;
@@ -2988,7 +2996,7 @@ export async function createPipelineStageExecutor(
       return parseDeterministicReferences({
         originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
         focusSpans: Array.isArray(parts.source["focusSpans"]) ? parts.source["focusSpans"] as never[] : [],
-        knownWorldReferences: stageValue<{ knownWorldReferences: never[] }>(context, "LOAD_CONTEXT").knownWorldReferences,
+        knownWorldReferences: knownReferenceValues(context) as never[],
         mapSelections: Array.isArray(parts.capsule["mapSelections"]) ? parts.capsule["mapSelections"] as never[] : [],
         priorGroundings: Array.isArray(parts.capsule["priorGroundings"]) ? parts.capsule["priorGroundings"] as never[] : []
       });
@@ -3074,8 +3082,7 @@ export async function createPipelineStageExecutor(
       const authority = persistedAuthority(context, value.gateway);
       const resolved = context.state["REFERENCE_RESOLVE"] as ReferenceGroundingResult | undefined;
       const parts = requestParts(context);
-      const loadedKnown = stageValue<{ knownWorldReferences: unknown[] }>(context, "LOAD_CONTEXT").knownWorldReferences;
-      const known = loadedKnown.map((entry) => object(entry, "INVALID_KNOWN_REFERENCE"));
+      const known = knownReferenceValues(context).map((entry) => object(entry, "INVALID_KNOWN_REFERENCE"));
       const result = mergeKnownReferenceProducts(resolved, known);
       const references = result.referenceProducts.map((entry) => ({
         referenceKey: entry.referenceKey, requireCurrentSnapshot: true

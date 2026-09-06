@@ -109,3 +109,9 @@ resolve their actual source links. A failed/expired selected reference stops
 advanced execution. These stage connections are implemented and compile, but
 their full production execution still requires W06 HTTP evidence. Combined
 selections and final W04 acceptance mapping remain open.
+
+The first full reference-selection check exposed a legacy recovery regression:
+REFERENCE_VALIDATE had newly required LOAD_CONTEXT for old isolated recovered
+stages. The implementation now reads the original request capsule for 1.0/1.1,
+while 1.2 still requires the authorized loaded state. The failing full log is
+retained as `reference-selection-check.log`; it must not be reported as PASS.
