@@ -1,0 +1,13 @@
+{
+  "command": "node WSGS_v0.2.4_Stable_World_Analysis_Codex_Goal/tools/self-test.mjs",
+  "startedAt": "2026-09-06T14:19:56.620Z",
+  "finishedAt": "2026-09-06T14:19:57.443Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/package-self-test.log",
+  "logSha256": "sha256:c0424e31ed342fa8090489937fd40fc6539a8d4f634d2948c17af20850879948"
+}

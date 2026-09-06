@@ -1,0 +1,654 @@
+{
+  "schemaVersion": "1.0",
+  "total": 72,
+  "requirements": [
+    {
+      "id": "WA-001",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "只有 WSGS 存在实现写入，其他仓库只读",
+      "verification": "git diff/status 与变更范围复查",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "无跨仓实现、自动部署或控制调用"
+    },
+    {
+      "id": "WA-002",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "刷新并记录 main/T5 观察值和提交包含关系",
+      "verification": "source/ancestry 对账",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "不存在机械重复 merge/cherry-pick 或旧基线冒充最新"
+    },
+    {
+      "id": "WA-003",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "保留 main recovery/idempotency/deadline 修复",
+      "verification": "差异核对和现有定向回归",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "无修复回退"
+    },
+    {
+      "id": "WA-004",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "历史轨迹和 T5 在同一实施基线可定位",
+      "verification": "依赖、编译和源码入口核验",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "不重建已有功能或遗漏基础"
+    },
+    {
+      "id": "WA-005",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "保全用户工作区并使用专用分支",
+      "verification": "工作区操作记录",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "不 reset/clean/force push，不远程合并"
+    },
+    {
+      "id": "WA-006",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "列出真实请求至结果读取的调用路径",
+      "verification": "源码路径和函数引用对账",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "覆盖 API/backend/worker/store/GET"
+    },
+    {
+      "id": "WA-007",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "冻结旧公开合同文件清单和真实字节 hash",
+      "verification": "哈希脚本与旧版本路径清单",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "区分 Git blob SHA 和 SHA-256"
+    },
+    {
+      "id": "WA-008",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "记录当前命令、测试失败、skip 与依赖条件",
+      "verification": "基线命令日志",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "不借用历史 PR 通过数量"
+    },
+    {
+      "id": "WA-009",
+      "phase": "W00",
+      "priority": "REQUIRED",
+      "requirement": "形成执行计划与版本/范围声明",
+      "verification": "execplan 和 baseline 审查",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/",
+      "expected": "工作项版本不等于发布版本"
+    },
+    {
+      "id": "WA-010",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "W01 冻结早于新运行时实现",
+      "verification": "提交序列及 freeze record",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "合同门未过不得进入 W02"
+    },
+    {
+      "id": "WA-011",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "五类 Finding 与有界 Choice/Gap 判别联合",
+      "verification": "完整 Schema 正反例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "无 any/raw Provider 公共兜底"
+    },
+    {
+      "id": "WA-012",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "请求/结果/Job/Capabilities/OpenAPI 引用闭包",
+      "verification": "离线完整 payload 校验",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "不是只校验独立子对象"
+    },
+    {
+      "id": "WA-013",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "旧 1.0/1.1 与 geospatial 工件不可变",
+      "verification": "W00 哈希逐文件对比",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "不原地修改冻结合同"
+    },
+    {
+      "id": "WA-014",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "明确 1.2 精确协商和 geospatial 共存规则",
+      "verification": "协商矩阵正反例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "新扩展只在 1.2 出现"
+    },
+    {
+      "id": "WA-015",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "明确 ID/引用/选择回传条件且不混用 RP ID",
+      "verification": "Schema 与跨字段语义校验",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "candidateId 不冒充 selectedProductIds"
+    },
+    {
+      "id": "WA-016",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "状态/原因码/时间/CRS/缺失值语义可判定",
+      "verification": "语义用例校验",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "PENDING 不是新结果终态，UNKNOWN 不是 0/false"
+    },
+    {
+      "id": "WA-017",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "哈希范围、canonical 算法、排序与限额已冻结",
+      "verification": "固定 hash vectors 与 limits 检查",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "无自引用循环或排名重排"
+    },
+    {
+      "id": "WA-018",
+      "phase": "W01",
+      "priority": "REQUIRED",
+      "requirement": "生成真实 lock/checksums 和唯一来源类型",
+      "verification": "verify:world-analysis-contract",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/",
+      "expected": "无引用丢失、生成 drift 或未决核心语义"
+    },
+    {
+      "id": "WA-019",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "验证锁定上游 envelope/schema 后才映射",
+      "verification": "有效/无效上游 fixture 对照",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "未验证载荷不进入公共结果"
+    },
+    {
+      "id": "WA-020",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "五类内部结果映射到公共联合",
+      "verification": "五类 golden tests",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "无需消费者解析内部 HISTORICAL_*"
+    },
+    {
+      "id": "WA-021",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "Historical Trace 保留执行范围/gap/暂停/封存",
+      "verification": "轨迹不完整和单执行反例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "不跨 gap 插值、不合并 ALL executions"
+    },
+    {
+      "id": "WA-022",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "道路关联保留参考网络与离路/歧义语义",
+      "verification": "road/off-network/last-road fixtures",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "离路不等于错误轨迹或绝对最终道路"
+    },
+    {
+      "id": "WA-023",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "事件保留类型/时间窗/确认范围/FIRST-LAST 证据",
+      "verification": "完整及不完整 event fixtures",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "不把不完整变绝对结论"
+    },
+    {
+      "id": "WA-024",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "排名保留方向、series、排名依据和代表样本",
+      "verification": "MAX/MIN/负数/聚合排名 fixtures",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "代表值不冒充排名分数，非全域最优"
+    },
+    {
+      "id": "WA-025",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "Evidence/ReferenceProduct/feature 来源关系可验证",
+      "verification": "悬空/假引用反例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "不伪造 ReferenceKey"
+    },
+    {
+      "id": "WA-026",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "裁剪保留必要来源和合法 geometry/Gap",
+      "verification": "小预算及选中候选保留测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "无悬空指针、原始载荷泄漏或伪完整性"
+    },
+    {
+      "id": "WA-027",
+      "phase": "W02",
+      "priority": "REQUIRED",
+      "requirement": "新扩展纳入 hash 且结果确定性",
+      "verification": "golden hash/关键字段修改/重复映射",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/",
+      "expected": "同一保存结果稳定，语义变更 hash 改变"
+    },
+    {
+      "id": "WA-028",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "实现服务端精确 1.2 配对与授权",
+      "verification": "headers/principal 配对测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "未知/单边/重复/逗号 Header 拒绝"
+    },
+    {
+      "id": "WA-029",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "POST 使用对应版本 request validator",
+      "verification": "新旧 request 正反例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "1.2 selections 合法，旧版本不偷偷接受"
+    },
+    {
+      "id": "WA-030",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "同步与异步完整响应使用对应 validator",
+      "verification": "200 result/202 job/GET terminal",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "所有公开返回可被独立验证"
+    },
+    {
+      "id": "WA-031",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "协商元数据保存并在 worker/recovery 恢复",
+      "verification": "store/worker 恢复测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "不依赖后续 Header 重新解释旧 job"
+    },
+    {
+      "id": "WA-032",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "相同幂等请求复用原 job/result",
+      "verification": "重复提交和读取测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "ID/选择集/hash 不重新生成"
+    },
+    {
+      "id": "WA-033",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "幂等包含 profile 与全部选择语义",
+      "verification": "同 key 改 profile/candidate/metric 测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "冲突按冻结规则，不返回旧结果"
+    },
+    {
+      "id": "WA-034",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "GET/cancel 不隐式跨 profile 投影",
+      "verification": "旧/新 job 跨 profile 读取测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "保持旧行为和冻结错误码"
+    },
+    {
+      "id": "WA-035",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "保留 cancel/deadline/fencing 终态不变式",
+      "verification": "late worker/timeout/cancel 回归",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "终态不被晚到成功覆盖"
+    },
+    {
+      "id": "WA-036",
+      "phase": "W03",
+      "priority": "REQUIRED",
+      "requirement": "必要持久化变更只追加迁移且旧数据可解释",
+      "verification": "迁移静态/组件测试及环境说明",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/",
+      "expected": "未跑真实 PG 不声称真实恢复通过"
+    },
+    {
+      "id": "WA-037",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "新分析 selection 使用独立合法结构",
+      "verification": "新请求 Schema 和多轮测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "不复用 product ID 通道装非 product"
+    },
+    {
+      "id": "WA-038",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "仅从服务端已保存结果解析选中候选",
+      "verification": "篡改摘要/坐标/rank 负例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "客户端展示值不变成权威"
+    },
+    {
+      "id": "WA-039",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "选择校验 actor/scope/TTL/hash/归属",
+      "verification": "作用域和完整性关键反例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "越权/过期/错 hash 不能复用"
+    },
+    {
+      "id": "WA-040",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "自然语言序号只在唯一 Choice 内解释",
+      "verification": "多个 Choice/文本与 selection 冲突",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "歧义要澄清，不静默择一"
+    },
+    {
+      "id": "WA-041",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "改变指标/series/阶段/执行触发新查询",
+      "verification": "语义变化测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "旧派生目标失效，不能重贴标签"
+    },
+    {
+      "id": "WA-042",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "缺失/裁剪候选重查而非补造",
+      "verification": "rank 越界/未保存候选/不完整 suffix",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "不靠模型补位置或事件"
+    },
+    {
+      "id": "WA-043",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "动作候选精确使用代表实到位置与来源",
+      "verification": "坐标/measurement/time/evidence 等值断言",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "不使用 H3 center 或平均坐标"
+    },
+    {
+      "id": "WA-044",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "动作候选恒非授权且用途限制完整",
+      "verification": "false 授权与三个 true requirement 断言",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "无设备控制参数或操作调用"
+    },
+    {
+      "id": "WA-045",
+      "phase": "W04",
+      "priority": "REQUIRED",
+      "requirement": "候选输出不绑定具体应用且不误杀世界 ID",
+      "verification": "普通查询/显式动作/opaque ugv1 ID 测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/",
+      "expected": "普通排名不自动变执行建议"
+    },
+    {
+      "id": "WA-046",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "capabilities 分开 supported 与 available",
+      "verification": "实际 snapshot/config/permission fixture",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "不静态全部 true"
+    },
+    {
+      "id": "WA-047",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "能力按 flags/version/hash/semantic/permission 判定",
+      "verification": "禁用/漂移/未授权/过期 discovery 用例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "失败关闭相关能力，不绕过锁"
+    },
+    {
+      "id": "WA-048",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "每能力具备有界可解释 reason 和 limits",
+      "verification": "完整 capabilities schema 校验",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "不泄漏内部凭据/任意 payload"
+    },
+    {
+      "id": "WA-049",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "CROSS 与 action 的基础依赖正确传播",
+      "verification": "缺 T2/T3/T4/trace 组合测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "只影响相关能力"
+    },
+    {
+      "id": "WA-050",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "可选分析失败不破坏普通 Grounding/GDPS",
+      "verification": "无关路径回归",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "局部不可用不等于全站失败"
+    },
+    {
+      "id": "WA-051",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "保留现有默认 opt-in 和签名 Gateway 路径",
+      "verification": "默认配置与架构断言",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "不全局 Preview、不直连 Provider/上游 DB"
+    },
+    {
+      "id": "WA-052",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "未部署能力和未实现来源不被宣传可用",
+      "verification": "supportedSources/operation 范围核对",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "历史目标不扩展为当前/任意用户点实现"
+    },
+    {
+      "id": "WA-053",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "不新增总 readiness 黑盒资格",
+      "verification": "源码/脚本/报告范围扫描",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "不输出 WSGS_READY/DATA_PLATFORM_READY"
+    },
+    {
+      "id": "WA-054",
+      "phase": "W05",
+      "priority": "REQUIRED",
+      "requirement": "配置和降级说明可独立理解",
+      "verification": ".env.example 与文档核对",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W05/",
+      "expected": "无 secret，无第二套治理系统"
+    },
+    {
+      "id": "WA-055",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "npm run check 完整运行并记录",
+      "verification": "原始日志/exit code",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "没有隐藏新的必需测试失败"
+    },
+    {
+      "id": "WA-056",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "npm test 与 npm run build 独立运行",
+      "verification": "两个命令的独立日志",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "不把 check 中嵌套结果冒充独立执行"
+    },
+    {
+      "id": "WA-057",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "合同与 fixture smoke 默认不依赖 Docker",
+      "verification": "两个新命令运行",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "全部 Required 本地可执行"
+    },
+    {
+      "id": "WA-058",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "本地真实 HTTP listener 走实际 WSGS 链路",
+      "verification": "test:world-analysis:http 和模块追踪",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "不得直接 Mock 高层最终回答"
+    },
+    {
+      "id": "WA-059",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "HTTP 同步和异步 worker/GET 路径闭合",
+      "verification": "200/202→worker→GET 测试",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "结果类型/协商/hash 一致"
+    },
+    {
+      "id": "WA-060",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "HTTP 多轮 series/rank/action 路径闭合",
+      "verification": "两轮/三轮用例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "权威选择与来源完整"
+    },
+    {
+      "id": "WA-061",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "关键失败/不完整/旧版本 HTTP 回归通过",
+      "verification": "gap/ambiguity/profile/deadline/cancel 用例",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "不把失败归成 NO_DATA 成功"
+    },
+    {
+      "id": "WA-062",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "受控依赖和真实验证边界如实分层",
+      "verification": "verificationLevels 与 optional checks",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "Fixture/内存 Store 不等于真实 Provider/PG"
+    },
+    {
+      "id": "WA-063",
+      "phase": "W06",
+      "priority": "REQUIRED",
+      "requirement": "测试隔离清理且报告可追溯",
+      "verification": "端口/临时文件/日志/source 记录",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/",
+      "expected": "不触发设备或污染运行环境"
+    },
+    {
+      "id": "WA-064",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "交接包仅含公开合同和必要闭包",
+      "verification": "handoff manifest/导入扫描",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "不含 Provider 模型或 WSGS runtime"
+    },
+    {
+      "id": "WA-065",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "独立干净目录可验证完整样本",
+      "verification": "verify:world-analysis:handoff",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "不借用内部隐式依赖"
+    },
+    {
+      "id": "WA-066",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "交接包的篡改/缺依赖/错 profile 反例失败",
+      "verification": "negative handoff tests",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "checksum 与 schema 校验确实生效"
+    },
+    {
+      "id": "WA-067",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "具备完整消费指南和选择/cancel 例子",
+      "verification": "README/OpenAPI/examples 核对",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "不只是一个子结构 JSON"
+    },
+    {
+      "id": "WA-068",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "72 项 Required 台账都有真实证据",
+      "verification": "acceptance-ledger/evidence index",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "PASS 必须有对应路径/hash/运行范围"
+    },
+    {
+      "id": "WA-069",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "独立复查并关闭阻断缺陷",
+      "verification": "review.md 和必要重跑记录",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "不以文档完成代替代码完成"
+    },
+    {
+      "id": "WA-070",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "提交与 Draft PR 状态如实交付",
+      "verification": "git/PR 记录或明确远程阻塞",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "不自动 merge/tag/release/deploy"
+    },
+    {
+      "id": "WA-071",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "MD/JSON 报告与来源/未运行项一致",
+      "verification": "最终报告一致性与证据检查",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "无历史数字复用或未经验证的实际环境断言"
+    },
+    {
+      "id": "WA-072",
+      "phase": "W07",
+      "priority": "REQUIRED",
+      "requirement": "DEV_READY 只由 Required 全通过支持",
+      "verification": "全台账汇总和结论检查",
+      "evidence": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/",
+      "expected": "不宣称生产/严格重放/真实设备全链路通过"
+    }
+  ]
+}

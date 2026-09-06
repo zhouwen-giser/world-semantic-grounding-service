@@ -1,0 +1,385 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "TEST_DESIGN_NOT_EXECUTED",
+  "fixturePolicy": "W00/W01 adapt actual locked source fixtures; do not treat userText as a complete GroundingRequest",
+  "cases": [
+    {
+      "id": "CASE-01",
+      "name": "单次历史轨迹与暂停/缺口",
+      "userText": "查询这个对象上一次已结束任务的运动轨迹。",
+      "expectedAssertions": [
+        "active/paused/defined/gap 不合并",
+        "没有 gap 插值",
+        "PROVISIONAL/SEALED 如实"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-021",
+        "WA-058"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-02",
+      "name": "道路关联与离路",
+      "userText": "上次任务经过哪些道路，哪些路段没有匹配到路网？",
+      "expectedAssertions": [
+        "networkRole 保留",
+        "离路不等于错误运动",
+        "来源道路 ID 不伪造成 RP"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-022"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-03",
+      "name": "完整最后路口事件",
+      "userText": "上次任务最后经过的路口是哪个？",
+      "expectedAssertions": [
+        "T2→T3 请求依赖真实执行",
+        "保留 confirmed 和确认范围",
+        "被选 event 可解析"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-023",
+        "WA-059"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-04",
+      "name": "不完整最后路口事件",
+      "userText": "上次任务最后经过的路口是哪个？",
+      "expectedAssertions": [
+        "suffix/gap 阻断时不声称绝对最后",
+        "保留候选与未知",
+        "不凭 roadVisits 最后一项判断"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-023",
+        "WA-061"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-05",
+      "name": "所有事件类型",
+      "userText": "查询进入、离开、停留、停止、邻近经过和穿越事件。",
+      "expectedAssertions": [
+        "六种 eventType 合同正例逐一覆盖",
+        "时间窗/区间不变精确时刻",
+        "缺条件字段拒绝"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-023"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-06",
+      "name": "历史指标 MAXIMIZE",
+      "userText": "上次任务通信信号最好的三个位置在哪里？",
+      "expectedAssertions": [
+        "候选域为已观测位置",
+        "rank 与 rankingBasis 保留",
+        "代表样本不冒充排序统计值"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-024"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-07",
+      "name": "历史指标 MINIMIZE 与负数",
+      "userText": "上次任务时延最低的三个位置在哪里？",
+      "expectedAssertions": [
+        "使用指标实际方向",
+        "负数不取绝对值",
+        "不擅自单位换算"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-024"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-08",
+      "name": "指标多 series 澄清",
+      "userText": "上次任务信号最好的位置在哪里？",
+      "expectedAssertions": [
+        "第一轮返回 Choice",
+        "第二轮按合法 analysisSelection 取真实 series",
+        "不跨单位/设备混合"
+      ],
+      "phase": "W04",
+      "acceptanceIds": [
+        "WA-037",
+        "WA-039",
+        "WA-060"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-09",
+      "name": "排序项选择再生成候选",
+      "userText": "选第二个位置，作为移动目标候选。",
+      "expectedAssertions": [
+        "服务器从 prior 查 candidate",
+        "精确复制 representativeVisitedPosition",
+        "三 requirement true 且 authorization false"
+      ],
+      "phase": "W04",
+      "acceptanceIds": [
+        "WA-043",
+        "WA-044",
+        "WA-060"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-10",
+      "name": "仅展示 Top-K 不建议动作",
+      "userText": "展示信号排名前五的位置。",
+      "expectedAssertions": [
+        "只有 ranking Finding",
+        "不自动产生 ACTION_TARGET_CANDIDATE"
+      ],
+      "phase": "W04",
+      "acceptanceIds": [
+        "WA-045"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-11",
+      "name": "语义变化不误复用",
+      "userText": "改成时延最低的位置，仅看活动阶段。",
+      "expectedAssertions": [
+        "旧 series/phase 不能复用",
+        "旧目标失效",
+        "新请求/查询明确产生"
+      ],
+      "phase": "W04",
+      "acceptanceIds": [
+        "WA-041"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-12",
+      "name": "无数据与失败分离",
+      "userText": "查询上次任务的停留事件。",
+      "expectedAssertions": [
+        "成功空数据 NO_DATA",
+        "上游超时/合同错误非 NO_DATA",
+        "不能声称现实从未停留"
+      ],
+      "phase": "W06",
+      "acceptanceIds": [
+        "WA-016",
+        "WA-061"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-13",
+      "name": "历史投影未就绪",
+      "userText": "查询刚结束任务的轨迹。",
+      "expectedAssertions": [
+        "PARTIAL + HISTORICAL_PROJECTION_PENDING",
+        "结果不新增 PENDING 终态",
+        "不无限等待"
+      ],
+      "phase": "W06",
+      "acceptanceIds": [
+        "WA-016",
+        "WA-061"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-14",
+      "name": "仅 T4 不可用",
+      "userText": "查询指标排名，然后查询一个普通地物。",
+      "expectedAssertions": [
+        "ranking unavailable 有原因",
+        "无关 reference/GDPS 仍工作",
+        "capabilities 非全部 true"
+      ],
+      "phase": "W05",
+      "acceptanceIds": [
+        "WA-049",
+        "WA-050"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-15",
+      "name": "精确协议与旧版本",
+      "userText": "分别调用无 Header、1.0、1.1、1.2。",
+      "expectedAssertions": [
+        "旧响应无新扩展",
+        "1.2 两个结果组件按各自合同",
+        "错误/重复/单边 Header 拒绝"
+      ],
+      "phase": "W03",
+      "acceptanceIds": [
+        "WA-028",
+        "WA-029",
+        "WA-030"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-16",
+      "name": "幂等重试与 profile 冲突",
+      "userText": "重复提交同一个查询。",
+      "expectedAssertions": [
+        "同 key 同语义同 ID/hash",
+        "改 profile/candidate/metric 按冻结规则冲突",
+        "GET 换 profile 拒绝"
+      ],
+      "phase": "W03",
+      "acceptanceIds": [
+        "WA-032",
+        "WA-033",
+        "WA-034"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-17",
+      "name": "真实本地 HTTP 异步链路",
+      "userText": "异步查询历史排名并轮询。",
+      "expectedAssertions": [
+        "POST 202",
+        "实际 worker/pipeline",
+        "GET Job 包含经过 1.2 校验的终态结果"
+      ],
+      "phase": "W06",
+      "acceptanceIds": [
+        "WA-058",
+        "WA-059"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-18",
+      "name": "取消/截止时间与晚到完成",
+      "userText": "取消正在运行的查询。",
+      "expectedAssertions": [
+        "取消或 deadline 后无新成功覆盖",
+        "恢复使用已保存的 selection",
+        "保留旧修复"
+      ],
+      "phase": "W03",
+      "acceptanceIds": [
+        "WA-031",
+        "WA-035"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-19",
+      "name": "小预算与裁剪闭包",
+      "userText": "在小 maxResultBytes 下查询大量候选。",
+      "expectedAssertions": [
+        "无破损 geometry",
+        "保留选项与来源，不能则 Gap",
+        "单独表达 transport truncated 与 coverage"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-026"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-20",
+      "name": "hash 确定性和语义敏感",
+      "userText": "多次读取同一已保存结果。",
+      "expectedAssertions": [
+        "ID/hash 稳定",
+        "修改关键数据 hash 必变",
+        "时序/排名数组不擅自排序"
+      ],
+      "phase": "W02",
+      "acceptanceIds": [
+        "WA-027"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-21",
+      "name": "选择失效关键反例",
+      "userText": "提交过期、篡改、跨范围或未保存的候选。",
+      "expectedAssertions": [
+        "拒绝或要求重查/澄清",
+        "不使用客户端坐标",
+        "不泄漏其他 actor 结果存在性"
+      ],
+      "phase": "W04",
+      "acceptanceIds": [
+        "WA-038",
+        "WA-039",
+        "WA-042"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-22",
+      "name": "通用 ID 不误杀",
+      "userText": "世界主体引用的 opaque ID 含 ugv1。",
+      "expectedAssertions": [
+        "允许合法世界 ID",
+        "不允许工具/mission/Topic 控制字段",
+        "没有控制调用"
+      ],
+      "phase": "W04",
+      "acceptanceIds": [
+        "WA-045"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-23",
+      "name": "独立交接消费",
+      "userText": "在干净目录验证交接合同和完整样本。",
+      "expectedAssertions": [
+        "离线 refs 完整",
+        "无需 WSGS/Provider runtime",
+        "缺文件/错 hash/错 profile 失败"
+      ],
+      "phase": "W07",
+      "acceptanceIds": [
+        "WA-064",
+        "WA-065",
+        "WA-066"
+      ],
+      "executionStatus": "NOT_RUN"
+    },
+    {
+      "id": "CASE-24",
+      "name": "多轮文本与选择冲突",
+      "userText": "结构化选择第一个，文本却明确要求第二个。",
+      "expectedAssertions": [
+        "不静默采用某一个",
+        "多个 Choice 的第二个不能越界猜测"
+      ],
+      "phase": "W04",
+      "acceptanceIds": [
+        "WA-040"
+      ],
+      "executionStatus": "NOT_RUN"
+    }
+  ]
+}

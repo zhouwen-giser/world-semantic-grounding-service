@@ -1,0 +1,205 @@
+{
+  "schemaVersion": "1.0",
+  "packageId": "wsgs-v0.2.4-stable-world-analysis-goal",
+  "packageVersion": "1.0.0",
+  "generatedOn": "2026-09-06",
+  "status": "TASK_SPEC_READY",
+  "implementationStatus": "NOT_EXECUTED",
+  "contractStatus": "NOT_YET_FROZEN",
+  "workItemVersion": "0.2.4",
+  "allowedWriteRepositories": [
+    "zhouwen-giser/world-semantic-grounding-service"
+  ],
+  "prohibitedImplementations": [
+    "GOWM+",
+    "GDPS",
+    "GSAP",
+    "SACS",
+    "SDAR",
+    "SMPP"
+  ],
+  "branch": "codex/wsgs-v0.2.4-stable-world-analysis-service",
+  "targetContract": {
+    "contractVersion": "sacs-wsgs-grounding/1.2",
+    "resultProfile": "wsgs-world-analysis-findings/1.0"
+  },
+  "requiredAcceptanceCount": 72,
+  "developmentCaseCount": 24,
+  "phaseCount": 8,
+  "phases": [
+    {
+      "id": "W00",
+      "title": "基线对账与收口",
+      "dependsOn": [],
+      "spec": "tasks/W00_BASELINE_CN.md",
+      "acceptanceIds": [
+        "WA-001",
+        "WA-002",
+        "WA-003",
+        "WA-004",
+        "WA-005",
+        "WA-006",
+        "WA-007",
+        "WA-008",
+        "WA-009"
+      ]
+    },
+    {
+      "id": "W01",
+      "title": "北向合同冻结与正反例",
+      "dependsOn": [
+        "W00"
+      ],
+      "spec": "tasks/W01_CONTRACT_FREEZE_CN.md",
+      "acceptanceIds": [
+        "WA-010",
+        "WA-011",
+        "WA-012",
+        "WA-013",
+        "WA-014",
+        "WA-015",
+        "WA-016",
+        "WA-017",
+        "WA-018"
+      ]
+    },
+    {
+      "id": "W02",
+      "title": "五类通用结果归一化与安全裁剪",
+      "dependsOn": [
+        "W01"
+      ],
+      "spec": "tasks/W02_NORMALIZATION_CN.md",
+      "acceptanceIds": [
+        "WA-019",
+        "WA-020",
+        "WA-021",
+        "WA-022",
+        "WA-023",
+        "WA-024",
+        "WA-025",
+        "WA-026",
+        "WA-027"
+      ]
+    },
+    {
+      "id": "W03",
+      "title": "协商贯穿 API、Job、幂等和恢复",
+      "dependsOn": [
+        "W02"
+      ],
+      "spec": "tasks/W03_TRANSPORT_RUNTIME_CN.md",
+      "acceptanceIds": [
+        "WA-028",
+        "WA-029",
+        "WA-030",
+        "WA-031",
+        "WA-032",
+        "WA-033",
+        "WA-034",
+        "WA-035",
+        "WA-036"
+      ]
+    },
+    {
+      "id": "W04",
+      "title": "结构化选择、结果复用与非执行目标候选",
+      "dependsOn": [
+        "W03"
+      ],
+      "spec": "tasks/W04_FOLLOWUP_ACTION_CN.md",
+      "acceptanceIds": [
+        "WA-037",
+        "WA-038",
+        "WA-039",
+        "WA-040",
+        "WA-041",
+        "WA-042",
+        "WA-043",
+        "WA-044",
+        "WA-045"
+      ]
+    },
+    {
+      "id": "W05",
+      "title": "能力发现、局部降级与默认行为",
+      "dependsOn": [
+        "W04"
+      ],
+      "spec": "tasks/W05_CAPABILITIES_CN.md",
+      "acceptanceIds": [
+        "WA-046",
+        "WA-047",
+        "WA-048",
+        "WA-049",
+        "WA-050",
+        "WA-051",
+        "WA-052",
+        "WA-053",
+        "WA-054"
+      ]
+    },
+    {
+      "id": "W06",
+      "title": "Required 回归与本地 HTTP 开发链路",
+      "dependsOn": [
+        "W05"
+      ],
+      "spec": "tasks/W06_DEVELOPMENT_VERIFICATION_CN.md",
+      "acceptanceIds": [
+        "WA-055",
+        "WA-056",
+        "WA-057",
+        "WA-058",
+        "WA-059",
+        "WA-060",
+        "WA-061",
+        "WA-062",
+        "WA-063"
+      ]
+    },
+    {
+      "id": "W07",
+      "title": "消费者交接、最终复查与 Draft PR",
+      "dependsOn": [
+        "W06"
+      ],
+      "spec": "tasks/W07_HANDOFF_REVIEW_CN.md",
+      "acceptanceIds": [
+        "WA-064",
+        "WA-065",
+        "WA-066",
+        "WA-067",
+        "WA-068",
+        "WA-069",
+        "WA-070",
+        "WA-071",
+        "WA-072"
+      ]
+    }
+  ],
+  "readFirst": [
+    "CODEX_MASTER_PROMPT.md",
+    "GOAL_TASK_CN.md",
+    "sources/SOURCE_AUDIT_CN.md",
+    "design/CONTRACT_AND_SEMANTICS_CN.md",
+    "design/COMPATIBILITY_AND_SELECTION_CN.md"
+  ],
+  "freezeGate": {
+    "phase": "W01",
+    "mustPrecedeNewRuntimeImplementation": true
+  },
+  "requiredLevels": [
+    "L0_CONTRACT_UNIT",
+    "L1_HTTP_DEVELOPMENT_CONTROLLED_DEPENDENCIES"
+  ],
+  "defaultDockerRequired": false,
+  "realSacsRequired": false,
+  "realDeviceRequired": false,
+  "completionMarker": "WSGS_STABLE_GENERIC_WORLD_ANALYSIS_SERVICE_DEV_READY",
+  "remoteDelivery": "DRAFT_PR_ONLY_OR_EXPLICITLY_BLOCKED",
+  "autoMerge": false,
+  "release": false,
+  "tag": false,
+  "deploy": false
+}
