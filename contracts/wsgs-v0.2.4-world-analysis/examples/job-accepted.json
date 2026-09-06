@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0",
+  "jobId": "job-1",
+  "groundingId": "grounding-1",
+  "requestId": "request-1",
+  "status": "ACCEPTED",
+  "createdAt": "2026-09-06T10:00:00.000+08:00",
+  "updatedAt": "2026-09-06T10:00:00.000+08:00"
+}

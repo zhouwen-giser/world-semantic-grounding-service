@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2.1:sacs-geospatial:typed-gap:1.0",
+  "title": "SACS Geospatial Typed Gap 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gapId",
+    "gapKind",
+    "severity",
+    "messageCode"
+  ],
+  "properties": {
+    "gapId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "gapKind": {
+      "enum": [
+        "DATA_GAP",
+        "COVERAGE_GAP",
+        "CAPABILITY_GAP",
+        "REFERENCE_AMBIGUITY",
+        "PRODUCT_SELECTION_AMBIGUITY",
+        "SOURCE_CHANGED",
+        "TRUNCATED",
+        "UNSUPPORTED_FINDING_SCHEMA",
+        "EVIDENCE_INCOMPLETE",
+        "UPSTREAM_FAILURE",
+        "CURRENTNESS_UNAVAILABLE"
+      ]
+    },
+    "severity": {
+      "enum": [
+        "INFO",
+        "WARNING",
+        "BLOCKING"
+      ]
+    },
+    "messageCode": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "semanticConcept": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "findingIds": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+      }
+    },
+    "evidenceItemIds": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+      }
+    },
+    "safeDetail": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  }
+}

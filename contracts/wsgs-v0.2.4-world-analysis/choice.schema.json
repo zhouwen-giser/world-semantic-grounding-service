@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:choice",
+  "title": "Choice",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "choiceId",
+        "choiceKind",
+        "promptCode",
+        "validUntil",
+        "candidates"
+      ],
+      "properties": {
+        "choiceId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "choiceKind": {
+          "const": "REFERENCE_SELECTION"
+        },
+        "promptCode": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+        },
+        "sourceFindingId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "validUntil": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidateId",
+              "displayName",
+              "referenceProductId"
+            ],
+            "properties": {
+              "candidateId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              },
+              "displayName": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/label"
+              },
+              "referenceProductId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "choiceId",
+        "choiceKind",
+        "promptCode",
+        "validUntil",
+        "candidates"
+      ],
+      "properties": {
+        "choiceId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "choiceKind": {
+          "const": "TASK_SELECTION"
+        },
+        "promptCode": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+        },
+        "sourceFindingId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "validUntil": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidateId",
+              "displayName",
+              "referenceProductId"
+            ],
+            "properties": {
+              "candidateId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              },
+              "displayName": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/label"
+              },
+              "referenceProductId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "choiceId",
+        "choiceKind",
+        "promptCode",
+        "validUntil",
+        "candidates"
+      ],
+      "properties": {
+        "choiceId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "choiceKind": {
+          "const": "METRIC_SERIES_SELECTION"
+        },
+        "promptCode": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+        },
+        "sourceFindingId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "validUntil": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidateId",
+              "displayName",
+              "series"
+            ],
+            "properties": {
+              "candidateId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              },
+              "displayName": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/label"
+              },
+              "series": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/series"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "choiceId",
+        "choiceKind",
+        "promptCode",
+        "validUntil",
+        "candidates"
+      ],
+      "properties": {
+        "choiceId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "choiceKind": {
+          "const": "RANKED_LOCATION_SELECTION"
+        },
+        "promptCode": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+        },
+        "sourceFindingId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "validUntil": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidateId",
+              "displayName",
+              "findingId",
+              "rank"
+            ],
+            "properties": {
+              "candidateId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              },
+              "displayName": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/label"
+              },
+              "findingId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              },
+              "rank": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "choiceId",
+        "choiceKind",
+        "promptCode",
+        "validUntil",
+        "candidates"
+      ],
+      "properties": {
+        "choiceId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "choiceKind": {
+          "const": "EVENT_SELECTION"
+        },
+        "promptCode": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+        },
+        "sourceFindingId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "validUntil": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "candidateId",
+              "displayName",
+              "findingId",
+              "eventId"
+            ],
+            "properties": {
+              "candidateId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              },
+              "displayName": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/label"
+              },
+              "findingId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              },
+              "eventId": {
+                "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

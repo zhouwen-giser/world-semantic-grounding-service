@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-1",
+  "groundingId": "grounding-1",
+  "status": "COMPLETED",
+  "source": {
+    "messageId": "message-1",
+    "originalTextSha256": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+  },
+  "mentions": [],
+  "referenceProducts": [
+    {
+      "productId": "ugv1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "entity",
+        "id": "wrf_00000000000000000000000000000001",
+        "version": "1"
+      },
+      "referenceType": "ENTITY",
+      "displayName": "ugv1",
+      "sourceOperation": "entity.get",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "task-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "operational-task",
+        "id": "wrf_00000000000000000000000000000002",
+        "version": "1"
+      },
+      "referenceType": "OPERATIONAL_TASK",
+      "displayName": "task-1",
+      "sourceOperation": "operational-task.get",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "interval-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "execution-interval",
+        "id": "wrf_00000000000000000000000000000003",
+        "version": "1"
+      },
+      "referenceType": "EXECUTION_INTERVAL",
+      "displayName": "interval-1",
+      "sourceOperation": "operational-task.get-execution-intervals",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "trajectory-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "trajectory",
+        "id": "wrf_00000000000000000000000000000004",
+        "version": "1"
+      },
+      "referenceType": "TRAJECTORY",
+      "displayName": "trajectory-1",
+      "sourceOperation": "history.get-trajectory",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    }
+  ],
+  "evidenceItems": [
+    {
+      "evidenceProductId": "evidence-1",
+      "productKind": "CAPABILITY_RESULT",
+      "authority": "GOWM",
+      "sourceOperation": "spatiotemporal-metric.rank-locations",
+      "upstreamStatus": "COMPLETED",
+      "payloadSchemaUri": "urn:artificial:contract-sample:result",
+      "payloadSchemaHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e",
+      "receiptIds": [
+        "receipt-sample-1"
+      ],
+      "evidenceIds": [
+        "upstream-evidence-sample-1"
+      ],
+      "unknowns": [],
+      "warnings": [],
+      "dataSnapshot": {
+        "snapshotHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+      },
+      "computeSnapshot": {
+        "snapshotHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+      }
+    }
+  ],
+  "ambiguities": [],
+  "unresolvedMentions": [],
+  "capabilityGaps": [],
+  "warnings": [],
+  "execution": {
+    "parserVersion": "contract-sample",
+    "semanticModelReceiptIds": [],
+    "queryCompilerVersion": "contract-sample",
+    "normalizerVersion": "contract-sample",
+    "elapsedMs": 1,
+    "runFingerprint": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+  },
+  "validUntil": "2026-09-06T10:01:00.000+08:00",
+  "worldAnalysisFindings": {
+    "profile": "wsgs-world-analysis-findings/1.0",
+    "findings": [
+      {
+        "findingId": "finding-trace",
+        "findingKind": "HISTORICAL_TRACE",
+        "semanticConcept": "HISTORICAL_TRACE",
+        "status": "COMPLETED",
+        "subjectReferenceProductIds": [
+          "ugv1"
+        ],
+        "evidenceIds": [
+          "evidence-1"
+        ],
+        "unknowns": [],
+        "warnings": [],
+        "display": {
+          "truncated": false,
+          "returnedCount": 1
+        },
+        "validUntil": "2026-09-06T10:01:00.000+08:00",
+        "taskReferenceProductId": "task-1",
+        "trajectoryReferenceProductId": "trajectory-1",
+        "executionIntervalReferenceProductId": "interval-1",
+        "executionNo": 2,
+        "lifecycleState": "COMPLETED",
+        "phaseScope": "ACTIVE_PHASES_ONLY",
+        "selectedPeriods": [
+          {
+            "start": "2026-09-05T10:00:00.123+08:00",
+            "end": "2025-01-01T00:00:00Z",
+            "bounds": "UNSPECIFIED"
+          }
+        ],
+        "activePeriods": [
+          {
+            "start": "2026-09-05T10:00:00.123+08:00",
+            "end": "2025-01-01T00:00:00Z",
+            "bounds": "UNSPECIFIED"
+          }
+        ],
+        "pausedPeriods": [],
+        "requestedPeriods": [
+          {
+            "start": "2026-09-05T10:00:00.123+08:00",
+            "end": "2025-01-01T00:00:00Z",
+            "bounds": "UNSPECIFIED"
+          }
+        ],
+        "definedPeriods": [
+          {
+            "start": "2026-09-05T10:00:00.123+08:00",
+            "end": "2025-01-01T00:00:00Z",
+            "bounds": "UNSPECIFIED"
+          }
+        ],
+        "excludedPeriods": [],
+        "trajectoryGaps": [],
+        "coverage": {
+          "prefixComplete": true,
+          "suffixComplete": true,
+          "finalizationState": "SEALED",
+          "sampleCount": 3
+        }
+      }
+    ],
+    "choices": [],
+    "gaps": [],
+    "findingSetHash": "sha256:0630ada90213916a0bdfb1515581fe9516b0e3dcd5a83dd8eea222b7111055b4"
+  },
+  "resultHash": "sha256:3b7a994f356427165177948f54ad0298263ef99a90c48f48873db1ea357b5180"
+}

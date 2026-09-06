@@ -1,0 +1,250 @@
+{
+  "schemaVersion": "1.0",
+  "source": "ARTIFICIAL_PUBLIC_CONTRACT_SAMPLES_NOT_LIVE_EVIDENCE",
+  "examples": [
+    {
+      "path": "examples/ranking.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/trace.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/road.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/event.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/action.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/all-choices.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/empty.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/trace-no-data.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/projection-pending.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/provider-failure.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/action-requirements.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/event-incomplete.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/event-display-truncated-proof-retained.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/coexist.json",
+      "schema": "result",
+      "valid": true
+    },
+    {
+      "path": "examples/request-selection.json",
+      "schema": "request",
+      "valid": true
+    },
+    {
+      "path": "examples/request-first.json",
+      "schema": "request",
+      "valid": true
+    },
+    {
+      "path": "examples/job-accepted.json",
+      "schema": "job",
+      "valid": true
+    },
+    {
+      "path": "examples/job-get.json",
+      "schema": "job",
+      "valid": true
+    },
+    {
+      "path": "examples/job-cancel.json",
+      "schema": "job",
+      "valid": true
+    },
+    {
+      "path": "examples/capabilities.json",
+      "schema": "capabilities",
+      "valid": true
+    },
+    {
+      "path": "examples/invalid-unknown-kind.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "SCHEMA_INVALID"
+    },
+    {
+      "path": "examples/invalid-missing-series.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "SCHEMA_INVALID"
+    },
+    {
+      "path": "examples/invalid-wrong-profile.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "SCHEMA_INVALID"
+    },
+    {
+      "path": "examples/invalid-dangling-rp.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "DANGLING_REFERENCE"
+    },
+    {
+      "path": "examples/invalid-dangling-evidence.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "DANGLING_REFERENCE"
+    },
+    {
+      "path": "examples/invalid-duplicate-finding.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "DUPLICATE_ID"
+    },
+    {
+      "path": "examples/invalid-rank-order.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "RANK_ORDER_MISMATCH"
+    },
+    {
+      "path": "examples/invalid-wrong-median.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "RANKING_BASIS_MISMATCH"
+    },
+    {
+      "path": "examples/invalid-wrong-statistics.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "STATISTICS_INCONSISTENT"
+    },
+    {
+      "path": "examples/invalid-wrong-unit.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "METRIC_SERIES_MISMATCH"
+    },
+    {
+      "path": "examples/invalid-bad-coordinate.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "SCHEMA_INVALID"
+    },
+    {
+      "path": "examples/invalid-altitude.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "SCHEMA_INVALID"
+    },
+    {
+      "path": "examples/invalid-raw-payload.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "SCHEMA_INVALID"
+    },
+    {
+      "path": "examples/invalid-wrong-choice-rank.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "CHOICE_SOURCE_MISMATCH"
+    },
+    {
+      "path": "examples/invalid-action-position.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "ACTION_SOURCE_MISMATCH"
+    },
+    {
+      "path": "examples/invalid-time-range.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "REVERSED_TIME_RANGE"
+    },
+    {
+      "path": "examples/invalid-event-window.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "TIME_OUTSIDE_WINDOW"
+    },
+    {
+      "path": "examples/invalid-sub-millisecond-range.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "REVERSED_TIME_RANGE"
+    },
+    {
+      "path": "examples/invalid-selection-proof.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "SELECTION_PROOF_MISSING"
+    },
+    {
+      "path": "examples/invalid-hash.json",
+      "schema": "result",
+      "valid": false,
+      "expectedCode": "FINDING_SET_HASH_MISMATCH"
+    },
+    {
+      "path": "examples/invalid-duplicate-selection.json",
+      "schema": "request",
+      "valid": false,
+      "expectedCode": "DUPLICATE_CHOICE_SELECTION"
+    },
+    {
+      "path": "examples/invalid-prior-anchor.json",
+      "schema": "request",
+      "valid": false,
+      "expectedCode": "PRIOR_ANCHOR_MISMATCH"
+    },
+    {
+      "path": "examples/invalid-job-state.json",
+      "schema": "job",
+      "valid": false,
+      "expectedCode": "JOB_RESULT_MISMATCH"
+    },
+    {
+      "path": "examples/invalid-capability-reason.json",
+      "schema": "capabilities",
+      "valid": false,
+      "expectedCode": "AVAILABILITY_REASON_MISMATCH"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "algorithm": "SHA-256 over UTF-8 canonical JSON; UTF-16 code-unit key order",
+  "vectors": [
+    { "input": { "b": 1, "a": 2 }, "canonical": "{\"a\":2,\"b\":1}", "hash": "sha256:d3626ac30a87e6f7a6428233b3c68299976865fa5508e4267c5415c76af7a772" },
+    { "input": { "A": 1, "a": 2, "Z": 3, "z": 4, "\u00e9": 5 }, "canonical": "{\"A\":1,\"Z\":3,\"a\":2,\"z\":4,\"\u00e9\":5}", "hash": "sha256:a4052e58d04dae6680f956565f46e6d465157e1b6b7d5f4475dce33c654f2207" },
+    { "input": { "n": 0, "a": [3, 2, 1], "tiny": 1e-7, "big": 1e21 }, "canonical": "{\"a\":[3,2,1],\"big\":1e+21,\"n\":0,\"tiny\":1e-7}", "hash": "sha256:540325f59a78cefeba100c7eac497f4636b32702769170467d3cb1138f129091" },
+    { "input": { "profile": "wsgs-world-analysis-findings/1.0", "findings": [], "choices": [], "gaps": [] }, "canonical": "{\"choices\":[],\"findings\":[],\"gaps\":[],\"profile\":\"wsgs-world-analysis-findings/1.0\"}", "hash": "sha256:e4f1f7da2f0f52bd6277ff8c27c42df5df80742980ddd97ca3db84f727ffbccc" }
+  ]
+}

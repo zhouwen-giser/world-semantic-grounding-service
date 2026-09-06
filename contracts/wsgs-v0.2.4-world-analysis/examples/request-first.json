@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-prior-1",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "source": {
+    "conversationRef": "conversation-demo",
+    "messageId": "message-prior-1",
+    "originalText": "Use the second location.",
+    "originalTextSha256": "sha256:6dd44501d56ecb125f60d6ae65cccb8c4e445cb1bd939980f2fad6a234c4e67b",
+    "locale": "zh-CN",
+    "createdAt": "2026-09-06T10:00:00.000+08:00"
+  },
+  "requestedProducts": [
+    "MENTIONS",
+    "RESOLVED_REFERENCES",
+    "REFERENCE_SETS",
+    "WORLD_EVIDENCE"
+  ],
+  "contextCapsule": {
+    "knownWorldReferences": [],
+    "priorGroundings": [],
+    "mapSelections": [],
+    "externalCorrelationHints": [],
+    "externalPredicates": []
+  },
+  "executionPolicy": {
+    "readOnly": true,
+    "deadlineMs": 10000,
+    "maxQueryOperations": 16,
+    "maxCandidatesPerMention": 5,
+    "maxResultBytes": 1048576,
+    "allowApproximation": false
+  }
+}
