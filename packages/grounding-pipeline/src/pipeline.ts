@@ -1,4 +1,6 @@
 import { canonicalBytes, canonicalSha256 } from "./canonical.js";
+import { worldAnalysisCanonicalHash, worldAnalysisCanonicalJson } from "@wsgs/contracts";
+import { parseGroundingContractSelection, LEGACY_GROUNDING_CONTRACT_SELECTION, isWorldAnalysisContract, type GroundingContractSelection } from "./contract-selection.js";
 import {
   PIPELINE_STAGES,
   PIPELINE_TERMINAL_STATUSES,
@@ -170,15 +172,21 @@ function canonicalResultMaterial(value: unknown): unknown {
 function materializeResult(
   value: unknown,
   runFingerprint: string,
-  maxResultBytes: number
+  maxResultBytes: number,
+  selection: GroundingContractSelection
 ): Pick<PipelineRunResult, "status" | "value" | "resultHash" | "resultBytes"> {
   const final = terminalValue(value);
+  const worldAnalysis = isWorldAnalysisContract(selection);
+  if (worldAnalysis) {
+    if (!isPlainRecord(final.value) || !isPlainRecord(final.value["execution"])) throw new PipelineConfigurationError("World analysis result has no execution envelope");
+    final.value = { ...final.value, execution: { ...final.value["execution"], runFingerprint } };
+  }
   const hashMaterial = canonicalResultMaterial(final.value);
-  const resultHash = canonicalSha256({ runFingerprint, status: final.status, value: hashMaterial });
+  const resultHash = (worldAnalysis ? worldAnalysisCanonicalHash : canonicalSha256)({ runFingerprint, status: final.status, value: hashMaterial });
   const resultValue = isPlainRecord(final.value)
     ? { ...final.value, resultHash }
     : { schemaVersion: "1.0", status: final.status, value: final.value, resultHash };
-  const resultBytes = canonicalBytes(resultValue);
+  const resultBytes = worldAnalysis ? new TextEncoder().encode(worldAnalysisCanonicalJson(resultValue)) : canonicalBytes(resultValue);
   if (resultBytes.byteLength > maxResultBytes) {
     throw new PipelineResultTooLargeError(resultBytes.byteLength, maxResultBytes);
   }
@@ -231,6 +239,7 @@ export class GroundingPipeline {
     if (!Number.isFinite(input.deadlineAt.getTime())) throw new PipelineConfigurationError("deadlineAt is invalid");
 
     const plan = pipelinePlanForOperation(input.operation);
+    const selection = parseGroundingContractSelection(input.initialState["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION);
     const runFingerprint = canonicalSha256({
       operation: input.operation,
       plan,
@@ -295,7 +304,7 @@ export class GroundingPipeline {
           });
           const outputValue = output ?? null;
           const stageMaterialized = nextStageIndex === plan.length - 1
-            ? materializeResult(outputValue, runFingerprint, input.maxResultBytes)
+            ? materializeResult(outputValue, runFingerprint, input.maxResultBytes, selection)
             : undefined;
           const terminalStageStatus: PipelineEventStatus = stageMaterialized?.status === "PARTIAL"
             ? "PARTIAL"
@@ -395,7 +404,7 @@ export class GroundingPipeline {
 
     const finalStage = plan.at(-1);
     if (!finalStage) throw new PipelineConfigurationError("Pipeline plan is empty");
-    materialized ??= materializeResult(state[finalStage], runFingerprint, input.maxResultBytes);
+    materialized ??= materializeResult(state[finalStage], runFingerprint, input.maxResultBytes, selection);
     return {
       ...materialized,
       runFingerprint,

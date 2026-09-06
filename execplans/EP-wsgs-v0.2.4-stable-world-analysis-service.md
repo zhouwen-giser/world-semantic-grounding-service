@@ -30,8 +30,11 @@ The working tree was clean. Dedicated branch:
 - W02 COMPLETE: validated five-kind projection, provenance closure, explicit
   completeness versus display truncation, 28 fixture tests, 157 related tests,
   nine fixed hash pairs, bounded output and unchanged frozen contract PASS.
-- W03 NOT_STARTED: exact negotiation throughout API/backend/worker/store/GET,
-  idempotency and recovery; append-only migration only if needed.
+- W03 IN_PROGRESS: exact 1.2 authorization/request/response validation,
+  persisted selection parser, backend payload binding, production result assembly,
+  public fingerprint hashing and scripted SQL read/replay isolation implemented.
+  Recovery/late-worker and production HTTP evidence remain open; capabilities
+  depend on W05. No W03 acceptance completion claimed.
 - W04 NOT_STARTED: actor/scope/hash/TTL-bound choices, semantic invalidation,
   observed-position action candidates with three requirements and no authority.
 - W05 NOT_STARTED: per-capability support/availability with exact dependencies,

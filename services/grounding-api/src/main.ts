@@ -68,7 +68,8 @@ const app = await createGroundingApi({
   auth: authFromEnvironment(),
   backend: production.backend,
   contractNegotiation: parseContractNegotiationConfig(
-    process.env["WSGS_SACS_GEOSPATIAL_CONSUMER_PRINCIPALS_JSON"]
+    process.env["WSGS_SACS_GEOSPATIAL_CONSUMER_PRINCIPALS_JSON"],
+    process.env["WSGS_WORLD_ANALYSIS_CONSUMER_PRINCIPALS_JSON"]
   ),
   schemas: loadFrozenSchemas(),
   logger: true

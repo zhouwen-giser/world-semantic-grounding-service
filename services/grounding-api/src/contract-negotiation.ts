@@ -4,6 +4,9 @@ import {
   SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION,
   SACS_GEOSPATIAL_GROUNDING_CONTRACT_VERSION,
   SACS_GEOSPATIAL_RESULT_PROFILE,
+  WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION,
+  WORLD_ANALYSIS_GROUNDING_CONTRACT_VERSION,
+  WORLD_ANALYSIS_GROUNDING_RESULT_PROFILE,
   type GroundingContractSelection
 } from "@wsgs/grounding-pipeline";
 import type { FastifyRequest } from "fastify";
@@ -17,6 +20,7 @@ const principalPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/u;
 
 export interface ContractNegotiationConfig {
   sacsGeospatialServicePrincipals: readonly string[];
+  worldAnalysisServicePrincipals?: readonly string[];
 }
 
 export class ContractNegotiationError extends Error {
@@ -43,22 +47,24 @@ function exactHeader(request: FastifyRequest, name: string): string | undefined 
   return value;
 }
 
-export function parseContractNegotiationConfig(value: string | undefined): ContractNegotiationConfig {
-  if (value === undefined) return Object.freeze({ sacsGeospatialServicePrincipals: Object.freeze([]) });
+export function parseContractNegotiationConfig(value: string | undefined, worldAnalysisValue?: string): ContractNegotiationConfig {
   let parsed: unknown;
+  let worldAnalysis: unknown;
   try {
-    parsed = JSON.parse(value) as unknown;
+    parsed = value === undefined ? [] : JSON.parse(value) as unknown;
+    worldAnalysis = worldAnalysisValue === undefined ? undefined : JSON.parse(worldAnalysisValue) as unknown;
   } catch {
     throw new ContractNegotiationError("WSGS_CONSUMER_CONTRACT_CONFIGURATION_INVALID", 500);
   }
-  return normalizeContractNegotiationConfig({ sacsGeospatialServicePrincipals: parsed });
+  return normalizeContractNegotiationConfig({ sacsGeospatialServicePrincipals: parsed,
+    ...(worldAnalysisValue === undefined ? {} : { worldAnalysisServicePrincipals: worldAnalysis }) });
 }
 
 /** Strictly normalizes direct API construction as well as environment input. */
 export function normalizeContractNegotiationConfig(value: unknown): ContractNegotiationConfig {
   if (!value || typeof value !== "object" || Array.isArray(value)
-    || JSON.stringify(Object.keys(value as Record<string, unknown>).sort())
-      !== JSON.stringify(["sacsGeospatialServicePrincipals"])) {
+    || !Object.hasOwn(value, "sacsGeospatialServicePrincipals")
+    || Object.keys(value).some(key => !["sacsGeospatialServicePrincipals", "worldAnalysisServicePrincipals"].includes(key))) {
     throw new ContractNegotiationError("WSGS_CONSUMER_CONTRACT_CONFIGURATION_INVALID", 500);
   }
   const parsed = (value as Record<string, unknown>)["sacsGeospatialServicePrincipals"];
@@ -69,9 +75,12 @@ export function normalizeContractNegotiationConfig(value: unknown): ContractNego
   if (new Set(parsed).size !== parsed.length) {
     throw new ContractNegotiationError("WSGS_CONSUMER_CONTRACT_CONFIGURATION_INVALID", 500);
   }
-  return Object.freeze({
-    sacsGeospatialServicePrincipals: Object.freeze([...parsed as string[]].sort())
-  });
+  const worldAnalysis = (value as Record<string, unknown>)["worldAnalysisServicePrincipals"];
+  if (Object.hasOwn(value, "worldAnalysisServicePrincipals") && (!Array.isArray(worldAnalysis) || worldAnalysis.some(entry => typeof entry !== "string" || !principalPattern.test(entry) || entry.includes("*")) || new Set(worldAnalysis).size !== worldAnalysis.length)) {
+    throw new ContractNegotiationError("WSGS_CONSUMER_CONTRACT_CONFIGURATION_INVALID", 500);
+  }
+  return Object.freeze({ sacsGeospatialServicePrincipals: Object.freeze([...parsed as string[]].sort()),
+    ...(worldAnalysis === undefined ? {} : { worldAnalysisServicePrincipals: Object.freeze([...(worldAnalysis as string[])].sort()) }) });
 }
 
 /**
@@ -99,6 +108,12 @@ export function negotiateGroundingContract(
     resultProfile === SACS_GEOSPATIAL_RESULT_PROFILE &&
     geospatialAuthorized
   ) return SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION;
+  if (contractVersion === WORLD_ANALYSIS_GROUNDING_CONTRACT_VERSION &&
+    resultProfile === WORLD_ANALYSIS_GROUNDING_RESULT_PROFILE &&
+    config.worldAnalysisServicePrincipals?.includes(identity.servicePrincipalId)) return WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION;
+  if (contractVersion === WORLD_ANALYSIS_GROUNDING_CONTRACT_VERSION || resultProfile === WORLD_ANALYSIS_GROUNDING_RESULT_PROFILE) {
+    throw new ContractNegotiationError("WSGS_CONSUMER_CONTRACT_MISMATCH");
+  }
   throw new ContractNegotiationError(
     resultProfile === undefined || resultProfile === SACS_GEOSPATIAL_RESULT_PROFILE
       ? "WSGS_CONSUMER_CONTRACT_MISMATCH"

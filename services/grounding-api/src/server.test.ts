@@ -140,13 +140,14 @@ const apps: FastifyInstance[] = [];
 async function staticApp(
   captured: GroundingIdentity[] = [],
   service = backend(captured),
-  sacsGeospatialServicePrincipals: readonly string[] = []
+  sacsGeospatialServicePrincipals: readonly string[] = [],
+  worldAnalysisServicePrincipals: readonly string[] = []
 ): Promise<FastifyInstance> {
   const app = await createGroundingApi({
     auth: { mode: "STATIC_TRUSTED", identity: staticIdentity },
     backend: service,
     schemas,
-    contractNegotiation: { sacsGeospatialServicePrincipals },
+    contractNegotiation: { sacsGeospatialServicePrincipals, worldAnalysisServicePrincipals },
     bodyLimitBytes: 65_536
   });
   apps.push(app);
@@ -158,6 +159,31 @@ afterEach(async () => {
 });
 
 describe("grounding API", () => {
+  it("validates 1.2 synchronous and asynchronous envelopes and rejects a legacy result", async () => {
+    const example = (name: string) => JSON.parse(readFileSync(new URL(`../../../contracts/wsgs-v0.2.4-world-analysis/examples/${name}.json`, import.meta.url), "utf8"));
+    const service = backend();
+    const result = example("action");
+    const accepted = example("job-accepted");
+    service.create = vi.fn(async (_identity, _key, _request, preferAsync) => preferAsync
+      ? { kind: "JOB" as const, value: accepted } : { kind: "RESULT" as const, value: result });
+    service.get = vi.fn(async () => example("job-get"));
+    service.cancel = vi.fn(async () => example("job-cancel"));
+    service.capabilities = vi.fn(async () => example("capabilities"));
+    const app = await staticApp([], service, [], ["service-a"]);
+    const headers = { "wsgs-contract-version": "sacs-wsgs-grounding/1.2", "wsgs-result-profile": "wsgs-world-analysis-findings/1.0", "idempotency-key": "idem-world" };
+    const payload = requestBody();
+    const sync = await app.inject({ method: "POST", url: "/v1/groundings", headers, payload });
+    expect(sync.statusCode).toBe(200);
+    expect(sync.json()).toEqual(result);
+    expect((await app.inject({ method: "POST", url: "/v1/groundings", headers: { ...headers, prefer: "respond-async" }, payload })).statusCode).toBe(202);
+    expect((await app.inject({ method: "GET", url: "/v1/groundings/grounding-1", headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: "POST", url: "/v1/groundings/grounding-1:cancel", headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: "GET", url: "/v1/capabilities", headers })).statusCode).toBe(200);
+    service.create = vi.fn(async () => ({ kind: "RESULT" as const, value: groundingResult }));
+    expect((await app.inject({ method: "POST", url: "/v1/groundings", headers, payload })).statusCode).toBe(500);
+    expect((await app.inject({ method: "POST", url: "/v1/groundings", headers, payload: { ...payload, analysisSelections: [{}] } })).statusCode).toBe(400);
+  });
+
   it("reports liveness/readiness and frozen capabilities", async () => {
     const app = await staticApp();
     expect((await app.inject({ method: "GET", url: "/health/live" })).statusCode).toBe(200);

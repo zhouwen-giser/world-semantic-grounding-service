@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { createWorldAnalysisValidator, worldAnalysisResultHash, type GroundingResult12 } from "@wsgs/contracts";
+import { WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION } from "./contract-selection.js";
 
 import { GroundingPipeline, pipelinePlanForOperation } from "./pipeline.js";
 import { ProductionPipelineStageExecutor } from "./stage-executor.js";
@@ -194,6 +197,28 @@ describe("GroundingPipeline", () => {
     expect(first.resultHash).toBe(recovered.resultHash);
     expect(first.value).toMatchObject({ resultHash: first.resultHash, execution: { elapsedMs: 12 } });
     expect(recovered.value).toMatchObject({ resultHash: recovered.resultHash, execution: { elapsedMs: 987 } });
+  });
+
+  it("binds world-analysis results to the actual run fingerprint and public hash algorithm", async () => {
+    const fixture = JSON.parse(readFileSync(new URL("../../../contracts/wsgs-v0.2.4-world-analysis/examples/empty.json", import.meta.url), "utf8")) as GroundingResult12;
+    const run = async (elapsedMs: number, label: string) => new GroundingPipeline({
+      executor: new ProductionPipelineStageExecutor(handlerMap([], {
+        RESULT_PERSIST: async () => ({
+          ...fixture, warnings: [label],
+          execution: { ...fixture.execution, elapsedMs, runFingerprint: "untrusted-placeholder" }
+        })
+      })),
+      journal: new MemoryJournal()
+    }).run(runInput({ initialState: { request: { text: "analysis" }, contractSelection: WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION } }));
+    const first = await run(5, "first");
+    const recovered = await run(500, "first");
+    const changed = await run(5, "changed");
+    const result = first.value as { execution: { runFingerprint: string } };
+    expect(result.execution.runFingerprint).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(first.resultHash).toBe(worldAnalysisResultHash(first.value as GroundingResult12));
+    expect(createWorldAnalysisValidator()("result", first.value)).toEqual({ valid: true, errors: [] });
+    expect(first.resultHash).toBe(recovered.resultHash);
+    expect(first.resultHash).not.toBe(changed.resultHash);
   });
 
   it("binds the negotiated geospatial extension into the canonical result hash", async () => {

@@ -1,7 +1,7 @@
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import type { ValidateFunction } from "ajv";
-import { defaultSacsGeospatialSchemaRegistry } from "@wsgs/contracts";
+import { defaultSacsGeospatialSchemaRegistry, createWorldAnalysisValidator } from "@wsgs/contracts";
 
 function normalized(name: string, schema: unknown): Record<string, unknown> {
   if (!schema || typeof schema !== "object" || Array.isArray(schema)) throw new Error(`Invalid API schema: ${name}`);
@@ -17,6 +17,7 @@ export interface ApiSchemaValidators {
   capabilities: ValidateFunction;
   capabilities11: ValidateFunction;
   protocolError: ValidateFunction;
+  worldAnalysis: ReturnType<typeof createWorldAnalysisValidator>;
 }
 
 function registryValidator(
@@ -57,6 +58,7 @@ export function compileApiSchemas(documents: Record<string, unknown>): ApiSchema
   }) as ValidateFunction;
   groundingJob11.errors = null;
   return {
+    worldAnalysis: createWorldAnalysisValidator(),
     groundingRequest: get("grounding-request.schema.json"),
     groundingResult,
     groundingResult11,

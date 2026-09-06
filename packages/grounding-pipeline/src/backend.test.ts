@@ -10,7 +10,7 @@ import {
   type ProductionGroundingStore
 } from "./backend.js";
 import { canonicalSha256, utf8Sha256 } from "./canonical.js";
-import { SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION } from "./contract-selection.js";
+import { SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION, WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION } from "./contract-selection.js";
 
 const identity: ProductionGroundingIdentity = {
   servicePrincipalId: "sacs-service",
@@ -141,6 +141,26 @@ describe("ProductionGroundingBackend", () => {
     });
     expect(legacy.store.submissions[0]?.payloadHash).toBe(canonicalSha256(unchangedLegacyRequest));
     expect(geospatial.store.submissions[0]?.payloadHash).not.toBe(legacy.store.submissions[0]?.payloadHash);
+  });
+
+  it("binds world-analysis selections and query semantics into the idempotency payload", async () => {
+    const hash = async (candidateId: string, metric: string) => {
+      const fixture = backend();
+      await fixture.value.create(identity, "idem-analysis", {
+        ...request(),
+        analysisSelections: [{ priorGroundingId: "prior-1", priorResultHash: `sha256:${"a".repeat(64)}`,
+          findingSetHash: `sha256:${"b".repeat(64)}`, choiceId: "choice-1", candidateId }],
+        semanticHints: { metric }
+      }, true, WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION);
+      expect(fixture.store.submissions[0]).toMatchObject({
+        contractSelection: WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION,
+        requestMetadata: { contractSelection: WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION }
+      });
+      return fixture.store.submissions[0]?.payloadHash;
+    };
+    expect(await hash("candidate-1", "RSSI")).toBe(await hash("candidate-1", "RSSI"));
+    expect(await hash("candidate-1", "RSSI")).not.toBe(await hash("candidate-2", "RSSI"));
+    expect(await hash("candidate-1", "RSSI")).not.toBe(await hash("candidate-1", "LATENCY"));
   });
 
   it("preserves the legacy fifth AbortSignal argument", async () => {

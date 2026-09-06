@@ -58,7 +58,7 @@ export interface PublicWorldAnalysisProjection {
 /** This mapper only consumes server-validated history and revalidates Provider envelopes. */
 export function projectPublicWorldAnalysis(input: {
   context: PublicWorldAnalysisContext;
-  contracts: AnalysisProviderContracts;
+  contracts?: AnalysisProviderContracts;
   catalog?: MetricSemanticCatalog;
   advanced?: AdvancedHistoricalExecutionResult;
   foundation?: AdvancedHistoricalFoundation;
@@ -135,6 +135,7 @@ export function projectPublicWorldAnalysis(input: {
     const startChoiceCount = choices.length;
     const startGapCount = gaps.length;
     try {
+      if (!input.contracts) throw new ProjectionError("CAPABILITY_UNAVAILABLE");
       const envelope = input.contracts.validateEnvelope(source.operationId, source.envelope);
       const evidenceId = id("evidence", { operation: source.operationId, resultHash: envelope.execution.resultHash });
       const evidence = projectEvidence(envelope, source.operationId, evidenceId);
@@ -337,7 +338,13 @@ function projectRanking(result: MetricLocationRankingResultV01, conceptId: strin
 }
 
 export function assemblePublicWorldAnalysisResult(base: GroundingResult12, projection: PublicWorldAnalysisProjection, options: { maxResultBytes?: number; selectedCandidateIds?: readonly string[] } = {}): GroundingResult12 {
-  const result: GroundingResult12 = { ...base, status: projection.status, evidenceItems: projection.evidenceItems, worldAnalysisFindings: projection.component };
+  const statuses = [base.status, projection.status];
+  const usable = base.referenceProducts.length > 0 || projection.component.findings.some(finding => ["COMPLETED", "PARTIAL", "NO_DATA"].includes(finding.status));
+  const emptyAnalysis = projection.component.findings.length === 0 && projection.component.choices.length === 0 && projection.component.gaps.length === 0;
+  const status = emptyAnalysis ? base.status : statuses.includes("CANCELLED") ? "CANCELLED" : statuses.includes("AMBIGUOUS") ? "AMBIGUOUS" :
+    statuses.includes("FAILED") ? (usable ? "PARTIAL" : "FAILED") : statuses.includes("UNRESOLVED") ? (usable ? "PARTIAL" : "UNRESOLVED") :
+    statuses.includes("PARTIAL") ? "PARTIAL" : "COMPLETED";
+  const result: GroundingResult12 = { ...base, status, evidenceItems: projection.evidenceItems, worldAnalysisFindings: projection.component };
   result.resultHash = worldAnalysisResultHash(result);
   const checked = validate("result", result);
   if (checked.errors.some(issue => issue.code !== "RESULT_TOO_LARGE")) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");

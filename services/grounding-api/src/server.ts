@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { isSacsGeospatialContract, type GroundingContractSelection } from "@wsgs/grounding-pipeline";
+import { isSacsGeospatialContract, isWorldAnalysisContract, type GroundingContractSelection } from "@wsgs/grounding-pipeline";
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { ApiAuthError, authenticate } from "./auth.js";
 import {
@@ -90,6 +90,7 @@ function negotiatedResponseValidator(
   selection: GroundingContractSelection,
   kind: "CAPABILITIES" | "RESULT" | "JOB"
 ): (value: unknown) => boolean {
+  if (isWorldAnalysisContract(selection)) return value => validators.worldAnalysis(kind.toLowerCase(), value).valid;
   const geospatial = isSacsGeospatialContract(selection);
   if (kind === "CAPABILITIES") return geospatial ? validators.capabilities11 : validators.capabilities;
   if (kind === "RESULT") return geospatial ? validators.groundingResult11 : validators.groundingResult;
@@ -247,7 +248,7 @@ export async function createGroundingApi(config: GroundingApiConfig): Promise<Fa
     rateBudget.consume(caller);
     const body = requestObject(request);
     assertNoAuthority(body);
-    validate(validators.groundingRequest, body, "INVALID_GROUNDING_REQUEST");
+    validate(isWorldAnalysisContract(selection) ? value => validators.worldAnalysis("request", value).valid : validators.groundingRequest, body, "INVALID_GROUNDING_REQUEST");
     const source = body["source"] as Record<string, unknown>;
     const sourceText = source["originalText"] as string;
     assertSafeUnicodeText(sourceText);

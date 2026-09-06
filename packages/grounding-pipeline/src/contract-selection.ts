@@ -1,6 +1,8 @@
 export const LEGACY_GROUNDING_CONTRACT_VERSION = "sacs-wsgs-grounding/1.0" as const;
 export const SACS_GEOSPATIAL_GROUNDING_CONTRACT_VERSION = "sacs-wsgs-grounding/1.1" as const;
 export const SACS_GEOSPATIAL_RESULT_PROFILE = "sacs-wsgs-geospatial-findings/1.0" as const;
+export const WORLD_ANALYSIS_GROUNDING_CONTRACT_VERSION = "sacs-wsgs-grounding/1.2" as const;
+export const WORLD_ANALYSIS_GROUNDING_RESULT_PROFILE = "wsgs-world-analysis-findings/1.0" as const;
 
 export type GroundingContractSelection =
   | Readonly<{
@@ -11,6 +13,11 @@ export type GroundingContractSelection =
   | Readonly<{
       contractVersion: typeof SACS_GEOSPATIAL_GROUNDING_CONTRACT_VERSION;
       resultProfile: typeof SACS_GEOSPATIAL_RESULT_PROFILE;
+      transportMode: "RESULT_EXTENSION";
+    }>
+  | Readonly<{
+      contractVersion: typeof WORLD_ANALYSIS_GROUNDING_CONTRACT_VERSION;
+      resultProfile: typeof WORLD_ANALYSIS_GROUNDING_RESULT_PROFILE;
       transportMode: "RESULT_EXTENSION";
     }>;
 
@@ -23,6 +30,12 @@ export const LEGACY_GROUNDING_CONTRACT_SELECTION: GroundingContractSelection = O
 export const SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION: GroundingContractSelection = Object.freeze({
   contractVersion: SACS_GEOSPATIAL_GROUNDING_CONTRACT_VERSION,
   resultProfile: SACS_GEOSPATIAL_RESULT_PROFILE,
+  transportMode: "RESULT_EXTENSION"
+});
+
+export const WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION: GroundingContractSelection = Object.freeze({
+  contractVersion: WORLD_ANALYSIS_GROUNDING_CONTRACT_VERSION,
+  resultProfile: WORLD_ANALYSIS_GROUNDING_RESULT_PROFILE,
   transportMode: "RESULT_EXTENSION"
 });
 
@@ -56,6 +69,11 @@ export function parseGroundingContractSelection(value: unknown): GroundingContra
     candidate["resultProfile"] === SACS_GEOSPATIAL_RESULT_PROFILE &&
     candidate["transportMode"] === "RESULT_EXTENSION"
   ) return SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION;
+  if (
+    candidate["contractVersion"] === WORLD_ANALYSIS_GROUNDING_CONTRACT_VERSION &&
+    candidate["resultProfile"] === WORLD_ANALYSIS_GROUNDING_RESULT_PROFILE &&
+    candidate["transportMode"] === "RESULT_EXTENSION"
+  ) return WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION;
   return fail();
 }
 
@@ -63,4 +81,10 @@ export function isSacsGeospatialContract(
   selection: GroundingContractSelection
 ): selection is Extract<GroundingContractSelection, { contractVersion: "sacs-wsgs-grounding/1.1" }> {
   return selection.contractVersion === SACS_GEOSPATIAL_GROUNDING_CONTRACT_VERSION;
+}
+
+export function isWorldAnalysisContract(
+  selection: GroundingContractSelection
+): selection is Extract<GroundingContractSelection, { contractVersion: "sacs-wsgs-grounding/1.2" }> {
+  return selection.contractVersion === WORLD_ANALYSIS_GROUNDING_CONTRACT_VERSION;
 }

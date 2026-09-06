@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { assembleProductionWorldAnalysis } from "./world-analysis-result.js";
 
 import type { GroundingIdentityV2 } from "@wsgs/delegated-identity";
 import { GowmDelegationSigner, createGroundingIdentity } from "@wsgs/delegated-identity";
@@ -99,6 +100,7 @@ import {
   ProductionPipelineStageExecutor,
   canonicalSha256,
   isSacsGeospatialContract,
+  isWorldAnalysisContract,
   parseGroundingContractSelection,
   type PipelineStage,
   type PipelineStageContext,
@@ -1911,7 +1913,7 @@ function historicalEvidence(
   };
 }
 
-function resultDocument(context: PipelineStageContext, evidenceItems: GroundingEvidenceItem[] = []): JsonObject {
+function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenceItems: GroundingEvidenceItem[] = []): JsonObject {
   const parts = requestParts(context);
   const deterministic = context.state["DETERMINISTIC_PARSE"] as DeterministicParseResult | undefined;
   const semantic = context.state["SEMANTIC_MODEL_PARSE"] as PersistedSemanticModelResult | undefined;
@@ -1973,7 +1975,7 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
   const queryRecords = executedQueryRecords ?? compiledQueryRecords ?? [];
   const source = parts.source;
   const receipt = semantic?.receiptId ? [semantic.receiptId] : [];
-  return {
+  const document: JsonObject = {
     schemaVersion: "1.0",
     requestId: request(context)["requestId"],
     groundingId: context.groundingId,
@@ -2002,6 +2004,33 @@ function resultDocument(context: PipelineStageContext, evidenceItems: GroundingE
       elapsedMs: Math.max(0, Date.now() - Date.parse(String((stageValue<JsonObject>(context, "LOAD_CONTEXT"))["startedAt"])))
     }
   };
+  if (!isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION))) return document;
+  let foundation = executed?.advancedExecution?.foundation;
+  if (!foundation && executed?.historicalExecution?.finding && compiled?.historicalPlan) {
+    const finding = executed.historicalExecution.finding;
+    const reference = projectHistoricalReference(finding, runtime.history.provisionalReferenceTtlMs);
+    if (reference) foundation = { intent: compiled.historicalPlan.intent, finding, reference };
+  }
+  let foundationEvidenceIds = (document["evidenceItems"] as GroundingEvidenceItem[])
+    .filter(item => item.sourceOperation === "history.get-trajectory" || item.sourceOperation === "operational-task.get-execution-intervals")
+    .map(item => item.evidenceProductId);
+  if (foundation && foundationEvidenceIds.length === 0) {
+    const historical = historicalEvidence({ status: "COMPLETED", reasonCode: foundation.finding.reasonCode,
+      finding: foundation.finding, operations: ["history.get-trajectory"] }, persistedAuthority(context, runtime.gateway), context.groundingId, runtime.history);
+    document["evidenceItems"] = [...document["evidenceItems"] as GroundingEvidenceItem[], ...historical.evidenceItems];
+    foundationEvidenceIds = historical.evidenceItems.map(item => item.evidenceProductId);
+  }
+  // GSAP envelopes are projected independently from the legacy, size-bounded safePayload preview.
+  if (executed?.advancedExecution) document["evidenceItems"] = (document["evidenceItems"] as GroundingEvidenceItem[])
+    .filter(item => !ANALYSIS_OPERATION_IDS.includes(item.sourceOperation as typeof ANALYSIS_OPERATION_IDS[number]));
+  return assembleProductionWorldAnalysis({
+    base: document, runFingerprint: context.runFingerprint,
+    validUntil: new Date(Date.parse(String(stageValue<JsonObject>(context, "LOAD_CONTEXT")["startedAt"])) + 60_000).toISOString(),
+    maxResultBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+    ...(runtime.analysisContracts ? { contracts: runtime.analysisContracts } : {}), catalog: runtime.metricCatalog,
+    ...(executed?.advancedExecution ? { advanced: executed.advancedExecution } : {}),
+    ...(foundation ? { foundation } : {}), foundationEvidenceIds
+  }) as unknown as JsonObject;
 }
 
 async function transaction<T>(pool: Pool, run: (client: PoolClient) => Promise<T>): Promise<T> {
@@ -3188,7 +3217,7 @@ export async function createPipelineStageExecutor(
           ...(stageValue<{ advancedFollowup?: AdvancedFollowup }>(context, "LOAD_CONTEXT").advancedFollowup ? { advancedFollowup: stageValue<{ advancedFollowup: AdvancedFollowup }>(context, "LOAD_CONTEXT").advancedFollowup } : {}),
           ...(planning.advancedResolution.status === "PARSED" ? { advancedIntent: planning.advancedResolution.intent } : {}) };
         if (request(context)["mode"] === "COMPILE_WORLD_QUERY") return resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output,
-          EVIDENCE_NORMALIZE: { status: "PARTIAL", evidenceItems: [], capabilityGaps: [], warnings: ["HISTORICAL_FOUNDATION_REQUIRED"] } } });
+          EVIDENCE_NORMALIZE: { status: "PARTIAL", evidenceItems: [], capabilityGaps: [], warnings: ["HISTORICAL_FOUNDATION_REQUIRED"] } } }, value);
         return output;
       }
       if (planning.historicalIntent) {
@@ -3302,7 +3331,7 @@ export async function createPipelineStageExecutor(
       });
       const output = { compiled, capabilityGaps: gaps };
       return context.operation === "COMPILE_WORLD_QUERY"
-        ? resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output } })
+        ? resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output } }, value)
         : output;
     },
 
@@ -3818,7 +3847,7 @@ export async function createPipelineStageExecutor(
       };
     },
 
-    PRODUCT_ASSEMBLE: async (context) => resultDocument(context),
+    PRODUCT_ASSEMBLE: async (context) => resultDocument(context, value),
 
     RESULT_PERSIST: async (context) => stageValue<JsonObject>(context, "PRODUCT_ASSEMBLE")
   });
