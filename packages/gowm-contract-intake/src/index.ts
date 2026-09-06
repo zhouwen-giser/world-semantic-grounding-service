@@ -745,3 +745,7 @@ export * from "./schema-registry.js";
 export * from "./operational-lock.js";
 export * from "./gdps-v021-finding-contract.generated.js";
 export * from "./gdps-schema-registry.js";
+export * from "./analysis-provider-contracts.js";
+export type * from "./analysis-models/trajectory.js";
+export type * from "./analysis-models/temporal-events.js";
+export type * from "./analysis-models/metric-ranking.js";

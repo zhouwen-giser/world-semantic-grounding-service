@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "gowm-canonical-schema-lock/1.0",
+  "lockId": "gowm-spatiotemporal-analysis-providers-v0.1",
+  "providerId": "gowm.analysis.providers",
+  "schemas": [
+    {
+      "schemaUri": "urn:gowm:analysis:map-matching:request:0.1",
+      "schemaHash": "sha256:fce48b61109ed5bf776700ea123892e6ef6ed868c70fed68c5ed2f4fedc56bc5",
+      "schemaPath": "contracts/map-matching/map-match-request.schema.json"
+    },
+    {
+      "schemaUri": "urn:gowm:analysis:map-matching:result:0.1",
+      "schemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5",
+      "schemaPath": "contracts/map-matching/map-match-result.schema.json"
+    },
+    {
+      "schemaUri": "urn:gowm:analysis:temporal-events:request:0.1",
+      "schemaHash": "sha256:a176f1be958f8d5f87069e8d305d3fa4b1b7bcb7b7c6a1db7f6c076ae1c467db",
+      "schemaPath": "contracts/temporal-events/temporal-events-request.schema.json"
+    },
+    {
+      "schemaUri": "urn:gowm:analysis:temporal-events:result:0.1",
+      "schemaHash": "sha256:4c6b87a97523aa904591f31b43086e74a7097b43c19ff09a25d0d2fa9b3cd2b4",
+      "schemaPath": "contracts/temporal-events/temporal-events-result.schema.json"
+    },
+    {
+      "schemaUri": "urn:gowm:analysis:metric-ranking:request:0.1",
+      "schemaHash": "sha256:c9c882bf7c25ba0526e685090a9ef8603beec437a33ba67750660e54e105e601",
+      "schemaPath": "contracts/metric-ranking/metric-ranking-request.schema.json"
+    },
+    {
+      "schemaUri": "urn:gowm:analysis:metric-ranking:result:0.1",
+      "schemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27",
+      "schemaPath": "contracts/metric-ranking/metric-ranking-result.schema.json"
+    }
+  ],
+  "supportingSchemas": []
+}
