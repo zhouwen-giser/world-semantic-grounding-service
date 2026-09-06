@@ -115,3 +115,9 @@ REFERENCE_VALIDATE had newly required LOAD_CONTEXT for old isolated recovered
 stages. The implementation now reads the original request capsule for 1.0/1.1,
 while 1.2 still requires the authorized loaded state. The failing full log is
 retained as `reference-selection-check.log`; it must not be reported as PASS.
+
+Corrected implementation commit: 7d4a4bb. The final check is recorded separately
+in `reference-selection-final-check.json`: 878 passing tests, 29 skipped, no
+failures. `reference-selection-final-build.json` records an independent passing
+build. The original 53 focused tests and 9 recovered-stage tests also passed;
+the first failed full run remains preserved for traceability.
