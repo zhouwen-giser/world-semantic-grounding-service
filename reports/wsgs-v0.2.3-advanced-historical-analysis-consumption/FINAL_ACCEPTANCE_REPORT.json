@@ -1,0 +1,738 @@
+{
+  "schemaVersion": "1.0",
+  "workItem": "T5 WSGS v0.2.3 Advanced Historical Analysis Consumption",
+  "verifiedDate": "2026-09-06",
+  "status": "PASS",
+  "qualification": "DEVELOPMENT_ONLY_OFFLINE_CONSUMER_ACCEPTANCE",
+  "productionQualified": false,
+  "finalMarker": "WSGS_ADVANCED_HISTORICAL_ANALYSIS_CONSUMPTION_DEV_READY",
+  "baseline": {
+    "wsgsMainBranch": "main",
+    "wsgsMainCommit": "565e52705bb7656d4623a04655001325ca61acd0",
+    "wsgsMainTree": "ac1d8e0536c70db9dc1c9c35aab4a112c2688c46",
+    "historicalBranch": "codex/wsgs-v0.2.2-historical-trace-consumption",
+    "historicalCommit": "825682205deeab6ff2e6808e5f5d5c38abfb1779",
+    "featureBranch": "codex/wsgs-v0.2.3-advanced-historical-analysis-consumption",
+    "integrationCommit": "0bee3915c63cbfccce67edbd77b57e691ebeabf7",
+    "contractIntakeCommit": "311df14b9b30b50b2988f2fd58f861d0d5da773b",
+    "implementationCommit": "7ee16b1986b3c8d9fc34c7c9ebeb52390226ef59",
+    "implementationTree": "81b6f5a028bfa18a5333eaf0f93131421c1999e5",
+    "configurationDocumentationCommit": "572f8781156d49207730f0a8fcbed8830ff81b53",
+    "configurationDocumentationTree": "20de6ffe33640a733259b50efc334b95550a01c8",
+    "gitFetch": "git fetch --all --prune performed before implementation in WSGS and GSAP; known reference snapshots were not assumed current"
+  },
+  "analysisProviderContracts": {
+    "repository": "zhouwen-giser/gowm-spatiotemporal-analysis-providers",
+    "branch": "codex/metric-ranking-provider-v0.1",
+    "commit": "59982aad1d83a443a0fbefbbaed8cd31161ee469",
+    "tree": "b2512f8fbffc3c96b06a312bf722cc2707ec06e4",
+    "capturedAt": "2026-09-06T04:08:32.317Z",
+    "sourceFile": "contracts/upstream/gowm-analysis-providers-current/source.json",
+    "originalFiles": 32,
+    "operations": [
+      {
+        "providerId": "gowm.analysis.map-matching",
+        "operationId": "trajectory.map-match",
+        "operationVersion": "0.1",
+        "inputSchemaUri": "urn:gowm:analysis:map-matching:request:0.1",
+        "inputSchemaHash": "sha256:fce48b61109ed5bf776700ea123892e6ef6ed868c70fed68c5ed2f4fedc56bc5",
+        "outputSchemaUri": "urn:gowm:analysis:map-matching:result:0.1",
+        "outputSchemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5",
+        "semanticProfileHash": "sha256:8b09ed9daa400dcdd62e5e07715f464aab741e32ba2147344b1046ff69f0eea4"
+      },
+      {
+        "providerId": "gowm.analysis.temporal-events",
+        "operationId": "temporal-spatial.find-events",
+        "operationVersion": "0.1",
+        "inputSchemaUri": "urn:gowm:analysis:temporal-events:request:0.1",
+        "inputSchemaHash": "sha256:a176f1be958f8d5f87069e8d305d3fa4b1b7bcb7b7c6a1db7f6c076ae1c467db",
+        "outputSchemaUri": "urn:gowm:analysis:temporal-events:result:0.1",
+        "outputSchemaHash": "sha256:4c6b87a97523aa904591f31b43086e74a7097b43c19ff09a25d0d2fa9b3cd2b4",
+        "semanticProfileHash": "sha256:c56661cba65ac8da618e1d351b1efcac9bd404ba61c7f2efa84140f55ca60eb3"
+      },
+      {
+        "providerId": "gowm.analysis.metric-ranking",
+        "operationId": "spatiotemporal-metric.rank-locations",
+        "operationVersion": "0.1",
+        "inputSchemaUri": "urn:gowm:analysis:metric-ranking:request:0.1",
+        "inputSchemaHash": "sha256:c9c882bf7c25ba0526e685090a9ef8603beec437a33ba67750660e54e105e601",
+        "outputSchemaUri": "urn:gowm:analysis:metric-ranking:result:0.1",
+        "outputSchemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27",
+        "semanticProfileHash": "sha256:fa66d6dabf0e0b017e25560224aefb68f995304ab5569b54323e96155ff6307c"
+      }
+    ]
+  },
+  "upstreamInspection": {
+    "gowm": {
+      "head": "a4023f545e7d43beac316abc3ad510f96ccfea61",
+      "tree": "bcbbcfc796b42d6a80a031710c35de8c9cdb441c",
+      "fetchedOriginMain": "61082e56fd82f96294b6ba4eac35199e1e811240",
+      "fetchedOriginMainTree": "d4ed02f61343d54dc65794ef64535820d669386e",
+      "businessChanges": false,
+      "worktreeClean": true
+    },
+    "gdps": {
+      "head": "ff179229b90955ad0726415ac135a194bd08e8aa",
+      "tree": "5077ffaa14db1822bc764e1348cb3471d8d744c8",
+      "businessChangesByThisTask": false,
+      "preExistingDirtyWorktreePreserved": true
+    },
+    "analysisProviders": {
+      "businessChanges": false,
+      "worktreeClean": true
+    },
+    "sacs": {
+      "businessChanges": false
+    }
+  },
+  "implementation": {
+    "historicalFoundationReused": true,
+    "directProviderHttpCalls": false,
+    "directUpstreamDatabaseAccess": false,
+    "wsgsOwnResultDatabaseUsedForTrustedReuse": true,
+    "previewAuthorizationMode": "EXACT_OPERATION_CONTRACT",
+    "fakeReferenceKeysCreated": false,
+    "currentRecommendationImplemented": false,
+    "routePlanningImplemented": false,
+    "deviceExecutionImplemented": false,
+    "scalarCatalogMappings": [
+      "radio.rssi/NORMALIZED/dBm/MAXIMIZE",
+      "PACKET_LOSS_RATE/PARSED_NATIVE/percent/MINIMIZE",
+      "AVERAGE_ROUND_TRIP_TIME/PARSED_NATIVE/ms/MINIMIZE"
+    ]
+  },
+  "tests": {
+    "check": "PASS",
+    "build": "PASS",
+    "test": "PASS",
+    "filesPassed": 61,
+    "filesSkipped": 4,
+    "filesTotal": 65,
+    "testsPassed": 780,
+    "testsSkipped": 29,
+    "testsTotal": 809,
+    "failed": 0,
+    "advancedHistorySmokeHelp": "PASS",
+    "fixtureSmoke": {
+      "status": "PASS",
+      "files": 4,
+      "tests": 121,
+      "dockerRequired": false
+    },
+    "realGatewaySmoke": {
+      "status": "NOT_RUN",
+      "reason": "GOWM_GATEWAY_URL_UNAVAILABLE"
+    },
+    "commands": [
+      {
+        "command": "npm run check",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run build",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "npm test",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run advanced-history:contracts",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run advanced-history:smoke",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run advanced-history:smoke -- --help",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run advanced-history:smoke -- --fixture",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run advanced-history:smoke -- --live",
+        "status": "NOT_RUN",
+        "exitCode": 0,
+        "reason": "GOWM_GATEWAY_URL_UNAVAILABLE"
+      },
+      {
+        "command": "npm run history:smoke -- --help",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "docker compose config --no-interpolate",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "node_modules/.bin/tsc --ignoreConfig --noEmit --module NodeNext --target ES2022 --types node --strict --skipLibCheck validation/scripts/advanced-history-smoke.ts validation/scripts/verify-analysis-contracts.ts",
+        "status": "PASS",
+        "exitCode": 0
+      },
+      {
+        "command": "git diff --check",
+        "status": "PASS",
+        "exitCode": 0
+      }
+    ],
+    "absentScripts": [
+      "lint",
+      "format:check",
+      "validate-contracts (equivalent existing contracts:check ran inside check)"
+    ],
+    "earlierFailuresResolved": [
+      "N03 focused evidence stale after package-lock changes: regenerated using existing findings:provenance:write; source input hash 8b011f43cd99710c309276867550a9980b97f7ca9c2b92ba522fbe899c6ebeb7; subsequent checks passed",
+      "Existing 75 ms wall-clock deadline test intermittently expired before semantic stage under parallel load: test now uses controlled timers; runtime implementation unchanged; full check and independent npm test passed",
+      "Standalone validation-script typecheck initially omitted --types node; corrected command passed"
+    ]
+  },
+  "acceptance": [
+    {
+      "id": 1,
+      "requirement": "Latest main included",
+      "status": "PASS",
+      "evidence": "git merge-base --is-ancestor 565e52705bb7656d4623a04655001325ca61acd0 HEAD; exit 0"
+    },
+    {
+      "id": 2,
+      "requirement": "Historical trace included",
+      "status": "PASS",
+      "evidence": "git merge-base --is-ancestor 825682205deeab6ff2e6808e5f5d5c38abfb1779 HEAD; exit 0"
+    },
+    {
+      "id": 3,
+      "requirement": "Latest runtime fixes retained",
+      "status": "PASS",
+      "evidence": "Main PR #13 included; runtime, run-worker and pipeline-policy implementation unchanged; runtime recovery/idempotency regression suite passed"
+    },
+    {
+      "id": 4,
+      "requirement": "Baseline tests passed",
+      "status": "PASS",
+      "evidence": "Baseline npm run check: 57 files passed, 4 skipped; 659 tests passed, 29 skipped"
+    },
+    {
+      "id": 5,
+      "requirement": "T2 current contract imported",
+      "status": "PASS",
+      "evidence": "packages/gowm-contract-intake/src/analysis-provider-contracts.test.ts; source.json map-matching manifest/schema pins"
+    },
+    {
+      "id": 6,
+      "requirement": "T3 current contract imported",
+      "status": "PASS",
+      "evidence": "packages/gowm-contract-intake/src/analysis-provider-contracts.test.ts; source.json temporal-events manifest/schema pins"
+    },
+    {
+      "id": 7,
+      "requirement": "T4 current contract imported",
+      "status": "PASS",
+      "evidence": "packages/gowm-contract-intake/src/analysis-provider-contracts.test.ts; source.json metric-ranking manifest/schema pins"
+    },
+    {
+      "id": 8,
+      "requirement": "Actual schema hashes computed",
+      "status": "PASS",
+      "evidence": "npm run advanced-history:contracts PASS; raw and upstream canonical hashes checked independently"
+    },
+    {
+      "id": 9,
+      "requirement": "Contract drift fails closed",
+      "status": "PASS",
+      "evidence": "packages/gowm-contract-intake/src/analysis-provider-contracts.test.ts; modified local file rejected"
+    },
+    {
+      "id": 10,
+      "requirement": "Analysis operation version remains 0.1",
+      "status": "PASS",
+      "evidence": "packages/query-compiler/src/advanced-history.test.ts; services/grounding-worker/src/advanced-history-integration.test.ts"
+    },
+    {
+      "id": 11,
+      "requirement": "No GOWM business changes",
+      "status": "PASS",
+      "evidence": "Read-only source inspection/fetch; GOWM worktree clean before and after"
+    },
+    {
+      "id": 12,
+      "requirement": "No GDPS changes",
+      "status": "PASS",
+      "evidence": "No GDPS writes; pre-existing dirty worktree preserved"
+    },
+    {
+      "id": 13,
+      "requirement": "No SACS changes",
+      "status": "PASS",
+      "evidence": "No SACS repository writes or public northbound contract extension"
+    },
+    {
+      "id": 14,
+      "requirement": "No analysis-provider changes",
+      "status": "PASS",
+      "evidence": "GSAP worktree clean before and after; source read-only"
+    },
+    {
+      "id": 15,
+      "requirement": "No direct provider HTTP",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-executor.ts injects existing Gateway; npm run architecture:check PASS"
+    },
+    {
+      "id": 16,
+      "requirement": "No direct upstream database access",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-executor.ts; only existing WSGS own-result SQL for trusted prior-result retrieval in services/grounding-worker/src/production-module.ts"
+    },
+    {
+      "id": 17,
+      "requirement": "Historical reading not reimplemented",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-executor.ts calls executeHistoricalTrace; existing historical.test.ts discovery and scope cases"
+    },
+    {
+      "id": 18,
+      "requirement": "No global arbitrary PREVIEW",
+      "status": "PASS",
+      "evidence": "packages/query-compiler/src/advanced-history.test.ts exact branded authorization and unrelated PREVIEW rejection"
+    },
+    {
+      "id": 19,
+      "requirement": "Map-match callable at 0.1",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts mocked Gateway exact operation/version execution"
+    },
+    {
+      "id": 20,
+      "requirement": "Road visits retained",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts T2 normalization; packages/historical-trace-consumer/src/advanced-normalizer.ts"
+    },
+    {
+      "id": 21,
+      "requirement": "Last confirmed road retained",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts suffix-incomplete PARTIAL and absoluteFinalRoadClaimed=false"
+    },
+    {
+      "id": 22,
+      "requirement": "Off-network retained",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts T2 normalization matrix"
+    },
+    {
+      "id": 23,
+      "requirement": "Ambiguous association retained",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts T2 normalization matrix"
+    },
+    {
+      "id": 24,
+      "requirement": "Off-network not treated as invalid motion",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-normalizer.ts preserves category and upstream reason"
+    },
+    {
+      "id": 25,
+      "requirement": "ENTER supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts intent, real provider envelope and normalization"
+    },
+    {
+      "id": 26,
+      "requirement": "EXIT supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts intent, real provider envelope and normalization"
+    },
+    {
+      "id": 27,
+      "requirement": "DWELL supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts intent, real provider envelope and normalization"
+    },
+    {
+      "id": 28,
+      "requirement": "STOP supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts mock execution asserts no target-geometry call"
+    },
+    {
+      "id": 29,
+      "requirement": "PASS_NEAR supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts intent, real provider envelope and normalization"
+    },
+    {
+      "id": 30,
+      "requirement": "FIRST supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts intent and FIRST confirmed true/false matrix"
+    },
+    {
+      "id": 31,
+      "requirement": "LAST supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts CROSS chain and LAST confirmed true/false matrix"
+    },
+    {
+      "id": 32,
+      "requirement": "Confirmed semantics retained",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts event selection matrix"
+    },
+    {
+      "id": 33,
+      "requirement": "Blocking periods retained",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts event matrix and incomplete cross fixture"
+    },
+    {
+      "id": 34,
+      "requirement": "T2 to T3 DAG compiled",
+      "status": "PASS",
+      "evidence": "packages/query-compiler/src/advanced-history.test.ts exact two-node recipe"
+    },
+    {
+      "id": 35,
+      "requirement": "T3 receives full T2 result",
+      "status": "PASS",
+      "evidence": "packages/query-compiler/src/advanced-history.test.ts full NODE_OUTPUT binding; packages/historical-trace-consumer/src/advanced-historical.test.ts actual request equality"
+    },
+    {
+      "id": 36,
+      "requirement": "No CROSS inference from raw points",
+      "status": "PASS",
+      "evidence": "CROSS recipe requires MAP_MATCH_RESULT; packages/historical-trace-consumer/src/advanced-executor.ts materializes complete validated prior-node output"
+    },
+    {
+      "id": 37,
+      "requirement": "LAST confirmed distinguished",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts true/false normalizer and trusted event follow-up"
+    },
+    {
+      "id": 38,
+      "requirement": "Metric ranking callable at 0.1",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts mock Gateway T4-only execution"
+    },
+    {
+      "id": 39,
+      "requirement": "Metric fields from catalog",
+      "status": "PASS",
+      "evidence": "config/advanced-history-metric-catalog.json; validated MetricSemanticCatalog; no arbitrary operation input from user"
+    },
+    {
+      "id": 40,
+      "requirement": "MAXIMIZE supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts RSSI direction and real ranking fixture"
+    },
+    {
+      "id": 41,
+      "requirement": "MINIMIZE supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts catalog and metric-minimize-metric real provider envelope"
+    },
+    {
+      "id": 42,
+      "requirement": "Top-K supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts Chinese/Arabic parsing, upper bounds and rank follow-up"
+    },
+    {
+      "id": 43,
+      "requirement": "Metric series ambiguity supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts metric-ambiguous-series fixture, AMBIGUOUS output"
+    },
+    {
+      "id": 44,
+      "requirement": "EXPLICIT_SERIES follow-up supported",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts exact trusted wifi-rssi candidate and returned-series mismatch rejection"
+    },
+    {
+      "id": 45,
+      "requirement": "Different units not fused",
+      "status": "PASS",
+      "evidence": "Metric catalog preserves native units; packages/historical-trace-consumer/src/advanced-historical.test.ts METRIC_UNIT_CONFLICT retained"
+    },
+    {
+      "id": 46,
+      "requirement": "No combined scoring",
+      "status": "PASS",
+      "evidence": "Catalog multiple-concept ambiguity; no scoring implementation"
+    },
+    {
+      "id": 47,
+      "requirement": "Metric completeness remains unknown",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-normalizer.ts metricTemporalCompletenessKnown=false; tests"
+    },
+    {
+      "id": 48,
+      "requirement": "Representative visited position used",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts action position equality to upstream representativeVisitedPosition"
+    },
+    {
+      "id": 49,
+      "requirement": "H3 center not used as target",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts position differs from cellCenter"
+    },
+    {
+      "id": 50,
+      "requirement": "Historical action candidate generated",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts direct ranking and trusted rank-N follow-up"
+    },
+    {
+      "id": 51,
+      "requirement": "Current validation required",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts action safety flags"
+    },
+    {
+      "id": 52,
+      "requirement": "Route planning required",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts action safety flags"
+    },
+    {
+      "id": 53,
+      "requirement": "Execution unauthorized",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts executionAuthorized=false"
+    },
+    {
+      "id": 54,
+      "requirement": "No route/device operation called",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-executor.ts fixed operation set; compiler recipes; architecture check"
+    },
+    {
+      "id": 55,
+      "requirement": "CAPABILITY_RESULT integration",
+      "status": "PASS",
+      "evidence": "services/grounding-worker/src/advanced-history-integration.test.ts actual evidence assembly"
+    },
+    {
+      "id": 56,
+      "requirement": "No invented analysis ReferenceKey",
+      "status": "PASS",
+      "evidence": "services/grounding-worker/src/advanced-history-integration.test.ts referenceProducts empty without real foundation; services/grounding-worker/src/production-module.ts only historical reference projection"
+    },
+    {
+      "id": 57,
+      "requirement": "Provider schema URI/hash retained",
+      "status": "PASS",
+      "evidence": "services/grounding-worker/src/advanced-history-integration.test.ts evidence assertions"
+    },
+    {
+      "id": 58,
+      "requirement": "Receipt/evidence retained",
+      "status": "PASS",
+      "evidence": "services/grounding-worker/src/advanced-history-integration.test.ts receiptIds/evidenceIds and safe snapshots"
+    },
+    {
+      "id": 59,
+      "requirement": "Safe payload bounded",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts array/byte limits and truncation; services/grounding-worker/src/production-module.ts caller budget clamping"
+    },
+    {
+      "id": 60,
+      "requirement": "Stable result hashing",
+      "status": "PASS",
+      "evidence": "services/grounding-worker/src/advanced-history-integration.test.ts identical evidence gives identical canonical hash; existing result-byte hash regressions passed"
+    },
+    {
+      "id": 61,
+      "requirement": "Valid trajectory reusable",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts no foundation Gateway call on trusted reusable foundation"
+    },
+    {
+      "id": 62,
+      "requirement": "Phase change requeries",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts ACTIVE_PHASES_ONLY and invalidated foundation reuse"
+    },
+    {
+      "id": 63,
+      "requirement": "Expired references not reused",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts TTL checks; existing historical expiry regression"
+    },
+    {
+      "id": 64,
+      "requirement": "Rank-N follow-up correct",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts rank 2 reuse and missing rank 4 requery"
+    },
+    {
+      "id": 65,
+      "requirement": "Event LAST follow-up correct",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts complete-suffix reuse; incomplete suffix and changed event requery"
+    },
+    {
+      "id": 66,
+      "requirement": "Metric series follow-up correct",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts trusted identity only; unknown wifi0 rejected"
+    },
+    {
+      "id": 67,
+      "requirement": "Tampered prior payload rejected",
+      "status": "PASS",
+      "evidence": "packages/historical-trace-consumer/src/advanced-historical.test.ts byte hash and foundation hash rejection; actor/data-scope SQL in services/grounding-worker/src/production-module.ts"
+    },
+    {
+      "id": 68,
+      "requirement": "Check passed",
+      "status": "PASS",
+      "evidence": "npm run check exit 0: 61 passed files, 780 passed tests, 29 skipped"
+    },
+    {
+      "id": 69,
+      "requirement": "Build passed",
+      "status": "PASS",
+      "evidence": "npm run build exit 0"
+    },
+    {
+      "id": 70,
+      "requirement": "All required offline tests passed",
+      "status": "PASS",
+      "evidence": "npm test exit 0: 780 passed / 0 failed / 29 existing optional skipped; advanced 121/121"
+    },
+    {
+      "id": 71,
+      "requirement": "Fixture/mock tests do not need Docker",
+      "status": "PASS",
+      "evidence": "npm run advanced-history:smoke -- --fixture: 4 files, 121 tests PASS"
+    },
+    {
+      "id": 72,
+      "requirement": "Smoke help passed",
+      "status": "PASS",
+      "evidence": "Advanced default and --help, historical --help: exit 0"
+    },
+    {
+      "id": 73,
+      "requirement": "Markdown report exists",
+      "status": "PASS",
+      "evidence": "FINAL_ACCEPTANCE_REPORT.md"
+    },
+    {
+      "id": 74,
+      "requirement": "JSON report exists",
+      "status": "PASS",
+      "evidence": "FINAL_ACCEPTANCE_REPORT.json"
+    },
+    {
+      "id": 75,
+      "requirement": "Actual implementation commit/tree recorded",
+      "status": "PASS",
+      "evidence": "7ee16b1986b3c8d9fc34c7c9ebeb52390226ef59 / 81b6f5a028bfa18a5333eaf0f93131421c1999e5"
+    },
+    {
+      "id": 76,
+      "requirement": "Draft PR created",
+      "status": "PASS",
+      "evidence": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/14; OPEN, isDraft=true, base=main"
+    },
+    {
+      "id": 77,
+      "requirement": "No merge",
+      "status": "PASS",
+      "evidence": "gh pr view: mergedAt=null; no merge operation performed"
+    },
+    {
+      "id": 78,
+      "requirement": "No tag",
+      "status": "PASS",
+      "evidence": "No git tag or push --tags operation performed"
+    },
+    {
+      "id": 79,
+      "requirement": "No release",
+      "status": "PASS",
+      "evidence": "No release/deploy operation performed"
+    },
+    {
+      "id": 80,
+      "requirement": "Correct final marker",
+      "status": "PASS",
+      "evidence": "Development-only offline T5 gates; no production or live-data acceptance claim"
+    }
+  ],
+  "knownLimitations": [
+    "LIVE_GATEWAY_NOT_RUN",
+    "XODR_AND_SEVEN_STREAM_DEPLOYMENT_DATA_NOT_VERIFIED",
+    "GNSS_QUALITY_AND_VIBRATION_REQUIRE_AUTHORITATIVE_SCALAR_CATALOG_MAPPING",
+    "NO_CURRENT_RECOMMENDATION",
+    "NO_ROUTE_PLANNING",
+    "NO_DEVICE_EXECUTION",
+    "NO_MULTI_EXECUTION_ANALYSIS",
+    "NO_MULTI_METRIC_SCORE",
+    "NO_UNIT_CONVERSION",
+    "NO_ROAD_LEVEL_METRIC_RANKING",
+    "NO_STRICT_REPLAY",
+    "NO_PUBLIC_ANALYSIS_REFERENCE_KEY",
+    "NO_SACS_CONTRACT_EXTENSION",
+    "NO_FULL_PUBLIC_API_PERSISTENCE_LIVE_ACCEPTANCE",
+    "COMPILE_ONLY_REQUIRES_RESOLVED_HISTORICAL_FOUNDATION"
+  ],
+  "existingBroaderQualification": {
+    "legacyAcceptance": {
+      "required": 206,
+      "pass": 145,
+      "notRun": 2,
+      "blocked": 59
+    },
+    "v02Acceptance": {
+      "required": 279,
+      "pass": 195,
+      "fail": 0,
+      "notRun": 17,
+      "blocked": 67
+    },
+    "developmentClosure": {
+      "required": 63,
+      "pass": 63,
+      "deferredProductionItems": 14
+    },
+    "note": "Existing ledgers are preserved and their check commands exit 0; T5 PASS does not turn their production/runtime blocks into PASS."
+  },
+  "pullRequest": {
+    "number": 14,
+    "state": "OPEN",
+    "draft": true,
+    "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/14",
+    "baseBranch": "main",
+    "headBranch": "codex/wsgs-v0.2.3-advanced-historical-analysis-consumption",
+    "verifiedHeadBeforeReportCommit": "572f8781156d49207730f0a8fcbed8830ff81b53",
+    "mergedAt": null
+  },
+  "delivery": {
+    "mergePerformed": false,
+    "tagCreated": false,
+    "releaseCreated": false,
+    "deploymentPerformed": false,
+    "reportCommitNote": "This report is committed separately after the recorded implementation/configuration commits, avoiding a self-referential commit hash."
+  }
+}
+
