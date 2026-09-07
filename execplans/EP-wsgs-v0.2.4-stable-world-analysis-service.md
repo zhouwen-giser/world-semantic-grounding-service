@@ -37,19 +37,23 @@ The working tree was clean. Dedicated branch:
   depend on W05. No W03 acceptance completion claimed.
 - W04 IN_PROGRESS (joint W03 preparation): stored public choice resolver reuses
   prior-grounding identity/scope validation and checks hash/TTL/ownership.
-  Production multi-round wiring, semantic invalidation and action reuse remain open.
+  Production two-round rank/action and three-round series/rank/action now have
+  actual HTTP evidence; invalid candidate/hash/expired source rejection included.
+  Combined-choice, semantic-change and recovery acceptance remain open.
 - W05 IN_PROGRESS (joint W03/W04 evidence): production 1.2 capability document,
   caller-filtered signed discovery and per-operation contract/semantic/freshness
   checks implemented. Exact CROSS/action dependencies and default opt-in covered
   by component tests; complete HTTP failure isolation remains in W06.
 - W06 IN_PROGRESS: real local listener through ProductionGroundingBackend,
   production stage factory, GroundingPipeline, GroundingWorker, public projector,
-  AES checkpoint and validated in-memory settlement/GET. Twenty HTTP cases cover
+  AES checkpoint and validated in-memory settlement/GET. Twenty-two HTTP cases cover
   sync/async, default-disabled typed gap, cancellation, queued deadline,
   idempotency/profile isolation, compile-only, legacy 1.0/1.1, signed discovery,
   whole semantic catalog tampering, nonempty history/map matching, incomplete CROSS,
-  CROSS source-hash drift and T2 failure isolation from historical findings.
-  Complete CROSS, T4 and multiround scenarios remain open; this is not full WA-058 through WA-061 PASS.
+  CROSS source-hash drift, T2 failure isolation, T4 Top-K and two/three-round
+  stored series/rank/action selections including three negative selection paths.
+  Complete CROSS and broader failure/recovery scenarios remain open;
+  this is not full WA-058 through WA-061 PASS.
 - W07 NOT_STARTED: isolated consumer handoff, independent final review, all
   72 evidence-backed rows, report verifier and dedicated Draft PR.
   Preparation only: disposable offline bundle builder and consumer verifier

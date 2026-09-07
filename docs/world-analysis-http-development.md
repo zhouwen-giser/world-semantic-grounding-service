@@ -71,6 +71,22 @@ rehash-valid T3 response bound to an unrelated T2 result is rejected; T2 HTTP 50
 does not invoke T3 and preserves the independent historical finding. Transport
 failure and contract mismatch use distinct public gaps without raw server errors.
 
-Complete CROSS, Top-K, structured series/rank/action rounds and
-broader provider-missing business isolation still need HTTP cases. Do not treat this
+T4 Top-K uses a separate internally consistent controlled historical window and
+the pinned metric fixture. The Gateway checks the compiled metric selector,
+H3 resolution, topK and explicit series identity. Public values retain the actual
+visited position, not the H3 cell center, and distinguish median ranking from
+the representative measurement value.
+
+The business suite also runs two-round rank-to-action and three-round ambiguous
+series-to-requery-to-rank-to-action requests. The test store supports only the
+actual scope-filtered prior-result join, returning bytes from the preceding HTTP
+settlement. The production authority loader decrypts that job's real AES
+checkpoint. Series selection repeats T4, not history; rank selection restores
+the prior evidence without another T4 query. Every result is validated, stored
+and read by GET. Unknown candidate, incorrect prior hash and expired source each
+produce the precise selection gap without any Gateway call. Action candidates
+retain all three downstream requirements and executionAuthorized=false.
+
+Complete CROSS and broader provider-missing business isolation/recovery still
+need HTTP cases. Do not treat this
 suite as the complete W06 gate or production readiness.

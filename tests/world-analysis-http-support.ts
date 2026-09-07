@@ -185,11 +185,24 @@ export class HttpMemoryStore implements ProductionGroundingStore, GroundingWorke
     }
     return true;
   }
-  readonly pool = { connect: async () => ({ release() {}, query: async (sql: string, values: unknown[] = []) => {
+  private readonly query = async (sql: string, values: unknown[] = []) => {
     this.sql.push(sql);
+    if (sql.includes("FROM wsgs.grounding_result AS result") && sql.includes("JOIN wsgs.grounding_request AS request") && sql.includes("JOIN wsgs.grounding_job AS job")) {
+      if (values.length !== 5) throw new Error("INVALID_PRIOR_AUTHORITY_QUERY");
+      const job = this.jobs.get(String(values[0]));
+      const identity = job?.submission.identity;
+      if (!job?.resultBytes || !identity || identity.dataScope !== values[1] || identity.actorId !== values[2] ||
+        identity.servicePrincipalId !== values[3] || identity.authorizationContextHash !== values[4]) return { rowCount: 0, rows: [] };
+      const result = JSON.parse(Buffer.from(job.resultBytes).toString("utf8"));
+      return { rowCount: 1, rows: [{ grounding_id: job.submission.groundingId, job_id: job.submission.jobId,
+        principal_id: identity.servicePrincipalId, actor_id: identity.actorId, data_scope: identity.dataScope,
+        dataset_scopes: identity.datasetScopes, authorization_context_hash: identity.authorizationContextHash,
+        result_hash: result.resultHash, result_bytes: Buffer.from(job.resultBytes), source_expires_at: job.submission.sourceExpiresAt }] };
+    }
     if (["BEGIN", "COMMIT", "ROLLBACK"].includes(sql)) return { rowCount: 0, rows: [] };
     if (sql.includes("SELECT 1 FROM wsgs.grounding_job")) return { rowCount: this.owns({ jobId: String(values[0]), leaseToken: String(values[1]), generation: Number(values[2]) }) ? 1 : 0, rows: [] };
     if (/INSERT INTO wsgs\.(capability_snapshot|model_receipt|semantic_frame|grounding_graph)/u.test(sql)) return { rowCount: 1, rows: [] };
     throw new Error(`UNIMPLEMENTED_TEST_SQL:${sql.slice(0, 90)}`);
-  } }) };
+  };
+  readonly pool = { query: this.query, connect: async () => ({ release() {}, query: this.query }) };
 }
