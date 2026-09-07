@@ -34,7 +34,8 @@ describe("nonempty historical production HTTP", () => {
   let baseUrl: string;
   const calls: string[] = [];
   const gatewayErrors: string[] = [];
-  async function start(advanced: boolean, failure?: "HASH_DRIFT" | "MAP_UNAVAILABLE", metric = false, ambiguousSeries = false) {
+  async function start(options: { advanced: boolean; failure?: "HASH_DRIFT" | "MAP_UNAVAILABLE"; metric?: boolean; ambiguousSeries?: boolean; completeCross?: boolean }) {
+    const { advanced, failure, metric, ambiguousSeries, completeCross } = options;
     calls.length = 0;
     gatewayErrors.length = 0;
     const fixture = analysisAdmissionFixture();
@@ -76,14 +77,45 @@ describe("nonempty historical production HTTP", () => {
     });
     for (const key of ["trajectoryTemporalCoverageRatio", "trajectoryPrefixComplete", "trajectorySuffixComplete", "trajectoryGapPeriods", "trajectoryQualityBreakPeriods", "excludedPeriods"])
       ambiguousEnvelope.output.value.completeness[key] = metricEnvelope.output.value.completeness[key];
-    crossEnvelope.output.value.source.mapMatchResultHash = analysisHash(mapEnvelope.output.value);
-    if (failure === "HASH_DRIFT") crossEnvelope.output.value.source.mapMatchResultHash = analysisHash("unrelated-map-result");
+    if (completeCross) {
+      // A separate closed execution contains only the first, fully observed sequence.
+      const map = mapEnvelope.output.value;
+      map.pointAssociationPreview = map.pointAssociationPreview.filter((point: any) => point.sequenceNo === 1);
+      map.roadVisits = map.roadVisits.filter((visit: any) => visit.sequenceNo === 1);
+      map.offNetworkSegments = []; map.networkDataIssueCandidates = []; map.upstreamGaps = [];
+      map.analysisId = `mma_${analysisHash("complete-cross-four-point-scope").slice(7, 39)}`;
+      map.reasonCode = "CLASSIFIED_ON_REFERENCE_NETWORK";
+      map.inputCompleteness = { temporalCoverageRatio: 1, sampleCount: 4, sequenceCount: 1, gapCount: 0, prefixComplete: true, suffixComplete: true, finalizationState: "SEALED" };
+      Object.assign(map.associationCompleteness, { associationSuffixComplete: true, offNetworkPeriods: [], upstreamGapPeriods: [] });
+      Object.assign(map.summary, { sourceSampleCount: 4, acceptedSampleCount: 4, onNetworkSampleCount: 4, offNetworkSampleCount: 0,
+        onNetworkAcceptedRatio: 1, roadVisitCount: 2, offNetworkSegmentCount: 0 });
+      const events = crossEnvelope.output.value;
+      events.analysisId = `tsa_${analysisHash("complete-cross-four-point-event").slice(7, 39)}`;
+      events.status = "COMPLETED"; crossEnvelope.status = "COMPLETED";
+      events.reasonCode = "LAST_EVENT_CONFIRMED";
+      events.selectionResult = { ...events.selectionResult, confirmed: true, reasonCode: "LAST_EVENT_CONFIRMED", blockingPeriods: [] };
+      Object.assign(events.completeness, { sourceSuffixComplete: true, completeForAllEvents: true,
+        upstreamGapPeriods: [], offNetworkPeriods: [], blockingPeriods: [] });
+      events.summary.sourceSampleCount = 4;
+      events.source.mapMatchAnalysisId = map.analysisId;
+      events.warnings = ["analysisLevel=TASK_LEVEL_APPROXIMATE", "CROSS findings consume only T2 junctionPassCandidates"];
+      crossEnvelope.warnings = events.warnings;
+      for (const receipt of crossEnvelope.receipts) receipt.warnings = events.warnings;
+    }
     const history = outputs["history.get-trajectory"];
     const { finalizationState: _state, ...completeness } = mapEnvelope.output.value.inputCompleteness;
     history.completeness = completeness;
     history.preview = mapEnvelope.output.value.pointAssociationPreview.map((point: any) => ({ observedAt: point.observedAt, position: point.position }));
     history.definedPeriods = [{ ...period, end: "2026-09-01T00:01:00.000Z" }, { ...period, start: "2026-09-01T00:02:00.000Z" }];
     history.gaps = [{ range: { start: "2026-09-01T00:01:00.000Z", end: "2026-09-01T00:02:00.000Z", bounds: "[)" }, reason: "SOURCE_COVERAGE_GAP" }];
+    if (completeCross) {
+      const completePeriod = { start: history.preview[0].observedAt,
+        end: new Date(Date.parse(history.preview.at(-1).observedAt) + 1).toISOString(), bounds: "[)" };
+      history.requestedPeriods = [completePeriod]; history.definedPeriods = [completePeriod]; history.gaps = [];
+      Object.assign(outputs["operational-task.get-execution-intervals"].intervals[0], { selectedPeriods: [completePeriod], activePeriods: [completePeriod] });
+      expect(history.preview).toHaveLength(4);
+      expect(history.preview.every((point: any) => point.observedAt >= completePeriod.start && point.observedAt < completePeriod.end)).toBe(true);
+    }
     if (metric) {
       const ranking = metricEnvelope.output.value;
       const ranges = ranking.analysisPeriods.map((range: any) => ({ ...range, bounds: "[)" }));
@@ -105,6 +137,12 @@ describe("nonempty historical production HTTP", () => {
         pausedPeriods: history.excludedPeriods.map(({ range }: any) => range)
       });
     }
+    // Preserve source counts while honoring the compiled zero-preview request.
+    mapEnvelope.output.value.pointAssociationPreview = [];
+    mapEnvelope.output.value.rejectedSamplePreview = [];
+    for (const key of ["alignedSamplePreview", "unalignedSamplePreview", "rejectedMetricSamplePreview"]) metricEnvelope.output.value[key] = [];
+    crossEnvelope.output.value.source.mapMatchResultHash = analysisHash(mapEnvelope.output.value);
+    if (failure === "HASH_DRIFT") crossEnvelope.output.value.source.mapMatchResultHash = analysisHash("unrelated-map-result");
     for (const [id, name] of [["history.get-trajectory", "historical-trajectory-result"], ["operational-task.get-execution-intervals", "task-execution-interval-result"]]) {
       const validate = ajv.getSchema(`https://fixture.invalid/contracts/gowm-v0.7.1/${name}.schema.json`)!;
       expect(validate(outputs[id!]), JSON.stringify(validate.errors)).toBe(true);
@@ -121,7 +159,10 @@ describe("nonempty historical production HTTP", () => {
       expect(body.inputSchemaHash).toBe(descriptor.inputSchemaHash); expect(body.outputSchemaHash).toBe(descriptor.outputSchemaHash);
       if (operationId === "trajectory.map-match" || operationId === "temporal-spatial.find-events" || operationId === "spatiotemporal-metric.rank-locations") {
         if (operationId === "trajectory.map-match" && failure === "MAP_UNAVAILABLE") return reply.code(503).send({ error: "CONTROLLED_PROVIDER_UNAVAILABLE" });
-        if (operationId === "trajectory.map-match") expect(body.input.trajectoryReferenceKey).toEqual(trajectory);
+        if (operationId === "trajectory.map-match") {
+          expect(body.input.trajectoryReferenceKey).toEqual(trajectory);
+          expect(body.input.output).toEqual({ maximumPointPreview: 0, maximumRejectedSamplePreview: 0, maximumOffNetworkPathPreviewPoints: 2 });
+        }
         else if (operationId === "temporal-spatial.find-events") {
           expect(body.input.source.mapMatchResult).toEqual(mapEnvelope.output.value);
           expect(body.input.selection).toEqual({ kind: "LAST" });
@@ -130,6 +171,7 @@ describe("nonempty historical production HTTP", () => {
           expect(body.input.metricSelector).toMatchObject({ observedProperty: "radio.rssi", measurementStage: "NORMALIZED", optimizationDirection: "MAXIMIZE" });
           expect(body.input.ranking).toEqual({ topK: 3 });
           expect(body.input.aggregation).toEqual({ mode: "H3", resolution: 12 });
+          expect(body.input.output).toMatchObject({ includeCellBoundary: false, maximumAlignedSamplePreview: 0, maximumUnalignedSamplePreview: 0, maximumRejectedMetricSamplePreview: 0 });
           if (body.input.metricSeriesSelection.mode === "EXPLICIT_SERIES") expect(body.input.metricSeriesSelection).toEqual({ mode: "EXPLICIT_SERIES", sourceKey: "campus-radio", datastreamKey: "cellular-rssi", measurementKey: "rssi" });
         }
         const envelope = structuredClone(operationId === "trajectory.map-match" ? mapEnvelope : operationId === "temporal-spatial.find-events" ? crossEnvelope :
@@ -170,11 +212,13 @@ describe("nonempty historical production HTTP", () => {
     baseUrl = await api.listen({ host: "127.0.0.1", port: 0 });
   }
   afterEach(async () => { await worker?.stop(0); await api?.close(); await gateway?.close(); vi.unstubAllEnvs(); if (directory) rmSync(directory, { recursive: true, force: true }); });
-  it.each(["TRACE", "MAP", "CROSS", "CROSS_HASH_DRIFT", "CROSS_MAP_UNAVAILABLE", "RANK", "SERIES_RANK_ACTION"])("queries nonempty %s over Gateway HTTP", async scenario => {
+  it.each(["TRACE", "MAP", "CROSS", "CROSS_COMPLETE", "CROSS_HASH_DRIFT", "CROSS_MAP_UNAVAILABLE", "RANK", "SERIES_RANK_ACTION"])("queries nonempty %s over Gateway HTTP", async scenario => {
     const advanced = scenario !== "TRACE";
     const cross = scenario.startsWith("CROSS");
     const metric = scenario === "RANK" || scenario === "SERIES_RANK_ACTION";
-    await start(advanced, scenario === "CROSS_HASH_DRIFT" ? "HASH_DRIFT" : scenario === "CROSS_MAP_UNAVAILABLE" ? "MAP_UNAVAILABLE" : undefined, metric, scenario === "SERIES_RANK_ACTION");
+    const completeCross = scenario === "CROSS_COMPLETE";
+    await start({ advanced, failure: scenario === "CROSS_HASH_DRIFT" ? "HASH_DRIFT" : scenario === "CROSS_MAP_UNAVAILABLE" ? "MAP_UNAVAILABLE" : undefined,
+      metric, ambiguousSeries: scenario === "SERIES_RANK_ACTION", completeCross });
     const text = metric ? "2号车本次任务通信信号最好的三个位置在哪里" : cross ? "2号车最后经过哪个路口" : advanced ? "2号车本次任务经过了哪些道路？" : "2号车最近一次任务的历史轨迹";
     const body = { schemaVersion: "1.0", requestId: `request-${randomUUID()}`, operation: "EXECUTE_WORLD_QUERY", source: { conversationRef: "business-conversation", messageId: `message-${randomUUID()}`, originalText: text, originalTextSha256: utf8Sha256(text), locale: "zh-CN", createdAt: new Date().toISOString() }, requestedProducts: ["WORLD_EVIDENCE"],
       contextCapsule: { knownWorldReferences: [{ referenceKey: subject, referenceType: "WORLD_OBJECT", alias: "2号车", sourceMessageId: "known-subject-message" }, { referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: "任务", sourceMessageId: "known-task-message" }], priorGroundings: [], mapSelections: [], externalCorrelationHints: [], externalPredicates: [] },
@@ -187,12 +231,26 @@ describe("nonempty historical production HTTP", () => {
         analysisSelections: [{ priorGroundingId: prior.groundingId, priorResultHash: prior.resultHash, findingSetHash: prior.worldAnalysisFindings.findingSetHash,
           choiceId: choice.choiceId, candidateId: selected.candidateId }] };
       expect(validate("request", next)).toEqual({ valid: true, errors: [] });
-      const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": randomUUID() }, body: JSON.stringify(next) });
+      const idempotencyKey = randomUUID();
+      const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": idempotencyKey }, body: JSON.stringify(next) });
       const value = await response.json();
       expect(response.status, JSON.stringify({ value, calls, gatewayErrors, errors: [...store.jobs.values()].map(job => job.error) })).toBe(200);
       expect(validate("result", value)).toEqual({ valid: true, errors: [] });
       const saved = await (await fetch(`${baseUrl}/v1/groundings/${value.groundingId}`, { headers })).json();
       expect(saved.result).toEqual(value);
+      const beforeReplay = calls.length, beforeJobs = store.jobs.size;
+      const replay = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": idempotencyKey }, body: JSON.stringify(next) });
+      expect(replay.status).toBe(200); expect(await replay.json()).toEqual(value);
+      const changedMetricText = "2号车本次任务时延最低的三个位置在哪里";
+      for (const changed of [
+        { ...next, analysisSelections: [{ ...next.analysisSelections[0], candidateId: "different-stored-candidate" }] },
+        { ...next, source: { ...next.source, originalText: changedMetricText, originalTextSha256: utf8Sha256(changedMetricText) } }
+      ]) {
+        expect(validate("request", changed)).toEqual({ valid: true, errors: [] });
+        const conflict = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": idempotencyKey }, body: JSON.stringify(changed) });
+        expect(conflict.status, JSON.stringify(await conflict.json())).toBe(409);
+      }
+      expect(calls.length).toBe(beforeReplay); expect(store.jobs.size).toBe(beforeJobs);
       return value;
     }
     const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": randomUUID() }, body: JSON.stringify(body) });
@@ -202,28 +260,50 @@ describe("nonempty historical production HTTP", () => {
     expect(calls).toContain("history.get-trajectory");
     const finding = result.worldAnalysisFindings.findings.find((entry: any) => entry.findingKind === "HISTORICAL_TRACE");
     expect(finding, JSON.stringify(result)).toBeDefined();
-    expect(finding.coverage).toMatchObject(metric ? { temporalCoverageRatio: 0.8333333333, sampleCount: 14 } : { temporalCoverageRatio: 0.67, sampleCount: 10 });
+    expect(finding.coverage).toMatchObject(metric ? { temporalCoverageRatio: 0.8333333333, sampleCount: 14 } : completeCross ? { temporalCoverageRatio: 1, sampleCount: 4 } : { temporalCoverageRatio: 0.67, sampleCount: 10 });
     expect(result.referenceProducts.some((product: any) => product.productId === finding.executionIntervalReferenceProductId && product.referenceKey.id === interval.id)).toBe(true);
     expect(calls).toEqual(["reference.validate", "operational-task.get", "operational-task.get-execution-intervals", "history.get-trajectory", ...(metric ? ["spatiotemporal-metric.rank-locations"] : advanced ? ["trajectory.map-match"] : []), ...(cross && scenario !== "CROSS_MAP_UNAVAILABLE" ? ["temporal-spatial.find-events"] : [])]);
     if (advanced && !metric && scenario !== "CROSS_MAP_UNAVAILABLE") {
       const roads = result.worldAnalysisFindings.findings.find((entry: any) => entry.findingKind === "ROAD_ASSOCIATION");
       expect(roads, JSON.stringify(result)).toBeDefined();
-      expect(roads.roadVisits).toHaveLength(4); expect(roads.offNetworkSegments).toHaveLength(2);
+      expect(roads.roadVisits).toHaveLength(completeCross ? 2 : 4); expect(roads.offNetworkSegments).toHaveLength(completeCross ? 0 : 2);
       expect(roads.networkRole).toBe("REFERENCE_MODEL_NOT_PHYSICAL_TRUTH");
-      expect(roads.associationSuffixComplete).toBe(false);
+      expect(roads.associationSuffixComplete).toBe(completeCross);
     }
-    if (scenario === "CROSS") {
+    if (scenario === "CROSS" || completeCross) {
       const events = result.worldAnalysisFindings.findings.find((entry: any) => entry.findingKind === "TEMPORAL_EVENT");
       expect(events, JSON.stringify(result)).toBeDefined();
       expect(events.events).toHaveLength(1);
-      expect(events.selection).toMatchObject({ kind: "LAST", confirmed: false, confirmationScope: "NOT_CONFIRMED", reasonCode: "LAST_EVENT_NOT_CERTAIN" });
-      expect(events.sourceSuffixComplete).toBe(false);
-      expect(events.selection.blockingPeriods).toHaveLength(3);
+      expect(events.selection).toMatchObject({ kind: "LAST", confirmed: completeCross, confirmationScope: completeCross ? "REQUESTED_SCOPE_PROVEN" : "NOT_CONFIRMED",
+        reasonCode: completeCross ? "LAST_EVENT_CONFIRMED" : "LAST_EVENT_NOT_CERTAIN" });
+      expect(events.sourceSuffixComplete).toBe(completeCross);
+      expect(events.selection.blockingPeriods).toHaveLength(completeCross ? 0 : 3);
+      expect(events.completeForAllEvents).toBe(completeCross);
     } else if (cross) {
       expect(result.worldAnalysisFindings.findings.some((entry: any) => entry.findingKind === "TEMPORAL_EVENT")).toBe(false);
       expect(result.worldAnalysisFindings.gaps.length).toBeGreaterThan(0);
       expect(result.worldAnalysisFindings.gaps.some((gap: any) => gap.gapKind === (scenario === "CROSS_HASH_DRIFT" ? "UPSTREAM_CONTRACT_MISMATCH" : "UPSTREAM_FAILURE"))).toBe(true);
       expect(JSON.stringify(result)).not.toContain("CONTROLLED_PROVIDER_UNAVAILABLE");
+    }
+    if (scenario === "CROSS_MAP_UNAVAILABLE") {
+      for (const independent of ["REFERENCE", "HISTORY"] as const) {
+        const nextText = independent === "REFERENCE" ? "2号车" : "2号车最近一次任务的历史轨迹";
+        const next = { ...body, requestId: `request-${randomUUID()}`, operation: independent === "REFERENCE" ? "GROUND_REFERENCES" : "EXECUTE_WORLD_QUERY",
+          requestedProducts: independent === "REFERENCE" ? ["RESOLVED_REFERENCES"] : ["WORLD_EVIDENCE"],
+          source: { ...body.source, messageId: `message-${randomUUID()}`, originalText: nextText, originalTextSha256: utf8Sha256(nextText), createdAt: new Date().toISOString() } };
+        const before = calls.length;
+        expect(validate("request", next)).toEqual({ valid: true, errors: [] });
+        const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": randomUUID() }, body: JSON.stringify(next) });
+        const independentResult = await response.json();
+        expect(response.status, JSON.stringify({ independentResult, calls, gatewayErrors })).toBe(200);
+        expect(validate("result", independentResult)).toEqual({ valid: true, errors: [] });
+        expect(independentResult.referenceProducts.some((product: any) => product.referenceKey.id === subject.id)).toBe(true);
+        expect(calls.slice(before)).not.toContain("trajectory.map-match");
+        expect(calls.slice(before)).not.toContain("temporal-spatial.find-events");
+        if (independent === "HISTORY") expect(independentResult.worldAnalysisFindings.findings.some((entry: any) => entry.findingKind === "HISTORICAL_TRACE")).toBe(true);
+        const saved = await (await fetch(`${baseUrl}/v1/groundings/${independentResult.groundingId}`, { headers })).json();
+        expect(saved.result).toEqual(independentResult);
+      }
     }
     if (metric) {
       let rankedResult = result;

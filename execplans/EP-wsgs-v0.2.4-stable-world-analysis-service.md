@@ -46,14 +46,16 @@ The working tree was clean. Dedicated branch:
   by component tests; complete HTTP failure isolation remains in W06.
 - W06 IN_PROGRESS: real local listener through ProductionGroundingBackend,
   production stage factory, GroundingPipeline, GroundingWorker, public projector,
-  AES checkpoint and validated in-memory settlement/GET. Twenty-two HTTP cases cover
+  AES checkpoint and validated in-memory settlement/GET. Twenty-three HTTP cases cover
   sync/async, default-disabled typed gap, cancellation, queued deadline,
   idempotency/profile isolation, compile-only, legacy 1.0/1.1, signed discovery,
   whole semantic catalog tampering, nonempty history/map matching, incomplete CROSS,
-  CROSS source-hash drift, T2 failure isolation, T4 Top-K and two/three-round
+  complete/incomplete CROSS, CROSS source-hash drift, T2 failure isolation,
+  post-failure ordinary reference/history queries, T4 Top-K and two/three-round
   stored series/rank/action selections including three negative selection paths.
-  Complete CROSS and broader failure/recovery scenarios remain open;
-  this is not full WA-058 through WA-061 PASS.
+  Actual selection retries preserve result bytes; changed candidate/metric with
+  the same idempotency key returns 409 without new jobs or Gateway calls.
+  Required-row audit and phase closure remain open; no whole-stage PASS claimed.
 - W07 NOT_STARTED: isolated consumer handoff, independent final review, all
   72 evidence-backed rows, report verifier and dedicated Draft PR.
   Preparation only: disposable offline bundle builder and consumer verifier

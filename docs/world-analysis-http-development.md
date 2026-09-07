@@ -65,11 +65,19 @@ results retain interval/trajectory reference closure, off-network segments and
 incomplete suffix semantics, and GET equals the saved result. Memory storage is
 still controlled; none of these fixtures are live collected observations.
 
-CROSS now consumes the complete preceding map-match value through actual signed
+CROSS consumes the complete preceding map-match value through actual signed
 HTTP and retains an unconfirmed LAST when its source suffix is incomplete. A
 rehash-valid T3 response bound to an unrelated T2 result is rejected; T2 HTTP 503
 does not invoke T3 and preserves the independent historical finding. Transport
 failure and contract mismatch use distinct public gaps without raw server errors.
+
+The complete LAST case is a separate closed execution window spanning four
+fully observed points from the first sequence, two road visits and one junction
+transition. Its history, map source counts, association boundaries, event source
+hash, and absence of blockers agree. It is not the incomplete fixture with only
+its confirmation flag flipped. Both complete and incomplete public selections
+are checked. After a T2 failure the same service also handles new ordinary
+reference grounding and independent history requests without calling T2/T3.
 
 T4 Top-K uses a separate internally consistent controlled historical window and
 the pinned metric fixture. The Gateway checks the compiled metric selector,
@@ -92,6 +100,12 @@ and read by GET. Unknown candidate, incorrect prior hash and expired source each
 produce the precise selection gap without any Gateway call. Action candidates
 retain all three downstream requirements and executionAuthorized=false.
 
-Complete CROSS and broader provider-missing business isolation/recovery still
-need HTTP cases. Do not treat this
-suite as the complete W06 gate or production readiness.
+Every structured follow-up is replayed with its original idempotency key and
+returns the same saved result. Changing the selected candidate or requested
+metric with that key returns 409 without another job or upstream operation.
+Controlled analysis responses honor the compiled zero-preview limits while
+retaining the original source counts and statistics.
+
+The required-row evidence audit and broader recovery/compatibility review remain
+separate from these HTTP cases. Do not treat this suite alone as the complete
+W06 gate or production readiness.
