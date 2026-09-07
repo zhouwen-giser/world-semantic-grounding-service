@@ -25,12 +25,13 @@ export function projectWorldAnalysisAvailability(input: WorldAnalysisDiscoveryIn
   const now = (input.now ?? new Date()).getTime();
   let validUntil = now + 5_000;
   const { catalog, semantics, availability } = input;
+  const semanticCatalogIntact = semantics ? analysisHash(semantics.profiles) === semantics.catalogHash : false;
   function operation(id: string, version: string): Reason[] {
     if (!catalog || !semantics || !availability) return ["SNAPSHOT_UNAVAILABLE"];
     if (catalog.contractCatalogRevision !== input.expectedCatalogRevision ||
       semantics.contractCatalogRevision !== catalog.contractCatalogRevision ||
       semantics.bindingRevision !== catalog.bindingRevision) return ["CONTRACT_MISMATCH"];
-    if (semantics.catalogHash !== input.expectedSemanticHash) return ["SEMANTIC_MISMATCH"];
+    if (!semanticCatalogIntact || semantics.catalogHash !== input.expectedSemanticHash) return ["SEMANTIC_MISMATCH"];
     const matches = <T extends { operationId: string; operationVersion: string }>(values: readonly T[]): T | undefined => {
       const found = values.filter(value => value.operationId === id && value.operationVersion === version);
       return found.length === 1 ? found[0] : undefined;

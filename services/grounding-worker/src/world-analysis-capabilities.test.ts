@@ -11,12 +11,14 @@ function fixture(): WorldAnalysisDiscoveryInput {
   const ids = ["operational-task.find", "operational-task.get", "operational-task.get-execution-intervals", "history.get-trajectory",
     "trajectory.map-match", "temporal-spatial.find-events", "spatiotemporal-metric.rank-locations"];
   const keys = ids.map((operationId, index) => ({ operationId, operationVersion: index < 4 ? "1.0" : "0.1" }));
-  return { now, historyEnabled: true, advancedEnabled: true, expectedCatalogRevision: hash, expectedSemanticHash: hash,
+  const profiles = keys.map(key => ({ ...key, semanticProfile: {}, semanticProfileHash: hash }));
+  const semanticHash = analysisHash(profiles);
+  return { now, historyEnabled: true, advancedEnabled: true, expectedCatalogRevision: hash, expectedSemanticHash: semanticHash,
     locks: keys.map(key => ({ ...key, maturity: "PREVIEW", inputSchemaHash: hash, outputSchemaHash: hash, semanticProfileHash: hash })),
     catalog: { registryVersion: "1.0", contractCatalogRevision: hash, bindingRevision: hash,
       capabilities: keys.map(key => ({ ...key, maturity: "PREVIEW", inputSchemaHash: hash, outputSchemaHash: hash })) } as WorldAnalysisDiscoveryInput["catalog"],
-    semantics: { schemaVersion: "1.1", contractCatalogRevision: hash, bindingRevision: hash, catalogHash: hash,
-      profiles: keys.map(key => ({ ...key, semanticProfile: {}, semanticProfileHash: hash })) } as WorldAnalysisDiscoveryInput["semantics"],
+    semantics: { schemaVersion: "1.1", contractCatalogRevision: hash, bindingRevision: hash, catalogHash: semanticHash,
+      profiles } as WorldAnalysisDiscoveryInput["semantics"],
     availability: { schemaVersion: "1.0", checkedAt: now.toISOString(), operations: keys.map(key => ({ ...key, maturity: "PREVIEW",
       availability: "AVAILABLE", reasonCodes: [], checkedAt: now.toISOString(), validUntil: new Date(now.getTime() + 2_000).toISOString(),
       contractCatalogRevision: hash, bindingRevision: hash })) }
@@ -48,7 +50,11 @@ describe("caller-filtered public world analysis discovery", () => {
     if (change === "missing") input.catalog!.capabilities.splice(index, 1);
     if (change === "version") input.catalog!.capabilities[index]!.operationVersion = "0.2";
     if (change === "schema") input.catalog!.capabilities[index]!.inputSchemaHash = analysisHash("drift");
-    if (change === "semantic") input.semantics!.profiles[index]!.semanticProfile = { forged: true } as never;
+    if (change === "semantic") {
+      input.semantics!.profiles[index]!.semanticProfile = { forged: true } as never;
+      input.semantics!.catalogHash = analysisHash(input.semantics!.profiles);
+      input.expectedSemanticHash = input.semantics!.catalogHash;
+    }
     if (change === "permission") input.availability!.operations.splice(index, 1);
     if (change === "expired") input.availability!.operations[index]!.validUntil = now.toISOString();
     if (change === "future") input.availability!.operations[index]!.checkedAt = new Date(now.getTime() + 1).toISOString();

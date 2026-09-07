@@ -23,7 +23,7 @@ productionQualified: `false`
 | Gate | Result |
 |---|---|
 | Focused source/gap/result/registry tests | PASS; 120/120 across 4 suites |
-| Focused execution evidence bound to current input set | PASS; `sha256:06e9ad890958af979bc7049993da758ad8147243666b2a7e3e69b889606cdee5` |
+| Focused execution evidence bound to current input set | PASS; `sha256:255d950169a1eb43d0b1e61355cecb8fd52885a5b62700fc2958561fab3dd5cb` |
 | Deterministic N03 materialization guard | PASS |
 | Real signed Gateway upstream gate | NOT_RUN |
 | Direct Provider / database calls | 0 / 0 |
@@ -34,13 +34,13 @@ The focused count is parsed from the actual Vitest JSON result and bound to the 
 
 | Logical artifact | SHA-256 |
 |---|---|
-| `PROVENANCE_INTEGRITY` | `sha256:1a1a853df2d5bf9cdfb2d495c29279be3bd932be620e7c813064c32425639668` |
-| `GAP_NORMALIZATION` | `sha256:8c0d1793709fc2d6db94e2d332f0d7460f605ff49cfe3c90f9a981307a4e1884` |
-| `SCOPE_NEGATIVE_CASES` | `sha256:0bb6886e14c46a0d00fd65bcf9a6fa22885cc39ae74d38134fc73c4b4b728422` |
-| `FOCUSED_TEST_EXECUTION` | `sha256:06e9ad890958af979bc7049993da758ad8147243666b2a7e3e69b889606cdee5` |
-| `PROVENANCE_REPORT` | `sha256:a41d8d87be76a30e8a8efed8fb96127d652b52ccb88711dcda9ade75f241d2e9` |
+| `PROVENANCE_INTEGRITY` | `sha256:5e5864df08f423585fd748a908d8756fd26e34a0e8b39a25d2e1e22b151d6184` |
+| `GAP_NORMALIZATION` | `sha256:b97fa9e3509c46829edc4bb8ffe8a097827f7b51ec0cb05912e4bd6053a9ed45` |
+| `SCOPE_NEGATIVE_CASES` | `sha256:f5022fbb20cdd964e35e5ea6246f62d631ed8cccadbd582e095bf60620547220` |
+| `FOCUSED_TEST_EXECUTION` | `sha256:255d950169a1eb43d0b1e61355cecb8fd52885a5b62700fc2958561fab3dd5cb` |
+| `PROVENANCE_REPORT` | `sha256:632a47aa8027930021157198bded43c061da464faf16e43b48c8094542728427` |
 
-Input-set hash: `sha256:ea938cf7fe5b70fcabb3f161b95cdb98cdca6e38516e06f9a753ae1f02bd7d63`.
+Input-set hash: `sha256:e1d0c25ea1b8b6a1a7e2ad01738880c5f87074ff73fb312ccb4a88e6a261da25`.
 
 ## Qualification boundary
 

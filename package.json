@@ -22,7 +22,7 @@
     "verify:world-analysis-contract": "node validation/scripts/verify-world-analysis-contract.mjs",
     "world-analysis:runtime:check": "node validation/scripts/sync-world-analysis-runtime.mjs --check",
     "smoke:world-analysis:fixture": "vitest run packages/historical-trace-consumer/src/public-world-analysis.test.ts",
-    "test:world-analysis:http": "npm run build && vitest run tests/world-analysis-http.test.ts tests/world-analysis-discovery-http.test.ts",
+    "test:world-analysis:http": "npm run build && vitest run tests/world-analysis-http.test.ts tests/world-analysis-discovery-http.test.ts tests/world-analysis-business-http.test.ts",
     "contracts:sacs-geospatial:write": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs --write",
     "contracts:sacs-geospatial:check": "node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs",
     "findings:decoder:build": "tsc -b packages/gowm-contract-intake packages/gdps-descriptor-consumer packages/gowm-execution-evidence packages/northbound-geospatial-findings --pretty false",

@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import {
   Aes256GcmPayloadCodec, canonicalSha256, PostgresGroundingContractMismatchError, PostgresIdempotencyConflictError,
@@ -8,7 +8,7 @@ import {
 import { buildTrustedCapabilitySnapshot, hashCanonicalJson } from "@wsgs/trusted-capability-snapshot";
 import type { CapabilityCatalog, CapabilitySemanticCatalog, OperationAvailabilityList } from "@wsgs/gowm-gateway-client";
 import type { OperationalGowmLock } from "@wsgs/gowm-contract-intake";
-import { defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
+import { AnalysisProviderContracts, analysisHash, defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import { selectProductionSouthboundLock } from "../services/grounding-worker/src/production-module.js";
 import { assertNegotiatedGroundingResult } from "../services/grounding-worker/src/result-schema.js";
 import type { GroundingWorkerStore, WorkerExecutionFence, WorkerSettlement } from "../services/grounding-worker/src/types.js";
@@ -40,6 +40,41 @@ export function admissionFixture() {
   return { immutableLocks: { schemaVersion: "1.0", trustedCapabilitySnapshot, capabilityCatalog, semanticCatalog, availability, southboundLock },
     gowmContractCatalogRevision: fullLock.contractCatalogRevision, gowmSemanticCatalogHash: fullLock.semanticCatalogHash,
     gowmConsumerPackageIntegrity: fullLock.consumerContractPackage.integrity, gowmOperationLockHash: canonicalSha256(southboundLock) };
+}
+
+export function analysisAdmissionFixture() {
+  const read = (path: string) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), "utf8"));
+  const base = read("validation/fixtures/world-analysis-http/gateway-catalog.json");
+  const bytes = readFileSync(new URL("../validation/fixtures/world-analysis-http/history-metadata.json", import.meta.url));
+  if (`sha256:${createHash("sha256").update(bytes).digest("hex")}` !== read("validation/fixtures/world-analysis-http/HISTORY_SOURCE.json").fixtureSha256) throw new Error("HISTORY_FIXTURE_DRIFT");
+  const history = JSON.parse(bytes.toString("utf8"));
+  const contracts = new AnalysisProviderContracts();
+  const replacements = [...history.capabilities, ...["map-matching", "temporal-events", "metric-ranking"].flatMap(name =>
+    read(`contracts/upstream/gowm-analysis-providers-current/contracts/manifests/${name}-provider.json`).capabilities)];
+  const capabilities = [...base.capabilities.filter((entry: any) => !replacements.some(value => value.operationId === entry.operationId)), ...replacements]
+    .sort((a, b) => `${a.operationId}@${a.operationVersion}` < `${b.operationId}@${b.operationVersion}` ? -1 : 1);
+  const profiles = capabilities.map(entry => ({ operationId: entry.operationId, operationVersion: entry.operationVersion,
+    semanticProfile: entry.semanticProfile, semanticProfileHash: analysisHash(entry.semanticProfile) }));
+  const lock = read("contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json");
+  lock.previewOperations = [...lock.previewOperations.filter((entry: any) => !replacements.some(value => value.operationId === entry.operationId)),
+    ...history.operations, ...contracts.authorizations.map(auth => ({ operationId: auth.operationId, operationVersion: auth.operationVersion,
+      inputSchemaHash: auth.inputSchemaHash, outputSchemaHash: auth.outputSchemaHash, semanticProfileHash: auth.semanticProfileHash,
+      maturity: "PREVIEW", requiredPermissions: ["data:read"], snapshotSupport: "CONSISTENT_AT_START" }))];
+  lock.contractCatalogRevision = analysisHash(capabilities); lock.semanticCatalogHash = analysisHash(profiles);
+  const bindingRevision = analysisHash("controlled-discovery-binding");
+  const catalog = { registryVersion: "registry-1", contractCatalogRevision: lock.contractCatalogRevision, bindingRevision, capabilities };
+  const semantics = { schemaVersion: "1.1", contractCatalogRevision: lock.contractCatalogRevision, bindingRevision, profiles, catalogHash: lock.semanticCatalogHash };
+  const southboundLock = selectProductionSouthboundLock(lock, [], true, contracts.authorizations);
+  const checkedAt = new Date().toISOString();
+  const availability = { schemaVersion: "1.0", checkedAt, operations: [...southboundLock.defaultOperations, ...southboundLock.previewOperations].map(entry => ({
+    operationId: entry.operationId, operationVersion: entry.operationVersion, maturity: entry.maturity, availability: "AVAILABLE", reasonCodes: ["AVAILABLE"],
+    checkedAt, validUntil: new Date(Date.now() + 60_000).toISOString(), contractCatalogRevision: lock.contractCatalogRevision, bindingRevision })) };
+  const trustedCapabilitySnapshot = buildTrustedCapabilitySnapshot({ catalog: catalog as never, semantics: semantics as never,
+    availability: availability as never, southboundLock, southboundLockHash: canonicalSha256(southboundLock), capturedAt: new Date() });
+  return { metadata: { lock, catalog, semantics, availability }, admission: {
+    immutableLocks: { schemaVersion: "1.0", trustedCapabilitySnapshot, capabilityCatalog: catalog, semanticCatalog: semantics, availability, southboundLock },
+    gowmContractCatalogRevision: lock.contractCatalogRevision, gowmSemanticCatalogHash: lock.semanticCatalogHash,
+    gowmConsumerPackageIntegrity: lock.consumerContractPackage.integrity, gowmOperationLockHash: canonicalSha256(southboundLock) } };
 }
 
 interface MemoryJob {

@@ -1,5 +1,5 @@
 import { worldAnalysisCanonicalHash, worldAnalysisFindingSetHash, type GroundingResult12 } from "@wsgs/contracts";
-import { assemblePublicWorldAnalysisResult, projectPublicWorldAnalysis } from "@wsgs/historical-trace-consumer";
+import { assemblePublicWorldAnalysisResult, projectHistoricalReference, projectPublicWorldAnalysis } from "@wsgs/historical-trace-consumer";
 
 type ProjectionInput = Parameters<typeof projectPublicWorldAnalysis>[0];
 type RecordValue = Record<string, unknown>;
@@ -24,6 +24,19 @@ export function assembleProductionWorldAnalysis(input: {
   foundationEvidenceIds: string[];
 }): GroundingResult12 {
   const references = (input.base["referenceProducts"] as RecordValue[]).map(item => pick(item, referenceFields));
+  const foundation = input.foundation ?? input.advanced?.foundation;
+  if (foundation) {
+    for (const findingKind of ["TASK_EXECUTION_INTERVAL", "HISTORICAL_TRAJECTORY"] as const) {
+      const projected = projectHistoricalReference({ ...foundation.finding, findingKind }, 0, new Date(input.validUntil));
+      if (!projected || references.some(product => worldAnalysisCanonicalHash(product["referenceKey"]) === worldAnalysisCanonicalHash(projected.referenceKey))) continue;
+      references.push({ productId: `history-reference-${worldAnalysisCanonicalHash(projected.referenceKey).slice(7, 31)}`,
+        productKind: "DERIVED_REFERENCE", referenceKey: projected.referenceKey, referenceType: projected.referenceType,
+        displayName: findingKind === "TASK_EXECUTION_INTERVAL" ? "Task execution interval" : "Historical trajectory",
+        sourceOperation: findingKind === "TASK_EXECUTION_INTERVAL" ? "operational-task.get-execution-intervals" : "history.get-trajectory",
+        sourceWorldVersion: 0, revalidationRequired: projected.revalidationRequired,
+        ...(projected.validUntil ? { validUntil: projected.validUntil } : {}) });
+    }
+  }
   const evidence = (input.base["evidenceItems"] as RecordValue[]).map(item => {
     const projected = pick(item, evidenceFields);
     for (const field of ["dataSnapshot", "computeSnapshot"]) {

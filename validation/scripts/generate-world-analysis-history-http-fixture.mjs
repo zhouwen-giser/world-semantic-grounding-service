@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { posix } from "node:path";
 import { canonicalHash } from "../../contracts/wsgs-v0.2.4-world-analysis/validator.mjs";
 
 const repository = process.argv[2];
@@ -26,7 +27,29 @@ for (const entry of operations) {
 const output = "validation/fixtures/world-analysis-http/history-metadata.json";
 const bytes = JSON.stringify({ capabilities, operations }, null, 2) + "\n";
 writeFileSync(output, bytes);
+const schemas = {};
+function collect(path) {
+  if (schemas[path]) return;
+  if (!path.startsWith("contracts/") || !path.endsWith(".schema.json")) throw new Error("HISTORY_SCHEMA_PATH_INVALID");
+  const schema = read(path); schemas[path] = schema;
+  function visit(value) {
+    if (!value || typeof value !== "object") return;
+    if (typeof value.$ref === "string" && !value.$ref.startsWith("#")) {
+      if (/^[a-z]+:/i.test(value.$ref)) throw new Error("HISTORY_EXTERNAL_SCHEMA_REFERENCE");
+      collect(posix.normalize(posix.join(posix.dirname(path), value.$ref.split("#")[0])));
+    }
+    Object.values(value).forEach(visit);
+  }
+  visit(schema);
+}
+for (const name of ["historical-trajectory-result", "task-execution-interval-result"]) collect(`contracts/gowm-v0.7.1/${name}.schema.json`);
+for (const [id, path] of [["history.get-trajectory", "historical-trajectory-result"], ["operational-task.get-execution-intervals", "task-execution-interval-result"]]) {
+  if (canonicalHash(schemas[`contracts/gowm-v0.7.1/${path}.schema.json`]) !== operations.find(entry => entry.operationId === id).outputSchemaHash) throw new Error("HISTORY_OUTPUT_SCHEMA_LOCK_MISMATCH");
+}
+const schemaBytes = JSON.stringify(schemas, null, 2) + "\n";
+writeFileSync("validation/fixtures/world-analysis-http/history-schemas.json", schemaBytes);
 writeFileSync("validation/fixtures/world-analysis-http/HISTORY_SOURCE.json", JSON.stringify({ commit, sources,
   fixtureSha256: `sha256:${createHash("sha256").update(bytes).digest("hex")}`,
-  scope: "Four real history descriptors and their exact source lock entries; no endpoints, credentials or live data" }, null, 2) + "\n");
+  schemaSha256: `sha256:${createHash("sha256").update(schemaBytes).digest("hex")}`,
+  scope: "Four real history descriptors, exact source lock entries and historical output schema closure; no endpoints, credentials or live data" }, null, 2) + "\n");
 console.log("WORLD_ANALYSIS_HISTORY_HTTP_INTAKE_PASS operations=4");

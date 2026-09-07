@@ -55,6 +55,16 @@ test-only hash-locked deployment. It covers caller changes, permission omission,
 T2 unavailability, metadata failure and unauthenticated rejection. Model readiness
 is controlled false; admission throws if reached. No business operation executes.
 
-Nonempty historical trace, roads, CROSS complete/incomplete, Top-K, structured
-series/rank/action rounds and provider-missing isolation still need HTTP cases.
-Do not treat this initial suite as the complete W06 gate or production readiness.
+The business suite traverses the actual pipeline and calls reference validation,
+task retrieval, execution intervals and trajectory over signed local Gateway HTTP.
+An advanced case then calls trajectory.map-match using the actual compiler and
+executor. Historical outputs are validated against the fixed upstream schema
+closure; GSAP outputs are controlled projections of its pinned fixture with
+consistent subject/trajectory references, sample counts, times and gaps. Public
+results retain interval/trajectory reference closure, off-network segments and
+incomplete suffix semantics, and GET equals the saved result. Memory storage is
+still controlled; none of these fixtures are live collected observations.
+
+CROSS complete/incomplete, Top-K, structured series/rank/action rounds and
+provider-missing business isolation still need HTTP cases. Do not treat this
+suite as the complete W06 gate or production readiness.

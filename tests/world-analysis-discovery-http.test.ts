@@ -5,41 +5,15 @@ import { join } from "node:path";
 import Fastify from "fastify";
 import { jwtVerify, SignJWT } from "jose";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { AnalysisProviderContracts, GowmConsumerSchemaRegistry, analysisHash } from "@wsgs/gowm-contract-intake";
+import { AnalysisProviderContracts, GowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { createWorldAnalysisValidator } from "@wsgs/contracts";
 import { ProductionGroundingBackend } from "@wsgs/grounding-pipeline";
 import { createGroundingApi } from "../services/grounding-api/src/server.js";
 import { groundingCapabilitiesForSelection } from "../services/grounding-api/src/production.js";
-import { HttpMemoryStore } from "./world-analysis-http-support.js";
+import { HttpMemoryStore, analysisAdmissionFixture } from "./world-analysis-http-support.js";
 
-const read = (path: string) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), "utf8"));
 const hashBytes = (bytes: string | Buffer) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
-
-/** Real source descriptors; only the local deployment's catalog/binding roots and grants are controlled. */
-function fixture() {
-  const base = read("validation/fixtures/world-analysis-http/gateway-catalog.json");
-  const historyBytes = readFileSync(new URL("../validation/fixtures/world-analysis-http/history-metadata.json", import.meta.url));
-  expect(hashBytes(historyBytes)).toBe(read("validation/fixtures/world-analysis-http/HISTORY_SOURCE.json").fixtureSha256);
-  const history = JSON.parse(historyBytes.toString("utf8"));
-  const contracts = new AnalysisProviderContracts();
-  const analysis = ["map-matching", "temporal-events", "metric-ranking"].flatMap(name =>
-    read(`contracts/upstream/gowm-analysis-providers-current/contracts/manifests/${name}-provider.json`).capabilities);
-  const replacements = [...history.capabilities, ...analysis];
-  const capabilities = [...base.capabilities.filter((entry: any) => !replacements.some(value => value.operationId === entry.operationId)), ...replacements]
-    .sort((a, b) => `${a.operationId}@${a.operationVersion}` < `${b.operationId}@${b.operationVersion}` ? -1 : 1);
-  const profiles = capabilities.map(entry => ({ operationId: entry.operationId, operationVersion: entry.operationVersion,
-    semanticProfile: entry.semanticProfile, semanticProfileHash: analysisHash(entry.semanticProfile) }));
-  const lock = read("contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json");
-  lock.previewOperations = [...lock.previewOperations.filter((entry: any) => !replacements.some(value => value.operationId === entry.operationId)),
-    ...history.operations, ...contracts.authorizations.map(auth => ({ operationId: auth.operationId, operationVersion: auth.operationVersion,
-      inputSchemaHash: auth.inputSchemaHash, outputSchemaHash: auth.outputSchemaHash, semanticProfileHash: auth.semanticProfileHash,
-      maturity: "PREVIEW", requiredPermissions: ["data:read"], snapshotSupport: "CONSISTENT_AT_START" }))];
-  lock.contractCatalogRevision = analysisHash(capabilities); lock.semanticCatalogHash = analysisHash(profiles);
-  const bindingRevision = analysisHash("controlled-discovery-binding");
-  return { lock, catalog: { registryVersion: "registry-1", contractCatalogRevision: lock.contractCatalogRevision, bindingRevision, capabilities },
-    semantics: { schemaVersion: "1.1", contractCatalogRevision: lock.contractCatalogRevision, bindingRevision, profiles, catalogHash: lock.semanticCatalogHash } };
-}
 
 describe("world analysis signed caller discovery through real local HTTP", () => {
   const gateway = Fastify();
@@ -56,7 +30,7 @@ describe("world analysis signed caller discovery through real local HTTP", () =>
     dataScopes: [`scope-${actorId}`], datasetScopes: [`roads-${actorId}`], permissions: ["grounding.read", "data:read"] });
   const headers = { "WSGS-Contract-Version": "sacs-wsgs-grounding/1.2", "WSGS-Result-Profile": "wsgs-world-analysis-findings/1.0" };
   beforeAll(async () => {
-    const input = fixture();
+    const input = analysisAdmissionFixture().metadata;
     const registry = new GowmConsumerSchemaRegistry({ analysisContracts: new AnalysisProviderContracts() });
     try {
       registry.validate("platform/capability-list-response.schema.json", input.catalog);
@@ -67,7 +41,14 @@ describe("world analysis signed caller discovery through real local HTTP", () =>
       if (mode === "offline") return reply.code(503).send({ error: "controlled-provider-offline" });
       return input.catalog;
     });
-    gateway.get("/v1/capability-semantics", async () => input.semantics);
+    gateway.get("/v1/capability-semantics", async () => {
+      const semantics = structuredClone(input.semantics);
+      if (mode === "tampered-catalog") {
+        const unrelated = semantics.profiles.find(entry => entry.operationId === "correlation.resolve")!;
+        unrelated.semanticProfile.notes = ["controlled unrelated semantic tampering"];
+      }
+      return semantics;
+    });
     gateway.get("/v1/operation-availability", async request => {
       const verified = await jwtVerify(String(request.headers["x-gowm-delegation"]), keys.publicKey,
         { algorithms: ["RS256"], issuer: "discovery-issuer", audience: "discovery-audience" });
@@ -142,6 +123,13 @@ describe("world analysis signed caller discovery through real local HTTP", () =>
     mode = "offline"; const body = await discover();
     expect(body.worldAnalysis.capabilities.every((entry: any) => !entry.available)).toBe(true);
     expect(JSON.stringify(body)).not.toContain("controlled-provider-offline");
+  });
+  it("rejects a changed unrelated profile despite an unchanged expected catalog hash label", async () => {
+    mode = "tampered-catalog"; const body = await discover();
+    expect(claims).toHaveLength(1);
+    expect(body.worldAnalysis.capabilities.every((entry: any) => !entry.available)).toBe(true);
+    expect(body.worldAnalysis.capabilities.find((entry: any) => entry.capability === "HISTORICAL_TRACE").reasonCodes).toEqual(["SEMANTIC_MISMATCH"]);
+    expect(JSON.stringify(body)).not.toContain("controlled unrelated semantic tampering");
   });
   it("rejects missing and forged northbound credentials before any Gateway discovery", async () => {
     for (const authorization of [undefined, "Bearer forged-token"]) {
