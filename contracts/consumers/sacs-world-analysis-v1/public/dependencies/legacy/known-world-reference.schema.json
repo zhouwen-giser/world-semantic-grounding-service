@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:known-world-reference",
+  "title": "KnownWorldReference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "referenceKey",
+    "referenceType",
+    "sourceMessageId"
+  ],
+  "properties": {
+    "alias": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "referenceKey": {
+      "$ref": "common.schema.json#/$defs/referenceKey"
+    },
+    "referenceType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "sourceMessageId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "sourceGroundingId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "validUntil": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    }
+  }
+}

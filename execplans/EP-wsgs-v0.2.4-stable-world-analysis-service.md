@@ -30,38 +30,42 @@ The working tree was clean. Dedicated branch:
 - W02 COMPLETE: validated five-kind projection, provenance closure, explicit
   completeness versus display truncation, 28 fixture tests, 157 related tests,
   nine fixed hash pairs, bounded output and unchanged frozen contract PASS.
-- W03 IN_PROGRESS: exact 1.2 authorization/request/response validation,
+- W03 COMPLETE: exact 1.2 authorization/request/response validation,
   persisted selection parser, backend payload binding, production result assembly,
   public fingerprint hashing and scripted SQL read/replay isolation implemented.
-  Recovery/late-worker and production HTTP evidence remain open; capabilities
-  depend on W05. No W03 acceptance completion claimed.
-- W04 IN_PROGRESS (joint W03 preparation): stored public choice resolver reuses
+  Nine Required rows now have audited component/actual HTTP evidence, including
+  restored 1.2 metadata, stale generations, cancellation/deadline and exact replay.
+  See W03/closure-review.json; real PostgreSQL remains NOT_RUN.
+- W04 COMPLETE (Required evidence audit): stored public choice resolver reuses
   prior-grounding identity/scope validation and checks hash/TTL/ownership.
   Production two-round rank/action and three-round series/rank/action now have
   actual HTTP evidence; invalid candidate/hash/expired source rejection included.
-  Combined-choice, semantic-change and recovery acceptance remain open.
-- W05 IN_PROGRESS (joint W03/W04 evidence): production 1.2 capability document,
+  WA-037 through WA-045 are mapped in acceptance-ledger.json, reusing existing
+  combined-choice and semantic-change component tests at their proven scope.
+- W05 COMPLETE (Required evidence audit): production 1.2 capability document,
   caller-filtered signed discovery and per-operation contract/semantic/freshness
   checks implemented. Exact CROSS/action dependencies and default opt-in covered
-  by component tests; complete HTTP failure isolation remains in W06.
-- W06 IN_PROGRESS: real local listener through ProductionGroundingBackend,
+  by component tests; signed discovery and provider-failure isolation have actual
+  HTTP evidence. WA-046 through WA-054 are mapped in acceptance-ledger.json.
+- W06 COMPLETE (controlled local HTTP, not live deployment): real local listener through ProductionGroundingBackend,
   production stage factory, GroundingPipeline, GroundingWorker, public projector,
   AES checkpoint and validated in-memory settlement/GET. Twenty-three HTTP cases cover
   sync/async, default-disabled typed gap, cancellation, queued deadline,
   idempotency/profile isolation, compile-only, legacy 1.0/1.1, signed discovery,
-  whole semantic catalog tampering, nonempty history/map matching, incomplete CROSS,
+  whole semantic catalog tampering, nonempty history/map matching,
   complete/incomplete CROSS, CROSS source-hash drift, T2 failure isolation,
   post-failure ordinary reference/history queries, T4 Top-K and two/three-round
   stored series/rank/action selections including three negative selection paths.
   Actual selection retries preserve result bytes; changed candidate/metric with
   the same idempotency key returns 409 without new jobs or Gateway calls.
-  Required-row audit and phase closure remain open; no whole-stage PASS claimed.
+  WA-055 through WA-063 are mapped in acceptance-ledger.json. This closes the
+  Required local scope, not optional real-provider or PostgreSQL verification.
 - W07 NOT_STARTED: isolated consumer handoff, independent final review, all
   72 evidence-backed rows, report verifier and dedicated Draft PR.
   Preparation only: disposable offline bundle builder and consumer verifier
   exercise copied frozen contracts plus six explicit validator dependencies.
   No permanent handoff is published and no W07 acceptance completion is claimed;
-  W06 remains the preceding gate. See W07/handoff-preparation.json for exact scope.
+  W06 Required evidence is now audited. See W07/handoff-preparation.json for exact scope.
 
 ## Contract Discipline
 
@@ -69,6 +73,68 @@ Target `sacs-wsgs-grounding/1.2` + `wsgs-world-analysis-findings/1.0`.
 Do not change old 1.0/1.1/geospatial artifacts. Freeze first; after freeze any
 necessary externally visible change must explicitly withdraw an undistributed
 candidate and repeat W01, never silently refresh a released lock.
+
+## Execution Reset: 2026-09-07
+
+The user requested a review of excessive execution time and a revised task.
+The previous workflow repeatedly ran full regression for small test additions,
+left already-proven boundaries marked open, accumulated overlapping progress
+reports and deferred the actual consumer deliverable. Correct the workflow,
+not the definition of success: the original 72 Required items remain in scope.
+
+Do not resume the old pattern of one additional scenario followed by a complete
+check/test/build/HTTP/report cycle. Current verified source is
+ce4d156a41a35c7701eecdf82d2cc1fe73406d24: 954 tests passed, 29 skipped,
+23 HTTP cases passed, build passed; W03 has a nine-row closure audit.
+Preserve existing failed attempts and logs without generating further duplicate
+progress snapshots. No runtime change is pending at this reset.
+
+### Batch A: One Remaining-Requirement Audit
+
+Status: COMPLETE. acceptance-ledger.json records 63 PASS and 9 NOT_RUN;
+evidence-index.json records the reused evidence. Remaining rows are WA-064
+through WA-072, all W07 delivery requirements. No new runtime gap was identified.
+
+- Consolidate WA-001 through WA-072 into one authoritative ledger using existing
+  source and command evidence. Close proven W04-W06 rows promptly.
+- For every non-PASS row, record the exact unmet requirement, existing evidence,
+  missing proof or defect, and the specific smallest corrective deliverable.
+- A proposed new test or refactor must address one such row or an observed bug.
+  Vague goals such as broader recovery or more complete compatibility do not
+  justify expanding the implementation backlog.
+- Do not require HTTP proof for an item whose specified scope is adequately
+  proven by component tests. Do not use component evidence where HTTP is required.
+
+### Batch B: Required Gaps and Consumer Delivery
+
+- Implement only the concrete gaps found in Batch A; no new capability families,
+  query engines, generic security framework or unrelated refactoring.
+- Finish contracts/consumers/sacs-world-analysis-v1 and the independent clean
+  consumer verification command using the already frozen public contracts.
+- Include complete request/result/job/capabilities/selection/cancel examples,
+  explicit dependency closure, hashes and required negative verification cases.
+- Use focused tests during edits. Optional live Gateway/PostgreSQL/model/SACS
+  verification remains NOT_RUN unless an authorized isolated environment exists;
+  do not install or start other projects to turn those optional items into PASS.
+
+### Batch C: Final Verification and Handoff
+
+- Run the required independent commands once against the completed code batch:
+  check, test, build, contract verification, fixture smoke, HTTP and handoff.
+- On failure, fix the diagnosed issue and rerun the affected checks; obtain a
+  coherent final passing evidence set without replaying unchanged work solely
+  because a report commit changed HEAD.
+- Produce one final ledger/evidence index, FINAL_REPORT.md/json, limitations,
+  review and PR_BODY.md. Link existing detailed logs instead of cloning them.
+- Commit the deliverable, push the dedicated branch and create the required
+  Draft PR when authorized. No merge, tag, release, deployment or device action.
+- Finish only when all original Required items are proved. Remote-delivery
+  restrictions, if encountered, must be reported separately from local results.
+
+Each batch must reduce the explicit remaining-item list or produce its named
+deliverable. Do not begin another open-ended verification round after a batch.
+The current user turn is a replanning turn, not authorization to conceal gaps
+or to replace the original integration with a smaller fixture-only deliverable.
 
 ## Evidence
 

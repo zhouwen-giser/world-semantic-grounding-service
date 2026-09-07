@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:grounding-ambiguity",
+  "title": "GroundingAmbiguity",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ambiguityId",
+    "mentionId",
+    "surfaceText",
+    "candidateProductIds",
+    "reason"
+  ],
+  "properties": {
+    "ambiguityId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "mentionId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "surfaceText": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "candidateProductIds": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 20,
+      "items": {
+        "$ref": "common.schema.json#/$defs/identifier"
+      }
+    },
+    "reason": {
+      "enum": [
+        "MULTIPLE_EXACT_MATCHES",
+        "MULTIPLE_PLAUSIBLE_MATCHES",
+        "NAMESPACE_CONFLICT",
+        "CONTEXT_CONFLICT",
+        "MAP_TEXT_CONFLICT"
+      ]
+    }
+  }
+}

@@ -1,5 +1,6 @@
 {
   "phase": "W03",
+  "supersededBy": "closure-review.json",
   "status": "IN_PROGRESS",
   "testedImplementationCommit": "aa7fb607827e6f4baa4b0e1fa42fd7fa06c9a0d0",
   "completedBoundaries": [

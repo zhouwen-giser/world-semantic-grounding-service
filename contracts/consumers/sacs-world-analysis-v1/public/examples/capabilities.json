@@ -1,0 +1,111 @@
+{
+  "service": "world-semantic-grounding-service",
+  "version": "0.2.1",
+  "contractVersion": "sacs-wsgs-grounding/1.2",
+  "resultProfile": "wsgs-world-analysis-findings/1.0",
+  "supportedOperations": [
+    "GROUND_REFERENCES",
+    "COMPILE_WORLD_QUERY",
+    "EXECUTE_WORLD_QUERY",
+    "VALIDATE_REFERENCES"
+  ],
+  "supportedResultProfiles": [
+    "wsgs-world-analysis-findings/1.0",
+    "sacs-wsgs-geospatial-findings/1.0"
+  ],
+  "resultComponents": {
+    "worldAnalysisFindings": "REQUIRED",
+    "geospatialFindings": "OPTIONAL"
+  },
+  "worldAnalysis": {
+    "supportedFindingKinds": [
+      "HISTORICAL_TRACE",
+      "ROAD_ASSOCIATION",
+      "TEMPORAL_EVENT",
+      "METRIC_RANKING",
+      "ACTION_TARGET_CANDIDATE"
+    ],
+    "supportedChoiceKinds": [
+      "REFERENCE_SELECTION",
+      "TASK_SELECTION",
+      "METRIC_SERIES_SELECTION",
+      "RANKED_LOCATION_SELECTION",
+      "EVENT_SELECTION"
+    ],
+    "structuredSelection": true,
+    "supportedActionSources": [
+      "HISTORICAL_METRIC_CANDIDATE"
+    ],
+    "capabilities": [
+      {
+        "capability": "HISTORICAL_TRACE",
+        "supported": true,
+        "available": false,
+        "reasonCodes": [
+          "FEATURE_DISABLED"
+        ]
+      },
+      {
+        "capability": "ROAD_ASSOCIATION",
+        "supported": true,
+        "available": false,
+        "reasonCodes": [
+          "FEATURE_DISABLED"
+        ]
+      },
+      {
+        "capability": "TEMPORAL_EVENT",
+        "supported": true,
+        "available": false,
+        "reasonCodes": [
+          "FEATURE_DISABLED"
+        ]
+      },
+      {
+        "capability": "CROSS",
+        "supported": true,
+        "available": false,
+        "reasonCodes": [
+          "FEATURE_DISABLED"
+        ]
+      },
+      {
+        "capability": "METRIC_RANKING",
+        "supported": true,
+        "available": false,
+        "reasonCodes": [
+          "FEATURE_DISABLED"
+        ]
+      },
+      {
+        "capability": "ACTION_TARGET_CANDIDATE",
+        "supported": true,
+        "available": false,
+        "reasonCodes": [
+          "FEATURE_DISABLED"
+        ]
+      }
+    ],
+    "checkedAt": "2026-09-06T10:00:00.000+08:00",
+    "validUntil": "2026-09-06T10:01:00.000+08:00"
+  },
+  "limits": {
+    "maximumFindings": 32,
+    "maximumChoices": 32,
+    "maximumCandidatesPerChoice": 100,
+    "maximumEvents": 100,
+    "maximumRankedLocations": 100,
+    "maximumRoadVisits": 100,
+    "maximumPeriods": 100,
+    "maximumLinePositions": 256,
+    "maximumGaps": 64,
+    "maximumSourceIds": 32,
+    "maximumWarnings": 100,
+    "maximumIdLength": 256,
+    "maximumLabelLength": 512,
+    "maximumSelections": 8,
+    "maximumPublicResultBytes": 1048576,
+    "choiceTtlMs": 60000
+  },
+  "requiredCapabilitiesReady": true
+}

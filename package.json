@@ -20,6 +20,7 @@
     "contracts:generate": "node validation/scripts/generate-contract-types.mjs",
     "contracts:types:check": "node validation/scripts/generate-contract-types.mjs --check",
     "verify:world-analysis-contract": "node validation/scripts/verify-world-analysis-contract.mjs",
+    "verify:world-analysis:handoff": "node validation/scripts/verify-world-analysis-handoff.mjs",
     "world-analysis:runtime:check": "node validation/scripts/sync-world-analysis-runtime.mjs --check",
     "smoke:world-analysis:fixture": "vitest run packages/historical-trace-consumer/src/public-world-analysis.test.ts",
     "test:world-analysis:http": "npm run build && vitest run tests/world-analysis-http.test.ts tests/world-analysis-discovery-http.test.ts tests/world-analysis-business-http.test.ts",

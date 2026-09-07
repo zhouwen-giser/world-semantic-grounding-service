@@ -1,0 +1,13 @@
+{
+  "command": "npx vitest run services/grounding-api/src/contract-negotiation.test.ts services/grounding-api/src/server.test.ts packages/grounding-pipeline/src/backend.test.ts packages/grounding-pipeline/src/postgres-contract-boundary.test.ts services/grounding-worker/src/postgres-contract-recovery.test.ts services/grounding-worker/src/worker.test.ts services/grounding-worker/src/result-schema.test.ts --reporter=verbose",
+  "startedAt": "2026-09-07T01:02:01.947Z",
+  "finishedAt": "2026-09-07T01:02:15.584Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "ce4d156a41a35c7701eecdf82d2cc1fe73406d24",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/closure-tests.log",
+  "logSha256": "sha256:4481072b6abf3098660f49b80bf4eb6803d261a38263bf41a314ba8a20a38f05"
+}

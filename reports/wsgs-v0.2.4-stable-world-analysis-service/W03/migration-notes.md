@@ -29,5 +29,7 @@ after expiry. Previously it relied only on the Worker timer/deadline sweep,
 leaving a late-write window. No schema change is needed for this correction.
 The component test still does not execute PostgreSQL locking or its clock.
 
-Remaining: fresh 1.2 recovery/late-completion evidence and production HTTP
-integration, plus the independent choice authority required by W04.
+Current development closure is recorded in `closure-review.json`: fresh named
+recovery/late-completion tests and real production-path HTTP with server-owned
+multi-round authority now pass. Real PostgreSQL transaction, lock, clock and
+crash-durability verification remains NOT_RUN and is not inferred from them.

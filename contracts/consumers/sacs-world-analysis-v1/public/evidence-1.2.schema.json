@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:grounding:1.2:evidence",
+  "title": "GroundingEvidence12",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidenceProductId",
+    "productKind",
+    "authority",
+    "sourceOperation",
+    "upstreamStatus",
+    "payloadSchemaUri",
+    "payloadSchemaHash",
+    "receiptIds",
+    "evidenceIds",
+    "unknowns",
+    "warnings"
+  ],
+  "properties": {
+    "evidenceProductId": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/identifier"
+    },
+    "productKind": {
+      "enum": [
+        "WORLD_FACT",
+        "WORLD_GEOMETRY",
+        "PROVENANCE",
+        "EVENT_TIMELINE",
+        "OPERATIONAL_TASK",
+        "CORRELATION_FINDING",
+        "PREDICATE_EVALUATION",
+        "OBSERVABILITY_ASSESSMENT",
+        "CAPABILITY_RESULT"
+      ]
+    },
+    "authority": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "sourceOperation": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "sourceProvider": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "sourceQueryId": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "sourceNodeId": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "upstreamStatus": {
+      "enum": [
+        "COMPLETED",
+        "PARTIAL",
+        "NO_DATA",
+        "INDETERMINATE"
+      ]
+    },
+    "payloadSchemaUri": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "payloadSchemaHash": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/sha256"
+    },
+    "dataSnapshot": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/snapshotSummary"
+    },
+    "computeSnapshot": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/snapshotSummary"
+    },
+    "receiptIds": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "string",
+        "maxLength": 256
+      }
+    },
+    "evidenceIds": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "string",
+        "maxLength": 256
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "maxLength": 4096
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "maxLength": 4096
+      }
+    }
+  }
+}

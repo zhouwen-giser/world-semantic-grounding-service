@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:metric-ranking",
+  "title": "Metric Ranking",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "findingId",
+    "findingKind",
+    "semanticConcept",
+    "status",
+    "subjectReferenceProductIds",
+    "evidenceIds",
+    "unknowns",
+    "warnings",
+    "display",
+    "candidateDomain",
+    "metric",
+    "candidates",
+    "coverage"
+  ],
+  "properties": {
+    "findingId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "findingKind": {
+      "const": "METRIC_RANKING"
+    },
+    "semanticConcept": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+    },
+    "status": {
+      "enum": [
+        "COMPLETED",
+        "PARTIAL",
+        "NO_DATA",
+        "INDETERMINATE"
+      ]
+    },
+    "subjectReferenceProductIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "evidenceIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "unknowns": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+      }
+    },
+    "display": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/display"
+    },
+    "validUntil": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+    },
+    "trajectoryReferenceProductId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "candidateDomain": {
+      "const": "PAST_OBSERVED_LOCATIONS"
+    },
+    "metric": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/metric"
+    },
+    "selectedSeries": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/series"
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/rankedLocation"
+      }
+    },
+    "coverage": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/metricCoverage"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "PARTIAL"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "trajectoryReferenceProductId",
+          "selectedSeries"
+        ],
+        "properties": {
+          "evidenceIds": {
+            "type": "array",
+            "minItems": 1
+          },
+          "subjectReferenceProductIds": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

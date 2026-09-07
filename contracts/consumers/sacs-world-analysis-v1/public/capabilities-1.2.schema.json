@@ -1,0 +1,267 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "service",
+    "version",
+    "contractVersion",
+    "resultProfile",
+    "supportedOperations",
+    "supportedResultProfiles",
+    "resultComponents",
+    "worldAnalysis",
+    "limits",
+    "requiredCapabilitiesReady"
+  ],
+  "properties": {
+    "service": {
+      "const": "world-semantic-grounding-service"
+    },
+    "version": {
+      "const": "0.2.1"
+    },
+    "contractVersion": {
+      "const": "sacs-wsgs-grounding/1.2"
+    },
+    "resultProfile": {
+      "const": "wsgs-world-analysis-findings/1.0"
+    },
+    "supportedOperations": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "enum": [
+          "GROUND_REFERENCES",
+          "COMPILE_WORLD_QUERY",
+          "EXECUTE_WORLD_QUERY",
+          "VALIDATE_REFERENCES"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "supportedResultProfiles": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "enum": [
+          "wsgs-world-analysis-findings/1.0",
+          "sacs-wsgs-geospatial-findings/1.0"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "resultComponents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "worldAnalysisFindings",
+        "geospatialFindings"
+      ],
+      "properties": {
+        "worldAnalysisFindings": {
+          "const": "REQUIRED"
+        },
+        "geospatialFindings": {
+          "const": "OPTIONAL"
+        }
+      }
+    },
+    "worldAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "supportedFindingKinds",
+        "supportedChoiceKinds",
+        "structuredSelection",
+        "supportedActionSources",
+        "capabilities",
+        "checkedAt",
+        "validUntil"
+      ],
+      "properties": {
+        "supportedFindingKinds": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "enum": [
+              "HISTORICAL_TRACE",
+              "ROAD_ASSOCIATION",
+              "TEMPORAL_EVENT",
+              "METRIC_RANKING",
+              "ACTION_TARGET_CANDIDATE"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "supportedChoiceKinds": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "enum": [
+              "REFERENCE_SELECTION",
+              "TASK_SELECTION",
+              "METRIC_SERIES_SELECTION",
+              "RANKED_LOCATION_SELECTION",
+              "EVENT_SELECTION"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "structuredSelection": {
+          "const": true
+        },
+        "supportedActionSources": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "const": "HISTORICAL_METRIC_CANDIDATE"
+          },
+          "uniqueItems": true
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "capability",
+              "supported",
+              "available",
+              "reasonCodes"
+            ],
+            "properties": {
+              "capability": {
+                "enum": [
+                  "HISTORICAL_TRACE",
+                  "ROAD_ASSOCIATION",
+                  "TEMPORAL_EVENT",
+                  "CROSS",
+                  "METRIC_RANKING",
+                  "ACTION_TARGET_CANDIDATE"
+                ]
+              },
+              "supported": {
+                "const": true
+              },
+              "available": {
+                "type": "boolean"
+              },
+              "reasonCodes": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "items": {
+                  "enum": [
+                    "AVAILABLE",
+                    "FEATURE_DISABLED",
+                    "PROFILE_UNAUTHORIZED",
+                    "SNAPSHOT_UNAVAILABLE",
+                    "SNAPSHOT_EXPIRED",
+                    "CAPABILITY_NOT_REGISTERED",
+                    "OPERATION_UNAVAILABLE",
+                    "OPERATION_DEGRADED",
+                    "CONTRACT_MISMATCH",
+                    "SEMANTIC_MISMATCH",
+                    "PERMISSION_DENIED",
+                    "DEPENDENCY_UNAVAILABLE"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "checkedAt": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "validUntil": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maximumFindings",
+        "maximumChoices",
+        "maximumCandidatesPerChoice",
+        "maximumEvents",
+        "maximumRankedLocations",
+        "maximumRoadVisits",
+        "maximumPeriods",
+        "maximumLinePositions",
+        "maximumGaps",
+        "maximumSourceIds",
+        "maximumWarnings",
+        "maximumIdLength",
+        "maximumLabelLength",
+        "maximumSelections",
+        "maximumPublicResultBytes",
+        "choiceTtlMs"
+      ],
+      "properties": {
+        "maximumFindings": {
+          "const": 32
+        },
+        "maximumChoices": {
+          "const": 32
+        },
+        "maximumCandidatesPerChoice": {
+          "const": 100
+        },
+        "maximumEvents": {
+          "const": 100
+        },
+        "maximumRankedLocations": {
+          "const": 100
+        },
+        "maximumRoadVisits": {
+          "const": 100
+        },
+        "maximumPeriods": {
+          "const": 100
+        },
+        "maximumLinePositions": {
+          "const": 256
+        },
+        "maximumGaps": {
+          "const": 64
+        },
+        "maximumSourceIds": {
+          "const": 32
+        },
+        "maximumWarnings": {
+          "const": 100
+        },
+        "maximumIdLength": {
+          "const": 256
+        },
+        "maximumLabelLength": {
+          "const": 512
+        },
+        "maximumSelections": {
+          "const": 8
+        },
+        "maximumPublicResultBytes": {
+          "const": 1048576
+        },
+        "choiceTtlMs": {
+          "const": 60000
+        }
+      }
+    },
+    "requiredCapabilitiesReady": {
+      "type": "boolean"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:grounding:1.2:capabilities",
+  "title": "GroundingCapabilities12"
+}

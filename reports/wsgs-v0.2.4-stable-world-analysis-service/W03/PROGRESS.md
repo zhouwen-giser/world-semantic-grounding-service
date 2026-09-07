@@ -1,4 +1,8 @@
-# W03 In Progress
+# W03 Historical Progress
+
+Current status: development Required complete. See `closure-review.json` and
+`closure-tests.log` for the current nine-row audit and 65 named component cases.
+The notes below describe the earlier implementation snapshot, not open work.
 
 Implemented exact independently allowlisted 1.2 transport, request and full
 response validation, strict persisted selection parsing, full semantic input
