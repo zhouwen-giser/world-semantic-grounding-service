@@ -215,7 +215,9 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
     const transportCode = error && typeof error === "object" && "code" in error ? error.code : undefined;
     if (transportCode === "ABORTED") throw error;
     const code = error instanceof AnalysisContractError ? error.code : transportCode === "DEADLINE_EXCEEDED" ||
-      error instanceof Error && error.message === "ADVANCED_HISTORY_DEADLINE_EXCEEDED" ? "ADVANCED_HISTORY_DEADLINE_EXCEEDED" : "ADVANCED_HISTORY_RESULT_INVALID";
+      error instanceof Error && error.message === "ADVANCED_HISTORY_DEADLINE_EXCEEDED" ? "ADVANCED_HISTORY_DEADLINE_EXCEEDED" :
+      typeof transportCode === "string" && (transportCode === "TRANSPORT_FAILURE" || /^HTTP_[45]\d\d(?:_|$)/u.test(transportCode)) ?
+        "ADVANCED_HISTORY_UPSTREAM_FAILURE" : "ADVANCED_HISTORY_RESULT_INVALID";
     return stop(code, code === "ADVANCED_HISTORY_DEADLINE_EXCEEDED" ? "PARTIAL" : "FAILED");
   }
 }

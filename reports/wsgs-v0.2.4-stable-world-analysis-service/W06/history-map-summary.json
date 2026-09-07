@@ -1,0 +1,38 @@
+{
+  "scope": "CONTROLLED_LOCAL_HTTP_NOT_LIVE_PROVIDER_OR_POSTGRES",
+  "status": "PARTIAL_W06_GATE_OPEN",
+  "testedCommit": "8060461de3d2f78afdf63dcdb24de9c7b025c1eb",
+  "commands": {
+    "check": "history-map-check-retry.json",
+    "tests": "history-map-tests.json",
+    "http": "history-map-http.json",
+    "build": "history-map-build.json"
+  },
+  "verification": {
+    "check": "PASS",
+    "testsPassed": 941,
+    "testsSkipped": 29,
+    "httpPassed": 17,
+    "build": "PASS",
+    "allCommandLogHashesRecomputed": true,
+    "allCommandTrackedWorkingTreesClean": true
+  },
+  "retainedFailedAttempt": {
+    "report": "history-map-check.json",
+    "testedCommit": "63c8be91688501f7deb794d14e7cfc5fbaa8abac",
+    "cause": "Two business HTTP cases exceeded the default 5-second test timeout under full-suite load.",
+    "resolution": "Only test timeout increased to 30 seconds; actual request deadline remains 15 seconds."
+  },
+  "implemented": [
+    "Nonempty historical result and T2 map matching through actual production stages and signed local Gateway HTTP.",
+    "Derived execution-interval and trajectory reference closure without duplicate products.",
+    "Whole semantic catalog content hash verification before capability projection.",
+    "Fixed upstream historical output schema closure bundled with source byte hashes."
+  ],
+  "limitations": [
+    "In-memory store with actual AES codec; not PostgreSQL.",
+    "Controlled Gateway fixtures; not real collected observations, model execution, GSAP deployment, or SACS validation.",
+    "T3, T4 and multiround HTTP coverage incomplete at this tested commit.",
+    "No final readiness declaration, handoff publication or Draft PR created."
+  ]
+}

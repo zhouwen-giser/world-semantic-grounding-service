@@ -194,6 +194,19 @@ describe("advanced execution through a mock Gateway", () => {
     input.gateway.execute = vi.fn(async () => { throw Object.assign(new Error("cancelled"), { code: "ABORTED" }); });
     await expect(executeAdvancedHistoricalAnalysis(input)).rejects.toMatchObject({ code: "ABORTED" });
   });
+  it.each(["TRANSPORT_FAILURE", "HTTP_503", "HTTP_502_PROVIDER_DOWN", "HTTP_403_FORBIDDEN"])("classifies %s separately from contract mismatch", async code => {
+    const input = executionInput("2号车经过哪些道路", "map-match");
+    input.gateway.execute = vi.fn(async () => { throw Object.assign(new Error("private upstream details"), { code }); });
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(result).toMatchObject({ status: "FAILED", reasonCode: "ADVANCED_HISTORY_UPSTREAM_FAILURE" });
+    expect(JSON.stringify(result)).not.toContain("private upstream details");
+    expect(result.foundation).toBeDefined();
+  });
+  it.each(["RESPONSE_SCHEMA_MISMATCH", "INVALID_JSON_RESPONSE", "HTTP_503garbage"])("keeps %s fail-closed as contract mismatch", async code => {
+    const input = executionInput("2号车经过哪些道路", "map-match");
+    input.gateway.execute = vi.fn(async () => { throw Object.assign(new Error("invalid output"), { code }); });
+    expect(await executeAdvancedHistoricalAnalysis(input)).toMatchObject({ status: "FAILED", reasonCode: "ADVANCED_HISTORY_RESULT_INVALID" });
+  });
   it.each([
     ["2号车经过哪些道路", "map-match", ["trajectory.map-match"]],
     ["2号车最后经过哪个路口", "cross-last", ["trajectory.map-match", "temporal-spatial.find-events"]],

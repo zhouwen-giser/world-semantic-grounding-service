@@ -34,7 +34,7 @@ describe("nonempty historical production HTTP", () => {
   let baseUrl: string;
   const calls: string[] = [];
   const gatewayErrors: string[] = [];
-  async function start(advanced: boolean) {
+  async function start(advanced: boolean, failure?: "HASH_DRIFT" | "MAP_UNAVAILABLE") {
     calls.length = 0;
     gatewayErrors.length = 0;
     const fixture = analysisAdmissionFixture();
@@ -63,6 +63,10 @@ describe("nonempty historical production HTTP", () => {
       Object.values(value).forEach(rewrite);
     };
     rewrite(mapEnvelope);
+    const crossEnvelope = JSON.parse(readFileSync(new URL("../validation/fixtures/advanced-history/cross-last.json", import.meta.url), "utf8"));
+    rewrite(crossEnvelope);
+    crossEnvelope.output.value.source.mapMatchResultHash = analysisHash(mapEnvelope.output.value);
+    if (failure === "HASH_DRIFT") crossEnvelope.output.value.source.mapMatchResultHash = analysisHash("unrelated-map-result");
     const history = outputs["history.get-trajectory"];
     const { finalizationState: _state, ...completeness } = mapEnvelope.output.value.inputCompleteness;
     history.completeness = completeness;
@@ -83,12 +87,17 @@ describe("nonempty historical production HTTP", () => {
       calls.push(operationId);
       const descriptor = fixture.metadata.catalog.capabilities.find(entry => entry.operationId === operationId)!;
       expect(body.inputSchemaHash).toBe(descriptor.inputSchemaHash); expect(body.outputSchemaHash).toBe(descriptor.outputSchemaHash);
-      if (operationId === "trajectory.map-match") {
-        expect(body.input.trajectoryReferenceKey).toEqual(trajectory);
-        const envelope = structuredClone(mapEnvelope); envelope.requestId = body.requestId;
+      if (operationId === "trajectory.map-match" || operationId === "temporal-spatial.find-events") {
+        if (operationId === "trajectory.map-match" && failure === "MAP_UNAVAILABLE") return reply.code(503).send({ error: "CONTROLLED_PROVIDER_UNAVAILABLE" });
+        if (operationId === "trajectory.map-match") expect(body.input.trajectoryReferenceKey).toEqual(trajectory);
+        else {
+          expect(body.input.source.mapMatchResult).toEqual(mapEnvelope.output.value);
+          expect(body.input.selection).toEqual({ kind: "LAST" });
+        }
+        const envelope = structuredClone(operationId === "trajectory.map-match" ? mapEnvelope : crossEnvelope); envelope.requestId = body.requestId;
         envelope.execution.resultHash = analysisHash(envelope.output.value);
         for (const receipt of envelope.receipts) { receipt.inputHash = analysisHash(body.input); receipt.outputHash = envelope.execution.resultHash; receipt.computeSnapshotHash = analysisHash(envelope.computeSnapshot); }
-        new AnalysisProviderContracts().validateEnvelope("trajectory.map-match", envelope);
+        new AnalysisProviderContracts().validateEnvelope(operationId, envelope, body.input);
         registry.validate("platform/capability-result-envelope.schema.json", envelope);
         return envelope;
       }
@@ -121,9 +130,11 @@ describe("nonempty historical production HTTP", () => {
     baseUrl = await api.listen({ host: "127.0.0.1", port: 0 });
   }
   afterEach(async () => { await worker?.stop(0); await api?.close(); await gateway?.close(); vi.unstubAllEnvs(); if (directory) rmSync(directory, { recursive: true, force: true }); });
-  it.each([false, true])("queries history and optional map matching over Gateway HTTP (advanced=%s)", async advanced => {
-    await start(advanced);
-    const text = advanced ? "2号车本次任务经过了哪些道路？" : "2号车最近一次任务的历史轨迹";
+  it.each(["TRACE", "MAP", "CROSS", "CROSS_HASH_DRIFT", "CROSS_MAP_UNAVAILABLE"])("queries nonempty %s over Gateway HTTP", async scenario => {
+    const advanced = scenario !== "TRACE";
+    const cross = scenario.startsWith("CROSS");
+    await start(advanced, scenario === "CROSS_HASH_DRIFT" ? "HASH_DRIFT" : scenario === "CROSS_MAP_UNAVAILABLE" ? "MAP_UNAVAILABLE" : undefined);
+    const text = cross ? "2号车最后经过哪个路口" : advanced ? "2号车本次任务经过了哪些道路？" : "2号车最近一次任务的历史轨迹";
     const body = { schemaVersion: "1.0", requestId: `request-${randomUUID()}`, operation: "EXECUTE_WORLD_QUERY", source: { conversationRef: "business-conversation", messageId: `message-${randomUUID()}`, originalText: text, originalTextSha256: utf8Sha256(text), locale: "zh-CN", createdAt: new Date().toISOString() }, requestedProducts: ["WORLD_EVIDENCE"],
       contextCapsule: { knownWorldReferences: [{ referenceKey: subject, referenceType: "WORLD_OBJECT", alias: "2号车", sourceMessageId: "known-subject-message" }, { referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: "任务", sourceMessageId: "known-task-message" }], priorGroundings: [], mapSelections: [], externalCorrelationHints: [], externalPredicates: [] },
       executionPolicy: { readOnly: true, deadlineMs: 15_000, maxQueryOperations: 16, maxCandidatesPerMention: 5, maxResultBytes: 1_048_576, allowApproximation: false } };
@@ -137,13 +148,26 @@ describe("nonempty historical production HTTP", () => {
     expect(finding, JSON.stringify(result)).toBeDefined();
     expect(finding.coverage).toMatchObject({ temporalCoverageRatio: 0.67, sampleCount: 10 });
     expect(result.referenceProducts.some((product: any) => product.productId === finding.executionIntervalReferenceProductId && product.referenceKey.id === interval.id)).toBe(true);
-    expect(calls).toEqual(["reference.validate", "operational-task.get", "operational-task.get-execution-intervals", "history.get-trajectory", ...(advanced ? ["trajectory.map-match"] : [])]);
-    if (advanced) {
+    expect(calls).toEqual(["reference.validate", "operational-task.get", "operational-task.get-execution-intervals", "history.get-trajectory", ...(advanced ? ["trajectory.map-match"] : []), ...(cross && scenario !== "CROSS_MAP_UNAVAILABLE" ? ["temporal-spatial.find-events"] : [])]);
+    if (advanced && scenario !== "CROSS_MAP_UNAVAILABLE") {
       const roads = result.worldAnalysisFindings.findings.find((entry: any) => entry.findingKind === "ROAD_ASSOCIATION");
       expect(roads, JSON.stringify(result)).toBeDefined();
       expect(roads.roadVisits).toHaveLength(4); expect(roads.offNetworkSegments).toHaveLength(2);
       expect(roads.networkRole).toBe("REFERENCE_MODEL_NOT_PHYSICAL_TRUTH");
       expect(roads.associationSuffixComplete).toBe(false);
+    }
+    if (scenario === "CROSS") {
+      const events = result.worldAnalysisFindings.findings.find((entry: any) => entry.findingKind === "TEMPORAL_EVENT");
+      expect(events, JSON.stringify(result)).toBeDefined();
+      expect(events.events).toHaveLength(1);
+      expect(events.selection).toMatchObject({ kind: "LAST", confirmed: false, confirmationScope: "NOT_CONFIRMED", reasonCode: "LAST_EVENT_NOT_CERTAIN" });
+      expect(events.sourceSuffixComplete).toBe(false);
+      expect(events.selection.blockingPeriods).toHaveLength(3);
+    } else if (cross) {
+      expect(result.worldAnalysisFindings.findings.some((entry: any) => entry.findingKind === "TEMPORAL_EVENT")).toBe(false);
+      expect(result.worldAnalysisFindings.gaps.length).toBeGreaterThan(0);
+      expect(result.worldAnalysisFindings.gaps.some((gap: any) => gap.gapKind === (scenario === "CROSS_HASH_DRIFT" ? "UPSTREAM_CONTRACT_MISMATCH" : "UPSTREAM_FAILURE"))).toBe(true);
+      expect(JSON.stringify(result)).not.toContain("CONTROLLED_PROVIDER_UNAVAILABLE");
     }
     for (const key of [trajectory, interval]) expect(result.referenceProducts.filter((product: any) => product.referenceKey.id === key.id)).toHaveLength(1);
     expect(store.jobs.get(result.groundingId)!.resultBytes).toBeDefined();

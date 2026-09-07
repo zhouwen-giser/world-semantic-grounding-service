@@ -65,6 +65,12 @@ results retain interval/trajectory reference closure, off-network segments and
 incomplete suffix semantics, and GET equals the saved result. Memory storage is
 still controlled; none of these fixtures are live collected observations.
 
-CROSS complete/incomplete, Top-K, structured series/rank/action rounds and
-provider-missing business isolation still need HTTP cases. Do not treat this
+CROSS now consumes the complete preceding map-match value through actual signed
+HTTP and retains an unconfirmed LAST when its source suffix is incomplete. A
+rehash-valid T3 response bound to an unrelated T2 result is rejected; T2 HTTP 503
+does not invoke T3 and preserves the independent historical finding. Transport
+failure and contract mismatch use distinct public gaps without raw server errors.
+
+Complete CROSS, Top-K, structured series/rank/action rounds and
+broader provider-missing business isolation still need HTTP cases. Do not treat this
 suite as the complete W06 gate or production readiness.
