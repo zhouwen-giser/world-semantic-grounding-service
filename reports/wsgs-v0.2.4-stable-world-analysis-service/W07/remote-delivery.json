@@ -1,0 +1,19 @@
+{
+  "status": "DRAFT_PR",
+  "branch": "codex/wsgs-v0.2.4-stable-world-analysis-service",
+  "commit": "760723712561bbfe659bd598c774aa3154b98eba",
+  "draftPrUrl": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/15",
+  "observedAt": "2026-09-07T01:27:06.484Z",
+  "command": "gh pr view codex/wsgs-v0.2.4-stable-world-analysis-service --json number,state,isDraft,headRefName,headRefOid,baseRefName,url",
+  "observation": {
+    "baseRefName": "main",
+    "headRefName": "codex/wsgs-v0.2.4-stable-world-analysis-service",
+    "headRefOid": "760723712561bbfe659bd598c774aa3154b98eba",
+    "isDraft": true,
+    "number": 15,
+    "state": "OPEN",
+    "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/15"
+  },
+  "mainCommit": "565e52705bb7656d4623a04655001325ca61acd0",
+  "t5Commit": "0db24edf8490766346904c5ab71fd78fbf3afb5d"
+}

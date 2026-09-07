@@ -60,12 +60,13 @@ The working tree was clean. Dedicated branch:
   the same idempotency key returns 409 without new jobs or Gateway calls.
   WA-055 through WA-063 are mapped in acceptance-ledger.json. This closes the
   Required local scope, not optional real-provider or PostgreSQL verification.
-- W07 NOT_STARTED: isolated consumer handoff, independent final review, all
-  72 evidence-backed rows, report verifier and dedicated Draft PR.
-  Preparation only: disposable offline bundle builder and consumer verifier
-  exercise copied frozen contracts plus six explicit validator dependencies.
-  No permanent handoff is published and no W07 acceptance completion is claimed;
-  W06 Required evidence is now audited. See W07/handoff-preparation.json for exact scope.
+- W07 COMPLETE (Required development delivery): permanent public-only consumer
+  bundle, isolated process verification, focused separate review pass, all 72
+  evidence-backed rows and final report validation PASS. Seven independent
+  required commands passed on implementation commit 14dffed. Draft PR #15 is
+  OPEN/Draft; #14 remains unmerged. Real services/device qualification remains
+  NOT_RUN. Final reports and PR_BODY are in the report root; W07/DELIVERY.md
+  provides precise references instead of duplicate final-report files.
 
 ## Contract Discipline
 
@@ -107,6 +108,10 @@ through WA-072, all W07 delivery requirements. No new runtime gap was identified
 
 ### Batch B: Required Gaps and Consumer Delivery
 
+Status: COMPLETE. The permanent 483-file bundle includes six explicit runtime
+dependencies; fresh filesystem-restricted Node processes verified 44 complete
+examples, two-round linkage and four damaged-bundle rejection cases.
+
 - Implement only the concrete gaps found in Batch A; no new capability families,
   query engines, generic security framework or unrelated refactoring.
 - Finish contracts/consumers/sacs-world-analysis-v1 and the independent clean
@@ -118,6 +123,11 @@ through WA-072, all W07 delivery requirements. No new runtime gap was identified
   do not install or start other projects to turn those optional items into PASS.
 
 ### Batch C: Final Verification and Handoff
+
+Status: COMPLETE. W07 final-check/tests/build/contract/fixture/http and
+handoff-validation all PASS. Full test commands each record 954 PASS/29 skipped;
+HTTP has 23 PASS and fixture has 43 PASS. Final reports qualify only Required
+development scope. Draft PR: https://github.com/zhouwen-giser/world-semantic-grounding-service/pull/15.
 
 - Run the required independent commands once against the completed code batch:
   check, test, build, contract verification, fixture smoke, HTTP and handoff.
