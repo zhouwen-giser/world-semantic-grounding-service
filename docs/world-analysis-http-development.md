@@ -77,6 +77,11 @@ H3 resolution, topK and explicit series identity. Public values retain the actua
 visited position, not the H3 cell center, and distinguish median ranking from
 the representative measurement value.
 
+The default Vitest pool is capped at four workers so simultaneous schema
+compilation and local service initialization do not starve existing short
+regression tests. Existing test deadlines and all assertions remain in force;
+the Vitest CLI can override the worker count for a differently sized runner.
+
 The business suite also runs two-round rank-to-action and three-round ambiguous
 series-to-requery-to-rank-to-action requests. The test store supports only the
 actual scope-filtered prior-result join, returning bytes from the preceding HTTP
