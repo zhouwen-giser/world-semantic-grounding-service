@@ -1,0 +1,264 @@
+{
+  "status": "PASS",
+  "scope": "OFFLINE_PUBLIC_HANDOFF_ONLY",
+  "files": 483,
+  "dependencies": 6,
+  "positiveExamples": 20,
+  "negativeExamples": 24,
+  "results": [
+    {
+      "path": "examples/ranking.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/trace.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/road.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/event.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/action.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/all-choices.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/empty.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/trace-no-data.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/projection-pending.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/provider-failure.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/action-requirements.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/event-incomplete.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/event-display-truncated-proof-retained.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/coexist.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/request-selection.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/request-first.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/job-accepted.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/job-get.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/job-cancel.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/capabilities.json",
+      "expectedValid": true,
+      "actualValid": true
+    },
+    {
+      "path": "examples/invalid-unknown-kind.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-missing-series.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-wrong-profile.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-dangling-rp.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-dangling-evidence.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-duplicate-finding.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-rank-order.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-wrong-median.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-wrong-statistics.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-wrong-unit.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-bad-coordinate.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-altitude.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-raw-payload.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-wrong-choice-rank.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-action-position.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-time-range.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-event-window.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-sub-millisecond-range.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-selection-proof.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-hash.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-duplicate-selection.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-prior-anchor.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-job-state.json",
+      "expectedValid": false,
+      "actualValid": false
+    },
+    {
+      "path": "examples/invalid-capability-reason.json",
+      "expectedValid": false,
+      "actualValid": false
+    }
+  ],
+  "negativeCases": [
+    {
+      "name": "missing-dependency",
+      "status": "PASS",
+      "rejection": "HANDOFF_FILE_SET_MISMATCH"
+    },
+    {
+      "name": "tampered-file",
+      "status": "PASS",
+      "rejection": "HANDOFF_CHECKSUM_MISMATCH:public/validator.mjs"
+    },
+    {
+      "name": "wrong-profile",
+      "status": "PASS",
+      "rejection": "HANDOFF_PROFILE_MISMATCH"
+    },
+    {
+      "name": "rewritten-freeze-lock",
+      "status": "PASS",
+      "rejection": "HANDOFF_FREEZE_LOCK_DRIFT"
+    }
+  ],
+  "qualification": "PREPARATION_ONLY_W06_GATE_REMAINS_OPEN",
+  "startedAt": "2026-09-06T23:51:13.770Z",
+  "finishedAt": "2026-09-06T23:51:14.922Z",
+  "command": "node validation/scripts/build-world-analysis-handoff.mjs --report",
+  "isolation": "Disposable directory outside repository; verifier and public validator imported from copied package in the same Node process. No subprocess or HTTP.",
+  "sourceFiles": {
+    "validation/scripts/build-world-analysis-handoff.mjs": "sha256:2aea5c6bc8cd9715ad80d0bfd5b79ea3c1ef2327691b8f326da74eccc4d6578a",
+    "validation/scripts/world-analysis-handoff-consumer.mjs": "sha256:2635aa6e8a83035d2c0cf2fc2ab5d5995e7b53cb4a213378e7f6f260d0d8d1c7"
+  },
+  "manifestSha256": "sha256:d35d1f03c3adada94040a554f3eee10ee274171881362b416a65ea680378d1f2",
+  "publication": "NOT_PERFORMED",
+  "completeW07Gate": false
+}

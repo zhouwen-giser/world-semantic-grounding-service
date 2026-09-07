@@ -1,0 +1,13 @@
+{
+  "command": "npm run check",
+  "startedAt": "2026-09-06T23:59:04.245Z",
+  "finishedAt": "2026-09-06T23:59:46.049Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "1dca51d90a9da73883282808c35ee8b98c232158",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/signed-discovery-check.log",
+  "logSha256": "sha256:c72d6a51845b6fe5a1177679aa10c9278bf9ff1fa88324bc6b9e53ae005ff54e"
+}
