@@ -1,0 +1,14 @@
+COMMAND ["npm","run","verify:world-analysis-contract"]
+START 2026-09-07T01:20:14.675Z
+COMMIT 14dffed13390e4ee8794cc97f27114fb14b6a7e2
+
+> world-semantic-grounding-service@0.2.1 verify:world-analysis-contract
+> node validation/scripts/verify-world-analysis-contract.mjs
+
+WORLD_ANALYSIS_TYPES_CHECK_PASS schemas=45 types=15
+WORLD_ANALYSIS_EXAMPLES_CHECK_PASS cases=44 positive=20 negative=24
+{"status":"PASS","mode":"VERIFY","files":68,"manifest":"reports/wsgs-v0.2.4-stable-world-analysis-service/W00/legacy-contract-hashes.json"}
+{"status":"PASS","scope":"W01_FROZEN_CONTRACT_ONLY","schemas":45,"examples":44,"assertions":836,"runtimeValidated":false,"liveServicesUsed":false}
+
+EXIT_CODE 0
+SIGNAL NONE

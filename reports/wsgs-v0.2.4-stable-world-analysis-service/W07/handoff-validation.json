@@ -1,0 +1,13 @@
+{
+  "command": "npm run verify:world-analysis:handoff",
+  "startedAt": "2026-09-07T01:19:24.140Z",
+  "finishedAt": "2026-09-07T01:19:26.365Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "14dffed13390e4ee8794cc97f27114fb14b6a7e2",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/handoff-validation.log",
+  "logSha256": "sha256:6793d98ee27a6fd452f839fd12096fcdd796cd85389142dbc25f32b5d16de42f"
+}

@@ -108,7 +108,7 @@ const gaps = [
 if (notes.length !== 63 || gaps.length !== 9 || requirements.length !== 72) throw new Error("ACCEPTANCE_MAPPING_INCOMPLETE");
 const index = new Map();
 function evidence(path) {
-  const value = { path, sha256: digest(path) };
+  const value = { path, sha256: digest(path), locator: "Full file; requirement-specific interpretation is recorded in the row note." };
   if (path.endsWith(".json")) {
     const record = read(path);
     if (record.command && record.logPath && record.logSha256) {
@@ -118,13 +118,25 @@ function evidence(path) {
   }
   index.set(path, value); return value;
 }
+const handoffCommand = read(`${reports}/W07/handoff-validation.json`);
+if (handoffCommand.status !== "PASS" || handoffCommand.exitCode !== 0) throw new Error("HANDOFF_NOT_VERIFIED");
+const handoffEvidence = ["W07/handoff-validation.json", "W07/handoff-validation.log"].map(path => `${reports}/${path}`);
+const handoffRoot = "contracts/consumers/sacs-world-analysis-v1";
+const reviewedW07 = {
+  "WA-064": { note: "Permanent bundle contains only frozen public artifacts, standalone verifier and six explicit validator runtime dependencies; reproducible manifest and file/dependency closure verified.", paths: [...handoffEvidence, `${handoffRoot}/manifest.json`, "validation/scripts/build-world-analysis-handoff.mjs"] },
+  "WA-065": { note: "Fresh filesystem-restricted Node process outside the repository verifies 44 full examples, expected negative codes and two-round sample linkage without WSGS runtime dependencies; not live SACS authorization.", paths: [...handoffEvidence, "validation/scripts/verify-world-analysis-handoff.mjs", `${handoffRoot}/verify.mjs`] },
+  "WA-066": { note: "Missing dependency, tampered validator, wrong profile and rewritten freeze lock each fail in a fresh child with the expected specific code; selection-link hash/candidate negatives also pass.", paths: handoffEvidence },
+  "WA-067": { note: "Delivered public README, semantics, OpenAPI and complete example manifest cover requests/results/jobs/capabilities, ranking-to-selection and cancellation; root verifier runs offline.", paths: [...handoffEvidence, `${handoffRoot}/README.md`, `${handoffRoot}/public/README.md`, `${handoffRoot}/public/SEMANTICS.md`, `${handoffRoot}/public/openapi.json`, `${handoffRoot}/public/examples/manifest.json`] },
+  "WA-069": { note: "Separate focused source-review pass records inspected boundaries and residual limitations with no new blocking defect; this is an implementing-agent review, not an independent human sign-off.", paths: [`${reports}/W07/review.md`] }
+};
 const acceptance = requirements.map((requirement, i) => ({ ...requirement,
-  status: i < notes.length ? "PASS" : "NOT_RUN", note: notes[i] ?? gaps[i - notes.length],
-  verificationScope: i < 63 ? "REVIEWED_L0_OR_CONTROLLED_L1_NOT_LIVE_DEPLOYMENT" : "PENDING_DELIVERABLE",
-  evidence: [...phaseFiles[requirement.phase].map(path => `${reports}/${path}`), ...sources[requirement.phase]].map(evidence)
+  status: i < notes.length || reviewedW07[requirement.id] ? "PASS" : "NOT_RUN", note: reviewedW07[requirement.id]?.note ?? notes[i] ?? gaps[i - notes.length],
+  verificationScope: i < 63 || reviewedW07[requirement.id] ? "REVIEWED_L0_OR_CONTROLLED_L1_NOT_LIVE_DEPLOYMENT" : "PENDING_DELIVERABLE",
+  evidence: (reviewedW07[requirement.id]?.paths ?? [...phaseFiles[requirement.phase].map(path => `${reports}/${path}`), ...sources[requirement.phase]]).map(evidence)
 }));
-const ledger = { schemaVersion: "1.0", scope: "ALL_ORIGINAL_72_REQUIRED_ITEMS", reviewStatus: "BATCH_A_COMPLETE_W07_PENDING",
-  summary: { total: 72, pass: 63, notRun: 9, ready: false }, acceptance };
+const pass = acceptance.filter(row => row.status === "PASS").length;
+const ledger = { schemaVersion: "1.0", scope: "ALL_ORIGINAL_72_REQUIRED_ITEMS", reviewStatus: "HANDOFF_VERIFIED_FINAL_REPORT_AND_REMOTE_PENDING",
+  summary: { total: 72, pass, notRun: 72 - pass, ready: false }, acceptance };
 writeFileSync(resolve(root, reports, "acceptance-ledger.json"), JSON.stringify(ledger, null, 2) + "\n");
 writeFileSync(resolve(root, reports, "evidence-index.json"), JSON.stringify({ schemaVersion: "1.0", evidence: [...index.values()] }, null, 2) + "\n");
 console.log(JSON.stringify(ledger.summary));

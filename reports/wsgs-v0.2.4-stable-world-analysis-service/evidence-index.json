@@ -3,237 +3,351 @@
   "evidence": [
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/baseline.json",
-      "sha256": "sha256:6afe876085882b451e9c559e6e3c53f278d26e7ae525720f4f7e447694931188"
+      "sha256": "sha256:6afe876085882b451e9c559e6e3c53f278d26e7ae525720f4f7e447694931188",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/baseline.md",
-      "sha256": "sha256:e6ee3c040c11a7ee5c3f3bcf3976ddb90561414de5eefae7d02cfce1a93c7f1f"
+      "sha256": "sha256:e6ee3c040c11a7ee5c3f3bcf3976ddb90561414de5eefae7d02cfce1a93c7f1f",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/baseline-check.json",
       "sha256": "sha256:4b7e433376409071108d1eb4e0d5e7e4fc5f9ac8b55231c3ed7ef436609cbd35",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm run check",
       "status": "PASS",
       "testedCommit": "0db24edf8490766346904c5ab71fd78fbf3afb5d"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/baseline-check.log",
-      "sha256": "sha256:061856f4f681a5588f74f733cadc6528de773a929ec4c24c52411ca01a91c3c2"
+      "sha256": "sha256:061856f4f681a5588f74f733cadc6528de773a929ec4c24c52411ca01a91c3c2",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W00/legacy-contract-hashes.json",
-      "sha256": "sha256:bb4a9f063e6e0ab29207591eddf789107eba2862fbb5897496d1e6b2d34d5ffe"
+      "sha256": "sha256:bb4a9f063e6e0ab29207591eddf789107eba2862fbb5897496d1e6b2d34d5ffe",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md",
-      "sha256": "sha256:8959dc94db88fb90062de71c70c77bdd9a72851196a064a9e8a78f7ff66943ce"
+      "sha256": "sha256:8959dc94db88fb90062de71c70c77bdd9a72851196a064a9e8a78f7ff66943ce",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-freeze.json",
-      "sha256": "sha256:a8701e7e2b9a1e0886dfb2bcaabd999721933cdaa8545def6be91eea55cabc48"
+      "sha256": "sha256:a8701e7e2b9a1e0886dfb2bcaabd999721933cdaa8545def6be91eea55cabc48",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.json",
       "sha256": "sha256:a3656d9cc4e9a5ad769ecade19a4527409ea3644ef7fcab4860b5f256c3ddf75",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm run verify:world-analysis-contract",
       "status": "PASS",
       "testedCommit": "e05e6d4d5ac8de617857edc8e81b935e5efc7daf"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-validation.log",
-      "sha256": "sha256:7e43b526042577ae8861e8b0f4ac6d28e802217b36fa440e6bad3616293c1135"
+      "sha256": "sha256:7e43b526042577ae8861e8b0f4ac6d28e802217b36fa440e6bad3616293c1135",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "contracts/wsgs-v0.2.4-world-analysis/contract-release-lock.json",
-      "sha256": "sha256:45f027673834f3d9e654a889eea25eaf81522f594af8dddf6939b91a0dd4c41a"
+      "sha256": "sha256:45f027673834f3d9e654a889eea25eaf81522f594af8dddf6939b91a0dd4c41a",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "contracts/wsgs-v0.2.4-world-analysis/validator.mjs",
-      "sha256": "sha256:8d3fa1dfc4db48237bdf8ac91d87593249294debdf4ba59d01d30bbc1a3de472"
+      "sha256": "sha256:8d3fa1dfc4db48237bdf8ac91d87593249294debdf4ba59d01d30bbc1a3de472",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "contracts/wsgs-v0.2.4-world-analysis/examples/manifest.json",
-      "sha256": "sha256:3584c9a1f5c1ae2a53a052ac93045b0b4656ab5850d2cd24fa06a9bf1d127e7b"
+      "sha256": "sha256:3584c9a1f5c1ae2a53a052ac93045b0b4656ab5850d2cd24fa06a9bf1d127e7b",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-report.json",
-      "sha256": "sha256:00b056ca2cc2282dc102b4f7c9e5d0e868758a4820abd2ad5cd316b30814af95"
+      "sha256": "sha256:00b056ca2cc2282dc102b4f7c9e5d0e868758a4820abd2ad5cd316b30814af95",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.json",
       "sha256": "sha256:35b3e9cccd8d95b7bfab2e8addcffc902492a74b21b60837c995e02766070283",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm run smoke:world-analysis:fixture",
       "status": "PASS",
       "testedCommit": "65704fbd87f15b9ae53eb2940600e60877a36dc1"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/normalization-tests.log",
-      "sha256": "sha256:a53a8a80ed24669eafe0e86a3f4bd02092ebb4db8453a0af0cc5eec30cfcfa2c"
+      "sha256": "sha256:a53a8a80ed24669eafe0e86a3f4bd02092ebb4db8453a0af0cc5eec30cfcfa2c",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/hash-vectors.json",
-      "sha256": "sha256:23f517cc732d291b8900765577314083bcb89aeedb9f21eefe174c9364309faf"
+      "sha256": "sha256:23f517cc732d291b8900765577314083bcb89aeedb9f21eefe174c9364309faf",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "packages/historical-trace-consumer/src/public-world-analysis.ts",
-      "sha256": "sha256:d149c48160493282511990c8106b359120dbc2e4c73cf524e25eb34207becaf5"
+      "sha256": "sha256:d149c48160493282511990c8106b359120dbc2e4c73cf524e25eb34207becaf5",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "packages/historical-trace-consumer/src/public-world-analysis.test.ts",
-      "sha256": "sha256:2a60dfdbabce2e6a7d1476eb5314de5421a3eb9fd237f7191359752d74b136d3"
+      "sha256": "sha256:2a60dfdbabce2e6a7d1476eb5314de5421a3eb9fd237f7191359752d74b136d3",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/closure-review.json",
-      "sha256": "sha256:27cfce44c268dd7f9030f394089964bb415748fda7a9b0656eec3b9438b0871e"
+      "sha256": "sha256:27cfce44c268dd7f9030f394089964bb415748fda7a9b0656eec3b9438b0871e",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/closure-tests.json",
       "sha256": "sha256:55c5b0581cc03ca69431ea207ac3b2acc850bdbf2cbc3d448fa4444bb210d5df",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npx vitest run services/grounding-api/src/contract-negotiation.test.ts services/grounding-api/src/server.test.ts packages/grounding-pipeline/src/backend.test.ts packages/grounding-pipeline/src/postgres-contract-boundary.test.ts services/grounding-worker/src/postgres-contract-recovery.test.ts services/grounding-worker/src/worker.test.ts services/grounding-worker/src/result-schema.test.ts --reporter=verbose",
       "status": "PASS",
       "testedCommit": "ce4d156a41a35c7701eecdf82d2cc1fe73406d24"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/closure-tests.log",
-      "sha256": "sha256:4481072b6abf3098660f49b80bf4eb6803d261a38263bf41a314ba8a20a38f05"
+      "sha256": "sha256:4481072b6abf3098660f49b80bf4eb6803d261a38263bf41a314ba8a20a38f05",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W03/migration-notes.md",
-      "sha256": "sha256:e319132a8deaebe526902aaa01e37d6dd2f8324ac85a5b83e40bcfe9d66cc643"
+      "sha256": "sha256:e319132a8deaebe526902aaa01e37d6dd2f8324ac85a5b83e40bcfe9d66cc643",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "tests/world-analysis-http.test.ts",
-      "sha256": "sha256:09b4a6e60fccb35c679831ca4b8e2f78f79e1cd2498fc78fafea33621c6957e1"
+      "sha256": "sha256:09b4a6e60fccb35c679831ca4b8e2f78f79e1cd2498fc78fafea33621c6957e1",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "tests/world-analysis-business-http.test.ts",
-      "sha256": "sha256:ec27446b1f30ea4ed333133e5b86320f3367fabebc636b1666e93e13c2ee990f"
+      "sha256": "sha256:ec27446b1f30ea4ed333133e5b86320f3367fabebc636b1666e93e13c2ee990f",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "services/grounding-worker/src/postgres-contract-recovery.test.ts",
-      "sha256": "sha256:6247ab30c03fec946e80b802e79c70e132771153e4b3744a1967f46b1633b65a"
+      "sha256": "sha256:6247ab30c03fec946e80b802e79c70e132771153e4b3744a1967f46b1633b65a",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-tests.json",
       "sha256": "sha256:35a119d7208f8340c7082b67d28bfb55fd66bd1ec362c01ac7711b01df482274",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm test",
       "status": "PASS",
       "testedCommit": "ce4d156a41a35c7701eecdf82d2cc1fe73406d24"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-tests.log",
-      "sha256": "sha256:797a1b2110dc021be2315aa6ed9446fadcb34069871df3550266adf61549590c"
+      "sha256": "sha256:797a1b2110dc021be2315aa6ed9446fadcb34069871df3550266adf61549590c",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-http.json",
       "sha256": "sha256:c5d54c9917de902a2611f248efa14392665b57bb364e802c0e91918212d81eb7",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm run test:world-analysis:http",
       "status": "PASS",
       "testedCommit": "ce4d156a41a35c7701eecdf82d2cc1fe73406d24"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-http.log",
-      "sha256": "sha256:04b49ca35cffd2a62491be830bd7fdf53ce838f2c9681e7098f15d8a5cf57625"
+      "sha256": "sha256:04b49ca35cffd2a62491be830bd7fdf53ce838f2c9681e7098f15d8a5cf57625",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "packages/prior-grounding/src/analysis-selection.test.ts",
-      "sha256": "sha256:9dbf91991c7f53b93287e66b8d07e047ec7e4918d4e64fff31fa765c973a18d3"
+      "sha256": "sha256:9dbf91991c7f53b93287e66b8d07e047ec7e4918d4e64fff31fa765c973a18d3",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "packages/historical-trace-consumer/src/advanced-historical.test.ts",
-      "sha256": "sha256:3abcc7274ca0dde83e2175bbd3eb3e3165a1c9e5cef1d5b32561df7fed1103cc"
+      "sha256": "sha256:3abcc7274ca0dde83e2175bbd3eb3e3165a1c9e5cef1d5b32561df7fed1103cc",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "services/grounding-worker/src/prior-analysis-authority.test.ts",
-      "sha256": "sha256:8821a63a5ae4385d341d985d9153da3d5592e22bfab8ed568047d168ec147775"
+      "sha256": "sha256:8821a63a5ae4385d341d985d9153da3d5592e22bfab8ed568047d168ec147775",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "contracts/wsgs-v0.2.4-world-analysis/examples/action-requirements.json",
-      "sha256": "sha256:8429ed1a9090049bffa7b62652b8b74a2bdc6f66ccbef0a74a3ac0531e9cd061"
+      "sha256": "sha256:8429ed1a9090049bffa7b62652b8b74a2bdc6f66ccbef0a74a3ac0531e9cd061",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-check.json",
       "sha256": "sha256:95af45d7244ce0aa2dca013a27edb33526cdb28de95d2debdcb9290cff0ec1a4",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm run check",
       "status": "PASS",
       "testedCommit": "ce4d156a41a35c7701eecdf82d2cc1fe73406d24"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-check.log",
-      "sha256": "sha256:ee567bf38381ae749b6b82e31d3bece8367385fe91b290403d91eaf514e8eeaa"
+      "sha256": "sha256:ee567bf38381ae749b6b82e31d3bece8367385fe91b290403d91eaf514e8eeaa",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "services/grounding-worker/src/world-analysis-capabilities.test.ts",
-      "sha256": "sha256:4740acf0b93a7d3b19f6970249b7837e15933b63332907f03d0a12cd6bc3af41"
+      "sha256": "sha256:4740acf0b93a7d3b19f6970249b7837e15933b63332907f03d0a12cd6bc3af41",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "services/grounding-api/src/production-capabilities.test.ts",
-      "sha256": "sha256:69909e549f860658e9141742e7de58d960aaf38500f75d388eccc5b659880729"
+      "sha256": "sha256:69909e549f860658e9141742e7de58d960aaf38500f75d388eccc5b659880729",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "tests/world-analysis-discovery-http.test.ts",
-      "sha256": "sha256:c1d2d6d2fe3ba082b78cb8e413b8611302f7aa4b7c3cf15b464b1428b0a5b015"
+      "sha256": "sha256:c1d2d6d2fe3ba082b78cb8e413b8611302f7aa4b7c3cf15b464b1428b0a5b015",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "packages/query-compiler/src/gdps.test.ts",
-      "sha256": "sha256:dd6407bc131d5f9143c6f063fa4396528a0a32a9903f6f13ddd5ca35597654a5"
+      "sha256": "sha256:dd6407bc131d5f9143c6f063fa4396528a0a32a9903f6f13ddd5ca35597654a5",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "packages/gowm-execution-evidence/src/gdps.test.ts",
-      "sha256": "sha256:3796709328ee4ce6d310c31690544aa542bc78b7e19ee51fbb83985b8129778b"
+      "sha256": "sha256:3796709328ee4ce6d310c31690544aa542bc78b7e19ee51fbb83985b8129778b",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "docs/world-analysis-capabilities.md",
-      "sha256": "sha256:cec162376e6085563ec619d95d5f6c5111269ffe9461997f3285a0ca3934ef86"
+      "sha256": "sha256:cec162376e6085563ec619d95d5f6c5111269ffe9461997f3285a0ca3934ef86",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": ".env.example",
-      "sha256": "sha256:5dc50544e88919c1b1b47fffa07cbce343e187f47537918526293001f96b93d8"
+      "sha256": "sha256:5dc50544e88919c1b1b47fffa07cbce343e187f47537918526293001f96b93d8",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-build.json",
       "sha256": "sha256:83ab109f383078adf5904588e5f991d76b6f4a195455b12a4d4038f2d5c16de3",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm run build",
       "status": "PASS",
       "testedCommit": "ce4d156a41a35c7701eecdf82d2cc1fe73406d24"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-build.log",
-      "sha256": "sha256:5d092e9b951b2b2cc2abca14d161baf3759c828f844b9784a49f77e61227c059"
+      "sha256": "sha256:5d092e9b951b2b2cc2abca14d161baf3759c828f844b9784a49f77e61227c059",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/metric-rounds-contract.json",
       "sha256": "sha256:56950242e97e2db9f4e9fa6203b37d38745228b41fe32cabfa9ea7be088e90b2",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm run verify:world-analysis-contract",
       "status": "PASS",
       "testedCommit": "23fe67b3833fad53d4789de28e2cb3fb4a75c743"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/metric-rounds-contract.log",
-      "sha256": "sha256:c513e0dac98a75b949062981c63c40ace90c40254ba004273ecc6255367be958"
+      "sha256": "sha256:c513e0dac98a75b949062981c63c40ace90c40254ba004273ecc6255367be958",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/metric-rounds-fixture.json",
       "sha256": "sha256:37153482f660288aad1d5da73fa212f8c86ab057663977f9391b8eed65385a4d",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
       "command": "npm run smoke:world-analysis:fixture",
       "status": "PASS",
       "testedCommit": "23fe67b3833fad53d4789de28e2cb3fb4a75c743"
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/metric-rounds-fixture.log",
-      "sha256": "sha256:dba79b34b08b0f9624992adf6d06834f1632fd8c9a2d4ffece3752dafe35370e"
+      "sha256": "sha256:dba79b34b08b0f9624992adf6d06834f1632fd8c9a2d4ffece3752dafe35370e",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/complete-cross-summary.json",
-      "sha256": "sha256:7517bf7c18ab7f8280881e15932828170fd2903560aa76fb67366d9db1a4c282"
+      "sha256": "sha256:7517bf7c18ab7f8280881e15932828170fd2903560aa76fb67366d9db1a4c282",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "tests/world-analysis-http-support.ts",
-      "sha256": "sha256:28120a7bd00ac103b78bf1a8cdcd3ebfdac7cb6752b350056b6efff7ea736a61"
+      "sha256": "sha256:28120a7bd00ac103b78bf1a8cdcd3ebfdac7cb6752b350056b6efff7ea736a61",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     },
     {
       "path": "docs/world-analysis-http-development.md",
-      "sha256": "sha256:c643f4bdb95b6734d5ee35524fab9841fa06c6054e4de914be980a16e8b25573"
+      "sha256": "sha256:c643f4bdb95b6734d5ee35524fab9841fa06c6054e4de914be980a16e8b25573",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/handoff-validation.json",
+      "sha256": "sha256:25298473206c21b60424f9d6353db2538cd34a331ce6474b95e9a373386c60ba",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note.",
+      "command": "npm run verify:world-analysis:handoff",
+      "status": "PASS",
+      "testedCommit": "14dffed13390e4ee8794cc97f27114fb14b6a7e2"
+    },
+    {
+      "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/handoff-validation.log",
+      "sha256": "sha256:6793d98ee27a6fd452f839fd12096fcdd796cd85389142dbc25f32b5d16de42f",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "contracts/consumers/sacs-world-analysis-v1/manifest.json",
+      "sha256": "sha256:40f3982495453ab2a7a1e6dbbe782ba25c1e6ff72b48a42b8323133156534dc0",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "validation/scripts/build-world-analysis-handoff.mjs",
+      "sha256": "sha256:2aea5c6bc8cd9715ad80d0bfd5b79ea3c1ef2327691b8f326da74eccc4d6578a",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "validation/scripts/verify-world-analysis-handoff.mjs",
+      "sha256": "sha256:4dfb1b6a3dcb06222c7e0f0d6f7434e767324e2bc8002e6e4f8bd969658da46b",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "contracts/consumers/sacs-world-analysis-v1/verify.mjs",
+      "sha256": "sha256:d9d94877d3129a7568ff90407ba20f1f4bd3e7d5aff91acc17e6435d7fa5c568",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "contracts/consumers/sacs-world-analysis-v1/README.md",
+      "sha256": "sha256:d9e2309f10b1a6b7a9b3d61a8c54e1b1b875c7e4cacb7811b4f7fa87ab61347c",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "contracts/consumers/sacs-world-analysis-v1/public/README.md",
+      "sha256": "sha256:6964fc1b9cb5a2f743c75ab7545858d90a79bc12d2808a7198c632b51a1f56f2",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "contracts/consumers/sacs-world-analysis-v1/public/SEMANTICS.md",
+      "sha256": "sha256:565ce686c4927e32a77d287b4d5b0ac5b94c77e450ab1fd018a19100ef6193a8",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "contracts/consumers/sacs-world-analysis-v1/public/openapi.json",
+      "sha256": "sha256:1c60c692b0d6351756e3d918827b3b161cfcfca413a6fea6c0a8730aa5c26837",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "contracts/consumers/sacs-world-analysis-v1/public/examples/manifest.json",
+      "sha256": "sha256:3584c9a1f5c1ae2a53a052ac93045b0b4656ab5850d2cd24fa06a9bf1d127e7b",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
+    },
+    {
+      "path": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/review.md",
+      "sha256": "sha256:1524a2621cc7b6cb022a8f631f07ad51797e530015e20a31dd470f0ea9040f7c",
+      "locator": "Full file; requirement-specific interpretation is recorded in the row note."
     }
   ]
 }

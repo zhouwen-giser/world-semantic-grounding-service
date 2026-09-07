@@ -1,0 +1,13 @@
+{
+  "command": "npm run smoke:world-analysis:fixture",
+  "startedAt": "2026-09-07T01:21:15.097Z",
+  "finishedAt": "2026-09-07T01:21:21.242Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "14dffed13390e4ee8794cc97f27114fb14b6a7e2",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W07/final-fixture.log",
+  "logSha256": "sha256:4005be510568dfdce63018b6318d28d9429f093aa22cd61055b27a7c66a6b168"
+}
