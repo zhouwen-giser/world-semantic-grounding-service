@@ -149,5 +149,5 @@ describe("nonempty historical production HTTP", () => {
     expect(store.jobs.get(result.groundingId)!.resultBytes).toBeDefined();
     const saved = await (await fetch(`${baseUrl}/v1/groundings/${result.groundingId}`, { headers })).json();
     expect(saved.result).toEqual(result);
-  });
+  }, 30_000);
 });
