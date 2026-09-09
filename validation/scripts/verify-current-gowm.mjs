@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import Ajv from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
@@ -17,16 +16,20 @@ for(const [file,expected] of Object.entries(snapshot.gdpsArtifacts)) if(hash('gd
 if(hash('bundle/MANIFEST.json') !== snapshot.manifestSha256 || hash(snapshot.lockPath) !== snapshot.lockSha256) throw Error('CURRENT_SNAPSHOT_DRIFT');
 const ajv = new Ajv({strict:true, strictRequired:false, strictTypes:false, strictTuples:false, allErrors:true});
 addFormats(ajv);
+// Schema identity belongs to the bundle, not the host filesystem. In particular,
+// Ajv normalizes %7E to ~ when resolving references in Windows short temp paths.
+// This namespace is an in-memory registry only; schemas are never fetched.
+const schemaUri = relative => new URL(relative, 'https://wsgs.invalid/consumer/').href;
 const schemas = [];
 for(const entry of [...read('bundle/MANIFEST.json').files, ...Object.entries(snapshot.supportingSchemas).map(([p,v])=>({path:p,sha256:v.sha256}))]){
   if(hash('bundle/'+entry.path) !== entry.sha256) throw Error('CURRENT_MANIFEST_DRIFT');
   if(!entry.path.startsWith('schemas/') || !entry.path.endsWith('.schema.json')) continue;
-  const uri = pathToFileURL(path.join(root, 'bundle', entry.path)).href;
+  const uri = schemaUri('bundle/' + entry.path);
   ajv.addSchema({...read('bundle/'+entry.path), $id:uri},uri);
   schemas.push(uri);
 }
 for(const uri of schemas) ajv.getSchema(uri);
-const validate = ajv.getSchema(pathToFileURL(path.join(root,snapshot.lockSchemaPath)).href);
+const validate = ajv.getSchema(schemaUri(snapshot.lockSchemaPath));
 if(!validate(read(snapshot.lockPath))) throw Error('CURRENT_LOCK_SCHEMA_MISMATCH');
 if(!validate(read(snapshot.operationalLockPath))) throw Error('CURRENT_COMBINED_LOCK_SCHEMA_MISMATCH');
 console.log(JSON.stringify({status:'PASS', packageVersion:snapshot.packageVersion, schemas:schemas.length}));

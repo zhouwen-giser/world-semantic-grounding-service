@@ -16,7 +16,7 @@ PATTERN = r'gowm-dev-server-(\d+\.\d+\.\d+)\.tar\.gz'
 
 class PublishedReleaseTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = tempfile.TemporaryDirectory(prefix="wsgs~ refresh-契约-")
         self.root = Path(self.temp.name)
 
     def tearDown(self):
@@ -79,7 +79,7 @@ class PublishedReleaseTests(unittest.TestCase):
 class FullConsumerRefreshTests(unittest.TestCase):
     """Synthetic future publication with the current public contracts, never live evidence."""
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = tempfile.TemporaryDirectory(prefix="wsgs~ refresh-契约-")
         self.root = Path(self.temp.name)
         self.current = refresh.ROOT / 'contracts/upstream/gowm-current'
         self.snapshot = json.loads((self.current / 'SNAPSHOT.json').read_text(encoding="utf-8"))
