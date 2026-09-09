@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0",
+  "checks": [
+    {
+      "id": "L2-GATEWAY",
+      "check": "真实签名 GOWM Gateway + 实际 T2/T3/T4 Provider 只读链路",
+      "priority": "OPTIONAL",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "L2-POSTGRES",
+      "check": "真实隔离 PostgreSQL 的新迁移、scope、restart/recovery",
+      "priority": "OPTIONAL",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "L2-MODEL",
+      "check": "真实语义模型处理本次新 profile 用例",
+      "priority": "OPTIONAL",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "L2-SACS",
+      "check": "真实 SACS 消费 1.2 合同",
+      "priority": "LATER_INTEGRATION",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "L2-DEVICE",
+      "check": "SACS→SDAR→SMPP→设备完整执行",
+      "priority": "OUT_OF_SCOPE",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "L3-PRODUCTION",
+      "check": "生产负载/SLO/HA/灾备/发布资格",
+      "priority": "DEFERRED",
+      "status": "DEFERRED"
+    }
+  ]
+}

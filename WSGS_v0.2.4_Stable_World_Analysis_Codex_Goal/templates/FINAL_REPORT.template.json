@@ -1,0 +1,487 @@
+{
+  "schemaVersion": "1.0",
+  "taskId": "wsgs-v0.2.4-stable-world-analysis-goal",
+  "status": "NOT_RUN",
+  "completionMarker": null,
+  "repository": "zhouwen-giser/world-semantic-grounding-service",
+  "source": {
+    "mainCommit": null,
+    "featureCommit": null,
+    "testedCommit": null,
+    "testedWorkingTreeDirty": null,
+    "testedDiffSha256": null
+  },
+  "contract": {
+    "state": "NOT_YET_FROZEN",
+    "contractVersion": "sacs-wsgs-grounding/1.2",
+    "resultProfile": "wsgs-world-analysis-findings/1.0",
+    "freezeCommit": null,
+    "freezeManifestPath": null,
+    "freezeManifestSha256": null
+  },
+  "verificationLevels": {
+    "L0_CONTRACT_UNIT": "NOT_RUN",
+    "L1_HTTP_DEVELOPMENT_CONTROLLED_DEPENDENCIES": "NOT_RUN",
+    "L2_LIVE_GATEWAY": "NOT_RUN",
+    "L2_REAL_POSTGRES": "NOT_RUN",
+    "L2_REAL_MODEL": "NOT_RUN",
+    "L2_REAL_SACS": "NOT_RUN",
+    "L2_REAL_DEVICE": "NOT_RUN",
+    "L3_PRODUCTION": "DEFERRED"
+  },
+  "controlledDependencies": [],
+  "commands": [],
+  "acceptance": [
+    {
+      "id": "WA-001",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-002",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-003",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-004",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-005",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-006",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-007",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-008",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-009",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-010",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-011",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-012",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-013",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-014",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-015",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-016",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-017",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-018",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-019",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-020",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-021",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-022",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-023",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-024",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-025",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-026",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-027",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-028",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-029",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-030",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-031",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-032",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-033",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-034",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-035",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-036",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-037",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-038",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-039",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-040",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-041",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-042",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-043",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-044",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-045",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-046",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-047",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-048",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-049",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-050",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-051",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-052",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-053",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-054",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-055",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-056",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-057",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-058",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-059",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-060",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-061",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-062",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-063",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-064",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-065",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-066",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-067",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-068",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-069",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-070",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-071",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "WA-072",
+      "status": "NOT_RUN",
+      "evidence": [],
+      "note": ""
+    }
+  ],
+  "blockers": [],
+  "limitations": [],
+  "remoteDelivery": {
+    "status": "NOT_RUN",
+    "branch": null,
+    "commit": null,
+    "draftPrUrl": null
+  },
+  "claims": {
+    "productionReady": false,
+    "releaseQualified": false,
+    "strictReplayReady": false,
+    "deviceExecutionAuthorized": false
+  },
+  "handoff": {
+    "status": "NOT_RUN",
+    "manifestPath": null,
+    "manifestSha256": null
+  }
+}

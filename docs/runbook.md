@@ -1,5 +1,9 @@
 # WSGS 0.2 Operations Runbook
 
+The opt-in GSAP T2/T3/T4 consumer is documented in [advanced historical analysis](advanced-historical-analysis.md). It requires both history and advanced-history flags, exact deployed operation locks, and the existing signed Gateway authority. Its narrowly verified PREVIEW authorization does not require globally enabling arbitrary PREVIEW operations. Missing analysis providers remain optional for ordinary WSGS readiness.
+
+The optional GOWM task-interval and historical-trajectory integration is documented in [historical trace consumption](historical-trace-consumption.md). It is disabled by default and requires both `WSGS_ALLOW_PREVIEW_CAPABILITIES=YES` and `WSGS_HISTORY_TRACE_ENABLED=YES`, plus the exact operation lock from the current GOWM deployment. Missing historical capabilities do not make stable WSGS readiness fail.
+
 ## Current qualification state
 
 WSGS 0.2.0 is a blocked integration candidate, not a production release. Repeated real semantic-model runs passed. The signed Sample World operational-candidate gate reports **8 trusted PASS / 2 BLOCKED**: its exact lock, live contract/binding/semantic authority, five-operation signed availability, direct sync calls, World Query `202`/poll, cancellation, and receipt retrieval pass.
@@ -173,3 +177,56 @@ docker compose --project-name wsgs-v02-smoke --env-file .env down
 - On GOWM catalog, semantic lock, availability, delegation, scope, or snapshot drift, keep readiness closed and do not bypass the Gateway or read provider databases directly.
 - On worker shutdown, durable jobs and append-only pipeline events remain authoritative in PostgreSQL. Expired leases may be reclaimed after the configured grace period; terminal and cancelled results must not regress.
 - Rotate JWT, encryption, model, Gateway, and delegation credentials outside the image. Review logs before sharing them and never paste raw environment values into reports.
+
+## Runtime defect fixes: configuration and source cleanup
+
+Compose passes `WSGS_WORLD_ANALYSIS_CONSUMER_PRINCIPALS_JSON` to the API;
+its default `[]` keeps the 1.2 contract disabled. `WSGS_PRIMARY_DATA_SCOPE`
+selects one exact authorized scope for multi-scope identities. Empty or unset
+preserves the single-scope behavior; whitespace and wildcard values are invalid.
+Neither setting expands Gateway authority.
+
+`WSGS_SOURCE_RETENTION_MS` is an API setting (default 3600000, supported range
+1000–604800000). The worker reads `WSGS_SOURCE_CLEANUP_INTERVAL_MS` (default
+60000, positive integer up to 2147483647) and `WSGS_SOURCE_CLEANUP_BATCH_SIZE`
+(default 100, positive safe integer). Cleanup runs at startup and after each
+interval, never overlaps itself, and uses job locks to coexist with other workers.
+Only expired terminal jobs are cleaned. Active jobs keep their original deadline;
+results and idempotency replay are retained. See [context retention](context-and-prior-grounding.md).
+
+After updating environment values, recreate the affected API/worker containers.
+Existing expired terminal data is processed in bounded batches without a schema
+migration. Observe `source_cleanup` counts and `source_cleanup_failed` codes;
+failures are retried on the next scan. Cleanup stops before the database pool closes.
+
+Transient database/transaction errors in the worker loop back off from 500 ms to
+30 seconds, resetting after success. Corrupt claimed input is fenced into a
+`WORKER_CLAIM_INVALID` failure without stopping other work. Unknown runtime errors
+stop admission and drain/abort active work before the pool closes. A missing COMMIT
+response never causes a compensating FAILED write over a possibly committed result.
+Runtime logs contain codes and task identifiers, not source text or credentials.
+If the dedicated LISTEN connection is lost, `worker_cancellation_listener_lost`
+reports the loss and lease heartbeats continue detecting persisted cancellations.
+Push notifications resume after worker recreation; no restart matrix is claimed.
+
+Malformed or empty JSON now returns 400 `INVALID_JSON_BODY`; unsupported media
+returns 415 `UNSUPPORTED_MEDIA_TYPE`; oversized bodies retain 413
+`REQUEST_TOO_LARGE`. These request errors are not retryable. Unknown internal
+errors still return the redacted 500 protocol envelope.
+
+These fixes do not qualify production readiness or close the production-deferred
+restart, performance, security, HA or disaster-recovery matrices.
+
+## Latest formal consumer and isolated instance
+
+The current refresh/build/deploy workflow is documented in [latest-gowm-instance.md](latest-gowm-instance.md). Its instance acceptance is separate from the historical qualification gates above and does not change production eligibility.
+
+### 历史查询的有效快照
+
+历史执行区间通过 `HISTORICAL_EXECUTION_INTERVAL` World Query 查询；轨迹通过 `HISTORICAL_TRAJECTORY` 的区间→轨迹双节点计划查询。两者使用 `LATEST_AT_START` 且禁止降级，由 Gateway 捕获快照并发现依赖。任务发现、任务读取及 actor 引用刷新继续使用授权直接操作，区间和轨迹没有直接操作回退。
+
+Worker 在提交前将计划写入现有 `world_query`，受理后先保存 Gateway 任务标识再轮询；恢复复用原计划、幂等标识及原截止时间，所有数据库写入受租约代际约束。返回结果验证整体和节点哈希、发布 Schema、回执以及 requested/effective 快照。没有执行的依赖节点不会伪造输入哈希或回执；Gateway 明确标记 `NODE_NOT_EXECUTED` 的跳过节点保留原域状态，不作为已执行节点的快照失败。
+
+现场诊断必须区分快照适配成功与业务完成。区间为 `PENDING`、`NO_DATA` 或无可用引用时，轨迹被跳过，高级分析不能计作成功。原始数据、历史结果、追问有效期和生产延期范围保持原规则。诊断候选结束后停止 API/Worker，不自动激活。
+
+模型解析会在任务原截止时间内为后续处理保留最多 30 秒（剩余不足 60 秒时保留一半）。预算耗尽以 `MODEL_BUDGET_EXCEEDED` 结束必需模型解析，不延长总截止时间。到期清理的公开阶段来自持久化流水线阶段；历史依赖熔断应表现为上游不可用，不应通过删除契约注册信息变成“未注册”。已有任务的冻结快照不会自动刷新。

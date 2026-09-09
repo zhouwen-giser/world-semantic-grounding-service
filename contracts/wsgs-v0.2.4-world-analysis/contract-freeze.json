@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "status": "FROZEN_UNDISTRIBUTED_CANDIDATE",
+  "contractVersion": "sacs-wsgs-grounding/1.2",
+  "resultProfile": "wsgs-world-analysis-findings/1.0",
+  "phase": "W01",
+  "frozenAt": "2026-09-06T14:52:19.014Z",
+  "precedingCommit": "1e7e85285f3c9991e6e439c29be2ee07bea54516",
+  "freezeCommitLocation": "reports/wsgs-v0.2.4-stable-world-analysis-service/W01/contract-freeze.json",
+  "runtimeImplementationStarted": false,
+  "validatedScope": "OFFLINE_PUBLIC_CONTRACT_ONLY",
+  "distributionRule": "No silent replacement. Explicitly withdraw undistributed candidate or publish a new version after handoff."
+}

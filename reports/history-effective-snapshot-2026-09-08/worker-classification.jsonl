@@ -1,0 +1,2 @@
+{"event": "historical_query_node_failed", "groundingId": "grounding-3686575b-fddc-4c10-9f4f-dd01c7dfa5b9", "stage": "FOUNDATION", "code": "PROVIDER_NOT_READY", "operationId": "history.get-trajectory"}
+{"event": "advanced_execution_failed", "groundingId": "grounding-3686575b-fddc-4c10-9f4f-dd01c7dfa5b9", "phase": "FOUNDATION", "code": "HISTORICAL_UPSTREAM_UNAVAILABLE", "classification": "ADVANCED_HISTORY_UPSTREAM_FAILURE"}

@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import {
   expectedGowmPackageIntegrityEvidence,
   verifyGowmContractIntake
-} from "../../packages/gowm-contract-intake/src/index.js";
+} from "../../packages/gowm-contract-intake/src/historical-intake.js";
 
 try {
   const write = process.argv.includes("--write");

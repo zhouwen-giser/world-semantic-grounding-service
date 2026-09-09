@@ -1,0 +1,103 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`public world analysis projection > maps validated cross-last through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "ROAD_ASSOCIATION",
+    "TEMPORAL_EVENT",
+  ],
+  "profileHash": "sha256:0e7fd174f499080b54e585729115e3c34cc54e9e9fa15ddffbb109d4c76ca931",
+  "resultHash": "sha256:b1faa908bedf4e029b5dce2330dc1600bfcf6046a9f6f0bcf05f2a0e5246506f",
+}
+`;
+
+exports[`public world analysis projection > maps validated dwell through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "TEMPORAL_EVENT",
+  ],
+  "profileHash": "sha256:eb81ec4e8b98717f541939dbed5c5b73ebd26f8aa2f468ce13453de1e01747a3",
+  "resultHash": "sha256:5a53a5bf8fd55ab09e0b1efb50905d6412b60cbd2666e9cf0c9a2d53e2dbf86e",
+}
+`;
+
+exports[`public world analysis projection > maps validated enter through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "TEMPORAL_EVENT",
+  ],
+  "profileHash": "sha256:0685ae94f6c6a0102799f832113af949849e516affe5c3a6087428a141d6bd10",
+  "resultHash": "sha256:e43a0a21c71934b4098568b693f4dc1a5c69fbeab559244c4514ad9c48024b6b",
+}
+`;
+
+exports[`public world analysis projection > maps validated exit through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "TEMPORAL_EVENT",
+  ],
+  "profileHash": "sha256:1c9919adacc43fc770732c80b65b24aade16bb94d1c984ca05534fe703ee1f6c",
+  "resultHash": "sha256:dc3eb008b37e1dadb0d170e971b1d82ac557c03371d29b488b3e6e97303c9669",
+}
+`;
+
+exports[`public world analysis projection > maps validated map-match through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "ROAD_ASSOCIATION",
+  ],
+  "profileHash": "sha256:d8d690aed5467be9ea47ac3e736a1b0f85ea1b19d8af4606178ad6349cae986a",
+  "resultHash": "sha256:50c65ab7f1106fd51f86d292a4b015009156c3c65625a5006b33729b675d3410",
+}
+`;
+
+exports[`public world analysis projection > maps validated metric-minimize-metric through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "METRIC_RANKING",
+    "ACTION_TARGET_CANDIDATE",
+  ],
+  "profileHash": "sha256:b66118c6ac1421f8656c62f6e2251d50149caa1cb284486ec9592833318a38b5",
+  "resultHash": "sha256:90053a17de2b5a4f005e83bd8cb4e79b2a58a30e843a47d8e9e13e04f4ed8e34",
+}
+`;
+
+exports[`public world analysis projection > maps validated metric-shared-campus through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "METRIC_RANKING",
+    "ACTION_TARGET_CANDIDATE",
+  ],
+  "profileHash": "sha256:9bc324d20a5c0c96d5703c86433b636ad9f08bd7ecd364ec837038f24685f917",
+  "resultHash": "sha256:f7c433c6b9418d27df39e71b672ddf87ebbd77805e8138956368ae16538d6597",
+}
+`;
+
+exports[`public world analysis projection > maps validated pass_near through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "TEMPORAL_EVENT",
+  ],
+  "profileHash": "sha256:66dfbba31af63f594f4744b5a304166e6e298720892e8487dbb70b781db3372f",
+  "resultHash": "sha256:389724bcb33232c8f00b9442878698283706a97b90bdebd0e499ce34dbf9cad2",
+}
+`;
+
+exports[`public world analysis projection > maps validated stop through the full public result 1`] = `
+{
+  "kinds": [
+    "HISTORICAL_TRACE",
+    "TEMPORAL_EVENT",
+  ],
+  "profileHash": "sha256:e39e408a608076986316eaee7c06bbb48eac878f406c8a1f817685c8e9d160a1",
+  "resultHash": "sha256:37d1f8bde4ac4af7bf543f9297e30f7893d4d315d50de9eb223ddffd8e10291f",
+}
+`;

@@ -1,0 +1,15 @@
+{
+  "name": "@wsgs/historical-trace-consumer",
+  "version": "0.2.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": "./dist/index.js",
+  "dependencies": {
+    "@wsgs/contracts": "0.2.1",
+    "@wsgs/gowm-contract-intake": "0.2.1",
+    "@wsgs/query-compiler": "0.2.1",
+    "ajv": "8.20.0"
+  }
+}

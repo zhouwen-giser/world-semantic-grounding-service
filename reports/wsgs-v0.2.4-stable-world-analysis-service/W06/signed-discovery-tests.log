@@ -1,0 +1,19 @@
+COMMAND ["npm","test"]
+START 2026-09-07T00:00:06.160Z
+COMMIT 1dca51d90a9da73883282808c35ee8b98c232158
+
+> world-semantic-grounding-service@0.2.1 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  72 passed | 4 skipped (76)
+      Tests  938 passed | 29 skipped (967)
+   Start at  08:00:06
+   Duration  29.53s (transform 22.88s, setup 0ms, import 134.36s, tests 130.09s, environment 26ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE

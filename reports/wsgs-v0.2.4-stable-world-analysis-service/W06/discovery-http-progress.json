@@ -1,0 +1,34 @@
+{
+  "phase": "W06",
+  "status": "IN_PROGRESS",
+  "sourceState": "COMMITTED",
+  "testedCommit": "1dca51d90a9da73883282808c35ee8b98c232158",
+  "formalEvidence": "signed-discovery-http.json",
+  "testFile": "tests/world-analysis-discovery-http.test.ts",
+  "plannedTestCount": 5,
+  "scope": "Real northbound JWT HTTP authentication, production backend and discovery function, signed RS256 Gateway metadata HTTP with controlled availability",
+  "lastExecutedAttempt": {
+    "status": "FAIL",
+    "reason": "Controlled registryVersion did not match the existing registry-[0-9]+ schema pattern; corrected to registry-1 after this attempt.",
+    "rerun": "PASS",
+    "rerunReason": "After rechecking and presenting the original command's loopback-only boundaries, approval succeeded; all five HTTP tests passed. No alternate execution used."
+  },
+  "staticVerification": {
+    "status": "PASS",
+    "scope": "Four historical descriptors validated with the actual opt-in Gateway registry; fixture raw SHA256 and all four input/output/semantic lock fingerprints checked without HTTP."
+  },
+  "verifiedCases": [
+    "All six components available through exact signed caller discovery",
+    "Caller changes generate fresh JWT delegation grants with permission omission isolated to T2 and CROSS",
+    "T2 operational failure leaves history, T3, T4 and action discovery available",
+    "Gateway metadata failure yields bounded public unavailability",
+    "Missing or forged northbound credentials issue no Gateway requests"
+  ],
+  "fullBusinessOperationHttp": "NOT_IMPLEMENTED",
+  "realGateway": "NOT_RUN",
+  "realPostgreSQL": "NOT_RUN",
+  "realModel": "NOT_RUN",
+  "realSacs": "NOT_RUN",
+  "completeW06Gate": false,
+  "readyMarkerAuthorized": false
+}

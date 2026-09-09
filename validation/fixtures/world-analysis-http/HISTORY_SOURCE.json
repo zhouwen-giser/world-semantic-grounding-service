@@ -1,0 +1,44 @@
+{
+  "commit": "a4023f545e7d43beac316abc3ad510f96ccfea61",
+  "sources": [
+    {
+      "path": "contracts/manifests/providers/historical-trace-provider.json",
+      "sha256": "sha256:d572017f23d621d90d4187e8ba159915afddb13e6d39d20dcc1e31329753f94a"
+    },
+    {
+      "path": "contracts/manifests/providers/operational-reality-provider.json",
+      "sha256": "sha256:22a707851fa34c18059953fae430fd49fcff89f48ebc49d1e9c80ffdebf102e3"
+    },
+    {
+      "path": "contracts/consumers/wsgs-southbound-operation-lock-v2.json",
+      "sha256": "sha256:494795c496fe6fae99b4b76a7c14f4341b28abb5af754a43b1530d0c676b325f"
+    },
+    {
+      "path": "contracts/gowm-v0.7.1/historical-trajectory-result.schema.json",
+      "sha256": "sha256:8529155099f294da9a8ef22de9de5d0aa9f43ad7fa33c1d8712b51a044b33206"
+    },
+    {
+      "path": "contracts/platform/common-definitions.schema.json",
+      "sha256": "sha256:4d2677f59fddd8e1dad6d3fad1483867202f498403e1d6f569ec8581ae6c641a"
+    },
+    {
+      "path": "contracts/gowm-v0.7/historical-gap.schema.json",
+      "sha256": "sha256:dae597d80cb74f39d29e0d588cc77d49bc38d6b1aac1cf5a68aadb9020a98037"
+    },
+    {
+      "path": "contracts/gowm-v0.6.2/geojson-point.schema.json",
+      "sha256": "sha256:996a76e7c3f2003f2f767ed6030d517ac2a64697145df570d49893181ec24cd1"
+    },
+    {
+      "path": "contracts/gowm-v0.6.2/geojson-position.schema.json",
+      "sha256": "sha256:b075378d338985496e9b69d96bccf027b095f48774c67275a46aacd15338c928"
+    },
+    {
+      "path": "contracts/gowm-v0.7.1/task-execution-interval-result.schema.json",
+      "sha256": "sha256:4c80a458bbecee377665ba3e654693974cb5368f80c3260155231fb1ad7d053b"
+    }
+  ],
+  "fixtureSha256": "sha256:16af15ff1971f7e52e32dfcf48d74e9cf04eb2053fe4ab7bced95d0174d3deb1",
+  "schemaSha256": "sha256:603fdaa78558e5d673d24cf69039713613a612bcd62dee1e54f81a9983cc0501",
+  "scope": "Four real history descriptors, exact source lock entries and historical output schema closure; no endpoints, credentials or live data"
+}

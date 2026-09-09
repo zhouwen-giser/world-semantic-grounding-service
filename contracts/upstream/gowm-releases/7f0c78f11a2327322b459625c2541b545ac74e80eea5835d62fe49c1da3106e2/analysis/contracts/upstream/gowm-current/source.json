@@ -1,0 +1,84 @@
+{
+  "sourceRepository": "geospatial-operational-world-model",
+  "branch": "main",
+  "commit": "385a5756a179cf2a20aa103a24a5a2253cdd1c40",
+  "version": "0.7.1",
+  "copiedAt": "2026-09-05T03:35:50.871Z",
+  "contracts": [
+    {
+      "source": "contracts/platform/common-definitions.schema.json",
+      "local": "common-definitions.schema.json",
+      "sha256": "sha256:4d2677f59fddd8e1dad6d3fad1483867202f498403e1d6f569ec8581ae6c641a"
+    },
+    {
+      "source": "contracts/platform/capability-provider-manifest.schema.json",
+      "local": "capability-provider-manifest.schema.json",
+      "sha256": "sha256:5e23c0e7a0316deecf845bd5333f9898ea824789cde475241ffe67a65ab396ef"
+    },
+    {
+      "source": "contracts/platform/capability-descriptor.schema.json",
+      "local": "capability-descriptor.schema.json",
+      "sha256": "sha256:314929dbd2e8235ef959ce6fd456e4b2dc3ac2f126cdeb192c38b91fc2fcf253"
+    },
+    {
+      "source": "contracts/platform/provider-execution-request.schema.json",
+      "local": "provider-execution-request.schema.json",
+      "sha256": "sha256:5bdca63b9150d3f39dac9de11ea02f5888b2970a7a2cf968dfd0960dbed89fbf"
+    },
+    {
+      "source": "contracts/platform/capability-result-envelope.schema.json",
+      "local": "capability-result-envelope.schema.json",
+      "sha256": "sha256:4547bb59d10156e762947304dfcbf50a508d906c73d49cda76e96cd57db0eefc"
+    },
+    {
+      "source": "contracts/platform/data-snapshot-context.schema.json",
+      "local": "data-snapshot-context.schema.json",
+      "sha256": "sha256:81c99af1184d7c99f24e4427e20d227e166343b07fa8d71fd00bcbfe825aed8f"
+    },
+    {
+      "source": "contracts/platform/compute-snapshot-context.schema.json",
+      "local": "compute-snapshot-context.schema.json",
+      "sha256": "sha256:da6bb112900f132029340c70ff52cb7b7260c2f85d4dcd743de2d441ca7e7703"
+    },
+    {
+      "source": "contracts/platform/execution-receipt.schema.json",
+      "local": "execution-receipt.schema.json",
+      "sha256": "sha256:dfd9a56e1f2c2f89a3b0a8cc4d961e19ed8f13ec836077485ba93eddb25bcae4"
+    },
+    {
+      "source": "contracts/platform/evidence-reference.schema.json",
+      "local": "evidence-reference.schema.json",
+      "sha256": "sha256:2ecd6396adb3699b635f777bc5ce0cc2a7b3b3188517ad718bbc990048930b62"
+    },
+    {
+      "source": "contracts/platform/platform-error.schema.json",
+      "local": "platform-error.schema.json",
+      "sha256": "sha256:78cc6b2b4e50fe46b6b5ae8f2db2adef458d544d859375ad5fb13e78b9774bb8"
+    },
+    {
+      "source": "contracts/gowm-v0.7/capability-semantic-profile-v1.1.schema.json",
+      "local": "capability-semantic-profile-v1.1.schema.json",
+      "sha256": "sha256:03a509be3772fce854bf281b0d4fa3f421ec25a645c87745cb2a6cbbe65534ae"
+    },
+    {
+      "source": "contracts/gowm-v0.7.1/query-snapshot-manifest.schema.json",
+      "local": "query-snapshot-manifest.schema.json",
+      "sha256": "sha256:6a607e3aae02543f8d3abb3770991e77c3f180b4bb4691aa739797798ee55e08"
+    },
+    {
+      "source": "database/migrations/039_gowm_network_v1_read_contract.sql",
+      "local": "039_gowm_network_v1_read_contract.sql",
+      "sha256": "sha256:06fc9e64e9ba0909d71ad8e5d0c636bb163d39484a01b350036c13eb0098b0f7"
+    },
+    {
+      "source": "database/migrations/044_network_arc_heading_read_contract.sql",
+      "local": "044_network_arc_heading_read_contract.sql",
+      "sha256": "sha256:c2acdee71ea3f94aa70e85090a7da05d72cb6177b31e5f403da5241199566c09"
+    },
+    {
+      "source": "database/migrations/067_historical_trajectory_contract.sql",
+      "local": "067_historical_trajectory_contract.sql",
+      "sha256": "sha256:02c268c947f4b0b181682b46d327cb80cd2de60ab634e00f587c0f0078736256"
+    }
+  ]
+}

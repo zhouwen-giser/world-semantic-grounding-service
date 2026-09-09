@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:action-target-candidate",
+  "title": "Action Target Candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "findingId",
+    "findingKind",
+    "semanticConcept",
+    "status",
+    "subjectReferenceProductIds",
+    "evidenceIds",
+    "unknowns",
+    "warnings",
+    "display",
+    "actionKind",
+    "sourceKind",
+    "target",
+    "crs",
+    "axisOrder",
+    "sourceFindingId",
+    "sourceCandidateId",
+    "sourceRank",
+    "representativeObservedAt",
+    "representativeMeasurementId",
+    "requirements",
+    "executionAuthorized"
+  ],
+  "properties": {
+    "findingId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "findingKind": {
+      "const": "ACTION_TARGET_CANDIDATE"
+    },
+    "semanticConcept": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+    },
+    "status": {
+      "enum": [
+        "COMPLETED",
+        "PARTIAL"
+      ]
+    },
+    "subjectReferenceProductIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "evidenceIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "unknowns": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+      }
+    },
+    "display": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/display"
+    },
+    "validUntil": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+    },
+    "actionKind": {
+      "const": "MOVE_TO_LOCATION"
+    },
+    "sourceKind": {
+      "const": "HISTORICAL_METRIC_CANDIDATE"
+    },
+    "target": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+    },
+    "crs": {
+      "const": "EPSG:4326"
+    },
+    "axisOrder": {
+      "const": "LONGITUDE_LATITUDE"
+    },
+    "sourceFindingId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "sourceCandidateId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "sourceRank": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "representativeObservedAt": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+    },
+    "representativeMeasurementId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currentValidationRequired",
+        "routePlanningRequired",
+        "executionConfirmationRequired"
+      ],
+      "properties": {
+        "currentValidationRequired": {
+          "const": true
+        },
+        "routePlanningRequired": {
+          "const": true
+        },
+        "executionConfirmationRequired": {
+          "const": true
+        }
+      }
+    },
+    "executionAuthorized": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "PARTIAL"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [],
+        "properties": {
+          "evidenceIds": {
+            "type": "array",
+            "minItems": 1
+          },
+          "subjectReferenceProductIds": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

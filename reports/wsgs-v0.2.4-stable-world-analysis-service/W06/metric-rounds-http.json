@@ -1,0 +1,13 @@
+{
+  "command": "npm run test:world-analysis:http",
+  "startedAt": "2026-09-07T00:48:56.708Z",
+  "finishedAt": "2026-09-07T00:49:28.201Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "23fe67b3833fad53d4789de28e2cb3fb4a75c743",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/metric-rounds-http.log",
+  "logSha256": "sha256:0d1ebf5769514dcbff9cb78e334b2d6bb8ab80d7b6513e32701854bbf8e22283"
+}

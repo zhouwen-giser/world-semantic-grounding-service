@@ -8,6 +8,7 @@
     { "path": "packages/deterministic-parser" },
     { "path": "packages/semantic-model" },
     { "path": "packages/semantic-frame" },
+    { "path": "packages/historical-trace-consumer" },
     { "path": "packages/gdps-descriptor-consumer" },
     { "path": "packages/grounding-graph" },
     { "path": "packages/trusted-capability-snapshot" },

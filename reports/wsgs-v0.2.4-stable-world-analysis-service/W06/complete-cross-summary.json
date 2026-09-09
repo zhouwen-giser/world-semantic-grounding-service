@@ -1,0 +1,36 @@
+{
+  "status": "REQUIRED_ROW_AUDIT_PENDING",
+  "testedCommit": "ce4d156a41a35c7701eecdf82d2cc1fe73406d24",
+  "commands": {
+    "check": "complete-cross-check.json",
+    "tests": "complete-cross-tests.json",
+    "http": "complete-cross-http.json",
+    "build": "complete-cross-build.json"
+  },
+  "verification": {
+    "commands": "PASS",
+    "testFilesPassed": 73, "testFilesSkipped": 4,
+    "testsPassed": 954, "testsSkipped": 29,
+    "httpFilesPassed": 3, "httpTestsPassed": 23,
+    "commandLogHashesRecomputed": true,
+    "trackedWorkingTreeCleanDuringCommands": true
+  },
+  "addedEvidence": [
+    "Complete LAST CROSS uses a separate closed 15.001-second execution with four fully observed points, two road visits and one junction transition. Historical coverage, T2 counts/completeness, T3 source analysis ID/hash and absence of blockers agree.",
+    "Incomplete LAST remains unconfirmed; complete LAST is REQUESTED_SCOPE_PROVEN. The response consumes the full compiled T2 value, including its correctly bounded empty point preview.",
+    "After T2 HTTP 503 the same actual service handles new ordinary reference grounding and independent history requests without T2/T3 calls.",
+    "Each structured multi-round request is replayed exactly; changed candidate or metric with the same key returns 409 without new jobs or Gateway work.",
+    "Controlled T2/T4 outputs honor compiled zero-preview requests while preserving source counts/statistics."
+  ],
+  "developmentCorrection": "The first independent-reference test used the nonexistent operation RESOLVE_REFERENCES and received 400. Corrected the test to the frozen GROUND_REFERENCES operation and added explicit request validation; no production fix was necessary.",
+  "verificationLevels": {
+    "L0": "PASS: frozen contracts, architecture, types and complete repository regression.",
+    "L1": "PASS for these 23 local HTTP scenarios through production stages and controlled dependencies; not a blanket qualification.",
+    "realPostgres": "NOT_RUN", "realGateway": "NOT_RUN", "realModel": "NOT_RUN", "realSacs": "NOT_RUN"
+  },
+  "remaining": [
+    "Complete W04-W06 requirement-by-requirement audit and resolve any remaining evidence or code gaps.",
+    "Permanent isolated consumer handoff, all 72-row ledger, final review, final reports and dedicated Draft PR."
+  ],
+  "readyMarkerIssued": false
+}

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:reference-product",
+  "title": "ReferenceProduct",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "productId",
+    "productKind",
+    "referenceKey",
+    "referenceType",
+    "displayName",
+    "sourceOperation",
+    "sourceWorldVersion"
+  ],
+  "properties": {
+    "productId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "productKind": {
+      "enum": [
+        "RESOLVED_REFERENCE",
+        "DERIVED_REFERENCE",
+        "REFERENCE_SET",
+        "QUERY_RESULT"
+      ]
+    },
+    "referenceKey": {
+      "$ref": "common.schema.json#/$defs/referenceKey"
+    },
+    "referenceType": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "displayName": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "matchedBy": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "matchScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "stateConfidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "sourceOperation": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "sourceWorldVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "validUntil": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "revalidationRequired": {
+      "type": "boolean"
+    },
+    "safeSummary": {
+      "type": "object"
+    }
+  }
+}

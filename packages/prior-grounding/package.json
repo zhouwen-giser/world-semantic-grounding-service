@@ -11,6 +11,9 @@
       "import": "./dist/index.js"
     }
   },
+  "dependencies": {
+    "@wsgs/contracts": "0.2.1"
+  },
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/prior-grounding/src/validator.test.ts"

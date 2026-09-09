@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:world-analysis-findings",
+  "title": "World Analysis Findings",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "findings",
+    "choices",
+    "gaps",
+    "findingSetHash"
+  ],
+  "properties": {
+    "profile": {
+      "const": "wsgs-world-analysis-findings/1.0"
+    },
+    "findings": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "urn:wsgs:world-analysis:1.0:historical-trace"
+          },
+          {
+            "$ref": "urn:wsgs:world-analysis:1.0:road-association"
+          },
+          {
+            "$ref": "urn:wsgs:world-analysis:1.0:temporal-event"
+          },
+          {
+            "$ref": "urn:wsgs:world-analysis:1.0:metric-ranking"
+          },
+          {
+            "$ref": "urn:wsgs:world-analysis:1.0:action-target-candidate"
+          }
+        ]
+      }
+    },
+    "choices": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:choice"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 64,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:gap"
+      }
+    },
+    "findingSetHash": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/hash"
+    }
+  }
+}

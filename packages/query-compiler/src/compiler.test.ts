@@ -2,10 +2,19 @@ import { describe, expect, it } from "vitest";
 import { defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import type { WorldQueryPlanV2 } from "./types.js";
 import { TypedWorldQueryCompiler, validateCompiledPlan } from "./index.js";
-import { compileInput } from "./test-fixtures.js";
+import { compileInput, historicalCompileInput } from "./test-fixtures.js";
 
 describe("TypedWorldQueryCompiler v2", () => {
   const compiler = new TypedWorldQueryCompiler();
+  it("binds a validated caller reference without resolving its alias again", () => {
+    const key = { namespace: "gowm", kind: "WORLD_OBJECT", id: `wrf_${"a".repeat(32)}`, version: "812" };
+    const result = compiler.compile({ ...compileInput("REFERENCE_CURRENT_STATE"), resolvedReferenceKey: key });
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") throw new Error("expected compiled");
+    expect(result.submission.plan.nodes.map(node => node.operation.operationId)).toEqual(["world.get-current-state"]);
+    expect(result.submission.plan.nodes[0]!.inputs["referenceKey"]).toMatchObject({ kind: "LITERAL", value: key, targetPath: "/referenceKey" });
+    expect(() => defaultGowmConsumerSchemaRegistry().validate("platform/world-query-submission.schema.json", result.submission)).not.toThrow();
+  });
 
   it("isolates query ids by durable grounding while keeping retries stable", () => {
     const input = compileInput("REFERENCE_CURRENT_STATE");
@@ -60,6 +69,48 @@ describe("TypedWorldQueryCompiler v2", () => {
       status: "COMPILED",
       policy: { approximateInput: true, exactVerificationRequired: false }
     });
+  });
+
+  it("keeps a circuit-open historical dependency distinct from an unregistered operation", () => {
+    const input = historicalCompileInput("HISTORICAL_TRAJECTORY");
+    const availability = input.availability.find(item => item.operationId === "history.get-trajectory")!;
+    availability.availability = "UNAVAILABLE";
+    availability.reasonCodes = ["CIRCUIT_OPEN"];
+    expect(compiler.compile(input)).toMatchObject({ status: "CAPABILITY_GAP", gap: {
+      reason: "OPERATION_UNAVAILABLE", details: { reasonCodes: ["CIRCUIT_OPEN"] }
+    } });
+    expect(input.operationLocks.some(item => item.operationId === "history.get-trajectory")).toBe(true);
+  });
+  it("compiles interval and trajectory DAGs with a fail-closed interval precondition", () => {
+    const interval = compiler.compile(historicalCompileInput("HISTORICAL_EXECUTION_INTERVAL"));
+    expect(interval).toMatchObject({
+      status: "COMPILED",
+      submission: { plan: { nodes: [{ operation: { operationId: "operational-task.get-execution-intervals" } }] } }
+    });
+
+    const trajectory = compiler.compile(historicalCompileInput("HISTORICAL_TRAJECTORY"));
+    expect(trajectory.status).toBe("COMPILED");
+    if (trajectory.status !== "COMPILED") return;
+    expect(trajectory.submission.plan.nodes.map((node) => node.operation.operationId)).toEqual([
+      "operational-task.get-execution-intervals", "history.get-trajectory"
+    ]);
+    expect(trajectory.submission.plan.nodes[1]).toMatchObject({
+      failurePolicy: "SKIP_IF_PRECONDITION_FALSE",
+      preconditions: [
+        { kind: "NODE_STATUS", nodeId: "Node_1", statuses: ["COMPLETED", "PARTIAL"] },
+        { kind: "VALUE_PRESENT", binding: { kind: "NODE_OUTPUT", nodeId: "Node_1", outputPort: "executionIntervalReferenceKey" } }
+      ]
+    });
+    expect(trajectory.submission.plan.nodes[1]?.inputs).toMatchObject({
+      executionIntervalReferenceKey: { kind: "NODE_OUTPUT", nodeId: "Node_1", targetPath: "/executionIntervalReferenceKey" },
+      subjectReferenceKey: { kind: "LITERAL", targetPath: "/subjectReferenceKey" },
+      sourceSelection: { kind: "LITERAL", value: { mode: "ONLY_CANDIDATE" } }
+    });
+    expect(trajectory.submission.snapshotPolicy).toMatchObject({ mode: "LATEST_AT_START", allowDowngrade: false });
+    for (const binding of Object.values(trajectory.submission.plan.nodes[1]!.inputs)) {
+      if (binding.kind === "LITERAL") expect(() => defaultGowmConsumerSchemaRegistry().validatePublished(binding.port.schemaUri, binding.value)).not.toThrow();
+    }
+    expect(() => validateCompiledPlan(trajectory.submission.plan, historicalCompileInput("HISTORICAL_TRAJECTORY").capabilities)).not.toThrow();
   });
 
   it("adds the locked exact verifier after a candidate-only H3 cover", () => {

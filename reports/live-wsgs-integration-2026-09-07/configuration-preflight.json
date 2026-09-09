@@ -1,0 +1,24 @@
+{
+  "localWsgs": {
+    "database": "PLACEHOLDER",
+    "requestEncryptionKey": "PLACEHOLDER",
+    "jwtSecret": "PLACEHOLDER",
+    "gatewayToken": "PLACEHOLDER",
+    "delegationPrivateKeyFileExists": false,
+    "readinessScope": "PLACEHOLDER",
+    "historyEnabled": false,
+    "advancedHistoryEnabled": false
+  },
+  "serverGateway": {
+    "host": "sz-gowm",
+    "bind": "127.0.0.1:8090",
+    "authenticationMode": "STATIC_SERVICE",
+    "dataScope": "default",
+    "datasetScope": "default",
+    "delegationIssuerConfigured": false,
+    "delegationAudienceConfigured": false,
+    "delegationPublicKeyConfigured": false
+  },
+  "businessEndToEnd": "NOT_RUN",
+  "productionChanged": false
+}

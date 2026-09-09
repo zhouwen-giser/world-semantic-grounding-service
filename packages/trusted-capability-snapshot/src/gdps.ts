@@ -49,8 +49,8 @@ export interface GdpsRecipeLock {
   providerId: "gdps.geospatial-products";
   providerVersion: string;
   descriptorRegistryHash: `sha256:${string}`;
-  productTypeCount: 34;
-  profileCount: 35;
+  productTypeCount: number;
+  profileCount: number;
   capabilityLockHash: `sha256:${string}`;
   recipes: GdpsLockedRecipe[];
 }
@@ -68,8 +68,8 @@ export interface GdpsConsumerSnapshotExtension {
   capabilityLockHash: `sha256:${string}`;
   descriptorLockHash: `sha256:${string}`;
   recipeLockHash: `sha256:${string}`;
-  productTypeCount: 34;
-  descriptorProfileCount: 35;
+  productTypeCount: number;
+  descriptorProfileCount: number;
   capabilityKeys: string[];
   capabilitySnapshotHash: `sha256:${string}`;
 }
@@ -84,8 +84,8 @@ export interface GdpsCapabilitySnapshot {
   capabilityLockHash: `sha256:${string}`;
   descriptorLockHash: `sha256:${string}`;
   recipeLockHash: `sha256:${string}`;
-  productTypeCount: 34;
-  profileCount: 35;
+  productTypeCount: number;
+  profileCount: number;
   capturedAt: string;
   capabilities: GdpsSnapshotCapability[];
   recipeLocks: GdpsLockedRecipe[];
@@ -167,7 +167,7 @@ function operationKey(value: Pick<GdpsSnapshotCapability, "operationId" | "opera
 export function buildGdpsConsumerSnapshotExtension(input: Omit<
   GdpsConsumerSnapshotExtension,
   "schemaVersion" | "providerId" | "productTypeCount" | "descriptorProfileCount" | "capabilitySnapshotHash"
->): GdpsConsumerSnapshotExtension {
+> & { productTypeCount?: number; descriptorProfileCount?: number }): GdpsConsumerSnapshotExtension {
   if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u.test(input.providerVersion)) {
     throw new GdpsCapabilitySnapshotError("PROVIDER_IDENTITY_INVALID");
   }
@@ -179,6 +179,12 @@ export function buildGdpsConsumerSnapshotExtension(input: Omit<
       input.capabilityKeys.some((key) => !/^[a-z][a-z0-9.-]{2,127}@\d+\.\d+$/u.test(key))) {
     throw new GdpsCapabilitySnapshotError("CAPABILITY_COUNT_INVALID");
   }
+  const productTypeCount = input.productTypeCount ?? 34;
+  const descriptorProfileCount = input.descriptorProfileCount ?? 35;
+  if (!Number.isSafeInteger(productTypeCount) || productTypeCount < 1 ||
+      !Number.isSafeInteger(descriptorProfileCount) || descriptorProfileCount < productTypeCount) {
+    throw new GdpsCapabilitySnapshotError("DESCRIPTOR_COUNT_INVALID");
+  }
   const body = {
     schemaVersion: "wsgs-gdps-consumer-snapshot/2.0" as const,
     providerId: "gdps.geospatial-products" as const,
@@ -187,8 +193,8 @@ export function buildGdpsConsumerSnapshotExtension(input: Omit<
     capabilityLockHash: input.capabilityLockHash,
     descriptorLockHash: input.descriptorLockHash,
     recipeLockHash: input.recipeLockHash,
-    productTypeCount: 34 as const,
-    descriptorProfileCount: 35 as const,
+    productTypeCount,
+    descriptorProfileCount,
     capabilityKeys: [...input.capabilityKeys].sort()
   };
   return { ...body, capabilitySnapshotHash: hashCanonicalJson(body) };
@@ -205,10 +211,11 @@ export function verifyGdpsConsumerSnapshotExtension(value: GdpsConsumerSnapshotE
     capabilityLockHash: value.capabilityLockHash,
     descriptorLockHash: value.descriptorLockHash,
     recipeLockHash: value.recipeLockHash,
-    capabilityKeys: value.capabilityKeys
+    capabilityKeys: value.capabilityKeys,
+    productTypeCount: value.productTypeCount, descriptorProfileCount: value.descriptorProfileCount
   });
   if (value.schemaVersion !== rebuilt.schemaVersion || value.providerId !== rebuilt.providerId ||
-      value.productTypeCount !== 34 || value.descriptorProfileCount !== 35 ||
+      value.productTypeCount !== rebuilt.productTypeCount || value.descriptorProfileCount !== rebuilt.descriptorProfileCount ||
       value.capabilitySnapshotHash !== rebuilt.capabilitySnapshotHash ||
       JSON.stringify(value.capabilityKeys) !== JSON.stringify(rebuilt.capabilityKeys)) {
     throw new GdpsCapabilitySnapshotError("CONSUMER_SNAPSHOT_INTEGRITY_MISMATCH");
@@ -298,7 +305,8 @@ export function loadGdpsRecipeLock(options: {
   if (lock.schemaVersion !== "wsgs-gdps-recipe-lock/2.0" || lock.providerId !== "gdps.geospatial-products" ||
       !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u.test(lock.providerVersion) ||
       !digest.test(lock.descriptorRegistryHash) || !digest.test(lock.capabilityLockHash) ||
-      lock.productTypeCount !== 34 || lock.profileCount !== 35 || lock.recipes.length !== 14) {
+      !Number.isSafeInteger(lock.productTypeCount) || lock.productTypeCount < 1 ||
+      !Number.isSafeInteger(lock.profileCount) || lock.profileCount < lock.productTypeCount || lock.recipes.length !== 14) {
     throw new GdpsCapabilitySnapshotError("RECIPE_LOCK_CONTRACT_INVALID");
   }
   const ids = new Set<string>();

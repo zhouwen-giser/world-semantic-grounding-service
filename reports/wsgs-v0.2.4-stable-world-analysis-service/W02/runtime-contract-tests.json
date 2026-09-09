@@ -1,0 +1,13 @@
+{
+  "command": "npx vitest run packages/contracts/src/world-analysis-contract.test.ts",
+  "startedAt": "2026-09-06T14:59:49.694Z",
+  "finishedAt": "2026-09-06T14:59:51.541Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "89b9b9acbab6c1cbc059d6d9bc1ce2b7eefaedde",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W02/runtime-contract-tests.log",
+  "logSha256": "sha256:67781225fe84de83dac74f0e12eaf9b1bbbf55a867a26b37bf5c85efe1b23681"
+}

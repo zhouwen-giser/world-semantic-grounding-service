@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:analysis-selection",
+  "title": "Analysis Selection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "priorGroundingId",
+    "priorResultHash",
+    "findingSetHash",
+    "choiceId",
+    "candidateId"
+  ],
+  "properties": {
+    "priorGroundingId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "priorResultHash": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/hash"
+    },
+    "findingSetHash": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/hash"
+    },
+    "choiceId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "candidateId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    }
+  }
+}

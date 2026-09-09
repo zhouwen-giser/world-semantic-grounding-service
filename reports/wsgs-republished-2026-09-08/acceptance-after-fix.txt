@@ -1,0 +1,9 @@
+{"case":{"name":"MAP","http":202,"groundingId":"grounding-7966141d-8f8d-4097-8a51-59e43f6d5c8e","status":"PARTIAL","validResult":true,"resultHash":"sha256:0540b8103d910060db3328f9da4db7c2505b2f22f216ef33dddea88a5675fbeb","elapsedMs":69698,"replayIdentical":true,"findings":[],"operations":[],"gaps":[{"detail":{},"evidenceIds":[],"findingIds":[],"gapId":"gap-df4b17bb25e1c2a9e26741a512b490d1","gapKind":"UPSTREAM_FAILURE","messageCode":"UPSTREAM_FAILURE","severity":"BLOCKING"}],"executions":[],"gdpsWarnings":[]}}
+{"observedAt":"2026-09-08T08:37:09.922Z","status":"FAILED","cases":[{"name":"MAP","http":202,"groundingId":"grounding-7966141d-8f8d-4097-8a51-59e43f6d5c8e","status":"PARTIAL","validResult":true,"resultHash":"sha256:0540b8103d910060db3328f9da4db7c2505b2f22f216ef33dddea88a5675fbeb","elapsedMs":69698,"replayIdentical":true,"findings":[],"operations":[],"gaps":[{"detail":{},"evidenceIds":[],"findingIds":[],"gapId":"gap-df4b17bb25e1c2a9e26741a512b490d1","gapKind":"UPSTREAM_FAILURE","messageCode":"UPSTREAM_FAILURE","severity":"BLOCKING"}],"executions":[],"gdpsWarnings":[]}]}
+wsgs-live-grounding-worker-1 Exited (0) 3 minutes ago
+wsgs-live-grounding-api-1 Exited (0) 3 minutes ago
+wsgs-live-signed-gateway-1 Up 4 minutes
+wsgs-live-wsgs-migrate-1 Exited (0) 21 hours ago
+wsgs-live-gateway-bootstrap-1 Exited (0) 21 hours ago
+wsgs-live-gateway-db-1 Up 21 hours (healthy)
+wsgs-live-postgres-1 Up 22 hours (healthy)

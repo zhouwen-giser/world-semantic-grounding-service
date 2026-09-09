@@ -1,0 +1,63 @@
+{
+  "status": "PARTIAL_W06_GATE_OPEN",
+  "testedCommit": "23fe67b3833fad53d4789de28e2cb3fb4a75c743",
+  "commands": {
+    "check": "metric-rounds-check-retry.json",
+    "tests": "metric-rounds-tests.json",
+    "http": "metric-rounds-http.json",
+    "build": "metric-rounds-build.json",
+    "fixture": "metric-rounds-fixture.json",
+    "contract": "metric-rounds-contract.json"
+  },
+  "verification": {
+    "allSixCommands": "PASS",
+    "testFilesPassed": 73,
+    "testFilesSkipped": 4,
+    "testsPassed": 953,
+    "testsSkipped": 29,
+    "httpFilesPassed": 3,
+    "httpTestsPassed": 22,
+    "fixtureTestsPassed": 43,
+    "contractSchemas": 45,
+    "contractExamples": 44,
+    "contractAssertions": 836,
+    "legacyArtifactsUnchanged": 68,
+    "allSevenLogHashesRecomputed": true,
+    "trackedWorkingTreesCleanForAllCommands": true
+  },
+  "businessEvidence": [
+    "T4 Top-K runs the actual compiler and signed Gateway request; metric selector, topK=3, H3 resolution=12 and explicit series identity are asserted.",
+    "Public ranking retains source unit, normalized stage, series identity, median ranking value, representative measurement value, time and actual visited position rather than cell center.",
+    "Two-round rank/action restores the actual first result and its AES checkpoint; no new T4 request is made.",
+    "Three-round ambiguous-series/requery/rank/action selects campus-radio, reruns T4 with EXPLICIT_SERIES without requerying history, then restores that second result for an action candidate.",
+    "Unknown candidate, incorrect prior-result hash and expired source each return precise selection gaps without Gateway calls or action candidates.",
+    "Action source finding/candidate/rank/measurement/time/position closure is asserted with full public validation; executionAuthorized=false and all three downstream requirements=true.",
+    "Each round is saved by the real worker settlement path and GET returns those saved result bytes."
+  ],
+  "controlledDependencyBoundary": {
+    "gateway": "Real local listener, controlled schema-valid payloads derived from pinned fixtures; not real collected observations or provider execution.",
+    "history": "Metric-specific controlled two-minute history window, gap, excluded period and actual-position preview aligned with the metric fixture.",
+    "store": "Test-only in-memory store supports the actual actor/principal/data-scope/auth-hash-filtered prior-result SQL join; bytes come from preceding HTTP settlement.",
+    "checkpoint": "Actual AES codec and production prior authority loader; not PostgreSQL durability.",
+    "model": "MODEL_OPTIONAL with no configured real model."
+  },
+  "retainedFailedAttempt": {
+    "report": "metric-rounds-check.json",
+    "testedCommit": "13d257926ed78ce3ba00ab017bb9c68072c1431a",
+    "result": "952 passed, 1 failed, 29 skipped",
+    "cause": "Existing 1.1 allowlist negotiation test exceeded the default 5000ms timeout under the default concurrent worker pool; no business assertion failed.",
+    "experiment": "npx vitest run --maxWorkers=4 passed 953 tests with 29 skipped before changing defaults.",
+    "resolution": "Cap the default test worker pool at four. No assertions, request deadlines or existing test timeouts were relaxed."
+  },
+  "developmentCorrection": "Initial action assertion incorrectly expected target.position; corrected to the frozen public target GeoJSON Point. No contract or production behavior change was needed.",
+  "remaining": [
+    "Complete-source LAST CROSS HTTP case and broader provider failure isolation.",
+    "Recovery/late-worker and combined-choice acceptance audit.",
+    "Permanent standalone handoff, all 72 evidence-backed requirement rows, final independent review and dedicated Draft PR."
+  ],
+  "realGateway": "NOT_RUN",
+  "realPostgres": "NOT_RUN",
+  "realModel": "NOT_RUN",
+  "sacsValidation": "NOT_RUN",
+  "readyMarkerIssued": false
+}

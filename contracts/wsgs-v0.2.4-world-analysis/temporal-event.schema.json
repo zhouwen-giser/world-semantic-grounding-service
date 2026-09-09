@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:temporal-event",
+  "title": "Temporal Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "findingId",
+    "findingKind",
+    "semanticConcept",
+    "status",
+    "subjectReferenceProductIds",
+    "evidenceIds",
+    "unknowns",
+    "warnings",
+    "display",
+    "eventTypes",
+    "events",
+    "sourcePrefixComplete",
+    "sourceSuffixComplete",
+    "completeForAllEvents",
+    "blockingPeriods"
+  ],
+  "properties": {
+    "findingId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "findingKind": {
+      "const": "TEMPORAL_EVENT"
+    },
+    "semanticConcept": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+    },
+    "status": {
+      "enum": [
+        "COMPLETED",
+        "PARTIAL",
+        "NO_DATA",
+        "INDETERMINATE"
+      ]
+    },
+    "subjectReferenceProductIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "evidenceIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "unknowns": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+      }
+    },
+    "display": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/display"
+    },
+    "validUntil": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+    },
+    "trajectoryReferenceProductId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "eventTypes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "enum": [
+          "ENTER",
+          "EXIT",
+          "DWELL",
+          "STOP",
+          "PASS_NEAR",
+          "CROSS"
+        ]
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/event"
+      }
+    },
+    "selection": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/eventSelection"
+    },
+    "sourcePrefixComplete": {
+      "type": "boolean"
+    },
+    "sourceSuffixComplete": {
+      "type": "boolean"
+    },
+    "completeForAllEvents": {
+      "type": "boolean"
+    },
+    "blockingPeriods": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/periodIssue"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "PARTIAL"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "trajectoryReferenceProductId"
+        ],
+        "properties": {
+          "evidenceIds": {
+            "type": "array",
+            "minItems": 1
+          },
+          "subjectReferenceProductIds": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

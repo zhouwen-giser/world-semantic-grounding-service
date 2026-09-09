@@ -4,9 +4,10 @@ import { readFileSync, readdirSync } from "node:fs";
 import type { ErrorObject, ValidateFunction } from "ajv";
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
-import { defaultSacsGeospatialSchemaRegistry } from "@wsgs/contracts";
+import { defaultSacsGeospatialSchemaRegistry, createWorldAnalysisValidator } from "@wsgs/contracts";
 import {
   isSacsGeospatialContract,
+  isWorldAnalysisContract,
   parseGroundingContractSelection,
   type GroundingContractSelection
 } from "@wsgs/grounding-pipeline";
@@ -120,6 +121,7 @@ function safeValidationDetails(errors: ErrorObject[] | null | undefined): string
 // contract prevents the worker from starting and therefore from claiming jobs.
 const validateGroundingResult = compileFrozenGroundingResultSchema();
 const sacsGeospatialRegistry = defaultSacsGeospatialSchemaRegistry();
+const worldAnalysisValidator = createWorldAnalysisValidator();
 
 export function assertFrozenGroundingResult(value: unknown): asserts value is Readonly<Record<string, unknown>> {
   if (!validateGroundingResult(value)) {
@@ -132,6 +134,10 @@ export function assertNegotiatedGroundingResult(
   selectionValue: GroundingContractSelection
 ): asserts value is Readonly<Record<string, unknown>> {
   const selection = parseGroundingContractSelection(selectionValue);
+  if (isWorldAnalysisContract(selection)) {
+    if (!worldAnalysisValidator("result", value).valid) throw new GroundingResultSchemaValidationError("result does not satisfy sacs-wsgs-grounding/1.2 with wsgs-world-analysis-findings/1.0");
+    return;
+  }
   if (!isSacsGeospatialContract(selection)) {
     assertFrozenGroundingResult(value);
     return;

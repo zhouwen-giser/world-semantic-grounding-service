@@ -6,7 +6,12 @@ coverage/
 !.env.example
 secrets/
 *.log
+!reports/wsgs-v0.2.4-stable-world-analysis-service/**/*.log
 .DS_Store
 .task-shims/
 .intake/
 WSGS_v0.1_Grounding_Core_Codex_Goal/
+
+__pycache__/
+
+validation/live-site-references.json

@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-1",
+  "groundingId": "grounding-1",
+  "status": "PARTIAL",
+  "source": {
+    "messageId": "message-1",
+    "originalTextSha256": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+  },
+  "mentions": [],
+  "referenceProducts": [
+    {
+      "productId": "ugv1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "entity",
+        "id": "wrf_00000000000000000000000000000001",
+        "version": "1"
+      },
+      "referenceType": "ENTITY",
+      "displayName": "ugv1",
+      "sourceOperation": "entity.get",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "task-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "operational-task",
+        "id": "wrf_00000000000000000000000000000002",
+        "version": "1"
+      },
+      "referenceType": "OPERATIONAL_TASK",
+      "displayName": "task-1",
+      "sourceOperation": "operational-task.get",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "interval-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "execution-interval",
+        "id": "wrf_00000000000000000000000000000003",
+        "version": "1"
+      },
+      "referenceType": "EXECUTION_INTERVAL",
+      "displayName": "interval-1",
+      "sourceOperation": "operational-task.get-execution-intervals",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "trajectory-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "trajectory",
+        "id": "wrf_00000000000000000000000000000004",
+        "version": "1"
+      },
+      "referenceType": "TRAJECTORY",
+      "displayName": "trajectory-1",
+      "sourceOperation": "history.get-trajectory",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    }
+  ],
+  "evidenceItems": [
+    {
+      "evidenceProductId": "evidence-1",
+      "productKind": "CAPABILITY_RESULT",
+      "authority": "GOWM",
+      "sourceOperation": "spatiotemporal-metric.rank-locations",
+      "upstreamStatus": "COMPLETED",
+      "payloadSchemaUri": "urn:artificial:contract-sample:result",
+      "payloadSchemaHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e",
+      "receiptIds": [
+        "receipt-sample-1"
+      ],
+      "evidenceIds": [
+        "upstream-evidence-sample-1"
+      ],
+      "unknowns": [],
+      "warnings": [],
+      "dataSnapshot": {
+        "snapshotHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+      },
+      "computeSnapshot": {
+        "snapshotHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+      }
+    }
+  ],
+  "ambiguities": [],
+  "unresolvedMentions": [],
+  "capabilityGaps": [],
+  "warnings": [],
+  "execution": {
+    "parserVersion": "contract-sample",
+    "semanticModelReceiptIds": [],
+    "queryCompilerVersion": "contract-sample",
+    "normalizerVersion": "contract-sample",
+    "elapsedMs": 1,
+    "runFingerprint": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+  },
+  "validUntil": "2026-09-06T10:01:00.000+08:00",
+  "worldAnalysisFindings": {
+    "profile": "wsgs-world-analysis-findings/1.0",
+    "findings": [],
+    "choices": [],
+    "gaps": [
+      {
+        "gapId": "gap-HISTORICAL_PROJECTION_PENDING",
+        "gapKind": "HISTORICAL_PROJECTION_PENDING",
+        "severity": "BLOCKING",
+        "messageCode": "HISTORICAL_PROJECTION_PENDING",
+        "findingIds": [],
+        "evidenceIds": [],
+        "detail": {}
+      }
+    ],
+    "findingSetHash": "sha256:48575a812c46235f5271910d90cc1b46d895a2371ce6079a6094522a99184ee1"
+  },
+  "resultHash": "sha256:3ec540b7960f263da2a431df1b6b7f7be41a4d776a866f2a53ca1c52df674ab8"
+}

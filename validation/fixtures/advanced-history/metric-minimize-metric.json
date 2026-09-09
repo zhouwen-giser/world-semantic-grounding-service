@@ -1,0 +1,465 @@
+{
+  "providerProtocolVersion": "1.0",
+  "requestId": "metric-ranking-request-1",
+  "operation": {
+    "operationId": "spatiotemporal-metric.rank-locations",
+    "operationVersion": "0.1"
+  },
+  "status": "COMPLETED",
+  "output": {
+    "schemaUri": "urn:gowm:analysis:metric-ranking:result:0.1",
+    "schemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27",
+    "value": {
+      "schemaVersion": "0.1",
+      "reasonCode": "RANKING_AVAILABLE",
+      "analysisLevel": "TASK_LEVEL_APPROXIMATE",
+      "algorithm": "CAMPUS_H3_ROBUST_RANKING_V1",
+      "candidateDomain": "PAST_OBSERVED_LOCATIONS",
+      "analysisId": "mra_1449229145baae547fb140604e13c797",
+      "trajectoryReferenceKey": {
+        "namespace": "gowm",
+        "kind": "HISTORICAL_TRAJECTORY",
+        "id": "wrf_metric_minimize_trajectory",
+        "version": "1"
+      },
+      "analysisPeriods": [
+        {
+          "start": "2026-09-01T00:00:00.000Z",
+          "end": "2026-09-01T00:00:30.000Z"
+        }
+      ],
+      "excludedPeriods": [],
+      "metric": {
+        "observedProperty": "network.latency",
+        "valueUnit": "ms",
+        "measurementStage": "NORMALIZED",
+        "optimizationDirection": "MINIMIZE"
+      },
+      "metricSeriesCandidates": [
+        {
+          "seriesId": "mts_22b563aee78eac8ff353b643f84581dd",
+          "identity": {
+            "sourceKey": "network-probe",
+            "datastreamKey": "latency-ms",
+            "measurementKey": "latency",
+            "measurementStage": "NORMALIZED",
+            "observedProperty": "network.latency",
+            "valueUnit": "ms"
+          },
+          "sampleCount": 6,
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:00.000Z",
+            "end": "2026-09-01T00:00:25.000Z"
+          },
+          "measurementModels": [
+            "FIXTURE_LATENCY"
+          ],
+          "measurementModelVersions": [
+            "1"
+          ],
+          "qualityScoreAvailableCount": 0
+        }
+      ],
+      "aggregation": {
+        "mode": "H3",
+        "resolution": 12
+      },
+      "candidates": [
+        {
+          "spatialUnit": {
+            "kind": "H3_CELL",
+            "h3Index": "8c30986096de3ff",
+            "resolution": 12,
+            "cellCenter": {
+              "type": "Point",
+              "coordinates": [
+                120.99991791256546,
+                31.00000647866487
+              ]
+            }
+          },
+          "representativeVisitedPosition": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "representativeObservedAt": "2026-09-01T00:00:00.000Z",
+          "representativeMeasurementId": "latency-a-1",
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:00.000Z",
+            "end": "2026-09-01T00:00:10.000Z"
+          },
+          "statistics": {
+            "sampleCount": 3,
+            "distinctObservationCount": 3,
+            "firstObservedAt": "2026-09-01T00:00:00.000Z",
+            "lastObservedAt": "2026-09-01T00:00:10.000Z",
+            "observationSpanSeconds": 10,
+            "minimum": 9,
+            "maximum": 11,
+            "mean": 10,
+            "median": 10,
+            "p25": 9.5,
+            "p75": 10.5,
+            "medianAbsoluteDeviation": 1,
+            "exactAlignmentCount": 3,
+            "interpolatedAlignmentCount": 0,
+            "nearestAlignmentCount": 0,
+            "meanAlignmentConfidence": 1
+          },
+          "representativeValue": 10,
+          "reasonCodes": [
+            "HISTORICAL_OBSERVED_LOCATION",
+            "QUALIFIED_BY_ROBUST_STATISTICS"
+          ],
+          "rank": 1,
+          "rankingBasis": {
+            "primaryStatistic": "MEDIAN",
+            "optimizationDirection": "MINIMIZE",
+            "tieBreakers": [
+              "P75_ASC",
+              "MAD_ASC",
+              "DISTINCT_OBSERVATION_COUNT_DESC",
+              "SAMPLE_COUNT_DESC",
+              "H3_INDEX_CODE_POINT_ASC"
+            ]
+          }
+        },
+        {
+          "spatialUnit": {
+            "kind": "H3_CELL",
+            "h3Index": "8c3098656d6edff",
+            "resolution": 12,
+            "cellCenter": {
+              "type": "Point",
+              "coordinates": [
+                121.0020324246517,
+                30.999999323300408
+              ]
+            }
+          },
+          "representativeVisitedPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "representativeObservedAt": "2026-09-01T00:00:15.000Z",
+          "representativeMeasurementId": "latency-b-1",
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:15.000Z",
+            "end": "2026-09-01T00:00:25.000Z"
+          },
+          "statistics": {
+            "sampleCount": 3,
+            "distinctObservationCount": 3,
+            "firstObservedAt": "2026-09-01T00:00:15.000Z",
+            "lastObservedAt": "2026-09-01T00:00:25.000Z",
+            "observationSpanSeconds": 10,
+            "minimum": 49,
+            "maximum": 51,
+            "mean": 50,
+            "median": 50,
+            "p25": 49.5,
+            "p75": 50.5,
+            "medianAbsoluteDeviation": 1,
+            "exactAlignmentCount": 3,
+            "interpolatedAlignmentCount": 0,
+            "nearestAlignmentCount": 0,
+            "meanAlignmentConfidence": 1
+          },
+          "representativeValue": 50,
+          "reasonCodes": [
+            "HISTORICAL_OBSERVED_LOCATION",
+            "QUALIFIED_BY_ROBUST_STATISTICS"
+          ],
+          "rank": 2,
+          "rankingBasis": {
+            "primaryStatistic": "MEDIAN",
+            "optimizationDirection": "MINIMIZE",
+            "tieBreakers": [
+              "P75_ASC",
+              "MAD_ASC",
+              "DISTINCT_OBSERVATION_COUNT_DESC",
+              "SAMPLE_COUNT_DESC",
+              "H3_INDEX_CODE_POINT_ASC"
+            ]
+          }
+        }
+      ],
+      "completeness": {
+        "trajectoryTemporalCoverageRatio": 1,
+        "trajectoryPrefixComplete": true,
+        "trajectorySuffixComplete": true,
+        "trajectoryGapPeriods": [],
+        "trajectoryQualityBreakPeriods": [],
+        "excludedPeriods": [],
+        "sourceMetricSampleCount": 6,
+        "acceptedMetricSampleCount": 6,
+        "rejectedMetricSampleCount": 0,
+        "alignedMetricSampleCount": 6,
+        "unalignedMetricSampleCount": 0,
+        "alignmentRatio": 1,
+        "unalignedReasonCounts": {},
+        "metricTemporalCompletenessKnown": false
+      },
+      "summary": {
+        "metricSeriesCandidateCount": 1,
+        "sourceMetricSampleCount": 6,
+        "acceptedMetricSampleCount": 6,
+        "rejectedMetricSampleCount": 0,
+        "rejectedReasonCounts": {},
+        "alignedMetricSampleCount": 6,
+        "unalignedMetricSampleCount": 0,
+        "aggregatedCellCount": 2,
+        "qualifiedLocationCount": 2,
+        "unqualifiedLocationCount": 0,
+        "returnedLocationCount": 2,
+        "truncated": false
+      },
+      "alignedSamplePreview": [
+        {
+          "measurementId": "latency-a-1",
+          "observationId": "latency-oa1",
+          "observedAt": "2026-09-01T00:00:00.000Z",
+          "value": 10,
+          "valueUnit": "ms",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "h3Index": "8c30986096de3ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 1,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "latency-a-2",
+          "observationId": "latency-oa2",
+          "observedAt": "2026-09-01T00:00:05.000Z",
+          "value": 11,
+          "valueUnit": "ms",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "h3Index": "8c30986096de3ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 1,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "latency-a-3",
+          "observationId": "latency-oa3",
+          "observedAt": "2026-09-01T00:00:10.000Z",
+          "value": 9,
+          "valueUnit": "ms",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "h3Index": "8c30986096de3ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 1,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "latency-b-1",
+          "observationId": "latency-ob1",
+          "observedAt": "2026-09-01T00:00:15.000Z",
+          "value": 50,
+          "valueUnit": "ms",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d6edff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 2,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "latency-b-2",
+          "observationId": "latency-ob2",
+          "observedAt": "2026-09-01T00:00:20.000Z",
+          "value": 51,
+          "valueUnit": "ms",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d6edff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 2,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "latency-b-3",
+          "observationId": "latency-ob3",
+          "observedAt": "2026-09-01T00:00:25.000Z",
+          "value": 49,
+          "valueUnit": "ms",
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d6edff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 2,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        }
+      ],
+      "unalignedSamplePreview": [],
+      "rejectedMetricSamplePreview": [],
+      "warnings": [
+        "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+      ],
+      "status": "COMPLETED",
+      "subjectReferenceKey": {
+        "namespace": "gowm",
+        "kind": "WORLD_OBJECT",
+        "id": "wrf_metric_fixture_vehicle",
+        "version": "1"
+      },
+      "selectedMetricSeries": {
+        "sourceKey": "network-probe",
+        "datastreamKey": "latency-ms",
+        "measurementKey": "latency",
+        "measurementStage": "NORMALIZED",
+        "observedProperty": "network.latency",
+        "valueUnit": "ms"
+      }
+    }
+  },
+  "dataSnapshot": {
+    "consistency": "PINNED",
+    "capturedAt": "2026-09-06T04:22:57.810Z",
+    "scopeDigest": "sha256:b5f450c9469f48dbdf6f9237e0f8dc952e00ffb32a82f195f5f444b1a69d7dfe",
+    "resources": [
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "wrf_metric_minimize_trajectory",
+          "version": "1"
+        },
+        "authority": "GOWM Historical Trajectory",
+        "pinning": "PINNED",
+        "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "worldVersion": 1
+      },
+      {
+        "referenceKey": {
+          "namespace": "gowm.analysis.metric-ranking",
+          "kind": "HISTORY_INPUT_SET",
+          "id": "metric_set_9938599d8f55e4da3a12771f939c4bc2",
+          "version": "1"
+        },
+        "authority": "GOWM Numeric Measurement Set",
+        "pinning": "PINNED",
+        "digest": "sha256:9938599d8f55e4da3a12771f939c4bc252787fa41a5db8778dae0fbbcd388100",
+        "worldVersion": 1
+      }
+    ]
+  },
+  "computeSnapshot": {
+    "provider": {
+      "providerId": "gowm.analysis.metric-ranking",
+      "providerVersion": "0.1.0",
+      "implementationDigest": "sha256:1772f919f95f171f068e14141d937dca9ec652e353c5e2c1048fae85b04f77fd"
+    },
+    "operation": {
+      "operationId": "spatiotemporal-metric.rank-locations",
+      "operationVersion": "0.1"
+    },
+    "engine": {
+      "name": "CAMPUS_H3_ROBUST_RANKING_V1",
+      "version": "0.1",
+      "digest": "sha256:075171702d2c29c080008866c6c5984419313502b4f6458403c8c046cc17843a"
+    },
+    "policy": {
+      "version": "CAMPUS_TASK_DEFAULT/0.1",
+      "digest": "sha256:c8a4ce39b3db9db8774efeebb90b3f3998ae9dab9cf6bc35b9eecb623cbbfe33"
+    },
+    "schemas": {
+      "inputSchemaHash": "sha256:c9c882bf7c25ba0526e685090a9ef8603beec437a33ba67750660e54e105e601",
+      "outputSchemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27"
+    }
+  },
+  "receipts": [
+    {
+      "receiptId": "receipt:51f226f6-8cf1-4c6e-b00f-d676c1f4e696",
+      "operationId": "spatiotemporal-metric.rank-locations",
+      "operationVersion": "0.1",
+      "providerId": "gowm.analysis.metric-ranking",
+      "providerVersion": "0.1.0",
+      "inputHash": "sha256:ff6d465eef4e220fd289845852781156b3c7225f64778d02e042844feaa2666b",
+      "outputHash": "sha256:51b311e6717c0a481e955be4bc06e2bf477b3054403eaf849b543835075f94ff",
+      "computeSnapshotHash": "sha256:a3a6aed58820fdd14db2872b30eaa050cd7e642437cc1123220457228e181e99",
+      "generatedAt": "2026-09-06T04:22:57.821Z",
+      "durationMs": 9.565635000000157,
+      "method": {
+        "engine": "CAMPUS_H3_ROBUST_RANKING_V1",
+        "engineVersion": "0.1",
+        "methodId": "campus-h3-robust-ranking",
+        "methodVersion": "0.1"
+      },
+      "changes": {
+        "repairApplied": false,
+        "typeChanged": false
+      },
+      "warnings": [
+        "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+      ]
+    }
+  ],
+  "evidenceReferences": [],
+  "warnings": [
+    "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+  ],
+  "consumption": {
+    "inputBytes": 281,
+    "outputBytes": 6735,
+    "rows": 14,
+    "candidates": 12
+  },
+  "execution": {
+    "providerId": "gowm.analysis.metric-ranking",
+    "providerVersion": "0.1.0",
+    "elapsedMs": 9.565635000000157,
+    "resultHash": "sha256:51b311e6717c0a481e955be4bc06e2bf477b3054403eaf849b543835075f94ff"
+  }
+}

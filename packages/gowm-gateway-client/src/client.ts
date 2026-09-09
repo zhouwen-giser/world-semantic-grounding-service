@@ -433,7 +433,7 @@ export class GowmGatewayClient {
         200: "platform/capability-result-envelope.schema.json",
         202: "platform/job-record.schema.json"
       }
-    });
+    }, Date.parse(String((request["executionPolicy"] as Record<string, unknown> | undefined)?.["deadlineAt"])));
   }
 
   async submitWorldQuery(request: Record<string, unknown>, context: GatewayRequestContext = {}): Promise<GatewayResponse<unknown>> {
@@ -504,7 +504,8 @@ export class GowmGatewayClient {
     body: Record<string, unknown> | undefined,
     context: GatewayRequestContext,
     expectedStatuses: number[],
-    schemaPolicy: GatewaySchemaPolicy = {}
+    schemaPolicy: GatewaySchemaPolicy = {},
+    executionDeadline?: number
   ): Promise<GatewayResponse<T>> {
     if (body) assertNoAuthorityFields(body);
     const encodedBody = body ? JSON.stringify(body) : undefined;
@@ -523,7 +524,9 @@ export class GowmGatewayClient {
     }
     this.#circuit.beforeRequest();
     const overallDeadline = Math.min(
-      this.#now() + this.#timeoutMs,
+      // Synchronous operation transport shares its approved wire deadline.
+      // Discovery and polling retain the short per-request transport limit.
+      executionDeadline !== undefined && Number.isFinite(executionDeadline) ? executionDeadline : this.#now() + this.#timeoutMs,
       context.deadlineAt?.getTime() ?? Number.POSITIVE_INFINITY
     );
     let lastError: unknown;

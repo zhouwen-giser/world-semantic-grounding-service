@@ -1,0 +1,13 @@
+{
+  "command": "npx vitest run packages/historical-trace-consumer/src/public-world-analysis.test.ts services/grounding-worker/src/world-analysis-result.test.ts services/grounding-worker/src/prior-analysis-authority.test.ts",
+  "startedAt": "2026-09-06T16:37:48.484Z",
+  "finishedAt": "2026-09-06T16:38:03.564Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "855b1ec6c20aa9b6f2f9211c6b42e2c7cf190799",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W04/reference-selection-tests.log",
+  "logSha256": "sha256:9bd5ed9cfdf471f811393b195b652e9273c7ad228fc4d5912d9179ec2b7627c5"
+}

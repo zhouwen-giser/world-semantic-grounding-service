@@ -7,6 +7,7 @@ import type {
   OperationLock,
   SnapshotSupport
 } from "@wsgs/gowm-gateway-client";
+import type { AnalysisProviderAuthorization } from "@wsgs/gowm-contract-intake";
 
 export type QuerySemanticPattern =
   | "REFERENCE_IDENTITY"
@@ -38,6 +39,12 @@ export type QuerySemanticPattern =
   | "GDPS_GENERIC_VECTOR_IN_AREA"
   | "GDPS_GENERIC_VECTOR_NEARBY"
   | "GDPS_GENERIC_VECTOR_INTERSECTS"
+  | "HISTORICAL_EXECUTION_INTERVAL"
+  | "HISTORICAL_TRAJECTORY"
+  | "HISTORICAL_ROAD_ASSOCIATION"
+  | "HISTORICAL_TEMPORAL_EVENT"
+  | "HISTORICAL_CROSS_EVENT"
+  | "HISTORICAL_METRIC_RANKING"
   | "TERRAIN_VISIBILITY";
 
 export interface GdpsRecipeAuthorization {
@@ -86,11 +93,16 @@ export interface CompileInput {
   operationInput: Record<string, unknown>;
   /** Additional registered world-query parameters used by typed request bindings. */
   parameterValues?: Record<string, unknown>;
+  /** Server-owned reference already selected and validated in the caller's scope. */
+  resolvedReferenceKey?: Record<string, unknown>;
   capabilities: CapabilityDescriptor[];
   semanticProfiles: CapabilitySemanticEntry[];
   operationLocks: OperationLock[];
   availability: OperationAvailability[];
   maturityPolicy: MaturityPolicy;
+  analysisProviderAuthorizations?: readonly AnalysisProviderAuthorization[];
+  advancedHistoryEnabled?: boolean;
+  grantedPermissions?: readonly string[];
   /** @deprecated Use gdpsRecipeAuthorization; names alone do not authorize PREVIEW operations. */
   previewRecipeIds?: readonly QuerySemanticPattern[];
   /** Exact descriptor and recipe lock entry authorizing a GDPS PREVIEW compilation. */
@@ -132,6 +144,10 @@ export interface WorldQueryNode {
   };
   inputs: Record<string, WorldQueryInputBinding>;
   failurePolicy: "FAIL_FAST" | "ALLOW_PARTIAL" | "SKIP_IF_PRECONDITION_FALSE";
+  preconditions?: Array<
+    | { kind: "NODE_STATUS"; nodeId: string; statuses: Array<"COMPLETED" | "PARTIAL" | "NO_DATA"> }
+    | { kind: "VALUE_PRESENT"; binding: Extract<WorldQueryInputBinding, { kind: "NODE_OUTPUT" }> }
+  >;
   budget: {
     maximumRows: number;
     maximumCandidates: number;

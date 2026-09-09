@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "1.0",
+  "phase": "W00",
+  "status": "PASS",
+  "branch": "codex/wsgs-v0.2.4-stable-world-analysis-service",
+  "main": {
+    "commit": "565e52705bb7656d4623a04655001325ca61acd0",
+    "tree": "ac1d8e0536c70db9dc1c9c35aab4a112c2688c46",
+    "ancestorOfImplementation": true
+  },
+  "t5": {
+    "commit": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+    "tree": "1205df8eb1bc9ad39ff2afd2137510b61a5a38cd",
+    "pr": 14,
+    "state": "OPEN",
+    "draft": true,
+    "mergedAt": null
+  },
+  "historical": {
+    "commit": "825682205deeab6ff2e6808e5f5d5c38abfb1779",
+    "ancestorOfImplementation": true
+  },
+  "remoteFetch": {
+    "command": "git fetch --all --prune",
+    "exitCode": 0,
+    "refreshedThisTask": true
+  },
+  "workspace": {
+    "initiallyClean": true,
+    "initialBranch": "codex/wsgs-v0.2.3-advanced-historical-analysis-consumption",
+    "resetOrClean": false,
+    "forcePush": false,
+    "remoteMerge": false,
+    "upstreamImplementationWrites": false
+  },
+  "package": {
+    "path": "WSGS_v0.2.4_Stable_World_Analysis_Codex_Goal",
+    "integrity": "PASS",
+    "checkedArtifacts": 29,
+    "validatorSelfTests": 7,
+    "required": 72,
+    "cases": 24
+  },
+  "legacy": {
+    "files": 68,
+    "hashManifest": "legacy-contract-hashes.json",
+    "newProfileAlreadyOccupied": false
+  },
+  "runtimeFixes": {
+    "mainRuntimePathsUnchanged": true,
+    "regression": "baseline-check.log"
+  },
+  "commands": [
+    "baseline-check.json",
+    "baseline-test.json",
+    "baseline-build.json",
+    "package-self-test.json",
+    "legacy-contracts.json"
+  ],
+  "tests": {
+    "filesPassed": 61,
+    "filesSkipped": 4,
+    "passed": 780,
+    "skipped": 29,
+    "failed": 0,
+    "total": 809
+  },
+  "remainingBaselineImplementationGaps": [
+    "No public 1.2 schemas or five-kind closed union yet",
+    "T5 internal evidence-product selections cannot stand in for ReferenceProduct IDs",
+    "Pipeline result digest and raw result-byte digest must not be conflated in new selection authority",
+    "Public canonical ordering and hash preimage need explicit W01 rules"
+  ],
+  "required": [
+    {
+      "id": "WA-001",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    },
+    {
+      "id": "WA-002",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    },
+    {
+      "id": "WA-003",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    },
+    {
+      "id": "WA-004",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    },
+    {
+      "id": "WA-005",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    },
+    {
+      "id": "WA-006",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    },
+    {
+      "id": "WA-007",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    },
+    {
+      "id": "WA-008",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    },
+    {
+      "id": "WA-009",
+      "status": "PASS",
+      "evidence": [
+        "baseline.md",
+        "baseline-check.log",
+        "legacy-contract-hashes.json",
+        "../../../../execplans/EP-wsgs-v0.2.4-stable-world-analysis-service.md"
+      ]
+    }
+  ],
+  "optional": {
+    "realGateway": "NOT_RUN",
+    "realPostgres": "NOT_RUN",
+    "realModel": "NOT_RUN",
+    "realSacs": "NOT_RUN",
+    "realDevice": "NOT_RUN",
+    "production": "DEFERRED"
+  },
+  "workItemVersion": "0.2.4",
+  "releaseVersionUnchanged": "0.2.1",
+  "nextGate": "W01 contract-only freeze before any new runtime implementation"
+}

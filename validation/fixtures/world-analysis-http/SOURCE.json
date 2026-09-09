@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14",
+  "sourceRegistry": "config/world-platform-gateway-registry.json",
+  "capabilityCount": 122,
+  "semanticCatalogHash": "sha256:418fc328861e846801c6e8109bf6d48b876c7814c650a391b84076f71e588b61",
+  "sha256": "sha256:353051007e224640727ac4483787f2ce8fd599409852c6a362abde64864e19e9",
+  "contains": "Public capability descriptors and explicit semantics only; no endpoints or credentials",
+  "verification": "Every operation matches the frozen WSGS southbound schema and semantic hashes"
+}

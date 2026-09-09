@@ -1,0 +1,17 @@
+{
+  "phase": "W06",
+  "status": "IN_PROGRESS",
+  "testedCommit": "af51bcd345c7b40d24d383fa6894365a5621ee64",
+  "commands": [
+    { "command": "npm run test:world-analysis:http", "evidence": "initial-http.json", "exitCode": 0, "status": "PASS", "testsPassed": 8 },
+    { "command": "npm run check", "evidence": "initial-http-check.json", "exitCode": 0, "status": "PASS", "testsPassed": 914, "testsSkipped": 29, "filesPassed": 70, "filesSkipped": 4 },
+    { "command": "npm test", "evidence": "initial-http-tests.json", "exitCode": 0, "status": "PASS", "testsPassed": 914, "testsSkipped": 29, "filesPassed": 70, "filesSkipped": 4 },
+    { "command": "npm run build", "evidence": "initial-http-build.json", "exitCode": 0, "status": "PASS" }
+  ],
+  "contractEvidence": { "containedIn": "initial-http-check.log", "publicAssertions": 836, "unchangedLegacyArtifacts": 68, "runtimeMirrors": 17, "status": "PASS" },
+  "legacyAcceptanceCaveat": "Old acceptance ledger BLOCKED/NOT_RUN rows remain explicit. Successful check exit does not assert production qualification.",
+  "detailedHttpScope": "http-development-e2e.json",
+  "completeW06Gate": false,
+  "draftPrCreated": false,
+  "readyMarkerAuthorized": false
+}

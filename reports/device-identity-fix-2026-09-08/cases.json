@@ -1,0 +1,157 @@
+[
+  {
+    "name": "MAP",
+    "http": 202,
+    "groundingId": "grounding-7159d84e-1e9a-481d-a6c9-0ab3f0f8721c",
+    "status": "PARTIAL",
+    "validResult": true,
+    "resultHash": "sha256:d9c08531efcdb5b7a1bb4f4421d2c817f3846c4929cc04eb7b698bb96b71cdaa",
+    "elapsedMs": 83829,
+    "replayIdentical": true,
+    "findings": [
+      {
+        "kind": "HISTORICAL_TRACE",
+        "status": "PARTIAL"
+      },
+      {
+        "kind": "ROAD_ASSOCIATION",
+        "status": "PARTIAL"
+      }
+    ],
+    "operations": [
+      "history.get-trajectory",
+      "trajectory.map-match"
+    ],
+    "gaps": [
+      {
+        "detail": {},
+        "evidenceIds": [],
+        "findingIds": [],
+        "gapId": "gap-e0bf4b813f562503c082fd2ae8c10d1a",
+        "gapKind": "RESULT_TRUNCATED",
+        "messageCode": "RESULT_TRUNCATED",
+        "severity": "WARNING"
+      }
+    ],
+    "executions": [
+      {
+        "operation_id": "history.get-trajectory",
+        "upstream_status": "PARTIAL",
+        "normalized_status": "PARTIAL",
+        "receipt_count": 1
+      },
+      {
+        "operation_id": "operational-task.get-execution-intervals",
+        "upstream_status": "PARTIAL",
+        "normalized_status": "PARTIAL",
+        "receipt_count": 1
+      }
+    ],
+    "gdpsWarnings": []
+  },
+  {
+    "name": "STOP",
+    "http": 202,
+    "groundingId": "grounding-e854e9ff-9015-4e5d-963a-7a844da22380",
+    "status": "PARTIAL",
+    "validResult": true,
+    "resultHash": "sha256:d7ac68ef361e5751908bde6296a3e28b773b24833bd8760fecfc770ed08a59bf",
+    "elapsedMs": 71329,
+    "replayIdentical": true,
+    "findings": [
+      {
+        "kind": "HISTORICAL_TRACE",
+        "status": "PARTIAL"
+      },
+      {
+        "kind": "TEMPORAL_EVENT",
+        "status": "PARTIAL"
+      }
+    ],
+    "operations": [
+      "history.get-trajectory",
+      "temporal-spatial.find-events"
+    ],
+    "gaps": [
+      {
+        "detail": {},
+        "evidenceIds": [],
+        "findingIds": [],
+        "gapId": "gap-e6371694e6413af09d22989ceed94844",
+        "gapKind": "RESULT_TRUNCATED",
+        "messageCode": "RESULT_TRUNCATED",
+        "severity": "WARNING"
+      }
+    ],
+    "executions": [
+      {
+        "operation_id": "history.get-trajectory",
+        "upstream_status": "PARTIAL",
+        "normalized_status": "PARTIAL",
+        "receipt_count": 1
+      },
+      {
+        "operation_id": "operational-task.get-execution-intervals",
+        "upstream_status": "PARTIAL",
+        "normalized_status": "PARTIAL",
+        "receipt_count": 1
+      }
+    ],
+    "gdpsWarnings": []
+  },
+  {
+    "name": "RANK",
+    "http": 202,
+    "groundingId": "grounding-e2660ccf-8453-4bb9-8ac6-f6d82659386a",
+    "status": "PARTIAL",
+    "validResult": true,
+    "resultHash": "sha256:0b23cffb20b9c625b87f2fb599ebdc725adeabac5603e71ec31417d06e2e3890",
+    "elapsedMs": 81104,
+    "replayIdentical": true,
+    "findings": [
+      {
+        "kind": "HISTORICAL_TRACE",
+        "status": "PARTIAL"
+      },
+      {
+        "kind": "METRIC_RANKING",
+        "status": "NO_DATA"
+      }
+    ],
+    "operations": [
+      "history.get-trajectory",
+      "spatiotemporal-metric.rank-locations"
+    ],
+    "gaps": [
+      {
+        "detail": {},
+        "evidenceIds": [],
+        "findingIds": [],
+        "gapId": "gap-2042fe7c423368042364f1761bb22e4d",
+        "gapKind": "RESULT_TRUNCATED",
+        "messageCode": "RESULT_TRUNCATED",
+        "severity": "WARNING"
+      }
+    ],
+    "executions": [
+      {
+        "operation_id": "history.get-trajectory",
+        "upstream_status": "PARTIAL",
+        "normalized_status": "PARTIAL",
+        "receipt_count": 1
+      },
+      {
+        "operation_id": "operational-task.get-execution-intervals",
+        "upstream_status": "PARTIAL",
+        "normalized_status": "PARTIAL",
+        "receipt_count": 1
+      }
+    ],
+    "gdpsWarnings": []
+  },
+  {
+    "name": "LIVE_SELECTION",
+    "outcome": "NOT_RUN",
+    "reason": "NO_LIVE_ANALYSIS_CHOICE"
+  }
+]

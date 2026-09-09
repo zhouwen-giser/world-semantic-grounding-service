@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:grounding-graph",
+  "title": "GroundingGraph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "nodes": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "nodeId",
+          "kind",
+          "payload"
+        ],
+        "properties": {
+          "nodeId": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          },
+          "kind": {
+            "enum": [
+              "MENTION",
+              "KNOWN_REFERENCE",
+              "RESOLVED_REFERENCE",
+              "DERIVED_REFERENCE",
+              "REFERENCE_SET",
+              "SEMANTIC_OPERATION",
+              "WORLD_QUERY",
+              "FINDING",
+              "UNKNOWN"
+            ]
+          },
+          "payload": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "edgeId",
+          "from",
+          "to",
+          "relation"
+        ],
+        "properties": {
+          "edgeId": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          },
+          "from": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          },
+          "to": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          },
+          "relation": {
+            "enum": [
+              "RESOLVES_TO",
+              "DERIVED_FROM",
+              "SCOPED_BY",
+              "FILTERS",
+              "RELATES_TO",
+              "OBSERVER_OF",
+              "TARGET_OF",
+              "PRODUCES",
+              "SUPPORTED_BY",
+              "CONTRADICTED_BY"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -7,16 +7,14 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  GOWM_SOUTHBOUND_LOCK_RAW_SHA256,
+  currentGowmPath,
+  currentGowmSnapshot,
   loadOperationalGowmLock,
   OperationalGowmLockError
 } from "./index.js";
 
 const temporaryDirectories: string[] = [];
-const bundledLockPath = fileURLToPath(new URL(
-  "../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json",
-  import.meta.url
-));
+const bundledLockPath = currentGowmPath(currentGowmSnapshot.lockPath);
 
 function sha256(bytes: Uint8Array): `sha256:${string}` {
   return `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
@@ -38,15 +36,27 @@ afterEach(() => {
 });
 
 describe("operational GOWM lock intake", () => {
+  it("validates a future formal schema without a hard-coded version ceiling", () => {
+    const candidate = JSON.parse(readFileSync(bundledLockPath, "utf8"));
+    candidate.gatewayContractVersion = "9.10.0";
+    candidate.consumerContractPackage.version = "9.10.0";
+    const pinned = temporaryLock(candidate);
+    const schema = JSON.parse(readFileSync(currentGowmPath(currentGowmSnapshot.lockSchemaPath), "utf8"));
+    schema.properties.gatewayContractVersion.const = "9.10.0";
+    schema.properties.consumerContractPackage.properties.version.const = "9.10.0";
+    const schemaFile = temporaryLock(schema);
+    expect(loadOperationalGowmLock({ lockPath: pinned.path, expectedSha256: pinned.hash,
+      hashMode: "EXACT_BYTES", schemaPath: schemaFile.path }).lock.gatewayContractVersion).toBe("9.10.0");
+  });
   it("loads the bundled lock using its exact raw-byte hash", () => {
     const loaded = loadOperationalGowmLock({
       lockPath: bundledLockPath,
-      expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+      expectedSha256: `sha256:${currentGowmSnapshot.lockSha256}`,
       hashMode: "EXACT_BYTES"
     });
 
-    expect(loaded.lock.defaultOperations).toHaveLength(31);
-    expect(loaded.lock.previewOperations).toHaveLength(89);
+    expect(loaded.lock.defaultOperations.length).toBeGreaterThan(0);
+    expect(loaded.lock.gatewayContractVersion).toBe(currentGowmSnapshot.gatewayContractVersion);
     expect(loaded.hashMode).toBe("EXACT_BYTES");
   });
 

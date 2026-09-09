@@ -1,0 +1,2 @@
+/wsgs-live-grounding-api-1 exited
+/wsgs-live-grounding-worker-1 exited

@@ -1,0 +1,52 @@
+{
+  "status": "PARTIAL_W06_GATE_OPEN",
+  "scope": "CONTROLLED_LOCAL_HTTP_NOT_LIVE_PROVIDER_OR_POSTGRES",
+  "testedCommit": "f15e6a873011abc4a7096b6006a4503ee12f0873",
+  "remoteBaselineRecheck": {
+    "command": "git fetch origin --prune",
+    "result": "PASS",
+    "originMain": "565e52705bb7656d4623a04655001325ca61acd0",
+    "changed": false,
+    "mergeOrPushPerformed": false
+  },
+  "commands": {
+    "check": "cross-http-check.json",
+    "tests": "cross-http-tests.json",
+    "http": "cross-http.json",
+    "build": "cross-http-build.json"
+  },
+  "verification": {
+    "check": "PASS",
+    "testFilesPassed": 73,
+    "testFilesSkipped": 4,
+    "testsPassed": 951,
+    "testsSkipped": 29,
+    "httpFilesPassed": 3,
+    "httpTestsPassed": 20,
+    "build": "PASS",
+    "logHashesRecomputed": true,
+    "commandSourceIdentityChecked": true,
+    "trackedWorkingTreeCleanDuringCommands": true
+  },
+  "addedBusinessCases": [
+    "Actual signed T2-to-T3 HTTP consumes the full preceding map-match result and preserves unconfirmed LAST with three blocking periods.",
+    "A validly rehashed T3 envelope bound to an unrelated map result produces UPSTREAM_CONTRACT_MISMATCH, no temporal event, and retains historical and road findings.",
+    "T2 HTTP 503 prevents T3 execution, produces UPSTREAM_FAILURE, and retains the independent historical finding."
+  ],
+  "regressionFix": "Advanced execution distinguishes bounded transport/HTTP failures from contract validation failures without publishing raw upstream details; deadline and abort behavior remains unchanged.",
+  "developmentAttempts": [
+    "Initial CROSS assertion used the upstream selectionResult field instead of the frozen public selection field; corrected the test without changing the public contract.",
+    "Focused business suite passed five cases before classification refinement; final focused executor/projector/HTTP regression passed 149 cases."
+  ],
+  "remaining": [
+    "Complete-source LAST CROSS HTTP case.",
+    "T4 Top-K and actual structured series/rank/action multiround HTTP.",
+    "Broader optional-provider business isolation, recovery and combined-choice acceptance.",
+    "Permanent standalone handoff, all 72 requirement evidence rows, final independent review and dedicated Draft PR."
+  ],
+  "realGateway": "NOT_RUN",
+  "realPostgres": "NOT_RUN",
+  "realModel": "NOT_RUN",
+  "sacsValidation": "NOT_RUN",
+  "readyMarkerIssued": false
+}

@@ -28,6 +28,27 @@ function request(
 }
 
 describe("grounding contract negotiation", () => {
+  it("requires independent world-analysis authorization and the exact 1.2 pair", () => {
+    const config = parseContractNegotiationConfig(undefined, '["7/sacs-service"]');
+    const exact = { "wsgs-contract-version": "sacs-wsgs-grounding/1.2", "wsgs-result-profile": "wsgs-world-analysis-findings/1.0" };
+    expect(negotiateGroundingContract(request(exact), identity, config)).toMatchObject({ contractVersion: "sacs-wsgs-grounding/1.2" });
+    expect(negotiateGroundingContract(request({}), identity, config).contractVersion).toBe("sacs-wsgs-grounding/1.0");
+    expect(Object.isFrozen(config.worldAnalysisServicePrincipals)).toBe(true);
+    expect(() => negotiateGroundingContract(request(exact), identity, { sacsGeospatialServicePrincipals: [identity.servicePrincipalId] })).toThrowError(/not available/u);
+    for (const headers of [
+      { "wsgs-contract-version": exact["wsgs-contract-version"] },
+      { "wsgs-result-profile": exact["wsgs-result-profile"] },
+      { ...exact, "wsgs-result-profile": "sacs-wsgs-geospatial-findings/1.0" },
+      { ...exact, "wsgs-contract-version": "sacs-wsgs-grounding/1.1" },
+      { ...exact, "wsgs-result-profile": ` ${exact["wsgs-result-profile"]}` },
+      { ...exact, "wsgs-result-profile": [exact["wsgs-result-profile"], exact["wsgs-result-profile"]] }
+    ]) expect(() => negotiateGroundingContract(request(headers), identity, config)).toThrow();
+  });
+  it("rejects malformed or wildcard world-analysis configuration", () => {
+    for (const value of ['["*"]', '["service-a","service-a"]', '[""]', 'null', '{}', 'invalid']) {
+      expect(() => parseContractNegotiationConfig(undefined, value)).toThrow();
+    }
+  });
   it("accepts authority-valid numeric/slash principals and freezes a copy", () => {
     const parsed = parseContractNegotiationConfig('["7/sacs-service"]');
     expect(parsed.sacsGeospatialServicePrincipals).toEqual(["7/sacs-service"]);

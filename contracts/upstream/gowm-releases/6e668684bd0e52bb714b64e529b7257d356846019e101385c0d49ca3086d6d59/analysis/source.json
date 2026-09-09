@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "1.0",
+  "repository": "zhouwen-giser/gowm-spatiotemporal-analysis-providers",
+  "branch": "published",
+  "commit": "14d1929c315e6fc8c8380044eff893185b6b682b",
+  "tree": "26652830b03a7f94baff8e080315bac9d511515d86f6e0ba9e068c6dfa3eeaa2",
+  "capturedAt": "1970-01-01T00:00:00+00:00",
+  "files": [
+    {
+      "path": "contracts/manifests/map-matching-provider.json",
+      "sha256": "sha256:4731231ccf11bd361a26ae23408670f890835708ea7cb62fbe9fe8dacb11ebb2"
+    },
+    {
+      "path": "contracts/manifests/metric-ranking-provider.json",
+      "sha256": "sha256:81f1090839b5f4fe0ca440eb4fb7fdf811c74075c771a8bbb1e1b85c2715eecc"
+    },
+    {
+      "path": "contracts/manifests/temporal-events-provider.json",
+      "sha256": "sha256:a215ed7cea3b347da96a17bb4eafd48c3d590cf420fe97e3dd91b6978c53800d"
+    },
+    {
+      "path": "contracts/map-matching/map-match-request.schema.json",
+      "sha256": "sha256:1ee02527abb2352559c3c7d6e68c09c3db8bb959efc9cac25c8bf27ce27a331c"
+    },
+    {
+      "path": "contracts/map-matching/map-match-result.schema.json",
+      "sha256": "sha256:cd6893e9c95140e506a0a542992123225f4fd8bd8044f484528fa615bf93322e"
+    },
+    {
+      "path": "contracts/metric-ranking/metric-ranking-request.schema.json",
+      "sha256": "sha256:ceff8a2ddcd751b85a6ce03d1fc38c5aede501eab402b4f4f7947bdf7185cffe"
+    },
+    {
+      "path": "contracts/metric-ranking/metric-ranking-result.schema.json",
+      "sha256": "sha256:402a608b2e17da7065a8a921b471ade8598666434369c4e5a50d965c023b3f03"
+    },
+    {
+      "path": "contracts/temporal-events/temporal-events-request.schema.json",
+      "sha256": "sha256:9aeb9bfe63a142592123ea27a311cb62e4aeae7438353b3ccf2f8dfaea6e3a6e"
+    },
+    {
+      "path": "contracts/temporal-events/temporal-events-result.schema.json",
+      "sha256": "sha256:444be4dc0569d7659f0e87d5502dc08b8b84ce5cc27d5a89f992fd130a110d32"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/039_gowm_network_v1_read_contract.sql",
+      "sha256": "sha256:06fc9e64e9ba0909d71ad8e5d0c636bb163d39484a01b350036c13eb0098b0f7"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/044_network_arc_heading_read_contract.sql",
+      "sha256": "sha256:c2acdee71ea3f94aa70e85090a7da05d72cb6177b31e5f403da5241199566c09"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/067_historical_trajectory_contract.sql",
+      "sha256": "sha256:02c268c947f4b0b181682b46d327cb80cd2de60ab634e00f587c0f0078736256"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/capability-descriptor.schema.json",
+      "sha256": "sha256:314929dbd2e8235ef959ce6fd456e4b2dc3ac2f126cdeb192c38b91fc2fcf253"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/capability-provider-manifest.schema.json",
+      "sha256": "sha256:5e23c0e7a0316deecf845bd5333f9898ea824789cde475241ffe67a65ab396ef"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/capability-result-envelope.schema.json",
+      "sha256": "sha256:4547bb59d10156e762947304dfcbf50a508d906c73d49cda76e96cd57db0eefc"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/capability-semantic-profile-v1.1.schema.json",
+      "sha256": "sha256:03a509be3772fce854bf281b0d4fa3f421ec25a645c87745cb2a6cbbe65534ae"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/common-definitions.schema.json",
+      "sha256": "sha256:4d2677f59fddd8e1dad6d3fad1483867202f498403e1d6f569ec8581ae6c641a"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/compute-snapshot-context.schema.json",
+      "sha256": "sha256:da6bb112900f132029340c70ff52cb7b7260c2f85d4dcd743de2d441ca7e7703"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/data-snapshot-context.schema.json",
+      "sha256": "sha256:81c99af1184d7c99f24e4427e20d227e166343b07fa8d71fd00bcbfe825aed8f"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/evidence-reference.schema.json",
+      "sha256": "sha256:2ecd6396adb3699b635f777bc5ce0cc2a7b3b3188517ad718bbc990048930b62"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/execution-receipt.schema.json",
+      "sha256": "sha256:dfd9a56e1f2c2f89a3b0a8cc4d961e19ed8f13ec836077485ba93eddb25bcae4"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/platform-error.schema.json",
+      "sha256": "sha256:78cc6b2b4e50fe46b6b5ae8f2db2adef458d544d859375ad5fb13e78b9774bb8"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/provider-execution-request.schema.json",
+      "sha256": "sha256:5bdca63b9150d3f39dac9de11ea02f5888b2970a7a2cf968dfd0960dbed89fbf"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/query-snapshot-manifest.schema.json",
+      "sha256": "sha256:6a607e3aae02543f8d3abb3770991e77c3f180b4bb4691aa739797798ee55e08"
+    },
+    {
+      "path": "contracts/upstream/gowm-current/source.json",
+      "sha256": "sha256:112db5ab4fe0463e4bf7b6da77e5dff5c33df8a06621f6944b6df6f9b125f376"
+    },
+    {
+      "path": "integration/gowm/README.md",
+      "sha256": "sha256:6d6c384a686b13fb56f01f4d52e2370dca006ce21bb6ca2dc3b2f5eb1ca90998"
+    },
+    {
+      "path": "integration/gowm/analysis-providers-canonical-schema-lock.json",
+      "sha256": "sha256:df23ca5c66f3c60d3755d3aa804137458f31219237613cc380412cb48d9ff5dc"
+    },
+    {
+      "path": "integration/gowm/map-matching-provider-registry-entry.json",
+      "sha256": "sha256:c3eb2bb975c47747cc3a7efa738926a7fca642b6aab814f3cbe8588244acb370"
+    },
+    {
+      "path": "integration/gowm/map-matching-provider-schema-lock-fragment.json",
+      "sha256": "sha256:b26a23ed23cc357430eb7cbcbfa5e5fda1bea57a455fc8c297cd6ab5542745a6"
+    },
+    {
+      "path": "integration/gowm/metric-ranking-provider-registry-entry.json",
+      "sha256": "sha256:c130635089ea9f9b57155670b98c338bd3f0939d623b0407d0a04d6a555e5a3c"
+    },
+    {
+      "path": "integration/gowm/metric-ranking-provider-schema-lock-fragment.json",
+      "sha256": "sha256:fffe0d9d0c67e3bc4d9794e23c05da382cf8ad4268eb20616a86c8cdf9e04c8f"
+    },
+    {
+      "path": "integration/gowm/temporal-events-provider-registry-entry.json",
+      "sha256": "sha256:c57e138389504b9600b279a7df3fb0000183fbb4c8076a0d40bf2a97c22130ee"
+    },
+    {
+      "path": "integration/gowm/temporal-events-provider-schema-lock-fragment.json",
+      "sha256": "sha256:4abc81336cf0718b076ca86315a6bcfdd01f30813f820b37370a0ec49f1c6047"
+    }
+  ]
+}

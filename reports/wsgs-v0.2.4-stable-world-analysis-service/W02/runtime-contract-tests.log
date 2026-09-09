@@ -1,0 +1,15 @@
+COMMAND ["npx","vitest","run","packages/contracts/src/world-analysis-contract.test.ts"]
+START 2026-09-06T14:59:49.694Z
+COMMIT 89b9b9acbab6c1cbc059d6d9bc1ce2b7eefaedde
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  22:59:50
+   Duration  1.03s (transform 153ms, setup 0ms, import 779ms, tests 44ms, environment 0ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE

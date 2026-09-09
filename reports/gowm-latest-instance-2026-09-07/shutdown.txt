@@ -1,0 +1,7 @@
+ Container wsgs-live-grounding-api-1 Stopping 
+ Container wsgs-live-grounding-api-1 Stopped 
+ Container wsgs-live-grounding-api-run-b5eeb7e293e7 Creating 
+ Container wsgs-live-grounding-api-run-b5eeb7e293e7 Created 
+{"status":"DRAINED","initialJobs":0,"elapsedMs":32}
+ Container wsgs-live-grounding-worker-1 Stopping 
+ Container wsgs-live-grounding-worker-1 Stopped 

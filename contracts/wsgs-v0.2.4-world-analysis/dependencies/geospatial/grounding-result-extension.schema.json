@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2.1:sacs-geospatial:grounding-result:1.1",
+  "title": "GroundingResult 1.1 with SACS Geospatial Findings",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "requestId",
+    "groundingId",
+    "status",
+    "source",
+    "mentions",
+    "referenceProducts",
+    "evidenceItems",
+    "ambiguities",
+    "unresolvedMentions",
+    "capabilityGaps",
+    "warnings",
+    "execution",
+    "resultHash"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "requestId": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/identifier"
+    },
+    "groundingId": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/identifier"
+    },
+    "status": {
+      "enum": [
+        "COMPLETED",
+        "PARTIAL",
+        "AMBIGUOUS",
+        "UNRESOLVED",
+        "FAILED",
+        "CANCELLED"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "messageId",
+        "originalTextSha256"
+      ],
+      "properties": {
+        "messageId": {
+          "$ref": "urn:wsgs:v0.1:common#/$defs/identifier"
+        },
+        "originalTextSha256": {
+          "$ref": "urn:wsgs:v0.1:common#/$defs/sha256"
+        }
+      }
+    },
+    "mentions": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:v0.1:grounded-mention"
+      }
+    },
+    "semanticFrame": {
+      "$ref": "urn:wsgs:v0.1:world-semantic-frame"
+    },
+    "groundingGraph": {
+      "$ref": "urn:wsgs:v0.1:grounding-graph"
+    },
+    "referenceProducts": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "$ref": "urn:wsgs:v0.1:reference-product"
+      }
+    },
+    "evidenceItems": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "$ref": "urn:wsgs:v0.1:grounding-evidence-item"
+      }
+    },
+    "geospatialFindings": {
+      "$ref": "urn:wsgs:v0.2.1:sacs-geospatial:geospatial-findings:1.0"
+    },
+    "gowmQueries": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "queryId",
+          "status",
+          "resultHash"
+        ],
+        "properties": {
+          "queryId": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "PARTIAL",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "resultHash": {
+            "$ref": "urn:wsgs:v0.1:common#/$defs/sha256"
+          }
+        }
+      }
+    },
+    "ambiguities": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:v0.1:grounding-ambiguity"
+      }
+    },
+    "unresolvedMentions": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mentionId",
+          "surfaceText",
+          "reason"
+        ],
+        "properties": {
+          "mentionId": {
+            "$ref": "urn:wsgs:v0.1:common#/$defs/identifier"
+          },
+          "surfaceText": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    "capabilityGaps": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "urn:wsgs:v0.1:capability-gap"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "string",
+        "maxLength": 4096
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parserVersion",
+        "semanticModelReceiptIds",
+        "queryCompilerVersion",
+        "normalizerVersion",
+        "elapsedMs"
+      ],
+      "properties": {
+        "parserVersion": {
+          "type": "string"
+        },
+        "semanticModelReceiptIds": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "string"
+          }
+        },
+        "queryCompilerVersion": {
+          "type": "string"
+        },
+        "normalizerVersion": {
+          "type": "string"
+        },
+        "elapsedMs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "validUntil": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/dateTime"
+    },
+    "resultHash": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/sha256"
+    },
+    "error": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/error"
+    }
+  }
+}

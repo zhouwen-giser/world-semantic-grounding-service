@@ -1,0 +1,8 @@
+
+> world-semantic-grounding-service@0.2.1 gowm:refresh
+> python3 validation/scripts/refresh-gowm.py
+
+{"status":"PASS","packageVersion":"0.7.1","schemas":85}
+{"status": "PASS", "snapshot": "c93829086a16e03c93bd1c42b53994ebca3b23c6c7c92f5e74081ce4b95431ad", "packageVersion": "0.7.1"}
+{"status": "PREPARED", "gatewayImage": "wsgs-gowm:53cea4cc0903e3b6", "release": "adb9871ecddfc49a40bf"}
+{"status":"PREPARED","release":"/mnt/data/wsgs-live/releases/adb9871ecddfc49a40bf","project":"wsgs-live","activated":false}

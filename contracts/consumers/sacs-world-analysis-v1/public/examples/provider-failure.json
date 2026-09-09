@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-1",
+  "groundingId": "grounding-1",
+  "status": "FAILED",
+  "source": {
+    "messageId": "message-1",
+    "originalTextSha256": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+  },
+  "mentions": [],
+  "referenceProducts": [
+    {
+      "productId": "ugv1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "entity",
+        "id": "wrf_00000000000000000000000000000001",
+        "version": "1"
+      },
+      "referenceType": "ENTITY",
+      "displayName": "ugv1",
+      "sourceOperation": "entity.get",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "task-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "operational-task",
+        "id": "wrf_00000000000000000000000000000002",
+        "version": "1"
+      },
+      "referenceType": "OPERATIONAL_TASK",
+      "displayName": "task-1",
+      "sourceOperation": "operational-task.get",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "interval-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "execution-interval",
+        "id": "wrf_00000000000000000000000000000003",
+        "version": "1"
+      },
+      "referenceType": "EXECUTION_INTERVAL",
+      "displayName": "interval-1",
+      "sourceOperation": "operational-task.get-execution-intervals",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "trajectory-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "trajectory",
+        "id": "wrf_00000000000000000000000000000004",
+        "version": "1"
+      },
+      "referenceType": "TRAJECTORY",
+      "displayName": "trajectory-1",
+      "sourceOperation": "history.get-trajectory",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    }
+  ],
+  "evidenceItems": [
+    {
+      "evidenceProductId": "evidence-1",
+      "productKind": "CAPABILITY_RESULT",
+      "authority": "GOWM",
+      "sourceOperation": "spatiotemporal-metric.rank-locations",
+      "upstreamStatus": "COMPLETED",
+      "payloadSchemaUri": "urn:artificial:contract-sample:result",
+      "payloadSchemaHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e",
+      "receiptIds": [
+        "receipt-sample-1"
+      ],
+      "evidenceIds": [
+        "upstream-evidence-sample-1"
+      ],
+      "unknowns": [],
+      "warnings": [],
+      "dataSnapshot": {
+        "snapshotHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+      },
+      "computeSnapshot": {
+        "snapshotHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+      }
+    }
+  ],
+  "ambiguities": [],
+  "unresolvedMentions": [],
+  "capabilityGaps": [],
+  "warnings": [],
+  "execution": {
+    "parserVersion": "contract-sample",
+    "semanticModelReceiptIds": [],
+    "queryCompilerVersion": "contract-sample",
+    "normalizerVersion": "contract-sample",
+    "elapsedMs": 1,
+    "runFingerprint": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+  },
+  "validUntil": "2026-09-06T10:01:00.000+08:00",
+  "worldAnalysisFindings": {
+    "profile": "wsgs-world-analysis-findings/1.0",
+    "findings": [],
+    "choices": [],
+    "gaps": [
+      {
+        "gapId": "gap-UPSTREAM_FAILURE",
+        "gapKind": "UPSTREAM_FAILURE",
+        "severity": "BLOCKING",
+        "messageCode": "UPSTREAM_FAILURE",
+        "findingIds": [],
+        "evidenceIds": [],
+        "detail": {}
+      }
+    ],
+    "findingSetHash": "sha256:bfd74df3d37eea60fdf2ab801f085fdcc85f39cf4b8a7619308d6d7ea86ceeb6"
+  },
+  "resultHash": "sha256:27fe397175f40c8effb49b506c6bb9de65cea9ea603c95d2de69d3525128b822"
+}

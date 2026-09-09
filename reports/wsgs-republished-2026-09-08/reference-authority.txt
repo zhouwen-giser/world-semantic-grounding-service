@@ -1,0 +1,5 @@
+BEGIN
+
+{"reference" : "wrf_9905ca9544ac4b25926ead291d636934", "kind" : "WORLD_OBJECT", "currentVersion" : "8794", "descriptorVersion" : 2, "descriptorObjectVersion" : null, "stale" : null, "revalidationRequired" : false}
+{"reference" : "wrf_a7b65a87df244ce19c9e173190a7b490", "kind" : "OPERATIONAL_TASK", "currentVersion" : "1", "descriptorVersion" : 5, "descriptorObjectVersion" : null, "stale" : null, "revalidationRequired" : false}
+COMMIT

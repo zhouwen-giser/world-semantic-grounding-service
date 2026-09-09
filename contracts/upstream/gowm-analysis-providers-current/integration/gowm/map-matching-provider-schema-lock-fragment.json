@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "gowm-canonical-schema-lock/1.0",
+  "lockId": "gowm-analysis-map-matching-v0.1",
+  "providerId": "gowm.analysis.map-matching",
+  "schemas": [
+    {
+      "schemaUri": "urn:gowm:analysis:map-matching:request:0.1",
+      "schemaHash": "sha256:fce48b61109ed5bf776700ea123892e6ef6ed868c70fed68c5ed2f4fedc56bc5",
+      "schemaPath": "contracts/map-matching/map-match-request.schema.json"
+    },
+    {
+      "schemaUri": "urn:gowm:analysis:map-matching:result:0.1",
+      "schemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5",
+      "schemaPath": "contracts/map-matching/map-match-result.schema.json"
+    }
+  ],
+  "supportingSchemas": []
+}

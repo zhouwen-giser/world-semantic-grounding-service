@@ -1,0 +1,722 @@
+{
+  "providerProtocolVersion": "1.0",
+  "requestId": "metric-ranking-request-1",
+  "operation": {
+    "operationId": "spatiotemporal-metric.rank-locations",
+    "operationVersion": "0.1"
+  },
+  "status": "PARTIAL",
+  "output": {
+    "schemaUri": "urn:gowm:analysis:metric-ranking:result:0.1",
+    "schemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27",
+    "value": {
+      "schemaVersion": "0.1",
+      "reasonCode": "RANKING_AVAILABLE_WITH_INCOMPLETE_COVERAGE",
+      "analysisLevel": "TASK_LEVEL_APPROXIMATE",
+      "algorithm": "CAMPUS_H3_ROBUST_RANKING_V1",
+      "candidateDomain": "PAST_OBSERVED_LOCATIONS",
+      "analysisId": "mra_954c42c240a81468e3b3e08b8c45793d",
+      "trajectoryReferenceKey": {
+        "namespace": "gowm",
+        "kind": "HISTORICAL_TRAJECTORY",
+        "id": "wrf_metric_fixture_trajectory",
+        "version": "1"
+      },
+      "analysisPeriods": [
+        {
+          "start": "2026-09-01T00:00:00.000Z",
+          "end": "2026-09-01T00:02:00.000Z"
+        }
+      ],
+      "excludedPeriods": [
+        {
+          "excludedNo": 1,
+          "exclusionKind": "EXCLUDED_PAUSED_PHASE",
+          "start": "2026-09-01T00:01:10.000Z",
+          "end": "2026-09-01T00:01:20.000Z"
+        }
+      ],
+      "metric": {
+        "observedProperty": "radio.rssi",
+        "valueUnit": "dBm",
+        "measurementStage": "NORMALIZED",
+        "optimizationDirection": "MAXIMIZE"
+      },
+      "metricSeriesCandidates": [
+        {
+          "seriesId": "mts_e106793234cbab189369bd86e48a4b16",
+          "identity": {
+            "sourceKey": "campus-radio",
+            "datastreamKey": "cellular-rssi",
+            "measurementKey": "rssi",
+            "measurementStage": "NORMALIZED",
+            "observedProperty": "radio.rssi",
+            "valueUnit": "dBm"
+          },
+          "sampleCount": 15,
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:00.000Z",
+            "end": "2026-09-01T00:01:20.000Z"
+          },
+          "measurementModels": [
+            "FIXTURE_RADIO"
+          ],
+          "measurementModelVersions": [
+            "1"
+          ],
+          "qualityScoreAvailableCount": 15
+        }
+      ],
+      "aggregation": {
+        "mode": "H3",
+        "resolution": 12
+      },
+      "candidates": [
+        {
+          "spatialUnit": {
+            "kind": "H3_CELL",
+            "h3Index": "8c30986096de3ff",
+            "resolution": 12,
+            "cellCenter": {
+              "type": "Point",
+              "coordinates": [
+                120.99991791256546,
+                31.00000647866487
+              ]
+            }
+          },
+          "representativeVisitedPosition": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "representativeObservedAt": "2026-09-01T00:00:00.000Z",
+          "representativeMeasurementId": "m-a-1",
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:00.000Z",
+            "end": "2026-09-01T00:00:15.000Z"
+          },
+          "statistics": {
+            "sampleCount": 4,
+            "distinctObservationCount": 4,
+            "firstObservedAt": "2026-09-01T00:00:00.000Z",
+            "lastObservedAt": "2026-09-01T00:00:15.000Z",
+            "observationSpanSeconds": 15,
+            "minimum": -61,
+            "maximum": -59,
+            "mean": -60,
+            "median": -60,
+            "p25": -60.25,
+            "p75": -59.75,
+            "medianAbsoluteDeviation": 0.5,
+            "meanQualityScore": 0.95,
+            "exactAlignmentCount": 4,
+            "interpolatedAlignmentCount": 0,
+            "nearestAlignmentCount": 0,
+            "meanAlignmentConfidence": 1
+          },
+          "representativeValue": -60,
+          "reasonCodes": [
+            "HISTORICAL_OBSERVED_LOCATION",
+            "QUALIFIED_BY_ROBUST_STATISTICS"
+          ],
+          "rank": 1,
+          "rankingBasis": {
+            "primaryStatistic": "MEDIAN",
+            "optimizationDirection": "MAXIMIZE",
+            "tieBreakers": [
+              "P25_DESC",
+              "MAD_ASC",
+              "DISTINCT_OBSERVATION_COUNT_DESC",
+              "SAMPLE_COUNT_DESC",
+              "H3_INDEX_CODE_POINT_ASC"
+            ]
+          }
+        },
+        {
+          "spatialUnit": {
+            "kind": "H3_CELL",
+            "h3Index": "8c3098656d6edff",
+            "resolution": 12,
+            "cellCenter": {
+              "type": "Point",
+              "coordinates": [
+                121.0020324246517,
+                30.999999323300408
+              ]
+            }
+          },
+          "representativeVisitedPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "representativeObservedAt": "2026-09-01T00:00:50.000Z",
+          "representativeMeasurementId": "m-c-1",
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:50.000Z",
+            "end": "2026-09-01T00:01:05.000Z"
+          },
+          "statistics": {
+            "sampleCount": 4,
+            "distinctObservationCount": 4,
+            "firstObservedAt": "2026-09-01T00:00:50.000Z",
+            "lastObservedAt": "2026-09-01T00:01:05.000Z",
+            "observationSpanSeconds": 15,
+            "minimum": -68,
+            "maximum": -66,
+            "mean": -67,
+            "median": -67,
+            "p25": -67.25,
+            "p75": -66.75,
+            "medianAbsoluteDeviation": 0.5,
+            "meanQualityScore": 0.93,
+            "exactAlignmentCount": 4,
+            "interpolatedAlignmentCount": 0,
+            "nearestAlignmentCount": 0,
+            "meanAlignmentConfidence": 1
+          },
+          "representativeValue": -67,
+          "reasonCodes": [
+            "HISTORICAL_OBSERVED_LOCATION",
+            "QUALIFIED_BY_ROBUST_STATISTICS"
+          ],
+          "rank": 2,
+          "rankingBasis": {
+            "primaryStatistic": "MEDIAN",
+            "optimizationDirection": "MAXIMIZE",
+            "tieBreakers": [
+              "P25_DESC",
+              "MAD_ASC",
+              "DISTINCT_OBSERVATION_COUNT_DESC",
+              "SAMPLE_COUNT_DESC",
+              "H3_INDEX_CODE_POINT_ASC"
+            ]
+          }
+        },
+        {
+          "spatialUnit": {
+            "kind": "H3_CELL",
+            "h3Index": "8c3098656d661ff",
+            "resolution": 12,
+            "cellCenter": {
+              "type": "Point",
+              "coordinates": [
+                121.00097516294228,
+                31.000002905308346
+              ]
+            }
+          },
+          "representativeVisitedPosition": {
+            "type": "Point",
+            "coordinates": [
+              121.001,
+              31
+            ]
+          },
+          "representativeObservedAt": "2026-09-01T00:00:20.000Z",
+          "representativeMeasurementId": "m-b-1",
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:20.000Z",
+            "end": "2026-09-01T00:00:35.000Z"
+          },
+          "statistics": {
+            "sampleCount": 4,
+            "distinctObservationCount": 4,
+            "firstObservedAt": "2026-09-01T00:00:20.000Z",
+            "lastObservedAt": "2026-09-01T00:00:35.000Z",
+            "observationSpanSeconds": 15,
+            "minimum": -90,
+            "maximum": -40,
+            "mean": -77.5,
+            "median": -90,
+            "p25": -90,
+            "p75": -77.5,
+            "medianAbsoluteDeviation": 0,
+            "meanQualityScore": 0.95,
+            "exactAlignmentCount": 4,
+            "interpolatedAlignmentCount": 0,
+            "nearestAlignmentCount": 0,
+            "meanAlignmentConfidence": 1
+          },
+          "representativeValue": -90,
+          "reasonCodes": [
+            "HISTORICAL_OBSERVED_LOCATION",
+            "QUALIFIED_BY_ROBUST_STATISTICS"
+          ],
+          "rank": 3,
+          "rankingBasis": {
+            "primaryStatistic": "MEDIAN",
+            "optimizationDirection": "MAXIMIZE",
+            "tieBreakers": [
+              "P25_DESC",
+              "MAD_ASC",
+              "DISTINCT_OBSERVATION_COUNT_DESC",
+              "SAMPLE_COUNT_DESC",
+              "H3_INDEX_CODE_POINT_ASC"
+            ]
+          }
+        }
+      ],
+      "completeness": {
+        "trajectoryTemporalCoverageRatio": 0.8333333333,
+        "trajectoryPrefixComplete": true,
+        "trajectorySuffixComplete": true,
+        "trajectoryGapPeriods": [
+          {
+            "start": "2026-09-01T00:00:40.000Z",
+            "end": "2026-09-01T00:00:50.000Z"
+          }
+        ],
+        "trajectoryQualityBreakPeriods": [],
+        "excludedPeriods": [
+          {
+            "excludedNo": 1,
+            "exclusionKind": "EXCLUDED_PAUSED_PHASE",
+            "start": "2026-09-01T00:01:10.000Z",
+            "end": "2026-09-01T00:01:20.000Z"
+          }
+        ],
+        "sourceMetricSampleCount": 15,
+        "acceptedMetricSampleCount": 15,
+        "rejectedMetricSampleCount": 0,
+        "alignedMetricSampleCount": 13,
+        "unalignedMetricSampleCount": 2,
+        "alignmentRatio": 0.8666666666666667,
+        "unalignedReasonCounts": {
+          "UPSTREAM_TRAJECTORY_GAP": 1,
+          "EXCLUDED_PAUSED_PERIOD": 1
+        },
+        "metricTemporalCompletenessKnown": false
+      },
+      "summary": {
+        "metricSeriesCandidateCount": 1,
+        "sourceMetricSampleCount": 15,
+        "acceptedMetricSampleCount": 15,
+        "rejectedMetricSampleCount": 0,
+        "rejectedReasonCounts": {},
+        "alignedMetricSampleCount": 13,
+        "unalignedMetricSampleCount": 2,
+        "aggregatedCellCount": 4,
+        "qualifiedLocationCount": 3,
+        "unqualifiedLocationCount": 1,
+        "returnedLocationCount": 3,
+        "truncated": false
+      },
+      "alignedSamplePreview": [
+        {
+          "measurementId": "m-a-1",
+          "observationId": "o-a-1",
+          "observedAt": "2026-09-01T00:00:00.000Z",
+          "value": -60,
+          "valueUnit": "dBm",
+          "qualityScore": 0.95,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "h3Index": "8c30986096de3ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 1,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-a-2",
+          "observationId": "o-a-2",
+          "observedAt": "2026-09-01T00:00:05.000Z",
+          "value": -61,
+          "valueUnit": "dBm",
+          "qualityScore": 0.94,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "h3Index": "8c30986096de3ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 1,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-a-3",
+          "observationId": "o-a-3",
+          "observedAt": "2026-09-01T00:00:10.000Z",
+          "value": -59,
+          "valueUnit": "dBm",
+          "qualityScore": 0.96,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "h3Index": "8c30986096de3ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 1,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-a-4",
+          "observationId": "o-a-4",
+          "observedAt": "2026-09-01T00:00:15.000Z",
+          "value": -60,
+          "valueUnit": "dBm",
+          "qualityScore": 0.95,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121,
+              31
+            ]
+          },
+          "h3Index": "8c30986096de3ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 1,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-b-1",
+          "observationId": "o-b-1",
+          "observedAt": "2026-09-01T00:00:20.000Z",
+          "value": -90,
+          "valueUnit": "dBm",
+          "qualityScore": 0.95,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.001,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d661ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 2,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-b-2",
+          "observationId": "o-b-2",
+          "observedAt": "2026-09-01T00:00:25.000Z",
+          "value": -40,
+          "valueUnit": "dBm",
+          "qualityScore": 0.95,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.001,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d661ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 2,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-b-3",
+          "observationId": "o-b-3",
+          "observedAt": "2026-09-01T00:00:30.000Z",
+          "value": -90,
+          "valueUnit": "dBm",
+          "qualityScore": 0.95,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.001,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d661ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 2,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-b-4",
+          "observationId": "o-b-4",
+          "observedAt": "2026-09-01T00:00:35.000Z",
+          "value": -90,
+          "valueUnit": "dBm",
+          "qualityScore": 0.95,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.001,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d661ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 2,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-c-1",
+          "observationId": "o-c-1",
+          "observedAt": "2026-09-01T00:00:50.000Z",
+          "value": -67,
+          "valueUnit": "dBm",
+          "qualityScore": 0.93,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d6edff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 3,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-c-2",
+          "observationId": "o-c-2",
+          "observedAt": "2026-09-01T00:00:55.000Z",
+          "value": -68,
+          "valueUnit": "dBm",
+          "qualityScore": 0.93,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d6edff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 3,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-c-3",
+          "observationId": "o-c-3",
+          "observedAt": "2026-09-01T00:01:00.000Z",
+          "value": -66,
+          "valueUnit": "dBm",
+          "qualityScore": 0.93,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d6edff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 3,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-c-4",
+          "observationId": "o-c-4",
+          "observedAt": "2026-09-01T00:01:05.000Z",
+          "value": -67,
+          "valueUnit": "dBm",
+          "qualityScore": 0.93,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.002,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d6edff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 3,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        },
+        {
+          "measurementId": "m-d-1",
+          "observationId": "o-d-1",
+          "observedAt": "2026-09-01T00:01:20.000Z",
+          "value": -30,
+          "valueUnit": "dBm",
+          "qualityScore": 0.98,
+          "position": {
+            "type": "Point",
+            "coordinates": [
+              121.003,
+              31
+            ]
+          },
+          "h3Index": "8c3098656d6b9ff",
+          "alignmentMethod": "EXACT_TRAJECTORY_SAMPLE",
+          "trajectorySequenceNo": 4,
+          "trajectoryBlockNo": 1,
+          "trajectoryTimeDeltaMs": 0,
+          "alignmentConfidence": 1
+        }
+      ],
+      "unalignedSamplePreview": [
+        {
+          "measurementId": "m-gap",
+          "observationId": "o-gap",
+          "observedAt": "2026-09-01T00:00:45.000Z",
+          "value": -20,
+          "valueUnit": "dBm",
+          "reasonCode": "UPSTREAM_TRAJECTORY_GAP"
+        },
+        {
+          "measurementId": "m-pause",
+          "observationId": "o-pause",
+          "observedAt": "2026-09-01T00:01:15.000Z",
+          "value": -10,
+          "valueUnit": "dBm",
+          "reasonCode": "EXCLUDED_PAUSED_PERIOD"
+        }
+      ],
+      "rejectedMetricSamplePreview": [],
+      "warnings": [
+        "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+      ],
+      "status": "PARTIAL",
+      "subjectReferenceKey": {
+        "namespace": "gowm",
+        "kind": "WORLD_OBJECT",
+        "id": "wrf_metric_fixture_vehicle",
+        "version": "1"
+      },
+      "selectedMetricSeries": {
+        "sourceKey": "campus-radio",
+        "datastreamKey": "cellular-rssi",
+        "measurementKey": "rssi",
+        "measurementStage": "NORMALIZED",
+        "observedProperty": "radio.rssi",
+        "valueUnit": "dBm"
+      }
+    }
+  },
+  "dataSnapshot": {
+    "consistency": "PINNED",
+    "capturedAt": "2026-09-06T04:22:57.746Z",
+    "scopeDigest": "sha256:b5f450c9469f48dbdf6f9237e0f8dc952e00ffb32a82f195f5f444b1a69d7dfe",
+    "resources": [
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "wrf_metric_fixture_trajectory",
+          "version": "1"
+        },
+        "authority": "GOWM Historical Trajectory",
+        "pinning": "PINNED",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "worldVersion": 1
+      },
+      {
+        "referenceKey": {
+          "namespace": "gowm.analysis.metric-ranking",
+          "kind": "HISTORY_INPUT_SET",
+          "id": "metric_set_aad775302ab2b2242459c66dca779657",
+          "version": "1"
+        },
+        "authority": "GOWM Numeric Measurement Set",
+        "pinning": "PINNED",
+        "digest": "sha256:aad775302ab2b2242459c66dca7796578aea13f66e0ab7a07548fa4d9c3fc60e",
+        "worldVersion": 1
+      }
+    ]
+  },
+  "computeSnapshot": {
+    "provider": {
+      "providerId": "gowm.analysis.metric-ranking",
+      "providerVersion": "0.1.0",
+      "implementationDigest": "sha256:1772f919f95f171f068e14141d937dca9ec652e353c5e2c1048fae85b04f77fd"
+    },
+    "operation": {
+      "operationId": "spatiotemporal-metric.rank-locations",
+      "operationVersion": "0.1"
+    },
+    "engine": {
+      "name": "CAMPUS_H3_ROBUST_RANKING_V1",
+      "version": "0.1",
+      "digest": "sha256:075171702d2c29c080008866c6c5984419313502b4f6458403c8c046cc17843a"
+    },
+    "policy": {
+      "version": "CAMPUS_TASK_DEFAULT/0.1",
+      "digest": "sha256:d8b1e711471318d8fe1179560655eee129a8689006d26f4fc8acfa3a0de7a233"
+    },
+    "schemas": {
+      "inputSchemaHash": "sha256:c9c882bf7c25ba0526e685090a9ef8603beec437a33ba67750660e54e105e601",
+      "outputSchemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27"
+    }
+  },
+  "receipts": [
+    {
+      "receiptId": "receipt:374ef68d-9ecc-42d9-a5f6-27a2059261bb",
+      "operationId": "spatiotemporal-metric.rank-locations",
+      "operationVersion": "0.1",
+      "providerId": "gowm.analysis.metric-ranking",
+      "providerVersion": "0.1.0",
+      "inputHash": "sha256:785b2d2df28ed8c02ff8dd2c486623c950cb57d7f20515bd8586fc057880be29",
+      "outputHash": "sha256:99be207b03fee256f599916e0ea09b8779c52984d7faca01f993e31eeaad8f26",
+      "computeSnapshotHash": "sha256:461f585d24ff9b21022e40af1830b7102b631c855597d7c05ff27c0a16f38351",
+      "generatedAt": "2026-09-06T04:22:57.803Z",
+      "durationMs": 41.53132000000005,
+      "method": {
+        "engine": "CAMPUS_H3_ROBUST_RANKING_V1",
+        "engineVersion": "0.1",
+        "methodId": "campus-h3-robust-ranking",
+        "methodVersion": "0.1"
+      },
+      "changes": {
+        "repairApplied": false,
+        "typeChanged": false
+      },
+      "warnings": [
+        "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+      ]
+    }
+  ],
+  "evidenceReferences": [],
+  "warnings": [
+    "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+  ],
+  "consumption": {
+    "inputBytes": 276,
+    "outputBytes": 11279,
+    "rows": 32,
+    "candidates": 28
+  },
+  "execution": {
+    "providerId": "gowm.analysis.metric-ranking",
+    "providerVersion": "0.1.0",
+    "elapsedMs": 41.53132000000005,
+    "resultHash": "sha256:99be207b03fee256f599916e0ea09b8779c52984d7faca01f993e31eeaad8f26"
+  }
+}

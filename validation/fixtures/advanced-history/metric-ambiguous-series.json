@@ -1,0 +1,234 @@
+{
+  "providerProtocolVersion": "1.0",
+  "requestId": "metric-ranking-request-1",
+  "operation": {
+    "operationId": "spatiotemporal-metric.rank-locations",
+    "operationVersion": "0.1"
+  },
+  "status": "INDETERMINATE",
+  "output": {
+    "schemaUri": "urn:gowm:analysis:metric-ranking:result:0.1",
+    "schemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27",
+    "value": {
+      "schemaVersion": "0.1",
+      "reasonCode": "METRIC_SERIES_AMBIGUOUS",
+      "analysisLevel": "TASK_LEVEL_APPROXIMATE",
+      "algorithm": "CAMPUS_H3_ROBUST_RANKING_V1",
+      "candidateDomain": "PAST_OBSERVED_LOCATIONS",
+      "analysisId": "mra_9ce5bdb96567a201ce077cebed8a0f07",
+      "trajectoryReferenceKey": {
+        "namespace": "gowm",
+        "kind": "HISTORICAL_TRAJECTORY",
+        "id": "wrf_metric_ambiguous_trajectory",
+        "version": "1"
+      },
+      "analysisPeriods": [
+        {
+          "start": "2026-09-01T00:00:00.000Z",
+          "end": "2026-09-01T00:00:20.000Z"
+        }
+      ],
+      "excludedPeriods": [],
+      "metric": {
+        "observedProperty": "radio.rssi",
+        "valueUnit": "dBm",
+        "measurementStage": "NORMALIZED",
+        "optimizationDirection": "MAXIMIZE"
+      },
+      "metricSeriesCandidates": [
+        {
+          "seriesId": "mts_3a9d64bfa0cb1b08ccf7d9fd957fd617",
+          "identity": {
+            "sourceKey": "cell-modem",
+            "datastreamKey": "cell-rssi",
+            "measurementKey": "rssi",
+            "measurementStage": "NORMALIZED",
+            "observedProperty": "radio.rssi",
+            "valueUnit": "dBm"
+          },
+          "sampleCount": 1,
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:05.000Z",
+            "end": "2026-09-01T00:00:05.000Z"
+          },
+          "measurementModels": [
+            "CELL_MODEL"
+          ],
+          "measurementModelVersions": [
+            "1"
+          ],
+          "qualityScoreAvailableCount": 0
+        },
+        {
+          "seriesId": "mts_6092529c12d54418b4b43445fc8e02b5",
+          "identity": {
+            "sourceKey": "wifi-radio",
+            "datastreamKey": "wifi-rssi",
+            "measurementKey": "rssi",
+            "measurementStage": "NORMALIZED",
+            "observedProperty": "radio.rssi",
+            "valueUnit": "dBm"
+          },
+          "sampleCount": 1,
+          "observedPeriod": {
+            "start": "2026-09-01T00:00:10.000Z",
+            "end": "2026-09-01T00:00:10.000Z"
+          },
+          "measurementModels": [
+            "WIFI_MODEL"
+          ],
+          "measurementModelVersions": [
+            "1"
+          ],
+          "qualityScoreAvailableCount": 0
+        }
+      ],
+      "aggregation": {
+        "mode": "H3",
+        "resolution": 12
+      },
+      "candidates": [],
+      "completeness": {
+        "trajectoryTemporalCoverageRatio": 1,
+        "trajectoryPrefixComplete": true,
+        "trajectorySuffixComplete": true,
+        "trajectoryGapPeriods": [],
+        "trajectoryQualityBreakPeriods": [],
+        "excludedPeriods": [],
+        "sourceMetricSampleCount": 0,
+        "acceptedMetricSampleCount": 0,
+        "rejectedMetricSampleCount": 0,
+        "alignedMetricSampleCount": 0,
+        "unalignedMetricSampleCount": 0,
+        "alignmentRatio": 0,
+        "unalignedReasonCounts": {},
+        "metricTemporalCompletenessKnown": false
+      },
+      "summary": {
+        "metricSeriesCandidateCount": 2,
+        "sourceMetricSampleCount": 0,
+        "acceptedMetricSampleCount": 0,
+        "rejectedMetricSampleCount": 0,
+        "rejectedReasonCounts": {},
+        "alignedMetricSampleCount": 0,
+        "unalignedMetricSampleCount": 0,
+        "aggregatedCellCount": 0,
+        "qualifiedLocationCount": 0,
+        "unqualifiedLocationCount": 0,
+        "returnedLocationCount": 0,
+        "truncated": false
+      },
+      "alignedSamplePreview": [],
+      "unalignedSamplePreview": [],
+      "rejectedMetricSamplePreview": [],
+      "warnings": [
+        "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+      ],
+      "subjectReferenceKey": {
+        "namespace": "gowm",
+        "kind": "WORLD_OBJECT",
+        "id": "wrf_metric_fixture_vehicle",
+        "version": "1"
+      },
+      "status": "INDETERMINATE"
+    }
+  },
+  "dataSnapshot": {
+    "consistency": "PINNED",
+    "capturedAt": "2026-09-06T04:22:57.804Z",
+    "scopeDigest": "sha256:b5f450c9469f48dbdf6f9237e0f8dc952e00ffb32a82f195f5f444b1a69d7dfe",
+    "resources": [
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "wrf_metric_ambiguous_trajectory",
+          "version": "1"
+        },
+        "authority": "GOWM Historical Trajectory",
+        "pinning": "PINNED",
+        "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "worldVersion": 1
+      },
+      {
+        "referenceKey": {
+          "namespace": "gowm.analysis.metric-ranking",
+          "kind": "HISTORY_INPUT_SET",
+          "id": "metric_set_ba3f7b34fc2b3eb2071a2ef64004edca",
+          "version": "1"
+        },
+        "authority": "GOWM Numeric Measurement Set",
+        "pinning": "PINNED",
+        "digest": "sha256:ba3f7b34fc2b3eb2071a2ef64004edca385bd2d53437a44cd805f3ca1bcb830f",
+        "worldVersion": 1
+      }
+    ]
+  },
+  "computeSnapshot": {
+    "provider": {
+      "providerId": "gowm.analysis.metric-ranking",
+      "providerVersion": "0.1.0",
+      "implementationDigest": "sha256:1772f919f95f171f068e14141d937dca9ec652e353c5e2c1048fae85b04f77fd"
+    },
+    "operation": {
+      "operationId": "spatiotemporal-metric.rank-locations",
+      "operationVersion": "0.1"
+    },
+    "engine": {
+      "name": "CAMPUS_H3_ROBUST_RANKING_V1",
+      "version": "0.1",
+      "digest": "sha256:075171702d2c29c080008866c6c5984419313502b4f6458403c8c046cc17843a"
+    },
+    "policy": {
+      "version": "CAMPUS_TASK_DEFAULT/0.1",
+      "digest": "sha256:d8b1e711471318d8fe1179560655eee129a8689006d26f4fc8acfa3a0de7a233"
+    },
+    "schemas": {
+      "inputSchemaHash": "sha256:c9c882bf7c25ba0526e685090a9ef8603beec437a33ba67750660e54e105e601",
+      "outputSchemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27"
+    }
+  },
+  "receipts": [
+    {
+      "receiptId": "receipt:303ce878-6a81-4811-a931-25557c3fde73",
+      "operationId": "spatiotemporal-metric.rank-locations",
+      "operationVersion": "0.1",
+      "providerId": "gowm.analysis.metric-ranking",
+      "providerVersion": "0.1.0",
+      "inputHash": "sha256:6abf20a943a03a032f2eedc66d0c5add6b9f4711539ad4506bad853f38c07531",
+      "outputHash": "sha256:2fccce8857483c828a4532675ce008d20d9495af8423b04e8f9020030ce25b71",
+      "computeSnapshotHash": "sha256:461f585d24ff9b21022e40af1830b7102b631c855597d7c05ff27c0a16f38351",
+      "generatedAt": "2026-09-06T04:22:57.808Z",
+      "durationMs": 2.7195600000000013,
+      "method": {
+        "engine": "CAMPUS_H3_ROBUST_RANKING_V1",
+        "engineVersion": "0.1",
+        "methodId": "campus-h3-robust-ranking",
+        "methodVersion": "0.1"
+      },
+      "changes": {
+        "repairApplied": false,
+        "typeChanged": false
+      },
+      "warnings": [
+        "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+      ]
+    }
+  ],
+  "evidenceReferences": [],
+  "warnings": [
+    "HISTORICAL_RANKING_DOES_NOT_ESTABLISH_CURRENT_OPTIMALITY"
+  ],
+  "consumption": {
+    "inputBytes": 278,
+    "outputBytes": 2620,
+    "rows": 6,
+    "candidates": 2
+  },
+  "execution": {
+    "providerId": "gowm.analysis.metric-ranking",
+    "providerVersion": "0.1.0",
+    "elapsedMs": 2.7195600000000013,
+    "resultHash": "sha256:2fccce8857483c828a4532675ce008d20d9495af8423b04e8f9020030ce25b71"
+  }
+}

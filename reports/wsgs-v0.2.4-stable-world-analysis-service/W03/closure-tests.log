@@ -1,0 +1,80 @@
+COMMAND ["npx","vitest","run","services/grounding-api/src/contract-negotiation.test.ts","services/grounding-api/src/server.test.ts","packages/grounding-pipeline/src/backend.test.ts","packages/grounding-pipeline/src/postgres-contract-boundary.test.ts","services/grounding-worker/src/postgres-contract-recovery.test.ts","services/grounding-worker/src/worker.test.ts","services/grounding-worker/src/result-schema.test.ts","--reporter=verbose"]
+START 2026-09-07T01:02:01.947Z
+COMMIT ce4d156a41a35c7701eecdf82d2cc1fe73406d24
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > durably submits ciphertext and returns a queued job for async requests 35ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > waits for the durable terminal presentation for synchronous requests 5ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > binds the exact contract selection into metadata and the idempotency payload hash 2ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > binds world-analysis selections and query semantics into the idempotency payload 6ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > preserves the legacy fifth AbortSignal argument 1ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > replays the exact stored result instead of enqueuing model or GOWM work 1ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > rejects source drift before durable submission 1ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > requires an explicit authorized scope when identity has multiple scopes 1ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > persists every authenticated scope while selecting one server-owned primary scope 2ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > propagates scoped cancellation to the live worker notifier 2ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > fails closed before durable submission when required production capabilities are not ready 1ms
+ ✓ packages/grounding-pipeline/src/backend.test.ts > ProductionGroundingBackend > replays persisted results and jobs without readiness, admission or encryption 3ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > claims a durable job and publishes with the exact lease generation fence 7ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > fail-closes a rejected result settlement into a durable failed settlement 2ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > continues the worker loop after a rejected result settlement is durably failed 9ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > heartbeats a long-running lease 6ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > aborts immediately when a heartbeat reports cancellation 21ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > does not publish after losing its lease to a newer generation 25ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > makes cancellation win over a late model or GOWM result 36ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > treats a rejected completion fence as a late result 1ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > persists a schema-valid FAILED result instead of discarding its bytes 1ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > schedules bounded job-level retry with exponential availability 1ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > fails an expired job without invoking the pipeline 1ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > preserves the failed pipeline stage for public error attribution 1ms
+ ✓ services/grounding-worker/src/worker.test.ts > GroundingWorker > graceful shutdown drains first and aborts in-flight work only after grace 14ms
+ ✓ packages/grounding-pipeline/src/postgres-contract-boundary.test.ts > production PostgreSQL adapter contract policy with scripted SQL > replays the exact stored resource, terminal=true 14ms
+ ✓ packages/grounding-pipeline/src/postgres-contract-boundary.test.ts > production PostgreSQL adapter contract policy with scripted SQL > replays the exact stored resource, terminal=false 5ms
+ ✓ packages/grounding-pipeline/src/postgres-contract-boundary.test.ts > production PostgreSQL adapter contract policy with scripted SQL > rejects cross-profile reads and cancellation for 'sacs-wsgs-grounding/1.0' 5ms
+ ✓ packages/grounding-pipeline/src/postgres-contract-boundary.test.ts > production PostgreSQL adapter contract policy with scripted SQL > rejects cross-profile reads and cancellation for 'sacs-wsgs-grounding/1.1' 6ms
+ ✓ packages/grounding-pipeline/src/postgres-contract-boundary.test.ts > production PostgreSQL adapter contract policy with scripted SQL > keeps metadata-free historical rows legacy and rejects malformed stored selections 7ms
+ ✓ packages/grounding-pipeline/src/postgres-contract-boundary.test.ts > production PostgreSQL adapter contract policy with scripted SQL > returns the stored terminal result without cancelling or projecting it 14ms
+ ✓ services/grounding-api/src/contract-negotiation.test.ts > grounding contract negotiation > requires independent world-analysis authorization and the exact 1.2 pair 10ms
+ ✓ services/grounding-api/src/contract-negotiation.test.ts > grounding contract negotiation > rejects malformed or wildcard world-analysis configuration 2ms
+ ✓ services/grounding-api/src/contract-negotiation.test.ts > grounding contract negotiation > accepts authority-valid numeric/slash principals and freezes a copy 1ms
+ ✓ services/grounding-api/src/contract-negotiation.test.ts > grounding contract negotiation > keeps a no-header request on legacy 1.0 even when the principal is allowlisted 1ms
+ ✓ services/grounding-api/src/contract-negotiation.test.ts > grounding contract negotiation > selects 1.1 only for the exact header pair and an allowlisted principal 2ms
+ ✓ services/grounding-api/src/contract-negotiation.test.ts > grounding contract negotiation > rejects duplicate raw headers even when Node presents one merged value 1ms
+ ✓ services/grounding-api/src/contract-negotiation.test.ts > grounding contract negotiation > rejects wildcard, duplicate, empty, mutable-shape, and unknown configuration 1ms
+ ✓ services/grounding-worker/src/result-schema.test.ts > frozen grounding-result validation > validates full 1.2 semantics under the persisted profile and rejects tampering 48ms
+ ✓ services/grounding-worker/src/result-schema.test.ts > frozen grounding-result validation > accepts a result through the frozen schema and all referenced schemas 4ms
+ ✓ services/grounding-worker/src/result-schema.test.ts > frozen grounding-result validation > rejects nested reference failures and unexpected fields without echoing result data 3ms
+ ✓ services/grounding-worker/src/result-schema.test.ts > frozen grounding-result validation > accepts the exact 1.1 result only under its persisted negotiation 19ms
+ ✓ services/grounding-worker/src/postgres-contract-recovery.test.ts > production worker recovery policy with scripted SQL and real encrypted requests > restores 1.2 metadata and selections across reclaims and rejects the stale generation 26ms
+ ✓ services/grounding-worker/src/postgres-contract-recovery.test.ts > production worker recovery policy with scripted SQL and real encrypted requests > rejects late 1.2 completion after cancel 2ms
+ ✓ services/grounding-worker/src/postgres-contract-recovery.test.ts > production worker recovery policy with scripted SQL and real encrypted requests > rejects late 1.2 completion after deadline 1ms
+ ✓ services/grounding-worker/src/postgres-contract-recovery.test.ts > production worker recovery policy with scripted SQL and real encrypted requests > rejects late 1.2 completion after terminal 1ms
+ ✓ services/grounding-worker/src/postgres-contract-recovery.test.ts > production worker recovery policy with scripted SQL and real encrypted requests > preserves legacy metadata-free recovery and refuses malformed 1.2 authority 4ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > validates 1.2 synchronous and asynchronous envelopes and rejects a legacy result 1750ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > reports liveness/readiness and frozen capabilities 757ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > returns contract-valid synchronous 200 and asynchronous 202 responses 443ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > negotiates the exact 1.1 Result-extension profile for sync, async, GET, and capabilities 459ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > selects 1.1 only from a strict server-owned principal allowlist and rejects bad negotiation 1290ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > never exposes a negotiated extension on the legacy contract 544ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > derives identity/scope from trusted transport and rejects body injection 431ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > rejects missing idempotency, source hash drift, and unknown conversation history 442ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > authenticates canonical arrays and compatible legacy scalar JWT_SERVICE claims 485ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > rejects missing, duplicate, ambiguous, oversized, and invalid scope claims 474ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > polls and cancels only through the scoped backend and keeps not-found opaque 547ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > fails closed when backend output violates the frozen response schema 462ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > exposes low-cardinality metrics without user text, scope, or IDs 506ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > rejects unsafe Unicode and oversized bodies before backend execution 409ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > enforces a bounded rate budget and resets expired windows 473ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > keys rate budgets by service principal, actor, data scope, and dataset scope 2ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > treats URL, SQL, and operation-looking prompt text as inert data 363ms
+ ✓ services/grounding-api/src/server.test.ts > grounding API > redacts backend credentials, geometry, and internal failure text 601ms
+
+ Test Files  7 passed (7)
+      Tests  65 passed (65)
+   Start at  09:02:02
+   Duration  12.51s (transform 3.17s, setup 0ms, import 9.36s, tests 10.83s, environment 2ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE

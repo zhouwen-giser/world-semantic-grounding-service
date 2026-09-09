@@ -11,6 +11,7 @@ permissions:
 jobs:
   verify:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2022]
     runs-on: ${{ matrix.os }}
@@ -51,7 +52,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run build
+      - name: Compile verified consumer snapshot for database tests
+        run: npm run gowm:check && npm run typecheck
       - name: Create isolated upgrade database
         run: |
           node --input-type=module -e "import { Pool } from 'pg'; const pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL }); try { await pool.query('CREATE DATABASE wsgs_upgrade'); } finally { await pool.end(); }"

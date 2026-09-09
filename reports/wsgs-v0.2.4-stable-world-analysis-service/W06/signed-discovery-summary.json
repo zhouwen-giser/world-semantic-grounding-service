@@ -1,0 +1,23 @@
+{
+  "phase": "W06",
+  "status": "IN_PROGRESS",
+  "testedCommit": "1dca51d90a9da73883282808c35ee8b98c232158",
+  "commands": [
+    { "evidence": "signed-discovery-check.json", "status": "PASS", "testsPassed": 938, "testsSkipped": 29, "filesPassed": 72, "filesSkipped": 4 },
+    { "evidence": "signed-discovery-tests.json", "status": "PASS", "testsPassed": 938, "testsSkipped": 29, "filesPassed": 72, "filesSkipped": 4 },
+    { "evidence": "signed-discovery-http.json", "status": "PASS", "testsPassed": 14, "filesPassed": 2 },
+    { "evidence": "signed-discovery-build.json", "status": "PASS" }
+  ],
+  "contractAssertions": 836,
+  "unchangedLegacyArtifacts": 68,
+  "httpScope": "Nine actual production pipeline cases plus five signed caller discovery cases. Controlled local metadata Gateway, actual JWT authentication and RS256 delegation verification. No nonempty historical/GSAP business operations yet.",
+  "relatedEvidence": ["discovery-http-progress.json", "../W04/combined-selection-progress.json", "../W07/handoff-preparation.json"],
+  "approvalLimitation": "The original loopback-only HTTP command was approved on re-review after its boundaries were checked. Previous rejected attempts remain recorded; no workaround was used.",
+  "remaining": ["Whole semantic catalog tampering HTTP coverage", "Nonempty historical and GSAP production HTTP", "Combined-choice production HTTP", "Final standalone consumer delivery and all 72 requirement gates"],
+  "realGateway": "NOT_RUN",
+  "realPostgreSQL": "NOT_RUN",
+  "realModel": "NOT_RUN",
+  "realSacs": "NOT_RUN",
+  "completeW06Gate": false,
+  "readyMarkerAuthorized": false
+}

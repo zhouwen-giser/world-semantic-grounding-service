@@ -1,0 +1,13 @@
+{
+  "command": "npm run check",
+  "startedAt": "2026-09-07T00:17:56.381Z",
+  "finishedAt": "2026-09-07T00:18:38.614Z",
+  "exitCode": 1,
+  "signal": null,
+  "status": "FAIL",
+  "testedCommit": "63c8be91688501f7deb794d14e7cfc5fbaa8abac",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/history-map-check.log",
+  "logSha256": "sha256:03c5e1f3d11ee090d6a9da4b951f428e8cbec9c409d3ba18b1875e2c291a5287"
+}

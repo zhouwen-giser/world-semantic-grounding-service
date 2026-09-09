@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:protocol-error",
+  "title": "WSGSProtocolError",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "requestId",
+    "error"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "requestId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "error": {
+      "$ref": "common.schema.json#/$defs/error"
+    }
+  }
+}

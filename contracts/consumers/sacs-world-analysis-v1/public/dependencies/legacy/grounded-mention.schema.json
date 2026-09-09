@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.1:grounded-mention",
+  "title": "GroundedMention",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mentionId",
+    "surfaceText",
+    "span",
+    "extractionSources",
+    "status",
+    "candidateProductIds"
+  ],
+  "properties": {
+    "mentionId": {
+      "$ref": "common.schema.json#/$defs/identifier"
+    },
+    "surfaceText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "span": {
+      "$ref": "common.schema.json#/$defs/textSpan"
+    },
+    "expectedKinds": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "string",
+        "maxLength": 128
+      }
+    },
+    "semanticRole": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "extractionSources": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "CLIENT_HINT",
+          "CLIENT_MAP",
+          "KNOWN_REFERENCE",
+          "DETERMINISTIC",
+          "DOMAIN_MODEL"
+        ]
+      }
+    },
+    "status": {
+      "enum": [
+        "RESOLVED_EXACT",
+        "SUGGESTED_UNIQUE",
+        "AMBIGUOUS",
+        "UNRESOLVED",
+        "INVALID"
+      ]
+    },
+    "candidateProductIds": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "common.schema.json#/$defs/identifier"
+      }
+    }
+  }
+}

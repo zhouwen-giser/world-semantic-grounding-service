@@ -1,0 +1,37 @@
+{
+  "algorithm": "sha256-file-bytes",
+  "excluded": [
+    "CHECKSUMS.json"
+  ],
+  "files": {
+    "CODEX_MASTER_PROMPT.md": "sha256:2b626144df0ff245eb1a4c0275f7437f909f8af6186e55e56d5affd4097075f6",
+    "GOAL_TASK_CN.md": "sha256:d937dd3fe9801d907ee4bfe4aceb13c6ee75563787aea29be53df86973dfcd54",
+    "PACKAGE_MANIFEST.json": "sha256:5af7eaf66df9b7b562fc98509c12e6160a190259f08a776caf3b291a2ea68830",
+    "README_CN.md": "sha256:7e1593a0e2c5e8efe295bdd223988f5e18d42bbb79435242f851d834a17bc6a7",
+    "acceptance/README_CN.md": "sha256:5f4c59002b0563a13f7a9b9785b292d7dabacb8512674bdd103c19f3e168af1e",
+    "acceptance/acceptance-matrix.csv": "sha256:315f470b5b685bb0aca16fcf8d3ed50763c2e980f77d9aab6314052f0515b4f1",
+    "acceptance/development-cases.json": "sha256:10bc476ad0278c6b1643e72fd3f6d55dea1a293aab43e004a1e6c1ccd58ac2e8",
+    "acceptance/optional-checks.json": "sha256:1526410f531c2da30896cd8d0cb5fe0b44b26dd4c2fddc082308525b45c40855",
+    "acceptance/required-requirements.json": "sha256:a20f583fd65672e02b46d703c82d2d8858bdc4f81f58d6ad494f4cabf4bdac7c",
+    "design/COMPATIBILITY_AND_SELECTION_CN.md": "sha256:aa1af0a17f52951d0a78d092d0e302cf7c6df5fa4202faad47460159ecbada73",
+    "design/CONTRACT_AND_SEMANTICS_CN.md": "sha256:fb506a8c36ab40a354efcf7538f29a95a2ea89de1d986c27694c2c744060116a",
+    "sources/SOURCE_AUDIT_CN.md": "sha256:e3951d5c9af366322c5df3ac8c8402728b09308cb2d86053e17dadc757d38ccb",
+    "sources/observed-baseline.json": "sha256:3b0e30527ce5a9d4b1687ad6e548d5ff9e9b14d008f2c5ce1ac76e91f9962487",
+    "tasks/W00_BASELINE_CN.md": "sha256:e5bfb06336b14061165c97de898828857a0a2e0844c03745a2f516475e7f34dc",
+    "tasks/W01_CONTRACT_FREEZE_CN.md": "sha256:d984a76a7859530c2e805bef8ef4cb2d81eb148b02ad67b388f6984560e58e96",
+    "tasks/W02_NORMALIZATION_CN.md": "sha256:b478cb636a3fcd9d7d23f23ad1bf085be954216a2111f6e09ec984e3c58de557",
+    "tasks/W03_TRANSPORT_RUNTIME_CN.md": "sha256:1c45cfa266a01e6376793fc84a51147c08705c56e5638f6a43f76f2342b79f52",
+    "tasks/W04_FOLLOWUP_ACTION_CN.md": "sha256:96c149f270168c86b62a9afd32c2aaf1120977ace40b5c4f7ad082dc2cc5fe28",
+    "tasks/W05_CAPABILITIES_CN.md": "sha256:06935d2e9a38ffdabc3fde140b94e9788a8ae638d4ad5c5a63118ee19d633fa5",
+    "tasks/W06_DEVELOPMENT_VERIFICATION_CN.md": "sha256:a9e74755c2fa478fb751316bc859b7466f817fea5b2de83b540bfb6ec69183af",
+    "tasks/W07_HANDOFF_REVIEW_CN.md": "sha256:20795bb19c652d22a596a808c68b64ed72f4167e5f65f1f4247e2df06d70d572",
+    "templates/EVIDENCE_FORMAT_CN.md": "sha256:eb570d60256406d58d22c513fd52177559689e511a35a6675f6bd82f4e76f20b",
+    "templates/FINAL_REPORT.template.json": "sha256:5903a780b674d8e798650ca0eee1fa34473fbf6736e008c5514ae02dd483a25d",
+    "templates/FINAL_REPORT.template.md": "sha256:f965a64beaa04d4573eec03e9485f69a3462d1091fcc9d1f6ccf4c9066869b42",
+    "templates/PR_BODY.template.md": "sha256:57f23204c6dc9edf72ad1a172486e54ce1811a591b7e8ac0f6b029b579f5cecb",
+    "tools/README_CN.md": "sha256:3144e01eaba86fa76ca1c03e5d012712d776ab7c92cc304cf812bb40cabc09be",
+    "tools/self-test.mjs": "sha256:bf47fba4ec2f55ee20d1f60ab89e9ff4124fef70572631c3f0ba04a29614cff1",
+    "tools/validate-report.mjs": "sha256:94bda0b32a15fba69b8a6d240501eb0a95449845042266af35b629504a07e150",
+    "tools/verify-package.mjs": "sha256:b84d03c04de012b21a20a66eb3ab1711b46e7478a556b14731ae23506c55f659"
+  }
+}

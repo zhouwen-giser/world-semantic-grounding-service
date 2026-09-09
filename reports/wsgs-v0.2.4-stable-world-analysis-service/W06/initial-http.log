@@ -1,0 +1,23 @@
+COMMAND ["npm","run","test:world-analysis:http"]
+START 2026-09-06T17:11:25.357Z
+COMMIT af51bcd345c7b40d24d383fa6894365a5621ee64
+
+> world-semantic-grounding-service@0.2.1 test:world-analysis:http
+> npm run build && vitest run tests/world-analysis-http.test.ts
+
+
+> world-semantic-grounding-service@0.2.1 build
+> tsc -b --pretty false
+
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  01:11:26
+   Duration  9.17s (transform 1.77s, setup 0ms, import 4.94s, tests 4.07s, environment 0ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE

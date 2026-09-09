@@ -1,0 +1,31 @@
+{
+  "phase": "W04",
+  "status": "IN_PROGRESS",
+  "sourceState": "COMMITTED",
+  "testedCommit": "1dca51d90a9da73883282808c35ee8b98c232158",
+  "formalRegressionEvidence": "../W06/signed-discovery-tests.json",
+  "sourceFiles": {
+    "packages/historical-trace-consumer/src/advanced-followup.ts": "sha256:135a5d2d3dda9f9bd41efdc3110cdc514609207037cc27e81865b9741674d52e",
+    "packages/historical-trace-consumer/src/public-world-analysis.test.ts": "sha256:2a60dfdbabce2e6a7d1476eb5314de5421a3eb9fd237f7191359752d74b136d3",
+    "services/grounding-worker/src/production-module.ts": "sha256:3581e3aac7d419ebd0f5484aa341eadb3c0950daab54ba8f034bd9a03c7ac971"
+  },
+  "implemented": [
+    "Multiple structured choices from one saved result are independently authorized before assembling known references.",
+    "Independent subject, task and target reference roles can combine; duplicate roles, duplicate choices and ordinal text across multiple choices clarify instead of guessing.",
+    "At most one derived selector can accompany reference selectors; conflicting derived selections clarify.",
+    "Combined reference changes requery and remove public reuse, cached foundation and old selectedRank.",
+    "Execution revalidates every selected reference and every choice expiry; authorization loading failure clears accumulated selection context."
+  ],
+  "executedCommands": [
+    { "command": "npm run build", "exitCode": 0, "scope": "Production TypeScript build" },
+    { "command": "npx vitest run packages/prior-grounding/src/validator.test.ts services/grounding-worker/src/prior-analysis-authority.test.ts packages/historical-trace-consumer/src/advanced-historical.test.ts packages/historical-trace-consumer/src/public-world-analysis.test.ts", "exitCode": 0, "passedTests": 162, "passedFiles": 4, "note": "Before the final additional old-rank invalidation test." },
+    { "command": "npx vitest run packages/historical-trace-consumer/src/public-world-analysis.test.ts", "exitCode": 0, "passedTests": 43, "passedFiles": 1, "note": "Includes all six new combined-selection cases." },
+    { "command": "git diff --check", "exitCode": 0 }
+  ],
+  "failedAttempts": ["Initial build found a TypeScript union narrowing error in a callback; fixed by capturing the narrowed product ID before the callback."],
+  "evidenceLevel": "Component test progress, also covered by the formal clean-source 938-test regression. Combined-choice production HTTP remains separate.",
+  "fullProductionCombinedSelectionHttp": "NOT_RUN",
+  "remaining": ["Production multi-choice HTTP including second-authority rejection and expiry", "Nonempty historical and GSAP HTTP scenarios", "Final handoff gates"],
+  "completeW04Gate": false,
+  "readyMarkerAuthorized": false
+}

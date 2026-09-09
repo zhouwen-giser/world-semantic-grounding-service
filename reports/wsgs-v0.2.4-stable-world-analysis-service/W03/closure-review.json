@@ -1,0 +1,80 @@
+{
+  "phase": "W03",
+  "status": "COMPLETE",
+  "qualification": "REQUIRED_DEVELOPMENT_BOUNDARIES_ONLY",
+  "testedCommit": "ce4d156a41a35c7701eecdf82d2cc1fe73406d24",
+  "prerequisite": "W02 completed; subsequent W04/W05/W06 joint implementation provides the required production-path transport evidence.",
+  "evidence": {
+    "namedComponentTests": "closure-tests.json",
+    "namedComponentLog": "closure-tests.log",
+    "componentFilesPassed": 7,
+    "componentTestsPassed": 65,
+    "productionHttp": "../W06/complete-cross-http.json",
+    "fullCheck": "../W06/complete-cross-check.json",
+    "independentTests": "../W06/complete-cross-tests.json",
+    "independentBuild": "../W06/complete-cross-build.json",
+    "commandLogHashesRecomputed": true,
+    "allCommandsTrackedWorkingTreeClean": true
+  },
+  "requirements": [
+    {
+      "id": "WA-028", "status": "PASS",
+      "proof": "contract-negotiation.test.ts checks the exact 1.2 pair, independent principal authorization, malformed configuration and duplicate raw headers; discovery HTTP authenticates actual HS256 caller tokens."
+    },
+    {
+      "id": "WA-029", "status": "PASS",
+      "proof": "server.test.ts validates version-specific bodies and rejects source drift/body identity injection. Production HTTP submits full 1.2 requests, including stored structured selections, through the real request validator. Frozen positive/negative request examples pass in the full check."
+    },
+    {
+      "id": "WA-030", "status": "PASS",
+      "proof": "server.test.ts validates 1.2 sync/async envelopes and rejects legacy results under 1.2. world-analysis-http.test.ts exercises real 200 and 202->worker->GET; business HTTP validates nonempty findings and every multi-round stored result."
+    },
+    {
+      "id": "WA-031", "status": "PASS",
+      "proof": "backend.test.ts saves the server contract selection in request metadata. postgres-contract-recovery.test.ts reclaims the actual worker adapter twice, decrypts the request with AES, restores 1.2 selection/semantic fields and increments the generation. This is scripted SQL, not a PostgreSQL crash test."
+    },
+    {
+      "id": "WA-032", "status": "PASS",
+      "proof": "postgres-contract-boundary.test.ts repeats exact terminal and nonterminal adapter replay; backend.test.ts skips new work for replay. Business HTTP replays each exact follow-up body/key, returns the identical result and creates no job or Gateway call."
+    },
+    {
+      "id": "WA-033", "status": "PASS",
+      "proof": "backend.test.ts binds profile and all request semantics into hashes. Actual HTTP changes candidate or metric with the same key and receives 409 with no new job; world-analysis-http.test.ts covers profile-bound conflicts."
+    },
+    {
+      "id": "WA-034", "status": "PASS",
+      "proof": "postgres-contract-boundary.test.ts rejects both old profiles for 1.2 GET/cancel without an UPDATE, preserves terminal bytes and metadata-free legacy interpretation. Actual HTTP rejects cross-profile GET without reprojection."
+    },
+    {
+      "id": "WA-035", "status": "PASS",
+      "proof": "postgres-contract-recovery.test.ts rejects stale-generation, cancelled, expired and already-terminal 1.2 settlements without result writes. worker.test.ts covers lost leases and late completion/cancellation. HTTP checks cancellation and deadline before execution. No database locking or clock execution is claimed."
+    },
+    {
+      "id": "WA-036", "status": "PASS",
+      "proof": "Reviewed migrations 001-004: request_metadata is JSONB and result_bytes is BYTEA; no northbound profile enum requires migration. Historical migration files were not changed. Scripted adapter tests retain metadata-free legacy behavior and reject malformed stored authority; see migration-notes.md."
+    }
+  ],
+  "verificationLevels": {
+    "L0": "PASS: strict parsers, validators, production adapter methods with scripted SQL, actual AES codec, controlled worker fences.",
+    "L1": "PASS: real local Fastify listeners, production backend/stages/worker, controlled Gateway and in-memory persistence.",
+    "realPostgres": "NOT_RUN",
+    "realGateway": "NOT_RUN",
+    "realModel": "NOT_RUN",
+    "realSacs": "NOT_RUN"
+  },
+  "sourceTests": [
+    "services/grounding-api/src/contract-negotiation.test.ts",
+    "services/grounding-api/src/server.test.ts",
+    "packages/grounding-pipeline/src/backend.test.ts",
+    "packages/grounding-pipeline/src/postgres-contract-boundary.test.ts",
+    "services/grounding-worker/src/postgres-contract-recovery.test.ts",
+    "services/grounding-worker/src/worker.test.ts",
+    "services/grounding-worker/src/result-schema.test.ts",
+    "tests/world-analysis-http.test.ts",
+    "tests/world-analysis-discovery-http.test.ts",
+    "tests/world-analysis-business-http.test.ts"
+  ],
+  "remainingW03Required": [],
+  "wholeTaskComplete": false,
+  "productionQualified": false
+}

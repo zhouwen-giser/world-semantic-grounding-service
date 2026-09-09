@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "gatewayContractVersion": "0.7.1",
+  "capabilities": 158,
+  "semanticProfiles": 158,
+  "contractCatalogRevision": "sha256:090e365e44730eb9707f5ae1de98dea82608b6c679afb52a151a4399aa84596d",
+  "semanticCatalogHash": "sha256:e82ef9621915548988e51383cf083fb0c65cdd2debef4573e4c14e148cff71bc",
+  "signedAvailability": "PASS",
+  "wrongSignature": 403,
+  "deniedScope": 403
+}

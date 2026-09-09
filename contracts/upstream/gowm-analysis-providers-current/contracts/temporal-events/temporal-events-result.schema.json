@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gowm:analysis:temporal-events:result:0.1",
+  "title": "TemporalSpatialEventResultV01",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "reasonCode",
+    "analysisLevel",
+    "algorithm",
+    "analysisId",
+    "source",
+    "requestedEventTypes",
+    "events",
+    "completeness",
+    "summary",
+    "warnings"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "0.1" },
+    "status": { "enum": ["COMPLETED", "PARTIAL", "NO_DATA", "INDETERMINATE"] },
+    "reasonCode": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "analysisLevel": { "const": "TASK_LEVEL_APPROXIMATE" },
+    "algorithm": { "const": "CAMPUS_TEMPORAL_EVENTS_V1" },
+    "analysisId": { "type": "string", "pattern": "^tsa_[0-9a-f]{32}$" },
+    "subjectReferenceKey": { "$ref": "#/$defs/referenceKey" },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "trajectoryReferenceKey"],
+          "properties": {
+            "kind": { "const": "HISTORICAL_TRAJECTORY" },
+            "trajectoryReferenceKey": { "$ref": "#/$defs/referenceKey" },
+            "finalizationState": { "enum": ["PROVISIONAL", "SEALED", "CONFLICTED"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "mapMatchAnalysisId", "mapMatchResultHash", "trajectoryReferenceKey"],
+          "properties": {
+            "kind": { "const": "MAP_MATCH_RESULT" },
+            "mapMatchAnalysisId": { "type": "string", "pattern": "^mma_[0-9a-f]{32}$" },
+            "mapMatchResultHash": { "$ref": "#/$defs/digest" },
+            "trajectoryReferenceKey": { "$ref": "#/$defs/referenceKey" },
+            "networkContext": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["graphVersionId", "graphVersion", "topologyHash"],
+              "properties": {
+                "graphVersionId": { "type": "string", "minLength": 1, "maxLength": 256 },
+                "graphVersion": { "type": "string", "minLength": 1, "maxLength": 128 },
+                "topologyHash": { "$ref": "#/$defs/digest" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "requestedEventTypes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/eventType" }
+    },
+    "events": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/event" } },
+    "selectionResult": { "$ref": "#/$defs/selectionResult" },
+    "completeness": { "$ref": "#/$defs/completeness" },
+    "summary": { "$ref": "#/$defs/summary" },
+    "warnings": { "type": "array", "maxItems": 256, "items": { "type": "string", "maxLength": 1024 } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "enum": ["COMPLETED", "PARTIAL"] } }, "required": ["status"] },
+      "then": { "required": ["subjectReferenceKey"] }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": { "enum": ["COMPLETED", "PARTIAL", "INDETERMINATE"] },
+          "source": { "properties": { "kind": { "const": "HISTORICAL_TRAJECTORY" } }, "required": ["kind"] }
+        },
+        "required": ["status", "source"]
+      },
+      "then": { "properties": { "source": { "required": ["finalizationState"] } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": { "enum": ["COMPLETED", "PARTIAL"] },
+          "source": { "properties": { "kind": { "const": "MAP_MATCH_RESULT" } }, "required": ["kind"] }
+        },
+        "required": ["status", "source"]
+      },
+      "then": { "properties": { "source": { "required": ["networkContext"] } } }
+    }
+  ],
+  "$defs": {
+    "eventType": { "enum": ["ENTER", "EXIT", "DWELL", "STOP", "PASS_NEAR", "CROSS"] },
+    "count": { "type": "integer", "minimum": 0 },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "referenceKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "kind", "id", "version"],
+      "properties": {
+        "namespace": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,63}$" },
+        "kind": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$" },
+        "id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "coordinates"],
+      "properties": {
+        "type": { "const": "Point" },
+        "coordinates": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number", "minimum": -180, "maximum": 180 },
+            { "type": "number", "minimum": -90, "maximum": 90 }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      }
+    },
+    "periods": { "type": "array", "maxItems": 100000, "items": { "$ref": "#/$defs/period" } },
+    "blockingPeriod": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "range", "reasonCodes"],
+      "properties": {
+        "kind": { "enum": ["UPSTREAM_GAP", "QUALITY_BREAK", "OFF_NETWORK_PERIOD", "AMBIGUOUS_ASSOCIATION_PERIOD"] },
+        "range": { "$ref": "#/$defs/period" },
+        "reasonCodes": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 256 } }
+      }
+    },
+    "spatialEventTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "targetId", "targetType"],
+      "properties": {
+        "kind": { "const": "SPATIAL_TARGET" },
+        "targetId": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "referenceKey": { "$ref": "#/$defs/referenceKey" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "targetType": { "enum": ["AREA", "POINT", "LINE"] }
+      }
+    },
+    "road": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceFeatureReferenceId"],
+      "properties": {
+        "sourceFeatureReferenceId": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 512 }
+      }
+    },
+    "junction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identityKind",
+        "graphVersionId",
+        "graphVersion",
+        "viaNodeKey",
+        "position",
+        "incidentEdgeCount",
+        "distinctRoadFeatureCount",
+        "incomingRoad",
+        "outgoingRoad"
+      ],
+      "properties": {
+        "identityKind": { "const": "NETWORK_LOCAL_IDENTITY" },
+        "graphVersionId": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "graphVersion": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "viaNodeKey": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "position": { "$ref": "#/$defs/point" },
+        "incidentEdgeCount": { "$ref": "#/$defs/count" },
+        "distinctRoadFeatureCount": { "$ref": "#/$defs/count" },
+        "incomingRoad": { "$ref": "#/$defs/road" },
+        "outgoingRoad": { "$ref": "#/$defs/road" }
+      }
+    },
+    "networkEventTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "junction"],
+      "properties": {
+        "kind": { "const": "NETWORK_JUNCTION" },
+        "junction": { "$ref": "#/$defs/junction" }
+      }
+    },
+    "instantExtent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "eventTimeEstimate", "eventTimeWindow"],
+      "properties": {
+        "kind": { "const": "INSTANT" },
+        "eventTimeEstimate": { "type": "string", "format": "date-time" },
+        "eventTimeWindow": { "$ref": "#/$defs/period" }
+      }
+    },
+    "intervalExtent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "startTime", "endTime", "durationSeconds"],
+      "properties": {
+        "kind": { "const": "INTERVAL" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "durationSeconds": { "type": "number", "minimum": 0 },
+        "startTimeWindow": { "$ref": "#/$defs/period" },
+        "endTimeWindow": { "$ref": "#/$defs/period" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "sampleCount": { "$ref": "#/$defs/count" },
+        "minimumDistanceM": { "type": "number", "minimum": 0 },
+        "closestObservedAt": { "type": "string", "format": "date-time" },
+        "clusterRadiusM": { "type": "number", "minimum": 0 },
+        "netDisplacementM": { "type": "number", "minimum": 0 }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eventId", "eventType", "sequenceNo", "temporalExtent", "confidence", "certainty", "reasonCodes"],
+      "properties": {
+        "eventId": { "type": "string", "pattern": "^tse_[0-9a-f]{32}$" },
+        "eventType": { "$ref": "#/$defs/eventType" },
+        "sequenceNo": { "type": "integer", "minimum": 0 },
+        "blockNo": { "type": "integer", "minimum": 0 },
+        "target": { "oneOf": [{ "$ref": "#/$defs/spatialEventTarget" }, { "$ref": "#/$defs/networkEventTarget" }] },
+        "temporalExtent": { "oneOf": [{ "$ref": "#/$defs/instantExtent" }, { "$ref": "#/$defs/intervalExtent" }] },
+        "position": { "$ref": "#/$defs/point" },
+        "metrics": { "$ref": "#/$defs/metrics" },
+        "confidence": { "$ref": "#/$defs/ratio" },
+        "certainty": { "enum": ["CONFIRMED_IN_AVAILABLE_DATA", "APPROXIMATED", "CLIPPED_TO_INPUT"] },
+        "reasonCodes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 256 } }
+      }
+    },
+    "selectionResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "confirmed", "reasonCode", "blockingPeriods"],
+      "properties": {
+        "kind": { "enum": ["FIRST", "LAST"] },
+        "selectedEventId": { "type": "string", "pattern": "^tse_[0-9a-f]{32}$" },
+        "confirmed": { "type": "boolean" },
+        "reasonCode": { "enum": ["FIRST_EVENT_CONFIRMED", "FIRST_EVENT_NOT_CERTAIN", "LAST_EVENT_CONFIRMED", "LAST_EVENT_NOT_CERTAIN", "NO_EVENT_FOUND"] },
+        "blockingPeriods": { "type": "array", "items": { "$ref": "#/$defs/blockingPeriod" } }
+      }
+    },
+    "completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourcePrefixComplete", "sourceSuffixComplete", "completeForAllEvents", "upstreamGapPeriods", "qualityBreakPeriods", "offNetworkPeriods", "ambiguousAssociationPeriods", "blockingPeriods"],
+      "properties": {
+        "sourcePrefixComplete": { "type": "boolean" },
+        "sourceSuffixComplete": { "type": "boolean" },
+        "completeForAllEvents": { "type": "boolean" },
+        "upstreamGapPeriods": { "$ref": "#/$defs/periods" },
+        "qualityBreakPeriods": { "$ref": "#/$defs/periods" },
+        "offNetworkPeriods": { "$ref": "#/$defs/periods" },
+        "ambiguousAssociationPeriods": { "$ref": "#/$defs/periods" },
+        "blockingPeriods": { "type": "array", "maxItems": 100000, "items": { "$ref": "#/$defs/blockingPeriod" } }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetCount", "detectedEventCount", "returnedEventCount", "enterCount", "exitCount", "dwellCount", "stopCount", "passNearCount", "crossCount", "truncated"],
+      "properties": {
+        "sourceSampleCount": { "$ref": "#/$defs/count" },
+        "targetCount": { "$ref": "#/$defs/count" },
+        "detectedEventCount": { "$ref": "#/$defs/count" },
+        "returnedEventCount": { "$ref": "#/$defs/count" },
+        "enterCount": { "$ref": "#/$defs/count" },
+        "exitCount": { "$ref": "#/$defs/count" },
+        "dwellCount": { "$ref": "#/$defs/count" },
+        "stopCount": { "$ref": "#/$defs/count" },
+        "passNearCount": { "$ref": "#/$defs/count" },
+        "crossCount": { "$ref": "#/$defs/count" },
+        "truncated": { "type": "boolean" }
+      }
+    }
+  }
+}

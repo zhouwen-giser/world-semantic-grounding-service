@@ -1,0 +1,262 @@
+[
+  {
+    "endpoint": "/v1/capabilities",
+    "status": "BLOCKED",
+    "code": "GOWM_CONSUMER_SCHEMA_MISMATCH",
+    "issues": [
+      {
+        "instancePath": "/capabilities/70/snapshotPolicy",
+        "keyword": "additionalProperties",
+        "schemaPath": "#/properties/snapshotPolicy/additionalProperties",
+        "message": "must NOT have additional properties"
+      },
+      {
+        "instancePath": "/capabilities/70/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/capabilities/70/semanticProfile/acceptedReferenceKinds/5",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/70/semanticProfile/acceptedReferenceKinds/6",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/70/semanticProfile/producedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/70/semanticProfile/producedReferenceKinds/1",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/70/semanticProfile/producedReferenceKinds/2",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/70/semanticProfile/producedReferenceKinds/3",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/95/snapshotPolicy",
+        "keyword": "additionalProperties",
+        "schemaPath": "#/properties/snapshotPolicy/additionalProperties",
+        "message": "must NOT have additional properties"
+      },
+      {
+        "instancePath": "/capabilities/95/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/capabilities/95/semanticProfile/producedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/95/semanticProfile/producedReferenceKinds/1",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/95/semanticProfile/producedReferenceKinds/2",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/95/semanticProfile/producedReferenceKinds/3",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/123/snapshotPolicy",
+        "keyword": "additionalProperties",
+        "schemaPath": "#/properties/snapshotPolicy/additionalProperties",
+        "message": "must NOT have additional properties"
+      },
+      {
+        "instancePath": "/capabilities/123/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/capabilities/123/semanticProfile/acceptedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/141/snapshotPolicy",
+        "keyword": "additionalProperties",
+        "schemaPath": "#/properties/snapshotPolicy/additionalProperties",
+        "message": "must NOT have additional properties"
+      },
+      {
+        "instancePath": "/capabilities/141/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/capabilities/141/semanticProfile/acceptedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/capabilities/146/snapshotPolicy",
+        "keyword": "additionalProperties",
+        "schemaPath": "#/properties/snapshotPolicy/additionalProperties",
+        "message": "must NOT have additional properties"
+      },
+      {
+        "instancePath": "/capabilities/146/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/capabilities/146/semanticProfile/acceptedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "../gowm-v0.6.2/capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      }
+    ]
+  },
+  {
+    "endpoint": "/v1/capability-semantics",
+    "status": "BLOCKED",
+    "code": "GOWM_CONSUMER_SCHEMA_MISMATCH",
+    "issues": [
+      {
+        "instancePath": "/profiles/70/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/profiles/70/semanticProfile/acceptedReferenceKinds/5",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/70/semanticProfile/acceptedReferenceKinds/6",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/70/semanticProfile/producedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/70/semanticProfile/producedReferenceKinds/1",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/70/semanticProfile/producedReferenceKinds/2",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/70/semanticProfile/producedReferenceKinds/3",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/95/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/profiles/95/semanticProfile/producedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/95/semanticProfile/producedReferenceKinds/1",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/95/semanticProfile/producedReferenceKinds/2",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/95/semanticProfile/producedReferenceKinds/3",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/producedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/123/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/profiles/123/semanticProfile/acceptedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/141/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/profiles/141/semanticProfile/acceptedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      },
+      {
+        "instancePath": "/profiles/146/semanticProfile/profileVersion",
+        "keyword": "const",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/profileVersion/const",
+        "message": "must be equal to constant"
+      },
+      {
+        "instancePath": "/profiles/146/semanticProfile/acceptedReferenceKinds/0",
+        "keyword": "enum",
+        "schemaPath": "capability-semantic-profile-v1.schema.json/properties/acceptedReferenceKinds/items/enum",
+        "message": "must be equal to one of the allowed values"
+      }
+    ]
+  }
+]

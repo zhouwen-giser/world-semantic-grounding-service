@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0",
+  "profile": "wsgs-world-analysis-findings/1.0",
+  "maximumFindings": 32,
+  "maximumChoices": 32,
+  "maximumCandidatesPerChoice": 100,
+  "maximumEvents": 100,
+  "maximumRankedLocations": 100,
+  "maximumRoadVisits": 100,
+  "maximumPeriods": 100,
+  "maximumLinePositions": 256,
+  "maximumGaps": 64,
+  "maximumSourceIds": 32,
+  "maximumWarnings": 100,
+  "maximumIdLength": 256,
+  "maximumLabelLength": 512,
+  "maximumSelections": 8,
+  "maximumPublicResultBytes": 1048576,
+  "choiceTtlMs": 60000
+}

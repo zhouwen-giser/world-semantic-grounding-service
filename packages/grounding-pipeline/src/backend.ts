@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import { canonicalBytes, canonicalSha256, utf8Sha256 } from "./canonical.js";
 import {
   LEGACY_GROUNDING_CONTRACT_SELECTION,
-  isSacsGeospatialContract,
   parseGroundingContractSelection,
   type GroundingContractSelection
 } from "./contract-selection.js";
@@ -270,7 +269,7 @@ export class ProductionGroundingBackend {
     // Keep existing results available without asking an upstream service to
     // admit new work. The store verifies payload, principal, authorization
     // context and the persisted contract before returning any replay.
-    const payloadHash = isSacsGeospatialContract(negotiatedContract)
+    const payloadHash = negotiatedContract.transportMode !== "NONE"
       ? canonicalSha256({ request, contractSelection: negotiatedContract })
       : canonicalSha256(request);
     const replay = await this.#config.store.replay({

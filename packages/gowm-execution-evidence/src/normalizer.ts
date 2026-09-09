@@ -49,11 +49,12 @@ const envelopeKeys = new Set([
 ]);
 const worldResultKeys = new Set([
   "queryPlanVersion", "queryId", "jobId", "status", "nodes", "outputs", "warnings",
-  "snapshotManifest", "snapshotAdherence", "startedAt", "finishedAt", "outputHash"
+  "snapshotManifest", "requestedSnapshotManifest", "effectiveSnapshotManifest", "snapshotAdherence", "startedAt", "finishedAt", "outputHash"
 ]);
 const worldNodeKeys = new Set([
   "nodeId", "operation", "providerId", "status", "attempt", "startedAt", "finishedAt",
-  "inputHash", "outputHash", "result", "error"
+  "inputHash", "outputHash", "result", "error", "snapshotAdherence", "effectiveSnapshotBeforeHash", "effectiveSnapshotAfterHash",
+  "effectiveSnapshotRevisionBefore", "effectiveSnapshotRevisionAfter", "observedSnapshotResourceIdentities"
 ]);
 const upstreamCapabilityStatuses = new Set(["COMPLETED", "PARTIAL", "NO_DATA", "INDETERMINATE", "FAILED"]);
 const terminalJobStatuses = new Set(["COMPLETED", "PARTIAL", "FAILED", "CANCELLED"]);
@@ -104,6 +105,7 @@ interface ResolvedOutcome {
 }
 
 interface ParsedWorldNode {
+  readonly snapshotAudit: Readonly<Record<string, unknown>>;
   readonly nodeId: string;
   readonly operationId: string;
   readonly operationVersion: string;
@@ -116,6 +118,7 @@ interface ParsedWorldNode {
 }
 
 interface ParsedWorldResult {
+  readonly snapshotManifests: Readonly<Record<string, unknown>>;
   readonly queryId: string;
   readonly jobId: string;
   readonly status: "COMPLETED" | "PARTIAL" | "FAILED" | "CANCELLED";
@@ -603,7 +606,27 @@ function parseWorldResult(value: unknown): ParsedWorldResult {
     if (!worldNodeStatuses.has(nodeStatus) || ["QUEUED", "RUNNING"].includes(nodeStatus)) {
       throw new ExecutionEvidenceError("INVALID_WORLD_QUERY_RESULT");
     }
+    const snapshotAudit: Record<string, unknown> = {};
+    for (const key of ["effectiveSnapshotBeforeHash", "effectiveSnapshotAfterHash"]) {
+      if (node[key] !== undefined) snapshotAudit[key] = digest(node[key], "INVALID_WORLD_QUERY_RESULT");
+    }
+    for (const key of ["effectiveSnapshotRevisionBefore", "effectiveSnapshotRevisionAfter"]) {
+      if (node[key] === undefined) continue;
+      if (!Number.isSafeInteger(node[key]) || Number(node[key]) < 0) throw new ExecutionEvidenceError("INVALID_WORLD_QUERY_RESULT");
+      snapshotAudit[key] = node[key];
+    }
+    if (node["observedSnapshotResourceIdentities"] !== undefined) {
+      const identities = stringArray(node["observedSnapshotResourceIdentities"], 256, "INVALID_WORLD_QUERY_RESULT");
+      if (new Set(identities).size !== identities.length || identities.some(value => value.length > 4096)) throw new ExecutionEvidenceError("INVALID_WORLD_QUERY_RESULT");
+      snapshotAudit["observedSnapshotResourceIdentities"] = identities;
+    }
+    if (node["snapshotAdherence"] !== undefined) {
+      const adherence = parseSnapshotAdherence([node["snapshotAdherence"]])[0]!;
+      if (adherence.nodeId !== nodeId) throw new ExecutionEvidenceError("INVALID_WORLD_QUERY_RESULT");
+      snapshotAudit["reportedAdherence"] = adherence;
+    }
     return {
+      snapshotAudit,
       nodeId,
       operationId: operationId(operation["operationId"], "INVALID_WORLD_QUERY_RESULT"),
       operationVersion: operationVersion(operation["operationVersion"], "INVALID_WORLD_QUERY_RESULT"),
@@ -616,12 +639,22 @@ function parseWorldResult(value: unknown): ParsedWorldResult {
     };
   });
   const outputs = cloneObject(raw["outputs"], "INVALID_WORLD_QUERY_RESULT");
+  const snapshotManifests: Record<string, unknown> = {};
+  for (const key of ["requestedSnapshotManifest", "effectiveSnapshotManifest"]) {
+    if (raw[key] !== undefined) snapshotManifests[key] = parseAndVerifySnapshotManifest(raw[key]);
+  }
+  if (snapshotManifests["effectiveSnapshotManifest"] !== undefined && canonicalSha256(raw["snapshotManifest"]) !== canonicalSha256(snapshotManifests["effectiveSnapshotManifest"])) {
+    throw new ExecutionEvidenceError("SNAPSHOT_MANIFEST_HASH_MISMATCH");
+  }
   const outputHash = digest(raw["outputHash"], "WORLD_QUERY_OUTPUT_HASH_MISMATCH");
-  if (canonicalSha256(outputs) !== outputHash) throw new ExecutionEvidenceError("WORLD_QUERY_OUTPUT_HASH_MISMATCH");
+  const outputHashContent = snapshotManifests["effectiveSnapshotManifest"] === undefined ? outputs
+    : { outputs, effectiveSnapshotManifest: snapshotManifests["effectiveSnapshotManifest"] };
+  if (canonicalSha256(outputHashContent) !== outputHash) throw new ExecutionEvidenceError("WORLD_QUERY_OUTPUT_HASH_MISMATCH");
   const startedAt = timestamp(raw["startedAt"], "INVALID_WORLD_QUERY_RESULT");
   const finishedAt = timestamp(raw["finishedAt"], "INVALID_WORLD_QUERY_RESULT");
   if (Date.parse(finishedAt) < Date.parse(startedAt)) throw new ExecutionEvidenceError("INVALID_TIME_RANGE");
   return {
+    snapshotManifests,
     queryId: identifier(raw["queryId"], "INVALID_WORLD_QUERY_RESULT"),
     jobId: identifier(raw["jobId"], "INVALID_WORLD_QUERY_RESULT"),
     status,
@@ -718,7 +751,12 @@ export function normalizeWorldQueryExecution(input: WorldQueryExecutionNormaliza
     throw new ExecutionEvidenceError("GATEWAY_JOB_RESULT_STATUS_MISMATCH");
   }
   const nodeIds = world.nodes.map((node) => node.nodeId);
-  const snapshot = assessWorldSnapshot(nodeIds, world.snapshotManifest, world.snapshotAdherence, input.snapshotExpectation);
+  const assessment = assessWorldSnapshot(nodeIds, world.snapshotManifest, world.snapshotAdherence, input.snapshotExpectation);
+  const unexecuted = new Set(world.nodes.filter(node => node.status === "SKIPPED" && node.result === undefined && node.inputHash === undefined).map(node => node.nodeId));
+  const snapshot = { ...assessment, gaps: assessment.gaps.filter(gap => !(gap.code === "SNAPSHOT_ADHERENCE_FAILED"
+    && gap.nodeId !== undefined && unexecuted.has(gap.nodeId) && gap.actual === "UNSUPPORTED"
+    && world.snapshotAdherence.find(entry => entry.nodeId === gap.nodeId)?.mismatches?.length
+    && world.snapshotAdherence.find(entry => entry.nodeId === gap.nodeId)?.mismatches?.every(item => item["reason"] === "NODE_NOT_EXECUTED"))) };
   const adherenceByNode = new Map(world.snapshotAdherence.map((entry) => [entry.nodeId, entry]));
   const nodeRecords: GowmExecutionRecord[] = [];
   const candidateEvidenceItems: NormalizedExecutionEvidenceItem[] = [];
@@ -736,6 +774,9 @@ export function normalizeWorldQueryExecution(input: WorldQueryExecutionNormaliza
     if (trace.operationId !== node.operationId || trace.operationVersion !== node.operationVersion) {
       throw new ExecutionEvidenceError("OPERATION_IDENTITY_MISMATCH");
     }
+    // A skipped node has no materialized input or Provider execution to attest.
+    // Its status and adherence remain covered by the query envelope.
+    if (node.status === "SKIPPED" && node.result === undefined && node.inputHash === undefined) continue;
     const nodeRequestHash = input.nodeRequestHashes[node.nodeId];
     if (nodeRequestHash === undefined) throw new ExecutionEvidenceError("WORLD_QUERY_NODE_REQUEST_HASH_MISSING");
     digest(nodeRequestHash, "WORLD_QUERY_NODE_REQUEST_HASH_MISSING");
@@ -790,7 +831,7 @@ export function normalizeWorldQueryExecution(input: WorldQueryExecutionNormaliza
       upstreamStatus: node.status,
       ...(parsed?.dataSnapshot === undefined ? {} : { dataSnapshot: parsed.dataSnapshot }),
       ...(parsed?.computeSnapshot === undefined ? {} : { computeSnapshot: parsed.computeSnapshot }),
-      snapshotAdherence: structuredClone(adherence) as unknown as Readonly<Record<string, unknown>>,
+      snapshotAdherence: { ...structuredClone(adherence), ...node.snapshotAudit },
       receiptIds: uniqueSorted(receiptIds),
       evidenceIds: uniqueSorted(evidenceIds),
       startedAt: node.startedAt ?? world.startedAt,
@@ -816,7 +857,7 @@ export function normalizeWorldQueryExecution(input: WorldQueryExecutionNormaliza
     resultHash: world.outputHash,
     normalizedStatus,
     upstreamStatus: world.status,
-    snapshotAdherence: { nodes: structuredClone(world.snapshotAdherence) },
+    snapshotAdherence: { nodes: structuredClone(world.snapshotAdherence), ...world.snapshotManifests },
     receiptIds: uniqueSorted(receiptIds),
     evidenceIds: uniqueSorted(evidenceIds),
     startedAt: world.startedAt,

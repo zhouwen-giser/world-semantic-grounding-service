@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-09-07T12:12:30.427897+00:00",
+  "project": "wsgs-live",
+  "acceptance": "FAILED_NOT_ACTIVATED",
+  "api": {
+    "status": "exited",
+    "exitCode": 0
+  },
+  "worker": {
+    "status": "exited",
+    "exitCode": 0
+  },
+  "wsgsPostgres": "healthy",
+  "gatewayPostgres": "healthy",
+  "signedGateway": "running_internal_only",
+  "migrationExitCode": 0,
+  "bootstrapExitCode": 0,
+  "testedImage": "wsgs:9172769eb1baa98dbbb2",
+  "loopbackPort": 18082,
+  "originalStaticGateway": "running_healthy",
+  "originalStaticGatewayImageId": "sha256:55b30a68eb8c6ce64d261b6dc876859b530248b8f1ac8d759e1ef5505cd4e366",
+  "gpuStack": "running_unchanged"
+}

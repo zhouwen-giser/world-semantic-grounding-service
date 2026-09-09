@@ -1,0 +1,13 @@
+{
+  "command": "npm run check",
+  "startedAt": "2026-09-07T00:43:12.014Z",
+  "finishedAt": "2026-09-07T00:44:22.865Z",
+  "exitCode": 1,
+  "signal": null,
+  "status": "FAIL",
+  "testedCommit": "13d257926ed78ce3ba00ab017bb9c68072c1431a",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/metric-rounds-check.log",
+  "logSha256": "sha256:fd990913bc0e97c5695f9b1e9c62ebc48173b22f948f9a9eb7fba9b039777f37"
+}

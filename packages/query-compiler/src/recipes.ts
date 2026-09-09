@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { analysisHash, currentGowmPath } from "@wsgs/gowm-contract-intake";
 import type {
   PortRequirement,
   QuerySemanticPattern,
@@ -44,6 +46,10 @@ export interface QueryTemplateStep {
   links: readonly QueryTemplateLink[];
   requestBindings?: readonly QueryTemplateRequestBinding[];
   literalBindings?: readonly QueryTemplateLiteralBinding[];
+  preconditions?: readonly (
+    | { kind: "NODE_STATUS"; sourceStepId: string; statuses: readonly ("COMPLETED" | "PARTIAL" | "NO_DATA")[] }
+    | { kind: "VALUE_PRESENT"; sourceStepId: string; outputPort: string }
+  )[];
 }
 
 export interface QueryTemplateRule {
@@ -52,6 +58,7 @@ export interface QueryTemplateRule {
   maturity: "STABLE" | "PREVIEW";
   allowDegraded: boolean;
   previewAuthorizationRequired?: boolean;
+  analysisAuthorizationRequired?: boolean;
   defaultSnapshotMode?: SnapshotMode;
   steps: readonly QueryTemplateStep[];
 }
@@ -80,12 +87,86 @@ const stringLiteralPort: SchemaPort = {
   valueKind: "ANY",
   unitSemantics: "UNSPECIFIED"
 };
+const arrayLiteralPort: SchemaPort = {
+  schemaUri: "urn:gowm:v0.2:value:array",
+  schemaHash: "sha256:8e1e4dd66e9483d8341c51dc5ec424d8e6510ae35cdbc53040d0bab497459945",
+  valueKind: "ANY", unitSemantics: "UNSPECIFIED"
+};
+
+function publishedValuePort(kind: "object" | "integer"): SchemaPort {
+  const schema = JSON.parse(readFileSync(currentGowmPath(`bundle/schemas/platform/value-${kind}.schema.json`), "utf8"));
+  return { schemaUri: schema.$id, schemaHash: analysisHash(schema), valueKind: "ANY", unitSemantics: "UNSPECIFIED" };
+}
+const objectLiteralPort = publishedValuePort("object");
+const integerLiteralPort = publishedValuePort("integer");
 
 const schemaVersionLiteral: QueryTemplateLiteralBinding = {
   inputName: "schemaVersion",
   value: "1.0",
   targetPath: "/schemaVersion",
   port: stringLiteralPort
+};
+
+const historicalIntervalStep: QueryTemplateStep = {
+  stepId: "read-task-execution-interval",
+  costWeight: 2,
+  failurePolicy: "FAIL_FAST",
+  links: [],
+  requirement: contract("operational-task.get-execution-intervals@1.0", {
+    domain: "TEMPORAL",
+    relationSemantics: [],
+    acceptedReferenceKinds: ["OPERATIONAL_TASK"],
+    producedReferenceKinds: ["TASK_EXECUTION_INTERVAL"],
+    spatialSemantics: "NONE",
+    timeSemantics: "INTERVAL",
+    resultNature: "PROJECTION",
+    inputPorts: [requestPort()],
+    outputPorts: [
+      resultPort(),
+      { name: "executionIntervalReferenceKey", valueKind: "REFERENCE_KEY", unitSemantics: "UNSPECIFIED" }
+    ]
+  })
+};
+
+const historicalTrajectoryStep: QueryTemplateStep = {
+  stepId: "read-historical-trajectory",
+  costWeight: 3,
+  failurePolicy: "SKIP_IF_PRECONDITION_FALSE",
+  links: [{
+    sourceStepId: "read-task-execution-interval",
+    outputPort: "executionIntervalReferenceKey",
+    inputName: "executionIntervalReferenceKey",
+    targetPath: "/executionIntervalReferenceKey"
+  }],
+  requestBindings: [
+    { inputName: "subjectReferenceKey", path: "/subjectReferenceKey", targetPath: "/subjectReferenceKey", literalFromParameter: true, port: objectLiteralPort },
+    { inputName: "phaseScope", path: "/phaseScope", targetPath: "/phaseScope", literalFromParameter: true, port: stringLiteralPort },
+    { inputName: "sourceSelection", path: "/sourceSelection", targetPath: "/sourceSelection", literalFromParameter: true, port: objectLiteralPort },
+    {
+      inputName: "sourceSelectionProfileReferenceKey", path: "/sourceSelectionProfileReferenceKey",
+      targetPath: "/sourceSelectionProfileReferenceKey", literalFromParameter: true, port: objectLiteralPort
+    },
+    {
+      inputName: "analysisSpaceReferenceKey", path: "/analysisSpaceReferenceKey",
+      targetPath: "/analysisSpaceReferenceKey", literalFromParameter: true, port: objectLiteralPort, optional: true
+    },
+    { inputName: "maximumInlinePoints", path: "/maximumInlinePoints", targetPath: "/maximumInlinePoints", literalFromParameter: true, port: integerLiteralPort }
+  ],
+  preconditions: [
+    { kind: "NODE_STATUS", sourceStepId: "read-task-execution-interval", statuses: ["COMPLETED", "PARTIAL"] },
+    { kind: "VALUE_PRESENT", sourceStepId: "read-task-execution-interval", outputPort: "executionIntervalReferenceKey" }
+  ],
+  requirement: contract("history.get-trajectory@1.0", {
+    domain: "ANALYSIS",
+    relationSemantics: ["TEMPORALLY_OVERLAPS"],
+    acceptedReferenceKinds: ["WORLD_OBJECT", "TASK_EXECUTION_INTERVAL", "HISTORY_METHOD_PROFILE"],
+    producedReferenceKinds: ["HISTORICAL_TRAJECTORY", "TRACKLET_VERSION", "TRACKLET_FINALIZATION", "HISTORY_INPUT_SET"],
+    spatialSemantics: "EXACT",
+    timeSemantics: "HISTORICAL",
+    resultNature: "DERIVED",
+    inputPorts: [requestPort()],
+    outputPorts: [resultPort()]
+  })
 };
 
 function contract(
@@ -163,6 +244,12 @@ const readGeometry = worldFactStep("read-geometry", "world.get-geometry", ["HAS_
 
 const readCurrentPosition = worldFactStep("read-current-position", "world.get-current-state", [], [
   { name: "positionCoordinates", valueKind: "ANY", unitSemantics: "ANGULAR_DEGREES" }
+]);
+
+// GDPS accepts horizontal WGS84 pairs; require the published projection port.
+// The original position port retains its 2D/3D world-evidence semantics.
+const readHorizontalPosition = worldFactStep("read-current-position", "world.get-current-state", [], [
+  { name: "horizontalPositionCoordinates", valueKind: "ANY", unitSemantics: "ANGULAR_DEGREES" }
 ]);
 
 const positionCoordinatesLink: QueryTemplateLink = {
@@ -282,7 +369,7 @@ function gdpsPointStep(
     failurePolicy: "FAIL_FAST",
     links: [{
       sourceStepId: "read-current-position",
-      outputPort: "positionCoordinates",
+      outputPort: "horizontalPositionCoordinates",
       inputName: "pointCoordinates",
       targetPath: "/point/coordinates"
     }],
@@ -334,7 +421,53 @@ function gdpsAreaStep(
   };
 }
 
+const analysisStep = (stepId: string, operationKey: string, relations: string[], spatialSemantics: string): QueryTemplateStep => ({
+  stepId, costWeight: 2, failurePolicy: "FAIL_FAST", links: [],
+  requirement: contract(operationKey, {
+    domain: "ANALYSIS", relationSemantics: relations, acceptedReferenceKinds: ["HISTORICAL_TRAJECTORY"],
+    producedReferenceKinds: [], spatialSemantics, timeSemantics: "HISTORICAL", resultNature: "DERIVED",
+    inputPorts: [requestPort()], outputPorts: [resultPort()]
+  })
+});
+const mapMatchStep = analysisStep("map-match", "trajectory.map-match@0.1", ["SNAPPED_TO_NETWORK"], "CANDIDATE");
+const temporalStep = analysisStep("find-events", "temporal-spatial.find-events@0.1", ["TEMPORALLY_OVERLAPS"], "CANDIDATE");
+const rankingStep = analysisStep("rank-locations", "spatiotemporal-metric.rank-locations@0.1", ["CORRELATES_WITH"], "AGGREGATED");
+const crossStep: QueryTemplateStep = {
+  ...temporalStep,
+  failurePolicy: "SKIP_IF_PRECONDITION_FALSE",
+  links: [{ sourceStepId: "map-match", outputPort: "result", inputName: "mapMatchResult", targetPath: "/source/mapMatchResult" }],
+  literalBindings: [
+    { ...schemaVersionLiteral, value: "0.1" },
+    { inputName: "sourceKind", value: "MAP_MATCH_RESULT", targetPath: "/source/kind", port: stringLiteralPort },
+    { inputName: "eventTypes", value: ["CROSS"], targetPath: "/eventTypes", port: arrayLiteralPort },
+    { inputName: "profile", value: "CAMPUS_TASK_DEFAULT", targetPath: "/profile", port: stringLiteralPort }
+  ],
+  requestBindings: [{ inputName: "selection", path: "/selection", targetPath: "/selection", literalFromParameter: true }],
+  preconditions: [
+    { kind: "NODE_STATUS", sourceStepId: "map-match", statuses: ["COMPLETED", "PARTIAL"] },
+    { kind: "VALUE_PRESENT", sourceStepId: "map-match", outputPort: "result" }
+  ]
+};
+
 export const queryTemplateRules: readonly QueryTemplateRule[] = [
+  { templateId: "advanced-historical-road-association", pattern: "HISTORICAL_ROAD_ASSOCIATION", maturity: "PREVIEW", allowDegraded: false, analysisAuthorizationRequired: true, steps: [mapMatchStep] },
+  { templateId: "advanced-historical-temporal-event", pattern: "HISTORICAL_TEMPORAL_EVENT", maturity: "PREVIEW", allowDegraded: false, analysisAuthorizationRequired: true, steps: [temporalStep] },
+  { templateId: "advanced-historical-cross-event", pattern: "HISTORICAL_CROSS_EVENT", maturity: "PREVIEW", allowDegraded: false, analysisAuthorizationRequired: true, steps: [mapMatchStep, crossStep] },
+  { templateId: "advanced-historical-metric-ranking", pattern: "HISTORICAL_METRIC_RANKING", maturity: "PREVIEW", allowDegraded: false, analysisAuthorizationRequired: true, steps: [rankingStep] },
+  {
+    templateId: "historical-execution-interval",
+    pattern: "HISTORICAL_EXECUTION_INTERVAL",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [historicalIntervalStep]
+  },
+  {
+    templateId: "historical-trajectory",
+    pattern: "HISTORICAL_TRAJECTORY",
+    maturity: "PREVIEW",
+    allowDegraded: false,
+    steps: [historicalIntervalStep, historicalTrajectoryStep]
+  },
   {
     templateId: "reference-identity",
     pattern: "REFERENCE_IDENTITY",
@@ -622,7 +755,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       gdpsPointStep("read-land-cover", "landcover.get-class", "SPATIAL", "FACT")]
   },
   {
@@ -642,7 +775,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       gdpsPointStep("find-obstacles", "obstacle.find-nearby", "SPATIAL", "DERIVED", [{
         inputName: "distanceMetres",
         path: "/distanceMetres",
@@ -683,7 +816,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       gdpsPointStep("read-elevation", "elevation.sample", "ANALYSIS", "FACT")]
   },
   {
@@ -693,7 +826,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       gdpsPointStep("explain-traversability", "traversability.explain", "ANALYSIS", "DERIVED")]
   },
   {
@@ -703,11 +836,11 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       genericGdpsStep("sample-product", "geo-raster.sample", {
         domain: "ANALYSIS", relationSemantics: ["DESCRIBES"], resultNature: "FACT"
       }, {
-        sourceStepId: "read-current-position", outputPort: "positionCoordinates",
+        sourceStepId: "read-current-position", outputPort: "horizontalPositionCoordinates",
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
       }, [], [geoJsonPointType])]
   },
@@ -768,11 +901,11 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       genericGdpsStep("find-vector-nearby", "geo-vector.find-nearby", {
         domain: "SPATIAL", relationSemantics: ["NEAR"], resultNature: "DERIVED"
       }, {
-        sourceStepId: "read-current-position", outputPort: "positionCoordinates",
+        sourceStepId: "read-current-position", outputPort: "horizontalPositionCoordinates",
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
       }, [{
         inputName: "distanceMetres", path: "/distanceM", targetPath: "/distanceMetres",

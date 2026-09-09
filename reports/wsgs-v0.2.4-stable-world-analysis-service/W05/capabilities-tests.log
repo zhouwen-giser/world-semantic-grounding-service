@@ -1,0 +1,15 @@
+COMMAND ["npx","vitest","run","services/grounding-worker/src/world-analysis-capabilities.test.ts","services/grounding-api/src/production-capabilities.test.ts"]
+START 2026-09-06T16:52:41.272Z
+COMMIT 7703b4efa27a3afd1108c846f7a956755ee48c9f
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  2 passed (2)
+      Tests  24 passed (24)
+   Start at  00:52:42
+   Duration  3.41s (transform 1.00s, setup 0ms, import 3.61s, tests 1.57s, environment 0ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE

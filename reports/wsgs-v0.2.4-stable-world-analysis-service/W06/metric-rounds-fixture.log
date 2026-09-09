@@ -1,0 +1,19 @@
+COMMAND ["npm","run","smoke:world-analysis:fixture"]
+START 2026-09-07T00:49:53.447Z
+COMMIT 23fe67b3833fad53d4789de28e2cb3fb4a75c743
+
+> world-semantic-grounding-service@0.2.1 smoke:world-analysis:fixture
+> vitest run packages/historical-trace-consumer/src/public-world-analysis.test.ts
+
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  1 passed (1)
+      Tests  43 passed (43)
+   Start at  08:49:54
+   Duration  4.03s (transform 1.08s, setup 0ms, import 2.80s, tests 1.00s, environment 0ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE

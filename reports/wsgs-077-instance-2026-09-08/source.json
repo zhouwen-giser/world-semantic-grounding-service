@@ -1,0 +1,19 @@
+{
+  "packageVersion": "0.7.1",
+  "source": {
+    "package": "gowm-dev-server-0.7.1.tar.gz",
+    "sha256": "b28cde5a4a6c1f2abe91064410860708f44287317c12b40ea4551dffee4154ea",
+    "combinedPackage": "gdps-gowm-dev-server-0.2.2-gowm-0.7.1.tar.gz",
+    "combinedSha256": "35c93adc359f5ebb93396b93c2eed909e13ec74ee6ef8cfef5da1714115d2141",
+    "sourceLock": {
+      "schemaVersion": "gdps-gowm-dev-package-lock/1.0",
+      "packageName": "gowm-dev-server-0.7.1.tar.gz",
+      "softwareVersion": "0.7.1",
+      "sourceCommit": "3de85aec393e513416a407bef5d45f77c88ba9a2",
+      "sha256": "b28cde5a4a6c1f2abe91064410860708f44287317c12b40ea4551dffee4154ea",
+      "expectedRoot": "gowm-dev-server-0.7.1",
+      "providerCount": 16,
+      "operationCount": 124
+    }
+  }
+}

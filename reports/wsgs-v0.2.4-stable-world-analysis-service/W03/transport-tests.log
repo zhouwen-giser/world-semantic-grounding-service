@@ -1,0 +1,15 @@
+COMMAND ["npx","vitest","run","packages/grounding-pipeline/src/contract-selection.test.ts","packages/grounding-pipeline/src/pipeline.test.ts","packages/grounding-pipeline/src/backend.test.ts","packages/grounding-pipeline/src/postgres-contract-boundary.test.ts","services/grounding-api/src/contract-negotiation.test.ts","services/grounding-api/src/server.test.ts","services/grounding-worker/src/result-schema.test.ts","services/grounding-worker/src/world-analysis-result.test.ts","services/grounding-worker/src/worker.test.ts","services/grounding-worker/src/advanced-history-integration.test.ts","packages/historical-trace-consumer/src/public-world-analysis.test.ts"]
+START 2026-09-06T15:53:38.076Z
+COMMIT aa7fb607827e6f4baa4b0e1fa42fd7fa06c9a0d0
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  10 passed (10)
+      Tests  116 passed (116)
+   Start at  23:53:41
+   Duration  21.31s (transform 29.75s, setup 0ms, import 63.35s, tests 22.06s, environment 2ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE

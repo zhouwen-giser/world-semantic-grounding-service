@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:gap",
+  "title": "Gap",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gapId",
+    "gapKind",
+    "severity",
+    "messageCode",
+    "findingIds",
+    "evidenceIds",
+    "detail"
+  ],
+  "properties": {
+    "gapId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "gapKind": {
+      "enum": [
+        "CAPABILITY_UNAVAILABLE",
+        "REFERENCE_MISSING",
+        "REFERENCE_AMBIGUOUS",
+        "TASK_CONTEXT_REQUIRED",
+        "SUBJECT_CONTEXT_REQUIRED",
+        "TARGET_CONTEXT_REQUIRED",
+        "METRIC_UNSUPPORTED",
+        "METRIC_SERIES_AMBIGUOUS",
+        "HISTORICAL_PROJECTION_PENDING",
+        "HISTORICAL_DATA_INCOMPLETE",
+        "ANALYSIS_INCOMPLETE",
+        "RESULT_TRUNCATED",
+        "SELECTION_INVALID",
+        "SELECTION_EXPIRED",
+        "SELECTION_SCOPE_MISMATCH",
+        "SELECTION_AMBIGUOUS",
+        "UPSTREAM_CONTRACT_MISMATCH",
+        "UPSTREAM_TIMEOUT",
+        "UPSTREAM_FAILURE",
+        "CURRENT_VALIDATION_REQUIRED",
+        "ROUTE_PLANNING_REQUIRED",
+        "EXECUTION_CONFIRMATION_REQUIRED",
+        "EXECUTION_NOT_AUTHORIZED",
+        "MULTI_EXECUTION_UNSUPPORTED"
+      ]
+    },
+    "severity": {
+      "enum": [
+        "INFO",
+        "WARNING",
+        "BLOCKING"
+      ]
+    },
+    "messageCode": {
+      "enum": [
+        "CAPABILITY_UNAVAILABLE",
+        "REFERENCE_MISSING",
+        "REFERENCE_AMBIGUOUS",
+        "TASK_CONTEXT_REQUIRED",
+        "SUBJECT_CONTEXT_REQUIRED",
+        "TARGET_CONTEXT_REQUIRED",
+        "METRIC_UNSUPPORTED",
+        "METRIC_SERIES_AMBIGUOUS",
+        "HISTORICAL_PROJECTION_PENDING",
+        "HISTORICAL_DATA_INCOMPLETE",
+        "ANALYSIS_INCOMPLETE",
+        "RESULT_TRUNCATED",
+        "SELECTION_INVALID",
+        "SELECTION_EXPIRED",
+        "SELECTION_SCOPE_MISMATCH",
+        "SELECTION_AMBIGUOUS",
+        "UPSTREAM_CONTRACT_MISMATCH",
+        "UPSTREAM_TIMEOUT",
+        "UPSTREAM_FAILURE",
+        "CURRENT_VALIDATION_REQUIRED",
+        "ROUTE_PLANNING_REQUIRED",
+        "EXECUTION_CONFIRMATION_REQUIRED",
+        "EXECUTION_NOT_AUTHORIZED",
+        "MULTI_EXECUTION_UNSUPPORTED"
+      ]
+    },
+    "findingIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "evidenceIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "detail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "reasonCode": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+        },
+        "sourceStatus": {
+          "enum": [
+            "COMPLETED",
+            "PARTIAL",
+            "NO_DATA",
+            "INDETERMINATE",
+            "FAILED",
+            "CANCELLED"
+          ]
+        },
+        "returnedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "sourceCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        }
+      }
+    }
+  }
+}

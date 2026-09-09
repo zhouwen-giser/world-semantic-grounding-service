@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isVerifiedAnalysisAuthorization } from "@wsgs/gowm-contract-intake";
 import type { CapabilityDescriptor, CapabilityPort } from "@wsgs/gowm-gateway-client";
 import { CapabilityMatcher, capabilityGap } from "./matcher.js";
 import {
@@ -33,6 +34,7 @@ interface CompiledUnit {
   links: readonly QueryTemplateLink[];
   requestBindings: readonly QueryTemplateRequestBinding[];
   literalBindings: readonly QueryTemplateLiteralBinding[];
+  preconditions: NonNullable<QueryTemplateStep["preconditions"]>;
 }
 
 export { queryTemplateRules };
@@ -223,7 +225,25 @@ export class TypedWorldQueryCompiler {
     if (!rule) {
       return gap(input, "UNSUPPORTED_EXPRESSION", { pattern: input.pattern, substituted: false });
     }
-    if (rule.maturity === "PREVIEW" && !input.maturityPolicy.allowPreview) {
+    if (rule.analysisAuthorizationRequired) {
+      if (!input.advancedHistoryEnabled) return gap(input, "MATURITY_NOT_ALLOWED", { reasonCode: "ADVANCED_HISTORY_DISABLED" });
+      for (const step of rule.steps) {
+        const key = step.requirement.allowedOperationKeys?.[0];
+        const auth = input.analysisProviderAuthorizations?.find(entry => `${entry.operationId}@${entry.operationVersion}` === key);
+        const lock = input.operationLocks.find(entry => `${entry.operationId}@${entry.operationVersion}` === key);
+        const contractReason = !auth || !isVerifiedAnalysisAuthorization(auth) ? "ANALYSIS_PROVIDER_CONTRACT_INVALID" :
+          !lock ? input.operationLocks.some(entry => entry.operationId === auth.operationId) ? "ANALYSIS_OPERATION_VERSION_MISMATCH" : "ANALYSIS_CAPABILITY_NOT_REGISTERED" :
+          auth.inputSchemaHash !== lock.inputSchemaHash ? "ANALYSIS_INPUT_SCHEMA_MISMATCH" :
+          auth.outputSchemaHash !== lock.outputSchemaHash ? "ANALYSIS_OUTPUT_SCHEMA_MISMATCH" :
+          auth.semanticProfileHash !== lock.semanticProfileHash ? "ANALYSIS_SEMANTIC_PROFILE_MISMATCH" :
+          lock.maturity !== "PREVIEW" ? "ANALYSIS_PROVIDER_CONTRACT_DRIFT" : undefined;
+        if (contractReason || !lock) return gap(input, "SCHEMA_MISMATCH", { reasonCode: contractReason, operationKey: key });
+        if (lock.requiredPermissions === undefined || !lock.requiredPermissions.every(permission => input.grantedPermissions?.includes(permission))) {
+          return gap(input, "OPERATION_UNAVAILABLE", { reasonCode: "ANALYSIS_PERMISSION_REQUIRED", operationKey: key });
+        }
+      }
+    }
+    if (rule.maturity === "PREVIEW" && !input.maturityPolicy.allowPreview && !rule.analysisAuthorizationRequired) {
       return gap(input, "MATURITY_NOT_ALLOWED", {
         pattern: input.pattern,
         recipeMaturity: rule.maturity,
@@ -252,6 +272,10 @@ export class TypedWorldQueryCompiler {
       [...input.availability].map((entry) => entry.checkedAt).sort().at(-1) ??
       "1970-01-01T00:00:00.000Z";
     const units: CompiledUnit[] = [];
+    const referenceLinks = rule.steps.flatMap(step => step.links).filter(link => link.sourceStepId === "resolve-reference");
+    const bindResolvedReference = input.resolvedReferenceKey !== undefined && referenceLinks.length > 0 &&
+      referenceLinks.every(link => link.outputPort === "candidateReferenceKey");
+    let resolvedReferencePort: CapabilityPort | undefined;
     const bindings: MatchedCapability["binding"][] = [];
     for (const step of rule.steps) {
       const requirement = semanticRequirementFor(rule, step, input.requiredForProduct, policy.mode);
@@ -261,11 +285,16 @@ export class TypedWorldQueryCompiler {
         semanticProfiles: input.semanticProfiles,
         operationLocks: input.operationLocks,
         availability: input.availability,
-        maturityPolicy: input.maturityPolicy,
+        maturityPolicy: rule.analysisAuthorizationRequired ? { allowPreview: true } : input.maturityPolicy,
         degradedPolicy: input.degradedPolicy ?? (rule.allowDegraded ? "ALLOW" : "REJECT"),
         observedAt
       });
       if (matched.status === "CAPABILITY_GAP") return matched;
+      if (bindResolvedReference && step.stepId === "resolve-reference") {
+        resolvedReferencePort = matched.primary.descriptor.ports.outputs.find(port => port.name === "candidateReferenceKey");
+        if (!resolvedReferencePort) throw new QueryCompilationError("RESOLVED_REFERENCE_PORT_MISSING");
+        continue;
+      }
       units.push({
         unitId: step.stepId,
         matched: matched.primary,
@@ -273,7 +302,8 @@ export class TypedWorldQueryCompiler {
         failurePolicy: step.failurePolicy,
         links: step.links,
         requestBindings: step.requestBindings ?? [],
-        literalBindings: step.literalBindings ?? []
+        literalBindings: step.literalBindings ?? [],
+        preconditions: step.preconditions ?? []
       });
       bindings.push(matched.primary.binding);
       if (matched.exactVerification !== undefined) {
@@ -298,6 +328,7 @@ export class TypedWorldQueryCompiler {
             targetPath: "/geometry"
           }],
           literalBindings: [],
+          preconditions: [],
           links: [{
             sourceStepId: step.stepId,
             outputPort: candidateOutput.name,
@@ -350,6 +381,11 @@ export class TypedWorldQueryCompiler {
         };
       } else {
         for (const link of unit.links) {
+          if (bindResolvedReference && link.sourceStepId === "resolve-reference") {
+            nodeInputs[link.inputName] = { kind: "LITERAL", port: schemaPort(resolvedReferencePort!),
+              value: structuredClone(input.resolvedReferenceKey), targetPath: link.targetPath };
+            continue;
+          }
           const source = resolvedByUnitId.get(link.sourceStepId);
           if (!source) throw new QueryCompilationError("TEMPLATE_DEPENDENCY_ORDER");
           const outputPort = sourceOutput(source, link.outputPort);
@@ -421,6 +457,27 @@ export class TypedWorldQueryCompiler {
         },
         inputs: nodeInputs,
         failurePolicy: unit.failurePolicy,
+        ...(unit.preconditions.length === 0 ? {} : {
+          preconditions: unit.preconditions.map((precondition) => {
+            const source = resolvedByUnitId.get(precondition.sourceStepId);
+            if (!source) throw new QueryCompilationError("TEMPLATE_PRECONDITION_ORDER");
+            if (precondition.kind === "NODE_STATUS") {
+              return { kind: "NODE_STATUS" as const, nodeId: source.node.nodeId, statuses: [...precondition.statuses] };
+            }
+            const outputPort = sourceOutput(source, precondition.outputPort);
+            if (!outputPort) throw new QueryCompilationError("TEMPLATE_PRECONDITION_PORT");
+            return {
+              kind: "VALUE_PRESENT" as const,
+              binding: {
+                kind: "NODE_OUTPUT" as const,
+                port: schemaPort(outputPort),
+                nodeId: source.node.nodeId,
+                outputPort: outputPort.name,
+                ...(outputPort.path === undefined ? {} : { path: outputPort.path })
+              }
+            };
+          })
+        }),
         budget: {
           maximumRows: rows[index]!,
           maximumCandidates: candidates[index]!,

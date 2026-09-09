@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0",
+  "catalogId": "wsgs-advanced-history-metrics",
+  "catalogVersion": "0.1.0",
+  "concepts": [
+    { "conceptId": "COMMUNICATION_RSSI", "aliases": ["RSSI", "无线信号强度", "通信", "信号"], "observedProperty": "radio.rssi", "valueUnit": "dBm", "measurementStage": "NORMALIZED", "bestDirection": "MAXIMIZE", "validValueRange": { "minimum": -140, "maximum": 0 } },
+    { "conceptId": "NETWORK_PACKET_LOSS", "aliases": ["丢包率", "packet loss"], "observedProperty": "PACKET_LOSS_RATE", "valueUnit": "percent", "measurementStage": "PARSED_NATIVE", "bestDirection": "MINIMIZE", "validValueRange": { "minimum": 0, "maximum": 100 } },
+    { "conceptId": "NETWORK_LATENCY", "aliases": ["时延", "延迟", "latency"], "observedProperty": "AVERAGE_ROUND_TRIP_TIME", "valueUnit": "ms", "measurementStage": "PARSED_NATIVE", "bestDirection": "MINIMIZE", "validValueRange": { "minimum": 0 } }
+  ]
+}

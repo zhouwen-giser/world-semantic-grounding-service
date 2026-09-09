@@ -1,0 +1,10 @@
+COMMAND ["npm","run","build"]
+START 2026-09-07T00:01:12.870Z
+COMMIT 1dca51d90a9da73883282808c35ee8b98c232158
+
+> world-semantic-grounding-service@0.2.1 build
+> tsc -b --pretty false
+
+
+EXIT_CODE 0
+SIGNAL NONE

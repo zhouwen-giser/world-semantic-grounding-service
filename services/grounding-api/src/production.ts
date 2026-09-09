@@ -1,10 +1,12 @@
 import {
   Aes256GcmPayloadCodec,
   isSacsGeospatialContract,
+  isWorldAnalysisContract,
   PostgresProductionGroundingStore,
   ProductionGroundingBackend,
   type GroundingContractSelection,
   type ProductionAdmissionSnapshot,
+  type ProductionGroundingIdentity,
   type ScopedGroundingIdentity
 } from "@wsgs/grounding-pipeline";
 import { isAbsolute, resolve } from "node:path";
@@ -12,6 +14,7 @@ import { pathToFileURL } from "node:url";
 import { Pool } from "pg";
 
 import type { GroundingApiBackend } from "./types.js";
+import { worldAnalysisCapabilities } from "./world-analysis-capabilities.js";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -33,6 +36,7 @@ export interface ProductionBackendResources {
 }
 
 export interface ProductionReadinessProbe {
+  discoverWorldAnalysis?(identity: ProductionGroundingIdentity): Promise<unknown>;
   checkReadiness(): Promise<{ ready: boolean; reasons: string[] }>;
   captureAdmissionSnapshot(context: {
     identity: ScopedGroundingIdentity;
@@ -54,6 +58,12 @@ function readinessProbeFromEnvironment(): ProductionReadinessProbe {
     : moduleSpecifier;
   const loaded = import(importSpecifier) as Promise<Record<string, unknown>>;
   return {
+    discoverWorldAnalysis: async (identity) => {
+      const moduleValue = await loaded;
+      const discover = moduleValue["discoverWorldAnalysis"];
+      if (typeof discover !== "function") return undefined;
+      return await (discover as (identity: ProductionGroundingIdentity) => Promise<unknown>)(identity);
+    },
     checkReadiness: async () => {
       try {
         const moduleValue = await loaded;
@@ -96,7 +106,7 @@ export function primaryDataScopeFromEnvironment(
   environment: Readonly<NodeJS.ProcessEnv> = process.env
 ): string | undefined {
   const value = environment["WSGS_PRIMARY_DATA_SCOPE"];
-  if (value === undefined) return undefined;
+  if (value === undefined || value === "") return undefined;
   if (!authorityIdentifierPattern.test(value)) {
     throw new Error("WSGS_PRIMARY_DATA_SCOPE must be one exact authority identifier");
   }
@@ -110,8 +120,12 @@ export function primaryDataScopeFromEnvironment(
  */
 export function groundingCapabilitiesForSelection(
   contractSelection: GroundingContractSelection,
-  currentReadiness: Readonly<{ ready: boolean; reasons: readonly string[] }>
+  currentReadiness: Readonly<{ ready: boolean; reasons: readonly string[] }>,
+  worldAnalysisDiscovery?: unknown
 ): Readonly<Record<string, unknown>> {
+  if (isWorldAnalysisContract(contractSelection)) {
+    return { ...worldAnalysisCapabilities(currentReadiness.ready, worldAnalysisDiscovery) };
+  }
   if (isSacsGeospatialContract(contractSelection)) {
     return Object.freeze({
       service: "world-semantic-grounding-service",
@@ -224,8 +238,13 @@ export function createProductionBackendFromEnvironment(
     sealer: codec,
     readiness,
     captureAdmissionSnapshot: (context) => requiredReadiness.captureAdmissionSnapshot(context),
-    capabilities: async (_identity, contractSelection) =>
-      groundingCapabilitiesForSelection(contractSelection, await readiness()),
+    capabilities: async (identity, contractSelection) => {
+      let discovery: unknown;
+      if (isWorldAnalysisContract(contractSelection)) {
+        try { discovery = await requiredReadiness.discoverWorldAnalysis?.(identity); } catch { /* Optional discovery stays unavailable. */ }
+      }
+      return groundingCapabilitiesForSelection(contractSelection, await readiness(), discovery);
+    },
     ...(primaryDataScope === undefined ? {} : { selectDataScope: () => primaryDataScope }),
     sourceRetentionMs: integerEnvironment("WSGS_SOURCE_RETENTION_MS", 3_600_000, 1_000, 604_800_000)
   });

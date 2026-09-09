@@ -1,0 +1,2 @@
+{"observedAt" : "2026-09-08T08:18:22.35179+00:00", "task" : "wrf_a7b65a87df244ce19c9e173190a7b490", "version" : 3219, "actors" : [{"id": "wrf_9905ca9544ac4b25926ead291d636934", "kind": "WORLD_OBJECT", "version": "1", "namespace": "gowm"}]}
+{"observedAt" : "2026-09-08T08:18:22.352621+00:00", "events" : 19, "withActors" : 19}

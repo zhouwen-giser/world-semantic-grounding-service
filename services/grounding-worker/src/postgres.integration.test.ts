@@ -1,8 +1,12 @@
+import { loadOrCreateHistoricalQueryPlan } from "./production-module.js";
+import { TypedWorldQueryCompiler } from "@wsgs/query-compiler";
+import { historicalCompileInput } from "../../../packages/query-compiler/src/test-fixtures.js";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
   Aes256GcmPayloadCodec,
+  PayloadCipherError,
   GroundingPipeline,
   PIPELINE_STAGES,
   PostgresPipelineJournal,
@@ -27,6 +31,7 @@ import {
   PostgresGroundingWorkerStore
 } from "./postgres-store.js";
 import { GroundingWorker } from "./worker.js";
+import { cleanupExpiredSources } from "./source-cleanup.js";
 
 const databaseUrl = process.env["TEST_DATABASE_URL"];
 const integration = databaseUrl ? describe : describe.skip;
@@ -163,6 +168,183 @@ integration("W04 PostgreSQL production adapters", () => {
   });
 
   afterAll(async () => pool.end());
+
+  it("reuses an accepted historical plan and rejects a stale lease or tampered plan", async () => {
+    await backend.create(identity, "history-plan-recovery", request("history-plan"), true);
+    const store = new PostgresGroundingWorkerStore(pool, codec);
+    const claim = await store.claimNext("history-test", 60000);
+    expect(claim).not.toBeNull();
+    const key = "history-plan-recovery:foundation";
+    const factory = vi.fn(() => new TypedWorldQueryCompiler().compile({
+      ...historicalCompileInput("HISTORICAL_TRAJECTORY"), groundingId: claim!.groundingId, idempotencyKey: key
+    }));
+    const first = await loadOrCreateHistoricalQueryPlan(claim!, pool, "region-a", key, factory);
+    await pool.query("UPDATE wsgs.world_query SET gateway_job_id='accepted-history-job' WHERE query_id=$1", [first.submission.plan.queryId]);
+    const resumed = await loadOrCreateHistoricalQueryPlan(claim!, pool, "region-a", key, factory);
+    expect(resumed).toEqual(first); expect(factory).toHaveBeenCalledTimes(1);
+    expect((await pool.query("SELECT gateway_job_id FROM wsgs.world_query WHERE query_id=$1", [first.submission.plan.queryId])).rows[0].gateway_job_id).toBe("accepted-history-job");
+    await expect(loadOrCreateHistoricalQueryPlan({ ...claim!, generation: claim!.generation + 1 }, pool, "region-a", key, factory)).rejects.toThrow();
+    await pool.query("UPDATE wsgs.world_query SET plan_hash=$2 WHERE query_id=$1", [first.submission.plan.queryId, `sha256:${"0".repeat(64)}`]);
+    await expect(loadOrCreateHistoricalQueryPlan(claim!, pool, "region-a", key, factory)).rejects.toThrow("HISTORICAL_PERSISTED_PLAN_INVALID");
+  });
+
+  async function completeForCleanup(suffix: string) {
+    const body = request(suffix);
+    const created = await backend.create(identity, `idem-${suffix}`, body, true);
+    const id = (created.value as { groundingId: string }).groundingId;
+    const store = new PostgresGroundingWorkerStore(pool, codec);
+    const pipeline = new GroundingPipeline({ journal: new PostgresPipelineJournal(pool, codec),
+      executor: executor([], { RESULT_PERSIST: async context => ({ ...finalResult(context), referenceProducts: [], evidenceItems: [] }) }) });
+    expect(await new GroundingWorker({ workerId: "cleanup-test", store, pipeline }).runOnce()).toMatchObject({ kind: "SUCCEEDED" });
+    return { body, id };
+  }
+
+  it("clears both expired source copies atomically and preserves exact result/replay/audit data", async () => {
+    const { body, id } = await completeForCleanup("cleanup");
+    const before = await backend.get(identity, id);
+    const events = await pool.query("SELECT record_hash FROM wsgs.pipeline_event ORDER BY sequence");
+    expect(await cleanupExpiredSources(pool)).toBe(0);
+    await pool.query("UPDATE wsgs.grounding_request SET source_expires_at = clock_timestamp() - interval '1 second' WHERE grounding_id = $1", [id]);
+    expect(await cleanupExpiredSources(pool)).toBe(1);
+    expect(await cleanupExpiredSources(pool)).toBe(0);
+    expect((await pool.query("SELECT source_text_ciphertext FROM wsgs.grounding_request WHERE grounding_id = $1", [id])).rows[0].source_text_ciphertext).toBeNull();
+    expect((await pool.query("SELECT 1 FROM wsgs.pipeline_checkpoint")).rowCount).toBe(0);
+    expect(await backend.get(identity, id)).toEqual(before);
+    expect(await backend.create(identity, "idem-cleanup", body, true)).toEqual({ kind: "RESULT", value: (before as { result: unknown }).result });
+    expect((await pool.query("SELECT record_hash FROM wsgs.pipeline_event ORDER BY sequence")).rows).toEqual(events.rows);
+  });
+
+  it.each(["COMPLETED", "PARTIAL", "AMBIGUOUS", "UNRESOLVED", "FAILED", "CANCELLED"])("cleans expired %s tasks", async status => {
+    await backend.create(identity, "idem-terminal-cleanup", request("terminal-cleanup"), true);
+    await pool.query("UPDATE wsgs.grounding_job SET status = $1, finished_at = clock_timestamp()", [status]);
+    await pool.query("UPDATE wsgs.grounding_request SET source_expires_at = clock_timestamp() - interval '1 second'");
+    expect(await cleanupExpiredSources(pool)).toBe(1);
+    expect(await cleanupExpiredSources(pool)).toBe(0);
+  });
+
+  it("retains a successfully committed result when the caller loses its settlement acknowledgement", async () => {
+    const body = request("commit-ack");
+    const created = await backend.create(identity, "idem-commit-ack", body, true);
+    const id = (created.value as { groundingId: string }).groundingId;
+    const store = new PostgresGroundingWorkerStore(pool, codec);
+    const settle = store.settle.bind(store);
+    const calls = vi.spyOn(store, "settle").mockImplementationOnce(async (fence, settlement) => {
+      await settle(fence, settlement);
+      throw Object.assign(new Error("test lost acknowledgement"), { code: "ECONNRESET" });
+    });
+    const worker = new GroundingWorker({ workerId: "commit-ack", store, pipeline: new GroundingPipeline({ executor: executor([]), journal: new PostgresPipelineJournal(pool, codec) }) });
+    await expect(worker.runOnce()).rejects.toMatchObject({ code: "ECONNRESET" });
+    expect(calls).toHaveBeenCalledTimes(1);
+    const result = await backend.get(identity, id);
+    expect(result).toMatchObject({ status: "COMPLETED", result: { status: "COMPLETED" } });
+    expect(await backend.create(identity, "idem-commit-ack", body, true)).toEqual({ kind: "RESULT", value: (result as { result: unknown }).result });
+    expect(await worker.runOnce()).toMatchObject({ kind: "IDLE" });
+  });
+
+  it("retains expired accepted/running input until completion without changing its deadline", async () => {
+    const created = await backend.create(identity, "idem-active-cleanup", request("active-cleanup"), true);
+    const id = (created.value as { groundingId: string }).groundingId;
+    await pool.query("UPDATE wsgs.grounding_request SET source_expires_at = clock_timestamp() - interval '1 second' WHERE grounding_id = $1", [id]);
+    const deadline = (await pool.query("SELECT deadline_at FROM wsgs.grounding_job WHERE grounding_id = $1", [id])).rows[0].deadline_at;
+    expect(await cleanupExpiredSources(pool)).toBe(0);
+    const pipeline = new GroundingPipeline({ journal: new PostgresPipelineJournal(pool, codec),
+      executor: executor([], { DETERMINISTIC_PARSE: async () => {
+        expect(await cleanupExpiredSources(pool)).toBe(0);
+        expect((await pool.query("SELECT 1 FROM wsgs.pipeline_checkpoint")).rowCount).toBe(1);
+        return {};
+      } }) });
+    expect(await new GroundingWorker({ workerId: "active-cleanup", store: new PostgresGroundingWorkerStore(pool, codec), pipeline }).runOnce()).toMatchObject({ kind: "SUCCEEDED" });
+    expect((await pool.query("SELECT deadline_at FROM wsgs.grounding_job WHERE grounding_id = $1", [id])).rows[0].deadline_at).toEqual(deadline);
+    expect(await cleanupExpiredSources(pool)).toBe(1);
+  });
+
+  it("skips locked rows, bounds batches and repairs old checkpoint-only leftovers", async () => {
+    const first = await completeForCleanup("cleanup-first");
+    const second = await completeForCleanup("cleanup-second");
+    await pool.query("UPDATE wsgs.grounding_request SET source_text_ciphertext = NULL, source_expires_at = clock_timestamp() - interval '1 second'");
+    const locker = await pool.connect();
+    try {
+      await locker.query("BEGIN");
+      await locker.query("SELECT 1 FROM wsgs.grounding_job WHERE grounding_id = $1 FOR UPDATE", [first.id]);
+      expect(await cleanupExpiredSources(pool, 1)).toBe(1);
+      expect((await pool.query("SELECT grounding_id FROM wsgs.pipeline_checkpoint")).rows).toEqual([{ grounding_id: first.id }]);
+      expect(await cleanupExpiredSources(pool, 1)).toBe(0);
+    } finally { await locker.query("ROLLBACK"); locker.release(); }
+    const counts = await Promise.all([cleanupExpiredSources(pool, 1), cleanupExpiredSources(pool, 1)]);
+    expect(counts.reduce((sum, value) => sum + value, 0)).toBe(1);
+    expect((await pool.query("SELECT 1 FROM wsgs.pipeline_checkpoint")).rowCount).toBe(0);
+    expect(await backend.get(identity, second.id)).toMatchObject({ status: "COMPLETED" });
+  });
+
+  it("rolls back source clearing if checkpoint deletion fails", async () => {
+    const { id } = await completeForCleanup("cleanup-rollback");
+    await pool.query("UPDATE wsgs.grounding_request SET source_expires_at = clock_timestamp() - interval '1 second'");
+    // Real PostgreSQL rejects the deletion; neither half of cleanup may commit.
+    await pool.query(`CREATE FUNCTION wsgs.review_reject_cleanup() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'test cleanup rejection'; END $$`);
+    await pool.query("CREATE TRIGGER review_reject_cleanup BEFORE DELETE ON wsgs.pipeline_checkpoint FOR EACH ROW EXECUTE FUNCTION wsgs.review_reject_cleanup()");
+    try {
+      await expect(cleanupExpiredSources(pool)).rejects.toThrow("test cleanup rejection");
+      expect((await pool.query("SELECT source_text_ciphertext FROM wsgs.grounding_request WHERE grounding_id = $1", [id])).rows[0].source_text_ciphertext).not.toBeNull();
+      expect((await pool.query("SELECT 1 FROM wsgs.pipeline_checkpoint")).rowCount).toBe(1);
+    } finally {
+      await pool.query("DROP TRIGGER review_reject_cleanup ON wsgs.pipeline_checkpoint");
+      await pool.query("DROP FUNCTION wsgs.review_reject_cleanup()");
+    }
+  });
+
+  it.each(["cipher", "json", "identity", "contract", "operation"])("isolates %s corruption and runs the following valid job", async corruption => {
+    const created = await backend.create(identity, "idem-bad-claim", request("bad-claim"), true);
+    const id = (created.value as { groundingId: string }).groundingId;
+    if (corruption === "cipher" || corruption === "json") {
+      const bytes = corruption === "cipher" ? Buffer.from("broken ciphertext") : Buffer.from(await codec.seal(Buffer.from("{"), { groundingId: id, requestId: "request-bad-claim" }));
+      await pool.query("UPDATE wsgs.grounding_request SET source_text_ciphertext = $1 WHERE grounding_id = $2", [bytes, id]);
+    } else {
+      const patch = corruption === "identity" ? { permissions: [] } : corruption === "contract" ? { contractSelection: { contractVersion: "invalid" } } : { operation: "INVALID" };
+      await pool.query("UPDATE wsgs.grounding_request SET request_metadata = request_metadata || $1::jsonb WHERE grounding_id = $2", [JSON.stringify(patch), id]);
+    }
+    await backend.create(identity, "idem-good-claim", request("good-claim"), true);
+    await pool.query("UPDATE wsgs.grounding_job SET available_at = clock_timestamp() - interval '1 second' WHERE grounding_id = $1", [id]);
+    const store = new PostgresGroundingWorkerStore(pool, codec);
+    const worker = new GroundingWorker({ workerId: "corruption-test", store, pipeline: new GroundingPipeline({ executor: executor([]), journal: new PostgresPipelineJournal(pool, codec) }) });
+    expect(await worker.runOnce()).toMatchObject({ kind: "IDLE" });
+    // A corrupt contract must remain unreadable through the public boundary.
+    expect((await pool.query("SELECT status, error FROM wsgs.grounding_job WHERE grounding_id = $1", [id])).rows[0])
+      .toMatchObject({ status: "FAILED", error: { code: "WORKER_CLAIM_INVALID", retryable: false } });
+    expect(await worker.runOnce()).toMatchObject({ kind: "SUCCEEDED" });
+  });
+
+  it("cannot fail a replacement generation after a corrupt claim loses its lease", async () => {
+    await backend.create(identity, "idem-stale-corrupt", request("stale-corrupt"), true);
+    const open = vi.spyOn(codec, "openRequest").mockImplementationOnce(async () => {
+      await pool.query("UPDATE wsgs.grounding_job SET stage_generation = stage_generation + 1, lease_token = 'replacement'");
+      throw new PayloadCipherError("test invalid ciphertext");
+    });
+    try {
+      expect(await new PostgresGroundingWorkerStore(pool, codec).claimNext("stale", 5000)).toBeNull();
+      expect((await pool.query("SELECT status, lease_token, error FROM wsgs.grounding_job")).rows[0]).toEqual({ status: "RUNNING", lease_token: "replacement", error: null });
+    } finally { open.mockRestore(); }
+  });
+
+  it("survives loss of the dedicated LISTEN connection and retains heartbeat cancellation", async () => {
+    const listenerPool = new Pool({ connectionString: databaseUrl, application_name: "wsgs-review-listener" });
+    const log = vi.fn();
+    const listener = new PostgresCancellationListener(listenerPool, log);
+    const store = new PostgresGroundingWorkerStore(pool, codec);
+    const worker = new GroundingWorker({ workerId: "listener-fallback", store,
+      pipeline: new GroundingPipeline({ executor: executor([]), journal: new PostgresPipelineJournal(pool, codec) }) });
+    try {
+      await listener.start(worker);
+      await pool.query("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE application_name = 'wsgs-review-listener' AND datname = current_database()");
+      await vi.waitFor(() => expect(log).toHaveBeenCalledWith(expect.objectContaining({ event: "worker_cancellation_listener_lost" })));
+      await backend.create(identity, "idem-listener-fallback", request("listener-fallback"), true);
+      const claim = (await store.claimNext("listener-fallback", 5000))!;
+      await backend.cancel(identity, claim.groundingId);
+      expect(await store.heartbeat(claim, 5000)).toMatchObject({ owned: false });
+    } finally {
+      await listener.close();
+      await listenerPool.end();
+    }
+  });
 
   it("persists encrypted input, runs all stages, checkpoints, and replays exact result bytes", async () => {
     const body = request("complete");
@@ -413,7 +595,9 @@ integration("W04 PostgreSQL production adapters", () => {
     );
     await expect(
       new PostgresGroundingWorkerStore(pool, codec).claimNext("worker-tampered-scope", 5_000)
-    ).rejects.toThrow("selected data scope is not authorized");
+    ).resolves.toBeNull();
+    expect((await pool.query("SELECT status, error FROM wsgs.grounding_job WHERE grounding_id = $1", [groundingId])).rows[0])
+      .toMatchObject({ status: "FAILED", error: { code: "WORKER_CLAIM_INVALID" } });
     await pool.query(
       `UPDATE wsgs.grounding_request
           SET request_metadata = jsonb_set(request_metadata, '{dataScopes}', '["region-b"]'::jsonb)
@@ -422,7 +606,9 @@ integration("W04 PostgreSQL production adapters", () => {
     );
     await expect(
       new PostgresGroundingWorkerStore(pool, codec).claimNext("worker-hash-drift", 5_000)
-    ).rejects.toThrow("authorization context hash is inconsistent");
+    ).resolves.toBeNull();
+    expect((await pool.query("SELECT status, error FROM wsgs.grounding_job WHERE grounding_id = $1", [hashDriftGroundingId])).rows[0])
+      .toMatchObject({ status: "FAILED", error: { code: "WORKER_CLAIM_INVALID" } });
   });
 
   it("persists and replays the full 1.1 extension only under its immutable selection", async () => {
@@ -545,6 +731,17 @@ integration("W04 PostgreSQL production adapters", () => {
     expect(await backend.get(identity, cancelledId)).toMatchObject({ status: "CANCELLED" });
     expect(await backend.get(identity, (deferred.value as Record<string, unknown>)["groundingId"] as string))
       .toMatchObject({ status: "ACCEPTED" });
+  });
+
+  it("reports the actual persisted stage when sweeping an expired task", async () => {
+    const created = await backend.create(identity, "idem-stage-timeout", request("stage-timeout"), true);
+    const value = created.value as Record<string, unknown>;
+    await pool.query("UPDATE wsgs.grounding_job SET pipeline_stage='REFERENCE_VALIDATE', deadline_at=clock_timestamp()-interval '1 second' WHERE job_id=$1", [value["jobId"]]);
+    const store = new PostgresGroundingWorkerStore(pool, codec);
+    expect(await store.claimNext("deadline-stage", 5000)).toBeNull();
+    expect(await backend.get(identity, value["groundingId"] as string)).toMatchObject({
+      status: "FAILED", error: { code: "WORKER_DEADLINE_EXCEEDED", stage: "REFERENCE_GROUNDING", retryable: false }
+    });
   });
 
   it("skips locked overdue rows and expires them on the next claim cycle", async () => {

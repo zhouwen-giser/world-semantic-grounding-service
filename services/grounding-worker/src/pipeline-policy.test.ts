@@ -10,7 +10,7 @@ import {
   type PipelineStage,
   type PipelineStageHandler
 } from "@wsgs/grounding-pipeline";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { productionPipelinePolicyFromEnvironment } from "./pipeline-policy.js";
 import { WorkerConfigurationError } from "./types.js";
@@ -77,31 +77,42 @@ describe("productionPipelinePolicyFromEnvironment", () => {
   });
 
   it("still lets the request deadline clamp a longer configured model-stage timeout", async () => {
-    let semanticStageStarted = false;
-    const pipeline = new GroundingPipeline({
-      executor: handlers({
-        SEMANTIC_MODEL_PARSE: async (context) => {
-          semanticStageStarted = true;
-          return new Promise((_resolve, reject) => {
-            const aborted = (): void => reject(context.signal.reason);
-            if (context.signal.aborted) aborted();
-            else context.signal.addEventListener("abort", aborted, { once: true });
-          });
-        }
-      }),
-      journal: new MemoryJournal(),
-      policy: productionPipelinePolicyFromEnvironment({ MODEL_TIMEOUT_MS: "120000" })
-    });
+    vi.useFakeTimers();
+    try {
+      let markStarted!: () => void;
+      const started = new Promise<void>(resolve => { markStarted = resolve; });
+      let semanticStageStarted = false;
+      const pipeline = new GroundingPipeline({
+        executor: handlers({
+          SEMANTIC_MODEL_PARSE: async (context) => {
+            semanticStageStarted = true;
+            markStarted();
+            return new Promise((_resolve, reject) => {
+              const aborted = (): void => reject(context.signal.reason);
+              if (context.signal.aborted) aborted();
+              else context.signal.addEventListener("abort", aborted, { once: true });
+            });
+          }
+        }),
+        journal: new MemoryJournal(),
+        policy: productionPipelinePolicyFromEnvironment({ MODEL_TIMEOUT_MS: "120000" })
+      });
 
-    await expect(pipeline.run({
-      fence: { jobId: "job-deadline", leaseToken: "lease-deadline", generation: 1 },
-      groundingId: "grounding-deadline",
-      operation: "GROUND_REFERENCES",
-      deadlineAt: new Date(Date.now() + 75),
-      initialState: { request: { source: "test" } },
-      immutableLocks: { contract: "test" },
-      maxResultBytes: 1_048_576
-    })).rejects.toBeInstanceOf(PipelineDeadlineExceededError);
-    expect(semanticStageStarted).toBe(true);
+      const assertion = expect(pipeline.run({
+        fence: { jobId: "job-deadline", leaseToken: "lease-deadline", generation: 1 },
+        groundingId: "grounding-deadline",
+        operation: "GROUND_REFERENCES",
+        deadlineAt: new Date(Date.now() + 75),
+        initialState: { request: { source: "test" } },
+        immutableLocks: { contract: "test" },
+        maxResultBytes: 1_048_576
+      })).rejects.toBeInstanceOf(PipelineDeadlineExceededError);
+      await started;
+      await vi.advanceTimersByTimeAsync(75);
+      await assertion;
+      expect(semanticStageStarted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

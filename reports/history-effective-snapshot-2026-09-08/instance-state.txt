@@ -1,0 +1,7 @@
+wsgs-live-grounding-api-1 | Exited (0) About a minute ago | wsgs:3b383bd92d792b38fb93
+wsgs-live-grounding-worker-1 | Exited (0) About a minute ago | wsgs:3b383bd92d792b38fb93
+wsgs-live-signed-gateway-1 | Up 2 minutes | wsgs-gowm:1ad2edcc2cbe0859
+wsgs-live-wsgs-migrate-1 | Exited (0) 22 hours ago | wsgs:9172769eb1baa98dbbb2
+wsgs-live-gateway-bootstrap-1 | Exited (0) 22 hours ago | wsgs-gowm:6144a0b68f47f841
+wsgs-live-gateway-db-1 | Up 22 hours (healthy) | e861c5575226
+wsgs-live-postgres-1 | Up 23 hours (healthy) | postgres:17.10-alpine3.23

@@ -1,0 +1,104 @@
+{
+  "providerProtocolVersion": "1.0",
+  "manifestSchemaVersion": "1.1",
+  "provider": {
+    "providerId": "gowm.analysis.metric-ranking",
+    "providerVersion": "0.1.0",
+    "owner": "gowm-analysis",
+    "implementationDigest": "sha256:6282ad282a171ecf2171a23730f026009e6e81f0811056a240edc37dc50ac517",
+    "sourceRef": "urn:gowm:source:external:metric-ranking-provider:0.1.0"
+  },
+  "endpoints": {
+    "manifest": "/v1/manifest",
+    "liveness": "/health/live",
+    "readiness": "/health/ready",
+    "execute": "/v1/operations/{operationId}:execute",
+    "job": "/v1/jobs/{jobId}"
+  },
+  "capabilities": [
+    {
+      "operationId": "spatiotemporal-metric.rank-locations",
+      "operationVersion": "0.1",
+      "semanticProfile": {
+        "profileVersion": "1.1",
+        "domain": "ANALYSIS",
+        "acceptedReferenceKinds": [
+          "HISTORICAL_TRAJECTORY"
+        ],
+        "producedReferenceKinds": [],
+        "relationSemantics": [
+          "CORRELATES_WITH"
+        ],
+        "spatialSemantics": "AGGREGATED",
+        "timeSemantics": "HISTORICAL",
+        "resultNature": "DERIVED",
+        "negativeEvidencePolicy": "NO_DATA_IS_UNKNOWN",
+        "freshnessSemantics": "SNAPSHOT_CURRENTNESS",
+        "domainStatus": {
+          "path": "/status",
+          "mapping": {
+            "COMPLETED": "COMPLETED",
+            "PARTIAL": "PARTIAL",
+            "NO_DATA": "NO_DATA",
+            "INDETERMINATE": "INDETERMINATE"
+          }
+        },
+        "notes": [
+          "Ranks only locations observed in the selected historical trajectory.",
+          "Results are task-level historical correlations, not current action recommendations."
+        ]
+      },
+      "semanticRole": "DOMAIN_ANALYSIS",
+      "dataBinding": "WORLD_SNAPSHOT_BOUND",
+      "resultSemantics": "DERIVED_ANALYSIS",
+      "executionBindings": [
+        "SYNC_HTTP",
+        "VERSIONED_SQL_CONTRACT"
+      ],
+      "criticalPathPolicy": "REMOTE_ONLY",
+      "maturity": "PREVIEW",
+      "inputSchemaUri": "urn:gowm:analysis:metric-ranking:request:0.1",
+      "inputSchemaHash": "sha256:c9c882bf7c25ba0526e685090a9ef8603beec437a33ba67750660e54e105e601",
+      "outputSchemaUri": "urn:gowm:analysis:metric-ranking:result:0.1",
+      "outputSchemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27",
+      "scopePolicy": "DATA_SCOPE_REQUIRED",
+      "execution": {
+        "mode": "SYNC",
+        "defaultTimeoutMs": 15000,
+        "maximumTimeoutMs": 30000,
+        "costClass": "MEDIUM"
+      },
+      "limits": {
+        "maximumInputBytes": 1048576,
+        "maximumOutputBytes": 16777216,
+        "maximumRows": 250000,
+        "maximumCandidates": 250000
+      },
+      "snapshotPolicy": {
+        "dataSnapshot": "REQUIRED",
+        "computeSnapshot": "REQUIRED",
+        "resourceResolution": "DISCOVER_RESOURCES"
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "request",
+            "schemaUri": "urn:gowm:analysis:metric-ranking:request:0.1",
+            "schemaHash": "sha256:c9c882bf7c25ba0526e685090a9ef8603beec437a33ba67750660e54e105e601",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "result",
+            "schemaUri": "urn:gowm:analysis:metric-ranking:result:0.1",
+            "schemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:grounding:1.2:job",
+  "title": "GroundingJob12",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "groundingId",
+    "requestId",
+    "status",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "jobId": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/identifier"
+    },
+    "groundingId": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/identifier"
+    },
+    "requestId": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/identifier"
+    },
+    "status": {
+      "enum": [
+        "ACCEPTED",
+        "RUNNING",
+        "COMPLETED",
+        "PARTIAL",
+        "AMBIGUOUS",
+        "UNRESOLVED",
+        "FAILED",
+        "CANCELLED"
+      ]
+    },
+    "createdAt": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/dateTime"
+    },
+    "updatedAt": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/dateTime"
+    },
+    "startedAt": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/dateTime"
+    },
+    "finishedAt": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/dateTime"
+    },
+    "result": {
+      "$ref": "urn:wsgs:grounding:1.2:result"
+    },
+    "error": {
+      "$ref": "urn:wsgs:v0.1:common#/$defs/error"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "ACCEPTED",
+              "RUNNING"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "result"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "PARTIAL",
+              "AMBIGUOUS",
+              "UNRESOLVED"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "result"
+        ]
+      }
+    }
+  ]
+}

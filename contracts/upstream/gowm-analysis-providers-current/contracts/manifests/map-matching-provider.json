@@ -1,0 +1,105 @@
+{
+  "providerProtocolVersion": "1.0",
+  "manifestSchemaVersion": "1.1",
+  "provider": {
+    "providerId": "gowm.analysis.map-matching",
+    "providerVersion": "0.1.0",
+    "owner": "gowm-analysis",
+    "implementationDigest": "sha256:147eba60a49393a884727f53c3e4d0564ef82b0d427e4aabcb18a469c7b37639",
+    "sourceRef": "urn:gowm:source:external:map-matching-provider:0.1.0"
+  },
+  "endpoints": {
+    "manifest": "/v1/manifest",
+    "liveness": "/health/live",
+    "readiness": "/health/ready",
+    "execute": "/v1/operations/{operationId}:execute",
+    "job": "/v1/jobs/{jobId}"
+  },
+  "capabilities": [
+    {
+      "operationId": "trajectory.map-match",
+      "operationVersion": "0.1",
+      "semanticProfile": {
+        "profileVersion": "1.1",
+        "domain": "ANALYSIS",
+        "acceptedReferenceKinds": [
+          "HISTORICAL_TRAJECTORY"
+        ],
+        "producedReferenceKinds": [],
+        "relationSemantics": [
+          "SNAPPED_TO_NETWORK"
+        ],
+        "spatialSemantics": "CANDIDATE",
+        "timeSemantics": "HISTORICAL",
+        "resultNature": "DERIVED",
+        "negativeEvidencePolicy": "NO_DATA_IS_UNKNOWN",
+        "freshnessSemantics": "SNAPSHOT_CURRENTNESS",
+        "domainStatus": {
+          "path": "/status",
+          "mapping": {
+            "COMPLETED": "COMPLETED",
+            "PARTIAL": "PARTIAL",
+            "NO_DATA": "NO_DATA",
+            "INDETERMINATE": "INDETERMINATE"
+          }
+        },
+        "notes": [
+          "Historical trajectory is motion evidence; the network is a reference model rather than complete physical truth.",
+          "OFF_NETWORK_VALID preserves plausible movement that has no trustworthy association in the current graph."
+        ]
+      },
+      "semanticRole": "DOMAIN_ANALYSIS",
+      "dataBinding": "WORLD_SNAPSHOT_BOUND",
+      "resultSemantics": "DERIVED_ANALYSIS",
+      "executionBindings": [
+        "SYNC_HTTP",
+        "VERSIONED_SQL_CONTRACT"
+      ],
+      "criticalPathPolicy": "REMOTE_ONLY",
+      "maturity": "PREVIEW",
+      "inputSchemaUri": "urn:gowm:analysis:map-matching:request:0.1",
+      "inputSchemaHash": "sha256:fce48b61109ed5bf776700ea123892e6ef6ed868c70fed68c5ed2f4fedc56bc5",
+      "outputSchemaUri": "urn:gowm:analysis:map-matching:result:0.1",
+      "outputSchemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5",
+      "scopePolicy": "DATA_SCOPE_REQUIRED",
+      "execution": {
+        "mode": "SYNC",
+        "defaultTimeoutMs": 15000,
+        "maximumTimeoutMs": 30000,
+        "costClass": "MEDIUM"
+      },
+      "limits": {
+        "maximumInputBytes": 1048576,
+        "maximumOutputBytes": 16777216,
+        "maximumRows": 100000,
+        "maximumCandidates": 400000,
+        "maximumBatchItems": 1000
+      },
+      "snapshotPolicy": {
+        "dataSnapshot": "REQUIRED",
+        "computeSnapshot": "REQUIRED",
+        "resourceResolution": "DISCOVER_RESOURCES"
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "request",
+            "schemaUri": "urn:gowm:analysis:map-matching:request:0.1",
+            "schemaHash": "sha256:fce48b61109ed5bf776700ea123892e6ef6ed868c70fed68c5ed2f4fedc56bc5",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "result",
+            "schemaUri": "urn:gowm:analysis:map-matching:result:0.1",
+            "schemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ]
+      }
+    }
+  ]
+}

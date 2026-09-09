@@ -1,0 +1,253 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "request-1",
+  "groundingId": "grounding-1",
+  "status": "AMBIGUOUS",
+  "source": {
+    "messageId": "message-1",
+    "originalTextSha256": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+  },
+  "mentions": [],
+  "referenceProducts": [
+    {
+      "productId": "ugv1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "entity",
+        "id": "wrf_00000000000000000000000000000001",
+        "version": "1"
+      },
+      "referenceType": "ENTITY",
+      "displayName": "ugv1",
+      "sourceOperation": "entity.get",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "task-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "operational-task",
+        "id": "wrf_00000000000000000000000000000002",
+        "version": "1"
+      },
+      "referenceType": "OPERATIONAL_TASK",
+      "displayName": "task-1",
+      "sourceOperation": "operational-task.get",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "interval-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "execution-interval",
+        "id": "wrf_00000000000000000000000000000003",
+        "version": "1"
+      },
+      "referenceType": "EXECUTION_INTERVAL",
+      "displayName": "interval-1",
+      "sourceOperation": "operational-task.get-execution-intervals",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    },
+    {
+      "productId": "trajectory-1",
+      "productKind": "RESOLVED_REFERENCE",
+      "referenceKey": {
+        "namespace": "gowm",
+        "kind": "trajectory",
+        "id": "wrf_00000000000000000000000000000004",
+        "version": "1"
+      },
+      "referenceType": "TRAJECTORY",
+      "displayName": "trajectory-1",
+      "sourceOperation": "history.get-trajectory",
+      "sourceWorldVersion": 1,
+      "validUntil": "2026-09-06T10:01:00.000+08:00"
+    }
+  ],
+  "evidenceItems": [
+    {
+      "evidenceProductId": "evidence-1",
+      "productKind": "CAPABILITY_RESULT",
+      "authority": "GOWM",
+      "sourceOperation": "spatiotemporal-metric.rank-locations",
+      "upstreamStatus": "COMPLETED",
+      "payloadSchemaUri": "urn:artificial:contract-sample:result",
+      "payloadSchemaHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e",
+      "receiptIds": [
+        "receipt-sample-1"
+      ],
+      "evidenceIds": [
+        "upstream-evidence-sample-1"
+      ],
+      "unknowns": [],
+      "warnings": [],
+      "dataSnapshot": {
+        "snapshotHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+      },
+      "computeSnapshot": {
+        "snapshotHash": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+      }
+    }
+  ],
+  "ambiguities": [],
+  "unresolvedMentions": [],
+  "capabilityGaps": [],
+  "warnings": [],
+  "execution": {
+    "parserVersion": "contract-sample",
+    "semanticModelReceiptIds": [],
+    "queryCompilerVersion": "contract-sample",
+    "normalizerVersion": "contract-sample",
+    "elapsedMs": 1,
+    "runFingerprint": "sha256:d18053f764fc48c765030cd01736dd2f46d056b67dd8a75453fa5ba23e88f84e"
+  },
+  "validUntil": "2026-09-06T10:01:00.000+08:00",
+  "worldAnalysisFindings": {
+    "profile": "sacs-wsgs-geospatial-findings/1.0",
+    "findings": [
+      {
+        "findingId": "finding-ranking",
+        "findingKind": "METRIC_RANKING",
+        "semanticConcept": "METRIC_RANKING",
+        "status": "COMPLETED",
+        "subjectReferenceProductIds": [
+          "ugv1"
+        ],
+        "evidenceIds": [
+          "evidence-1"
+        ],
+        "unknowns": [],
+        "warnings": [],
+        "display": {
+          "truncated": false,
+          "returnedCount": 2
+        },
+        "validUntil": "2026-09-06T10:01:00.000+08:00",
+        "trajectoryReferenceProductId": "trajectory-1",
+        "candidateDomain": "PAST_OBSERVED_LOCATIONS",
+        "metric": {
+          "conceptId": "radio.rssi",
+          "observedProperty": "RSSI",
+          "measurementStage": "NORMALIZED",
+          "unit": "dBm",
+          "optimizationDirection": "MAXIMIZE"
+        },
+        "selectedSeries": {
+          "sourceKey": "radio-1",
+          "datastreamKey": "wifi0",
+          "measurementKey": "rssi",
+          "observedProperty": "RSSI",
+          "measurementStage": "NORMALIZED",
+          "valueUnit": "dBm"
+        },
+        "candidates": [
+          {
+            "candidateId": "candidate-1",
+            "rank": 1,
+            "representativeVisitedPosition": {
+              "type": "Point",
+              "coordinates": [
+                116.3913,
+                39.9075
+              ]
+            },
+            "representativeObservedAt": "2026-09-05T10:00:00.123+08:00",
+            "representativeMeasurementId": "measurement-7",
+            "representativeValue": -42,
+            "sampleCount": 5,
+            "statistics": {
+              "sampleCount": 5,
+              "minimum": -50,
+              "maximum": -40,
+              "mean": -42.4,
+              "median": -40
+            },
+            "rankingBasis": {
+              "primaryStatistic": "MEDIAN",
+              "optimizationDirection": "MAXIMIZE",
+              "rankingValue": -40,
+              "tieBreakers": [
+                "sampleCount DESC",
+                "h3Index ASC"
+              ]
+            },
+            "reasonCodes": []
+          },
+          {
+            "candidateId": "candidate-2",
+            "rank": 2,
+            "representativeVisitedPosition": {
+              "type": "Point",
+              "coordinates": [
+                116.392,
+                39.908
+              ]
+            },
+            "representativeObservedAt": "2026-09-05T10:10:00.456+08:00",
+            "representativeMeasurementId": "measurement-8",
+            "representativeValue": -45,
+            "sampleCount": 5,
+            "statistics": {
+              "sampleCount": 5,
+              "minimum": -55,
+              "maximum": -43,
+              "mean": -48.6,
+              "median": -50
+            },
+            "rankingBasis": {
+              "primaryStatistic": "MEDIAN",
+              "optimizationDirection": "MAXIMIZE",
+              "rankingValue": -50,
+              "tieBreakers": [
+                "sampleCount DESC",
+                "h3Index ASC"
+              ]
+            },
+            "reasonCodes": []
+          }
+        ],
+        "coverage": {
+          "metricTemporalCompletenessKnown": false,
+          "trajectory": {
+            "finalizationState": "SEALED",
+            "temporalCoverageRatio": 1
+          },
+          "trajectoryGaps": [],
+          "excludedPeriods": []
+        }
+      }
+    ],
+    "choices": [
+      {
+        "choiceId": "choice-rank",
+        "choiceKind": "RANKED_LOCATION_SELECTION",
+        "promptCode": "RANKED_LOCATION_SELECTION",
+        "validUntil": "2026-09-06T10:01:00.000+08:00",
+        "candidates": [
+          {
+            "candidateId": "candidate-1",
+            "displayName": "Rank 1",
+            "findingId": "finding-ranking",
+            "rank": 1
+          },
+          {
+            "candidateId": "candidate-2",
+            "displayName": "Rank 2",
+            "findingId": "finding-ranking",
+            "rank": 2
+          }
+        ],
+        "sourceFindingId": "finding-ranking"
+      }
+    ],
+    "gaps": [],
+    "findingSetHash": "sha256:46460c49c5e24138620d7e3a7ad3e004a6eb98c66494d4bba0d88d856e3d1a5b"
+  },
+  "resultHash": "sha256:4234384f9c7660b1d75470dc7ae057b0ea478d5f8447b2ce7835944dd374e1ec"
+}

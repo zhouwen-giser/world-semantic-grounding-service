@@ -1,0 +1,73 @@
+id,phase,priority,requirement,verification,evidence,expected
+WA-001,W00,REQUIRED,只有 WSGS 存在实现写入，其他仓库只读,git diff/status 与变更范围复查,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,无跨仓实现、自动部署或控制调用
+WA-002,W00,REQUIRED,刷新并记录 main/T5 观察值和提交包含关系,source/ancestry 对账,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,不存在机械重复 merge/cherry-pick 或旧基线冒充最新
+WA-003,W00,REQUIRED,保留 main recovery/idempotency/deadline 修复,差异核对和现有定向回归,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,无修复回退
+WA-004,W00,REQUIRED,历史轨迹和 T5 在同一实施基线可定位,依赖、编译和源码入口核验,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,不重建已有功能或遗漏基础
+WA-005,W00,REQUIRED,保全用户工作区并使用专用分支,工作区操作记录,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,不 reset/clean/force push，不远程合并
+WA-006,W00,REQUIRED,列出真实请求至结果读取的调用路径,源码路径和函数引用对账,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,覆盖 API/backend/worker/store/GET
+WA-007,W00,REQUIRED,冻结旧公开合同文件清单和真实字节 hash,哈希脚本与旧版本路径清单,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,区分 Git blob SHA 和 SHA-256
+WA-008,W00,REQUIRED,记录当前命令、测试失败、skip 与依赖条件,基线命令日志,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,不借用历史 PR 通过数量
+WA-009,W00,REQUIRED,形成执行计划与版本/范围声明,execplan 和 baseline 审查,reports/wsgs-v0.2.4-stable-world-analysis-service/W00/,工作项版本不等于发布版本
+WA-010,W01,REQUIRED,W01 冻结早于新运行时实现,提交序列及 freeze record,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,合同门未过不得进入 W02
+WA-011,W01,REQUIRED,五类 Finding 与有界 Choice/Gap 判别联合,完整 Schema 正反例,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,无 any/raw Provider 公共兜底
+WA-012,W01,REQUIRED,请求/结果/Job/Capabilities/OpenAPI 引用闭包,离线完整 payload 校验,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,不是只校验独立子对象
+WA-013,W01,REQUIRED,旧 1.0/1.1 与 geospatial 工件不可变,W00 哈希逐文件对比,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,不原地修改冻结合同
+WA-014,W01,REQUIRED,明确 1.2 精确协商和 geospatial 共存规则,协商矩阵正反例,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,新扩展只在 1.2 出现
+WA-015,W01,REQUIRED,明确 ID/引用/选择回传条件且不混用 RP ID,Schema 与跨字段语义校验,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,candidateId 不冒充 selectedProductIds
+WA-016,W01,REQUIRED,状态/原因码/时间/CRS/缺失值语义可判定,语义用例校验,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,PENDING 不是新结果终态，UNKNOWN 不是 0/false
+WA-017,W01,REQUIRED,哈希范围、canonical 算法、排序与限额已冻结,固定 hash vectors 与 limits 检查,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,无自引用循环或排名重排
+WA-018,W01,REQUIRED,生成真实 lock/checksums 和唯一来源类型,verify:world-analysis-contract,reports/wsgs-v0.2.4-stable-world-analysis-service/W01/,无引用丢失、生成 drift 或未决核心语义
+WA-019,W02,REQUIRED,验证锁定上游 envelope/schema 后才映射,有效/无效上游 fixture 对照,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,未验证载荷不进入公共结果
+WA-020,W02,REQUIRED,五类内部结果映射到公共联合,五类 golden tests,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,无需消费者解析内部 HISTORICAL_*
+WA-021,W02,REQUIRED,Historical Trace 保留执行范围/gap/暂停/封存,轨迹不完整和单执行反例,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,不跨 gap 插值、不合并 ALL executions
+WA-022,W02,REQUIRED,道路关联保留参考网络与离路/歧义语义,road/off-network/last-road fixtures,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,离路不等于错误轨迹或绝对最终道路
+WA-023,W02,REQUIRED,事件保留类型/时间窗/确认范围/FIRST-LAST 证据,完整及不完整 event fixtures,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,不把不完整变绝对结论
+WA-024,W02,REQUIRED,排名保留方向、series、排名依据和代表样本,MAX/MIN/负数/聚合排名 fixtures,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,代表值不冒充排名分数，非全域最优
+WA-025,W02,REQUIRED,Evidence/ReferenceProduct/feature 来源关系可验证,悬空/假引用反例,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,不伪造 ReferenceKey
+WA-026,W02,REQUIRED,裁剪保留必要来源和合法 geometry/Gap,小预算及选中候选保留测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,无悬空指针、原始载荷泄漏或伪完整性
+WA-027,W02,REQUIRED,新扩展纳入 hash 且结果确定性,golden hash/关键字段修改/重复映射,reports/wsgs-v0.2.4-stable-world-analysis-service/W02/,同一保存结果稳定，语义变更 hash 改变
+WA-028,W03,REQUIRED,实现服务端精确 1.2 配对与授权,headers/principal 配对测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,未知/单边/重复/逗号 Header 拒绝
+WA-029,W03,REQUIRED,POST 使用对应版本 request validator,新旧 request 正反例,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,1.2 selections 合法，旧版本不偷偷接受
+WA-030,W03,REQUIRED,同步与异步完整响应使用对应 validator,200 result/202 job/GET terminal,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,所有公开返回可被独立验证
+WA-031,W03,REQUIRED,协商元数据保存并在 worker/recovery 恢复,store/worker 恢复测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,不依赖后续 Header 重新解释旧 job
+WA-032,W03,REQUIRED,相同幂等请求复用原 job/result,重复提交和读取测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,ID/选择集/hash 不重新生成
+WA-033,W03,REQUIRED,幂等包含 profile 与全部选择语义,同 key 改 profile/candidate/metric 测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,冲突按冻结规则，不返回旧结果
+WA-034,W03,REQUIRED,GET/cancel 不隐式跨 profile 投影,旧/新 job 跨 profile 读取测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,保持旧行为和冻结错误码
+WA-035,W03,REQUIRED,保留 cancel/deadline/fencing 终态不变式,late worker/timeout/cancel 回归,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,终态不被晚到成功覆盖
+WA-036,W03,REQUIRED,必要持久化变更只追加迁移且旧数据可解释,迁移静态/组件测试及环境说明,reports/wsgs-v0.2.4-stable-world-analysis-service/W03/,未跑真实 PG 不声称真实恢复通过
+WA-037,W04,REQUIRED,新分析 selection 使用独立合法结构,新请求 Schema 和多轮测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,不复用 product ID 通道装非 product
+WA-038,W04,REQUIRED,仅从服务端已保存结果解析选中候选,篡改摘要/坐标/rank 负例,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,客户端展示值不变成权威
+WA-039,W04,REQUIRED,选择校验 actor/scope/TTL/hash/归属,作用域和完整性关键反例,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,越权/过期/错 hash 不能复用
+WA-040,W04,REQUIRED,自然语言序号只在唯一 Choice 内解释,多个 Choice/文本与 selection 冲突,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,歧义要澄清，不静默择一
+WA-041,W04,REQUIRED,改变指标/series/阶段/执行触发新查询,语义变化测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,旧派生目标失效，不能重贴标签
+WA-042,W04,REQUIRED,缺失/裁剪候选重查而非补造,rank 越界/未保存候选/不完整 suffix,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,不靠模型补位置或事件
+WA-043,W04,REQUIRED,动作候选精确使用代表实到位置与来源,坐标/measurement/time/evidence 等值断言,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,不使用 H3 center 或平均坐标
+WA-044,W04,REQUIRED,动作候选恒非授权且用途限制完整,false 授权与三个 true requirement 断言,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,无设备控制参数或操作调用
+WA-045,W04,REQUIRED,候选输出不绑定具体应用且不误杀世界 ID,普通查询/显式动作/opaque ugv1 ID 测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W04/,普通排名不自动变执行建议
+WA-046,W05,REQUIRED,capabilities 分开 supported 与 available,实际 snapshot/config/permission fixture,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,不静态全部 true
+WA-047,W05,REQUIRED,能力按 flags/version/hash/semantic/permission 判定,禁用/漂移/未授权/过期 discovery 用例,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,失败关闭相关能力，不绕过锁
+WA-048,W05,REQUIRED,每能力具备有界可解释 reason 和 limits,完整 capabilities schema 校验,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,不泄漏内部凭据/任意 payload
+WA-049,W05,REQUIRED,CROSS 与 action 的基础依赖正确传播,缺 T2/T3/T4/trace 组合测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,只影响相关能力
+WA-050,W05,REQUIRED,可选分析失败不破坏普通 Grounding/GDPS,无关路径回归,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,局部不可用不等于全站失败
+WA-051,W05,REQUIRED,保留现有默认 opt-in 和签名 Gateway 路径,默认配置与架构断言,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,不全局 Preview、不直连 Provider/上游 DB
+WA-052,W05,REQUIRED,未部署能力和未实现来源不被宣传可用,supportedSources/operation 范围核对,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,历史目标不扩展为当前/任意用户点实现
+WA-053,W05,REQUIRED,不新增总 readiness 黑盒资格,源码/脚本/报告范围扫描,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,不输出 WSGS_READY/DATA_PLATFORM_READY
+WA-054,W05,REQUIRED,配置和降级说明可独立理解,.env.example 与文档核对,reports/wsgs-v0.2.4-stable-world-analysis-service/W05/,无 secret，无第二套治理系统
+WA-055,W06,REQUIRED,npm run check 完整运行并记录,原始日志/exit code,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,没有隐藏新的必需测试失败
+WA-056,W06,REQUIRED,npm test 与 npm run build 独立运行,两个命令的独立日志,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,不把 check 中嵌套结果冒充独立执行
+WA-057,W06,REQUIRED,合同与 fixture smoke 默认不依赖 Docker,两个新命令运行,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,全部 Required 本地可执行
+WA-058,W06,REQUIRED,本地真实 HTTP listener 走实际 WSGS 链路,test:world-analysis:http 和模块追踪,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,不得直接 Mock 高层最终回答
+WA-059,W06,REQUIRED,HTTP 同步和异步 worker/GET 路径闭合,200/202→worker→GET 测试,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,结果类型/协商/hash 一致
+WA-060,W06,REQUIRED,HTTP 多轮 series/rank/action 路径闭合,两轮/三轮用例,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,权威选择与来源完整
+WA-061,W06,REQUIRED,关键失败/不完整/旧版本 HTTP 回归通过,gap/ambiguity/profile/deadline/cancel 用例,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,不把失败归成 NO_DATA 成功
+WA-062,W06,REQUIRED,受控依赖和真实验证边界如实分层,verificationLevels 与 optional checks,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,Fixture/内存 Store 不等于真实 Provider/PG
+WA-063,W06,REQUIRED,测试隔离清理且报告可追溯,端口/临时文件/日志/source 记录,reports/wsgs-v0.2.4-stable-world-analysis-service/W06/,不触发设备或污染运行环境
+WA-064,W07,REQUIRED,交接包仅含公开合同和必要闭包,handoff manifest/导入扫描,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,不含 Provider 模型或 WSGS runtime
+WA-065,W07,REQUIRED,独立干净目录可验证完整样本,verify:world-analysis:handoff,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,不借用内部隐式依赖
+WA-066,W07,REQUIRED,交接包的篡改/缺依赖/错 profile 反例失败,negative handoff tests,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,checksum 与 schema 校验确实生效
+WA-067,W07,REQUIRED,具备完整消费指南和选择/cancel 例子,README/OpenAPI/examples 核对,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,不只是一个子结构 JSON
+WA-068,W07,REQUIRED,72 项 Required 台账都有真实证据,acceptance-ledger/evidence index,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,PASS 必须有对应路径/hash/运行范围
+WA-069,W07,REQUIRED,独立复查并关闭阻断缺陷,review.md 和必要重跑记录,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,不以文档完成代替代码完成
+WA-070,W07,REQUIRED,提交与 Draft PR 状态如实交付,git/PR 记录或明确远程阻塞,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,不自动 merge/tag/release/deploy
+WA-071,W07,REQUIRED,MD/JSON 报告与来源/未运行项一致,最终报告一致性与证据检查,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,无历史数字复用或未经验证的实际环境断言
+WA-072,W07,REQUIRED,DEV_READY 只由 Required 全通过支持,全台账汇总和结论检查,reports/wsgs-v0.2.4-stable-world-analysis-service/W07/,不宣称生产/严格重放/真实设备全链路通过

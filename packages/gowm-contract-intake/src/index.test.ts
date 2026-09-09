@@ -14,7 +14,7 @@ import {
   GOWM_RUNTIME_VERSION,
   GOWM_RUNTIME_SOURCE_COMMIT,
   verifyGowmContractIntake
-} from "./index.js";
+} from "./historical-intake.js";
 
 const temporaryDirectories: string[] = [];
 

@@ -1,0 +1,6 @@
+{"event":"projection_probe","groundingId":"grounding-3579156c-e203-41b9-b861-53476fba6fe2"}
+{"event":"projection_exception","gapKind":"UPSTREAM_CONTRACT_MISMATCH","location":["    at assertScope (file:///tmp/.wsgs-finding-probe-675.mjs:266:19)","    at projectPublicWorldAnalysis (file:///tmp/.wsgs-finding-probe-675.mjs:133:17)","    at file:///app/[eval1]:22:18"]}
+{"event":"projection_outcome","groundingId":"grounding-3579156c-e203-41b9-b861-53476fba6fe2","findings":["HISTORICAL_TRACE"],"gaps":["UPSTREAM_CONTRACT_MISMATCH"]}
+{"event":"projection_probe","groundingId":"grounding-e5fb791e-3235-49ef-802a-583beb1e5463"}
+{"event":"projection_exception","gapKind":"UPSTREAM_CONTRACT_MISMATCH","location":["    at assertScope (file:///tmp/.wsgs-finding-probe-675.mjs:266:19)","    at projectPublicWorldAnalysis (file:///tmp/.wsgs-finding-probe-675.mjs:144:17)","    at file:///app/[eval1]:22:18"]}
+{"event":"projection_outcome","groundingId":"grounding-e5fb791e-3235-49ef-802a-583beb1e5463","findings":["HISTORICAL_TRACE"],"gaps":["UPSTREAM_CONTRACT_MISMATCH"]}

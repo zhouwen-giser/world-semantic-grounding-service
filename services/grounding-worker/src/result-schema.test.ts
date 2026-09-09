@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION } from "@wsgs/grounding-pipeline";
+import { SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION, WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION } from "@wsgs/grounding-pipeline";
 
 import {
   GroundingResultSchemaValidationError,
@@ -40,6 +40,15 @@ function result(): Record<string, unknown> {
 }
 
 describe("frozen grounding-result validation", () => {
+  it("validates full 1.2 semantics under the persisted profile and rejects tampering", () => {
+    const analysis = JSON.parse(readFileSync(new URL("../../../contracts/wsgs-v0.2.4-world-analysis/examples/action.json", import.meta.url), "utf8"));
+    expect(() => assertNegotiatedGroundingResult(analysis, WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION)).not.toThrow();
+    expect(() => assertNegotiatedGroundingResult(analysis, SACS_GEOSPATIAL_GROUNDING_CONTRACT_SELECTION)).toThrowError(GroundingResultSchemaValidationError);
+    expect(() => assertNegotiatedGroundingResult(result(), WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION)).toThrowError(GroundingResultSchemaValidationError);
+    analysis.warnings.push("tampered");
+    expect(() => assertNegotiatedGroundingResult(analysis, WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION)).toThrowError(GroundingResultSchemaValidationError);
+  });
+
   it("accepts a result through the frozen schema and all referenced schemas", () => {
     expect(() => assertFrozenGroundingResult(result())).not.toThrow();
   });

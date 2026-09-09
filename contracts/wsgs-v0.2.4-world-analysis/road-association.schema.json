@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:road-association",
+  "title": "Road Association",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "findingId",
+    "findingKind",
+    "semanticConcept",
+    "status",
+    "subjectReferenceProductIds",
+    "evidenceIds",
+    "unknowns",
+    "warnings",
+    "display",
+    "networkRole",
+    "roadVisits",
+    "offNetworkSegments",
+    "ambiguousSegments",
+    "networkDataIssues",
+    "associationPrefixComplete",
+    "associationSuffixComplete",
+    "blockingPeriods"
+  ],
+  "properties": {
+    "findingId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "findingKind": {
+      "const": "ROAD_ASSOCIATION"
+    },
+    "semanticConcept": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+    },
+    "status": {
+      "enum": [
+        "COMPLETED",
+        "PARTIAL",
+        "NO_DATA",
+        "INDETERMINATE"
+      ]
+    },
+    "subjectReferenceProductIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "evidenceIds": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 32,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "unknowns": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+      }
+    },
+    "display": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/display"
+    },
+    "validUntil": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+    },
+    "trajectoryReferenceProductId": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+    },
+    "networkRole": {
+      "const": "REFERENCE_MODEL_NOT_PHYSICAL_TRUTH"
+    },
+    "network": {
+      "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/network"
+    },
+    "roadVisits": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/roadVisit"
+      }
+    },
+    "offNetworkSegments": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/offNetwork"
+      }
+    },
+    "ambiguousSegments": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/ambiguity"
+      }
+    },
+    "networkDataIssues": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/networkIssue"
+      }
+    },
+    "associationPrefixComplete": {
+      "type": "boolean"
+    },
+    "associationSuffixComplete": {
+      "type": "boolean"
+    },
+    "blockingPeriods": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 100,
+      "items": {
+        "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/periodIssue"
+      }
+    },
+    "lastConfirmedRoad": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visitId",
+        "confirmationScope",
+        "absoluteFinalRoadClaimed"
+      ],
+      "properties": {
+        "visitId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "confirmationScope": {
+          "const": "CONFIRMED_IN_AVAILABLE_DATA"
+        },
+        "absoluteFinalRoadClaimed": {
+          "const": false
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "PARTIAL"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "trajectoryReferenceProductId",
+          "network"
+        ],
+        "properties": {
+          "evidenceIds": {
+            "type": "array",
+            "minItems": 1
+          },
+          "subjectReferenceProductIds": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

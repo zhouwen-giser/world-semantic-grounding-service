@@ -1,0 +1,150 @@
+{
+  "providerProtocolVersion": "1.0",
+  "requestId": "map-match-request-1",
+  "operation": {
+    "operationId": "trajectory.map-match",
+    "operationVersion": "0.1"
+  },
+  "status": "NO_DATA",
+  "output": {
+    "schemaUri": "urn:gowm:analysis:map-matching:result:0.1",
+    "schemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5",
+    "value": {
+      "schemaVersion": "0.1",
+      "status": "NO_DATA",
+      "reasonCode": "TRAJECTORY_NOT_FOUND",
+      "matchingLevel": "TASK_LEVEL_APPROXIMATE",
+      "algorithm": "CAMPUS_NEAREST_TOPOLOGY_V1",
+      "networkRole": "REFERENCE_MODEL_NOT_PHYSICAL_TRUTH",
+      "analysisId": "mma_01156e59cd4f5d9a4e45d6ab5f49d78e",
+      "trajectoryReferenceKey": {
+        "namespace": "gowm",
+        "kind": "HISTORICAL_TRAJECTORY",
+        "id": "missing-trajectory",
+        "version": "1"
+      },
+      "roadVisits": [],
+      "offNetworkSegments": [],
+      "ambiguousSegments": [],
+      "junctionPassCandidates": [],
+      "networkDataIssueCandidates": [],
+      "qualityBreaks": [],
+      "upstreamGaps": [],
+      "associationCompleteness": {
+        "inputPrefixComplete": false,
+        "inputSuffixComplete": false,
+        "associationPrefixComplete": false,
+        "associationSuffixComplete": false,
+        "offNetworkPeriods": [],
+        "ambiguousPeriods": [],
+        "qualityBreakPeriods": [],
+        "upstreamGapPeriods": []
+      },
+      "summary": {
+        "sourceSampleCount": 0,
+        "acceptedSampleCount": 0,
+        "rejectedSampleCount": 0,
+        "onNetworkSampleCount": 0,
+        "offNetworkSampleCount": 0,
+        "ambiguousSampleCount": 0,
+        "acceptedRatio": 0,
+        "onNetworkAcceptedRatio": 0,
+        "roadVisitCount": 0,
+        "offNetworkSegmentCount": 0,
+        "ambiguousSegmentCount": 0,
+        "junctionPassCandidateCount": 0
+      },
+      "pointAssociationPreview": [],
+      "rejectedSamplePreview": [],
+      "warnings": [
+        "matchingLevel=TASK_LEVEL_APPROXIMATE",
+        "reasonCode=TRAJECTORY_NOT_FOUND"
+      ]
+    }
+  },
+  "dataSnapshot": {
+    "consistency": "BEST_EFFORT",
+    "capturedAt": "2026-09-06T04:22:57.670Z",
+    "scopeDigest": "sha256:4c7160af58d7427b7911d80ff72220569793c55ea88cb0e67e7a826940bd4870",
+    "resources": [
+      {
+        "referenceKey": {
+          "namespace": "gowm",
+          "kind": "HISTORICAL_TRAJECTORY",
+          "id": "missing-trajectory",
+          "version": "1"
+        },
+        "authority": "GOWM Historical Trajectory",
+        "pinning": "BEST_EFFORT"
+      }
+    ]
+  },
+  "computeSnapshot": {
+    "provider": {
+      "providerId": "gowm.analysis.map-matching",
+      "providerVersion": "0.1.0",
+      "implementationDigest": "sha256:147eba60a49393a884727f53c3e4d0564ef82b0d427e4aabcb18a469c7b37639"
+    },
+    "operation": {
+      "operationId": "trajectory.map-match",
+      "operationVersion": "0.1"
+    },
+    "engine": {
+      "name": "CAMPUS_NEAREST_TOPOLOGY_V1",
+      "version": "0.1"
+    },
+    "policy": {
+      "version": "CAMPUS_TASK_DEFAULT/0.1",
+      "digest": "sha256:1b9809c8f34438dc9c361f57c2e3ab809252f34f1c107ac38ddf132887a8454e"
+    },
+    "schemas": {
+      "inputSchemaHash": "sha256:fce48b61109ed5bf776700ea123892e6ef6ed868c70fed68c5ed2f4fedc56bc5",
+      "outputSchemaHash": "sha256:3717a15a573be2919a10b48efe78a6a5777067d92a1fb03a339ac7f1ecc5aed5"
+    }
+  },
+  "receipts": [
+    {
+      "receiptId": "receipt:f9834303-a472-48ef-93eb-a3fe5e992ede",
+      "operationId": "trajectory.map-match",
+      "operationVersion": "0.1",
+      "providerId": "gowm.analysis.map-matching",
+      "providerVersion": "0.1.0",
+      "inputHash": "sha256:dd85ac1b051de5a27c45b006a895e1a57f2a00ed63477576531c7d4b8509a0c2",
+      "outputHash": "sha256:c10aa98522211d8c479ced73bc60c3b10c950f283e5cf311b24e8fc36ed04569",
+      "computeSnapshotHash": "sha256:2c77dbc6a340ed405b7ad9adc868f605512f2644afd6a1287226bd79544905e9",
+      "generatedAt": "2026-09-06T04:22:57.674Z",
+      "durationMs": 3.8759039999999914,
+      "method": {
+        "engine": "CAMPUS_NEAREST_TOPOLOGY_V1",
+        "engineVersion": "0.1",
+        "methodId": "campus-nearest-topology",
+        "methodVersion": "0.1"
+      },
+      "changes": {
+        "repairApplied": false,
+        "typeChanged": false
+      },
+      "warnings": [
+        "matchingLevel=TASK_LEVEL_APPROXIMATE",
+        "reasonCode=TRAJECTORY_NOT_FOUND"
+      ]
+    }
+  ],
+  "evidenceReferences": [],
+  "warnings": [
+    "matchingLevel=TASK_LEVEL_APPROXIMATE",
+    "reasonCode=TRAJECTORY_NOT_FOUND"
+  ],
+  "consumption": {
+    "inputBytes": 172,
+    "outputBytes": 1234,
+    "rows": 0,
+    "candidates": 0
+  },
+  "execution": {
+    "providerId": "gowm.analysis.map-matching",
+    "providerVersion": "0.1.0",
+    "elapsedMs": 3.8759039999999914,
+    "resultHash": "sha256:c10aa98522211d8c479ced73bc60c3b10c950f283e5cf311b24e8fc36ed04569"
+  }
+}

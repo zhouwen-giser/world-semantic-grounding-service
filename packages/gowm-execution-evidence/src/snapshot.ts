@@ -18,7 +18,8 @@ const adherenceStatuses = new Set(["MATCHED", "ADVANCED_COMPATIBLE", "MISMATCHED
 const manifestKeys = new Set([
   "querySnapshotId", "mode", "consistency", "capturedAt", "resources", "minimumWorldVersion", "manifestHash"
 ]);
-const adherenceKeys = new Set(["nodeId", "status", "checkedResources", "mismatches"]);
+const adherenceKeys = new Set(["nodeId", "status", "checkedResources", "mismatches",
+  "expectedConsistency", "actualConsistency", "expectedCapturedAt", "actualCapturedAt"]);
 
 export interface SnapshotAssessment {
   readonly gaps: readonly SnapshotGap[];
@@ -82,7 +83,17 @@ export function parseSnapshotAdherence(value: unknown): readonly QuerySnapshotAd
     if (raw["mismatches"] !== undefined && (!Array.isArray(raw["mismatches"]) || raw["mismatches"].length > 128)) {
       throw new ExecutionEvidenceError("INVALID_WORLD_QUERY_RESULT");
     }
+    const boundaries: Record<string, string> = {};
+    for (const key of ["expectedConsistency", "actualConsistency", "expectedCapturedAt", "actualCapturedAt"]) {
+      if (raw[key] === undefined) continue;
+      const value = nonEmptyString(raw[key], "INVALID_WORLD_QUERY_RESULT");
+      if (key.endsWith("Consistency")) {
+        if (!consistencies.has(value)) throw new ExecutionEvidenceError("INVALID_WORLD_QUERY_RESULT");
+      } else timestamp(value, "INVALID_WORLD_QUERY_RESULT");
+      boundaries[key] = value;
+    }
     return {
+      ...boundaries,
       nodeId,
       status,
       checkedResources: Number(checkedResources),

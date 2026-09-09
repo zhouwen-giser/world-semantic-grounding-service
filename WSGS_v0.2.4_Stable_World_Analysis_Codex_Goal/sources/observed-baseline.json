@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "1.0",
+  "observedOn": "2026-09-06",
+  "kind": "OBSERVATION_NOT_EXECUTION_LOCK",
+  "repository": "zhouwen-giser/world-semantic-grounding-service",
+  "main": {
+    "commit": "565e52705bb7656d4623a04655001325ca61acd0",
+    "tree": "ac1d8e0536c70db9dc1c9c35aab4a112c2688c46",
+    "mergedPr": 13,
+    "summary": "Fix grounding recovery, idempotency, and deadline handling"
+  },
+  "advancedHistory": {
+    "pr": 14,
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "branch": "codex/wsgs-v0.2.3-advanced-historical-analysis-consumption",
+    "commit": "0db24edf8490766346904c5ab71fd78fbf3afb5d"
+  },
+  "upstreamAnalysisSourceReportedByPr": {
+    "repository": "zhouwen-giser/gowm-spatiotemporal-analysis-providers",
+    "commit": "59982aad1d83a443a0fbefbbaed8cd31161ee469",
+    "verification": "PR_REPORTED_NOT_INDEPENDENTLY_REVERIFIED_HERE"
+  },
+  "sourceFiles": [
+    {
+      "id": "S03",
+      "path": "services/grounding-api/src/contract-negotiation.ts",
+      "ref": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+      "gitBlobSha": "6555ec35bb927e94782cd6fe96038f7296a5b715",
+      "scope": "精确 Header 配对；旧 1.1 服务端 allowlist；缺省 1.0",
+      "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/blob/0db24edf8490766346904c5ab71fd78fbf3afb5d/services/grounding-api/src/contract-negotiation.ts"
+    },
+    {
+      "id": "S04",
+      "path": "packages/grounding-pipeline/src/contract-selection.ts",
+      "ref": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+      "gitBlobSha": "976c9a3f63b158f61e059fc995f0c4e91bc8c6dc",
+      "scope": "服务端持久化 selection 判别联合，目前 1.0/1.1",
+      "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/blob/0db24edf8490766346904c5ab71fd78fbf3afb5d/packages/grounding-pipeline/src/contract-selection.ts"
+    },
+    {
+      "id": "S05",
+      "path": "contracts/wsgs-v0.1/contracts/grounding-request.schema.json",
+      "ref": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+      "gitBlobSha": "2eed553f29bfd3cfc9b5a7f8b7e5dc58b7b8b4db",
+      "scope": "封闭 request；readOnly=true；请求限额；不可直接塞新字段",
+      "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/blob/0db24edf8490766346904c5ab71fd78fbf3afb5d/contracts/wsgs-v0.1/contracts/grounding-request.schema.json"
+    },
+    {
+      "id": "S06",
+      "path": "contracts/wsgs-v0.1/contracts/prior-grounding-reference.schema.json",
+      "ref": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+      "gitBlobSha": "cea26c06ea902ea2e9027c6d23cace0717933d42",
+      "scope": "groundingId/resultHash 与 selectedProductIds；未含 choice/candidate selection",
+      "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/blob/0db24edf8490766346904c5ab71fd78fbf3afb5d/contracts/wsgs-v0.1/contracts/prior-grounding-reference.schema.json"
+    },
+    {
+      "id": "S07",
+      "path": "contracts/wsgs-v0.1/contracts/grounding-result.schema.json",
+      "ref": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+      "gitBlobSha": "971a9236a8e3cd6c23fc635587c61c51d9b3a0c1",
+      "scope": "封闭 result 与现有终态；不能新增 PENDING 终态",
+      "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/blob/0db24edf8490766346904c5ab71fd78fbf3afb5d/contracts/wsgs-v0.1/contracts/grounding-result.schema.json"
+    },
+    {
+      "id": "S08",
+      "path": "services/grounding-api/src/server.ts",
+      "ref": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+      "gitBlobSha": "255dbef8fe4242331e562faa161e708155081453",
+      "scope": "已核验 80–285 行：单一 request validator；200 result / 202 job；GET 返回 Job",
+      "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/blob/0db24edf8490766346904c5ab71fd78fbf3afb5d/services/grounding-api/src/server.ts"
+    },
+    {
+      "id": "S09",
+      "path": "packages/historical-trace-consumer/src/advanced-types.ts",
+      "ref": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+      "gitBlobSha": "ebd7646febb3ec283cdb5df7cc1aa9ec9b26f808",
+      "scope": "内部 status 与 findings: Record<string, unknown>[]，尚需公共类型闭合",
+      "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/blob/0db24edf8490766346904c5ab71fd78fbf3afb5d/packages/historical-trace-consumer/src/advanced-types.ts"
+    },
+    {
+      "id": "S10",
+      "path": "packages/historical-trace-consumer/src/advanced-normalizer.ts",
+      "ref": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+      "gitBlobSha": "8aa7132269306506a8482ac6d1eec0388e776e4a",
+      "scope": "HISTORICAL_* 内部类型；visited position；rankingBasis；bounded safePayload",
+      "url": "https://github.com/zhouwen-giser/world-semantic-grounding-service/blob/0db24edf8490766346904c5ab71fd78fbf3afb5d/packages/historical-trace-consumer/src/advanced-normalizer.ts"
+    }
+  ],
+  "warnings": [
+    "Codex W00 must refresh and inspect ancestry before choosing implementation baseline.",
+    "Observed Git blob SHA is not file SHA-256.",
+    "No WSGS tests or service execution were performed while generating this task package."
+  ]
+}

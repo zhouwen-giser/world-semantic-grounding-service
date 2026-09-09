@@ -1,0 +1,143 @@
+{
+  "observedAt": "2026-09-07T11:46:23.827Z",
+  "status": "FAILED",
+  "cases": [
+    {
+      "name": "BASIC",
+      "http": 202,
+      "groundingId": "grounding-a8625e0e-e7fa-4d2d-9558-48fbbf2ccdb4",
+      "status": "FAILED",
+      "validResult": false,
+      "elapsedMs": 44584,
+      "replayIdentical": true,
+      "error": {
+        "code": "WQ_NODE_WORLD_GET_CURRENT_STATE_INVALID_REQUEST_DAG_EXECUTION_NO_HASH_COMPARISON_NO_KEYWORD_NO_PATH",
+        "stage": "PERSISTENCE",
+        "message": "Grounding execution could not be completed",
+        "retryable": false
+      }
+    },
+    {
+      "name": "TRACE",
+      "http": 202,
+      "groundingId": "grounding-43331684-d069-4fa9-bf1d-b71f54d784ae",
+      "status": "FAILED",
+      "validResult": false,
+      "elapsedMs": 63399,
+      "replayIdentical": true,
+      "error": {
+        "code": "HTTP_409_IDEMPOTENCY_CONFLICT",
+        "stage": "PERSISTENCE",
+        "message": "Grounding execution could not be completed",
+        "retryable": false
+      }
+    },
+    {
+      "name": "MAP",
+      "http": 202,
+      "groundingId": "grounding-8534ba0b-f85f-46dd-a241-123742ccd195",
+      "status": "PARTIAL",
+      "validResult": true,
+      "resultHash": "sha256:f64423d9dabfac3701264648875f83b9b6ca748b443c81bab97c1fdc1bc2c7fa",
+      "elapsedMs": 63928,
+      "replayIdentical": true,
+      "findings": [],
+      "operations": [],
+      "gaps": [
+        {
+          "detail": {},
+          "evidenceIds": [],
+          "findingIds": [],
+          "gapId": "gap-47535d0eafbdc082b28c6a49d7829b9e",
+          "gapKind": "UPSTREAM_FAILURE",
+          "messageCode": "UPSTREAM_FAILURE",
+          "severity": "BLOCKING"
+        }
+      ]
+    },
+    {
+      "name": "STOP",
+      "http": 202,
+      "groundingId": "grounding-1ada349c-3cd9-4e6f-8c25-09f3b6185503",
+      "status": "PARTIAL",
+      "validResult": true,
+      "resultHash": "sha256:0ac80bc9dd59acef68898f66bdbc77dab7c7e1245f68cad5d432c2f800684285",
+      "elapsedMs": 103447,
+      "replayIdentical": true,
+      "findings": [],
+      "operations": [],
+      "gaps": [
+        {
+          "detail": {},
+          "evidenceIds": [],
+          "findingIds": [],
+          "gapId": "gap-bb3e9047a2c91915f4f5df4bb43be953",
+          "gapKind": "UPSTREAM_FAILURE",
+          "messageCode": "UPSTREAM_FAILURE",
+          "severity": "BLOCKING"
+        }
+      ]
+    },
+    {
+      "name": "CROSS",
+      "http": 202,
+      "groundingId": "grounding-86294d2d-94d8-4027-9510-7175a51fcee1",
+      "status": "PARTIAL",
+      "validResult": true,
+      "resultHash": "sha256:873efd7f6587cde4924fb0ffaa94448e6c5c3d95f42bfa4796a231e434f22802",
+      "elapsedMs": 51060,
+      "replayIdentical": true,
+      "findings": [],
+      "operations": [],
+      "gaps": [
+        {
+          "detail": {},
+          "evidenceIds": [],
+          "findingIds": [],
+          "gapId": "gap-738297e0e990ac8e867771119b605c3e",
+          "gapKind": "UPSTREAM_CONTRACT_MISMATCH",
+          "messageCode": "UPSTREAM_CONTRACT_MISMATCH",
+          "severity": "BLOCKING"
+        }
+      ]
+    },
+    {
+      "name": "RANK",
+      "http": 202,
+      "groundingId": "grounding-7b0d01ed-e527-489f-8636-346f03029617",
+      "status": "PARTIAL",
+      "validResult": true,
+      "resultHash": "sha256:df80dbd75c94e8172491f1a8300bb979d4f4b01608548f3a1acec53f84f5e12d",
+      "elapsedMs": 65143,
+      "replayIdentical": true,
+      "findings": [],
+      "operations": [],
+      "gaps": [
+        {
+          "detail": {},
+          "evidenceIds": [],
+          "findingIds": [],
+          "gapId": "gap-457e8793780ae8f493a97194fd4071c3",
+          "gapKind": "UPSTREAM_CONTRACT_MISMATCH",
+          "messageCode": "UPSTREAM_CONTRACT_MISMATCH",
+          "severity": "BLOCKING"
+        }
+      ]
+    },
+    {
+      "name": "GDPS",
+      "http": 202,
+      "groundingId": "grounding-048fad73-820c-4c78-9221-7b4c16df09ef",
+      "status": "FAILED",
+      "validResult": false,
+      "elapsedMs": 46032,
+      "replayIdentical": true,
+      "error": {
+        "code": "WQ_NODE_WORLD_GET_CURRENT_STATE_INVALID_REQUEST_DAG_EXECUTION_NO_HASH_COMPARISON_NO_KEYWORD_NO_PATH",
+        "stage": "PERSISTENCE",
+        "message": "Grounding execution could not be completed",
+        "retryable": false
+      }
+    }
+  ]
+}

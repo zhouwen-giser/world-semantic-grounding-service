@@ -87,6 +87,32 @@ const genericCases: Array<readonly [QuerySemanticPattern, readonly string[], Rec
 describe("GDPS typed query plans", () => {
   const compiler = new TypedWorldQueryCompiler();
 
+  it("binds GDPS points only to the published horizontal projection port", () => {
+    const input = compileInput("GDPS_LAND_COVER_AT_REFERENCE");
+    input.maturityPolicy.allowPreview = true;
+    authorizeGdps(input);
+    const descriptor = input.capabilities.find(entry => entry.operationId === "world.get-current-state")!;
+    const port = descriptor.ports.outputs.find(entry => entry.name === "horizontalPositionCoordinates")!;
+    port.path = "/facts/0/horizontalPositionCoordinates";
+    const result = compiler.compile(input);
+    expect(result.status).toBe("COMPILED");
+    if (result.status !== "COMPILED") return;
+    expect(result.submission.plan.nodes.at(-1)?.inputs["pointCoordinates"]).toMatchObject({
+      kind: "NODE_OUTPUT", outputPort: "horizontalPositionCoordinates",
+      path: "/facts/0/horizontalPositionCoordinates", targetPath: "/point/coordinates"
+    });
+  });
+
+  it("rejects a catalog with only the original potentially 3D position port", () => {
+    const input = compileInput("GDPS_LAND_COVER_AT_REFERENCE");
+    input.maturityPolicy.allowPreview = true;
+    authorizeGdps(input);
+    const descriptor = input.capabilities.find(entry => entry.operationId === "world.get-current-state")!;
+    descriptor.ports.outputs = descriptor.ports.outputs.filter(entry => entry.name !== "horizontalPositionCoordinates");
+    const result = compiler.compile(input);
+    expect(result.status).toBe("CAPABILITY_GAP");
+  });
+
   it.each([
     "GDPS_WETLANDS_IN_AREA",
     "GDPS_BLOCKED_AREAS_IN_AREA",

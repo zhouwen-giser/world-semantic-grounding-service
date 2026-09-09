@@ -1,0 +1,45 @@
+{
+  "phase": "W06",
+  "status": "IN_PROGRESS",
+  "testedCommit": "4ae21b809f43c05eb18b1077615eb2d5ff48ec0f",
+  "remoteRecheck": {
+    "fetch": "PASS",
+    "main": "565e52705bb7656d4623a04655001325ca61acd0",
+    "advancedHistoricalBranch": "0db24edf8490766346904c5ab71fd78fbf3afb5d",
+    "mainIsAncestor": true
+  },
+  "commands": [
+    { "evidence": "gsap-registry-check.json", "status": "PASS", "testsPassed": 927, "testsSkipped": 29 },
+    { "evidence": "gsap-registry-tests.json", "status": "PASS", "testsPassed": 927, "testsSkipped": 29 },
+    { "evidence": "gsap-registry-build.json", "status": "PASS" },
+    { "evidence": "gsap-registry-http.json", "status": "PASS", "testsPassed": 9 }
+  ],
+  "fixes": [
+    "COMPILE_WORLD_QUERY uses the actual pipeline operation and returns a public result at the compilation stage without executing analysis.",
+    "Compilation failures propagate into bounded public analysis gaps.",
+    "Opt-in Gateway validation consumes hash-verified profile 1.1, descriptor snapshotPolicy and snapshot resource worldVersion schemas without changing frozen contracts or default legacy validation."
+  ],
+  "registryTests": {
+    "source": "packages/gowm-gateway-client/src/analysis-registry.test.ts",
+    "count": 12,
+    "realPinnedManifests": 3,
+    "fullFixtureEnvelopes": 3,
+    "negativeCoverage": ["default legacy rejection", "unknown profile version", "invented reference kind", "catalog hash drift", "per-operation lock drift", "invalid worldVersion", "unknown resource property"],
+    "transport": "No Gateway business HTTP request; actual registry and trusted-contract validator only."
+  },
+  "failedAttempts": [
+    "Compile-only advanced HTTP request reproduced PIPELINE_CONFIGURATION_ERROR before the operation-dispatch fix.",
+    "Real pinned GSAP profile 1.1 and descriptor snapshotPolicy were rejected before verified schema opt-in.",
+    "Full metric envelope rejected worldVersion before verified data snapshot schema opt-in.",
+    "One unprivileged HTTP test attempt failed all nine cases at listen EPERM; authorized rerun passed."
+  ],
+  "frozenContractAssertions": 836,
+  "unchangedLegacyArtifacts": 68,
+  "remaining": ["nonempty historical and GSAP production HTTP", "structured multiround HTTP", "signed caller discovery HTTP", "combined choices", "standalone consumer handoff and final requirement ledger"],
+  "realGateway": "NOT_RUN",
+  "realPostgreSQL": "NOT_RUN",
+  "realModel": "NOT_RUN",
+  "realSacs": "NOT_RUN",
+  "completeW06Gate": false,
+  "readyMarkerAuthorized": false
+}

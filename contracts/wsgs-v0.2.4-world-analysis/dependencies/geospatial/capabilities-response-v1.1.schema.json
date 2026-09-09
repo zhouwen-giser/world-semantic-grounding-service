@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:v0.2.1:sacs-geospatial:capabilities-response:1.1",
+  "title": "WSGS Capabilities Response for Grounding Contract 1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "service",
+    "version",
+    "contractVersion",
+    "supportedOperations",
+    "supportedProducts",
+    "supportedResultProfiles",
+    "geospatialTransportMode",
+    "currentness",
+    "gowmContract",
+    "requiredCapabilitiesReady",
+    "optionalCapabilities"
+  ],
+  "properties": {
+    "service": {
+      "const": "world-semantic-grounding-service"
+    },
+    "version": {
+      "const": "0.2.1"
+    },
+    "contractVersion": {
+      "const": "sacs-wsgs-grounding/1.1"
+    },
+    "supportedOperations": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "GROUND_REFERENCES",
+          "COMPILE_WORLD_QUERY",
+          "EXECUTE_WORLD_QUERY",
+          "VALIDATE_REFERENCES",
+          "RESOLVE_WORLD_SELECTION",
+          "VALIDATE_SOURCE_CURRENTNESS"
+        ]
+      },
+      "contains": {
+        "enum": [
+          "GROUND_REFERENCES",
+          "COMPILE_WORLD_QUERY",
+          "EXECUTE_WORLD_QUERY",
+          "VALIDATE_REFERENCES",
+          "RESOLVE_WORLD_SELECTION",
+          "VALIDATE_SOURCE_CURRENTNESS"
+        ]
+      },
+      "minContains": 6,
+      "maxContains": 6
+    },
+    "supportedProducts": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+      }
+    },
+    "supportedResultProfiles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "const": "sacs-wsgs-geospatial-findings/1.0"
+      },
+      "contains": {
+        "const": "sacs-wsgs-geospatial-findings/1.0"
+      },
+      "minContains": 1,
+      "maxContains": 1
+    },
+    "geospatialTransportMode": {
+      "const": "RESULT_EXTENSION"
+    },
+    "currentness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "operation"
+      ],
+      "properties": {
+        "mode": {
+          "const": "DEDICATED_OPERATION"
+        },
+        "operation": {
+          "const": "VALIDATE_SOURCE_CURRENTNESS"
+        }
+      }
+    },
+    "gowmContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "softwareVersion",
+        "gatewayContractVersion",
+        "commit",
+        "sourcePackageArtifacts",
+        "contractCatalogRevision",
+        "semanticCatalogHash",
+        "operationLockHash"
+      ],
+      "properties": {
+        "softwareVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "gatewayContractVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "sourcePackageArtifacts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "contractCatalogRevision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "semanticCatalogHash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "operationLockHash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "requiredCapabilitiesReady": {
+      "type": "boolean"
+    },
+    "optionalCapabilities": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operationId",
+          "available"
+        ],
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]*$"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

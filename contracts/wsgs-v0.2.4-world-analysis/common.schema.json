@@ -1,0 +1,912 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wsgs:world-analysis:1.0:common",
+  "title": "Common",
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]*$"
+    },
+    "opaqueId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "code": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Z][A-Z0-9_:.@/-]*$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "dateTime": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "format": "date-time",
+      "pattern": "(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "properties": {
+        "type": {
+          "const": "Point"
+        },
+        "coordinates": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            }
+          ],
+          "items": false
+        }
+      }
+    },
+    "timeRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end",
+        "bounds"
+      ],
+      "properties": {
+        "start": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "end": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "bounds": {
+          "enum": [
+            "[)",
+            "[]",
+            "(]",
+            "()",
+            "UNSPECIFIED"
+          ]
+        }
+      }
+    },
+    "periodIssue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "period",
+        "kind",
+        "reasonCodes"
+      ],
+      "properties": {
+        "period": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+        },
+        "kind": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+        },
+        "reasonCodes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+          }
+        }
+      }
+    },
+    "display": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "truncated",
+        "returnedCount"
+      ],
+      "properties": {
+        "truncated": {
+          "type": "boolean"
+        },
+        "returnedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "sourceCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "prefixComplete": {
+          "type": "boolean"
+        },
+        "suffixComplete": {
+          "type": "boolean"
+        },
+        "temporalCoverageRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "finalizationState": {
+          "enum": [
+            "PROVISIONAL",
+            "SEALED",
+            "CONFLICTED"
+          ]
+        },
+        "sampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "graphVersionId",
+        "graphVersion",
+        "topologyHash",
+        "timeBasis"
+      ],
+      "properties": {
+        "graphVersionId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "graphVersion": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "topologyHash": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/hash"
+        },
+        "timeBasis": {
+          "const": "CURRENT_ACTIVE_TOPOLOGY"
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conceptId",
+        "observedProperty",
+        "measurementStage",
+        "optimizationDirection"
+      ],
+      "properties": {
+        "conceptId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "observedProperty": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "measurementStage": {
+          "enum": [
+            "NORMALIZED",
+            "PARSED_NATIVE",
+            "FUSED_DERIVED"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "optimizationDirection": {
+          "enum": [
+            "MAXIMIZE",
+            "MINIMIZE"
+          ]
+        }
+      }
+    },
+    "series": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceKey",
+        "datastreamKey",
+        "measurementKey",
+        "observedProperty",
+        "measurementStage"
+      ],
+      "properties": {
+        "sourceKey": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "datastreamKey": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "measurementKey": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "observedProperty": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "measurementStage": {
+          "enum": [
+            "NORMALIZED",
+            "PARSED_NATIVE",
+            "FUSED_DERIVED"
+          ]
+        },
+        "valueUnit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sampleCount",
+        "minimum",
+        "maximum",
+        "mean",
+        "median"
+      ],
+      "properties": {
+        "sampleCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "mean": {
+          "type": "number"
+        },
+        "median": {
+          "type": "number"
+        },
+        "p25": {
+          "type": "number"
+        },
+        "p75": {
+          "type": "number"
+        },
+        "medianAbsoluteDeviation": {
+          "type": "number",
+          "minimum": 0
+        },
+        "firstObservedAt": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "lastObservedAt": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        }
+      }
+    },
+    "rankingBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primaryStatistic",
+        "optimizationDirection",
+        "rankingValue",
+        "tieBreakers"
+      ],
+      "properties": {
+        "primaryStatistic": {
+          "const": "MEDIAN"
+        },
+        "optimizationDirection": {
+          "enum": [
+            "MAXIMIZE",
+            "MINIMIZE"
+          ]
+        },
+        "rankingValue": {
+          "type": "number"
+        },
+        "tieBreakers": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    "rankedLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidateId",
+        "rank",
+        "representativeVisitedPosition",
+        "representativeObservedAt",
+        "representativeMeasurementId",
+        "representativeValue",
+        "sampleCount",
+        "statistics",
+        "rankingBasis",
+        "reasonCodes"
+      ],
+      "properties": {
+        "candidateId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "representativeVisitedPosition": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+        },
+        "representativeObservedAt": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "representativeMeasurementId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "representativeValue": {
+          "type": "number"
+        },
+        "sampleCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000
+        },
+        "statistics": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/statistics"
+        },
+        "rankingBasis": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/rankingBasis"
+        },
+        "h3Index": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "reasonCodes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+          }
+        }
+      }
+    },
+    "roadVisit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visitId",
+        "sourceFeatureId",
+        "period",
+        "sampleCount"
+      ],
+      "properties": {
+        "visitId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "sourceFeatureId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+        },
+        "displayName": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/label"
+        },
+        "period": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+        },
+        "entryPosition": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+        },
+        "exitPosition": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+        },
+        "sampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "offNetwork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "segmentId",
+        "period",
+        "sampleCount",
+        "interpretationHint",
+        "reasonCodes"
+      ],
+      "properties": {
+        "segmentId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "period": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+        },
+        "sampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "entryPosition": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+        },
+        "exitPosition": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+        },
+        "pathPreview": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 256,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+          }
+        },
+        "interpretationHint": {
+          "enum": [
+            "UNMAPPED_PATH_CANDIDATE",
+            "OPEN_AREA_MOVEMENT",
+            "NETWORK_GEOMETRY_OFFSET_CANDIDATE",
+            "TEMPORARY_PATH_CANDIDATE",
+            "UNKNOWN"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reasonCodes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+          }
+        }
+      }
+    },
+    "ambiguity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "segmentId",
+        "period",
+        "candidateFeatureIds"
+      ],
+      "properties": {
+        "segmentId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "period": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+        },
+        "candidateFeatureIds": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 32,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "networkIssue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "issueKind",
+        "period",
+        "relatedFeatureIds",
+        "observationCount",
+        "reasonCodes"
+      ],
+      "properties": {
+        "issueKind": {
+          "enum": [
+            "MISSING_PATH_CANDIDATE",
+            "MISSING_TOPOLOGY_CONNECTION_CANDIDATE",
+            "ROAD_GEOMETRY_OFFSET_CANDIDATE",
+            "DIRECTION_CONFLICT_CANDIDATE"
+          ]
+        },
+        "period": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+        },
+        "relatedFeatureIds": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 32,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+          }
+        },
+        "observationCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reasonCodes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+          }
+        }
+      }
+    },
+    "eventExtent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "timeWindow"
+          ],
+          "properties": {
+            "kind": {
+              "const": "INSTANT"
+            },
+            "timeWindow": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+            },
+            "estimatedAt": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "period",
+            "durationSeconds"
+          ],
+          "properties": {
+            "kind": {
+              "const": "INTERVAL"
+            },
+            "period": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+            },
+            "durationSeconds": {
+              "type": "number",
+              "minimum": 0
+            },
+            "startTimeWindow": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+            },
+            "endTimeWindow": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/timeRange"
+            }
+          }
+        }
+      ]
+    },
+    "eventTarget": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceTargetId",
+            "targetType"
+          ],
+          "properties": {
+            "kind": {
+              "const": "SPATIAL_TARGET"
+            },
+            "sourceTargetId": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+            },
+            "referenceProductId": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+            },
+            "displayName": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/label"
+            },
+            "targetType": {
+              "enum": [
+                "AREA",
+                "POINT",
+                "LINE"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "graphVersionId",
+            "graphVersion",
+            "nodeId",
+            "position",
+            "incomingFeatureId",
+            "outgoingFeatureId"
+          ],
+          "properties": {
+            "kind": {
+              "const": "NETWORK_JUNCTION"
+            },
+            "graphVersionId": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+            },
+            "graphVersion": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+            },
+            "nodeId": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+            },
+            "position": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+            },
+            "incomingFeatureId": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+            },
+            "outgoingFeatureId": {
+              "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/opaqueId"
+            }
+          }
+        }
+      ]
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "eventType",
+        "extent",
+        "certainty",
+        "reasonCodes",
+        "evidenceIds"
+      ],
+      "properties": {
+        "eventId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "eventType": {
+          "enum": [
+            "ENTER",
+            "EXIT",
+            "DWELL",
+            "STOP",
+            "PASS_NEAR",
+            "CROSS"
+          ]
+        },
+        "extent": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/eventExtent"
+        },
+        "position": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/point"
+        },
+        "target": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/eventTarget"
+        },
+        "certainty": {
+          "enum": [
+            "CONFIRMED_IN_AVAILABLE_DATA",
+            "APPROXIMATED",
+            "CLIPPED_TO_INPUT"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reasonCodes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/code"
+          }
+        },
+        "evidenceIds": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 32,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "eventSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "confirmed",
+        "confirmationScope",
+        "reasonCode",
+        "blockingPeriods"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "FIRST",
+            "LAST"
+          ]
+        },
+        "selectedEventId": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/id"
+        },
+        "confirmed": {
+          "type": "boolean"
+        },
+        "confirmationScope": {
+          "enum": [
+            "REQUESTED_SCOPE_PROVEN",
+            "CONFIRMED_IN_AVAILABLE_DATA",
+            "NOT_CONFIRMED"
+          ]
+        },
+        "reasonCode": {
+          "enum": [
+            "FIRST_EVENT_CONFIRMED",
+            "FIRST_EVENT_NOT_CERTAIN",
+            "LAST_EVENT_CONFIRMED",
+            "LAST_EVENT_NOT_CERTAIN",
+            "NO_EVENT_FOUND"
+          ]
+        },
+        "blockingPeriods": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/periodIssue"
+          }
+        }
+      }
+    },
+    "metricCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metricTemporalCompletenessKnown",
+        "trajectory",
+        "trajectoryGaps",
+        "excludedPeriods"
+      ],
+      "properties": {
+        "metricTemporalCompletenessKnown": {
+          "const": false
+        },
+        "trajectory": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/coverage"
+        },
+        "trajectoryGaps": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/periodIssue"
+          }
+        },
+        "excludedPeriods": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 100,
+          "items": {
+            "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/periodIssue"
+          }
+        },
+        "sourceMetricSampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "acceptedMetricSampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "rejectedMetricSampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "alignedMetricSampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "unalignedMetricSampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "alignmentRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "snapshotSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshotHash"
+      ],
+      "properties": {
+        "snapshotHash": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/hash"
+        },
+        "capturedAt": {
+          "$ref": "urn:wsgs:world-analysis:1.0:common#/$defs/dateTime"
+        },
+        "worldVersion": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        }
+      }
+    }
+  }
+}

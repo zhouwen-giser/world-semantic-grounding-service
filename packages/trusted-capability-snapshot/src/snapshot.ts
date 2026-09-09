@@ -59,17 +59,17 @@ function assertSha256(value: string, field: string): asserts value is Sha256Dige
 
 function assertInputMetadata(input: TrustedCapabilitySnapshotInput): void {
   const lock = input.southboundLock;
-  if (lock.gatewayContractVersion !== "0.6.3" || lock.schemaVersion !== "2.0") {
+  if (!/^\d+\.\d+\.\d+$/u.test(lock.gatewayContractVersion) || lock.schemaVersion !== "2.0") {
     throw new TrustedCapabilitySnapshotError(
       "GATEWAY_CONTRACT_VERSION_MISMATCH",
-      "Trusted snapshots require the GOWM 0.6.3 southbound lock"
+      "Trusted snapshots require a validated versioned GOWM southbound lock"
     );
   }
   if (lock.consumerContractPackage.name !== "@gowm/world-gateway-contracts"
-    || lock.consumerContractPackage.version !== "0.6.3") {
+    || !/^\d+\.\d+\.\d+$/u.test(lock.consumerContractPackage.version)) {
     throw new TrustedCapabilitySnapshotError(
       "CONSUMER_CONTRACT_PACKAGE_MISMATCH",
-      "Southbound lock does not identify the GOWM 0.6.3 consumer contract package"
+      "Southbound lock does not identify a versioned GOWM consumer contract package"
     );
   }
   if (!sha512IntegrityPattern.test(lock.consumerContractPackage.integrity)) {
@@ -296,7 +296,7 @@ export function buildTrustedCapabilitySnapshot(input: TrustedCapabilitySnapshotI
 
   const body: TrustedCapabilitySnapshotBody = {
     capturedAt: captureTime.toISOString(),
-    gatewayContractVersion: "0.6.3",
+    gatewayContractVersion: input.southboundLock.gatewayContractVersion,
     contractCatalogRevision: normalizedInput.catalog.contractCatalogRevision,
     semanticCatalogHash: normalizedInput.semantics.catalogHash,
     bindingRevision: normalizedInput.catalog.bindingRevision,

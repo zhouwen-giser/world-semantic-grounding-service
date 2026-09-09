@@ -526,6 +526,36 @@ describe("GOWM execution evidence product", () => {
     expect(product.evidenceItems).toHaveLength(2);
   });
 
+  it("verifies the effective snapshot-bound result hash and preserves current snapshot audit fields", () => {
+    const fixture = worldFixture();
+    const effective = fixture.result["snapshotManifest"];
+    fixture.result["requestedSnapshotManifest"] = structuredClone(effective);
+    fixture.result["effectiveSnapshotManifest"] = structuredClone(effective);
+    fixture.result["outputHash"] = canonicalSha256({ outputs: fixture.result["outputs"], effectiveSnapshotManifest: effective });
+    const entries = fixture.result["snapshotAdherence"] as Record<string, unknown>[];
+    entries[0]!["expectedConsistency"] = "BEST_EFFORT";
+    entries[0]!["actualConsistency"] = "BEST_EFFORT";
+    entries[0]!["actualCapturedAt"] = "2026-08-27T09:00:00.000Z";
+    const nodes = fixture.result["nodes"] as Record<string, unknown>[];
+    Object.assign(nodes[0]!, { snapshotAdherence: entries[0], effectiveSnapshotBeforeHash: (effective as QuerySnapshotManifest).manifestHash,
+      effectiveSnapshotAfterHash: (effective as QuerySnapshotManifest).manifestHash, effectiveSnapshotRevisionBefore: 0,
+      effectiveSnapshotRevisionAfter: 0, observedSnapshotResourceIdentities: ["WORLD:example"] });
+    const product = normalizeWorldQueryExecution(worldInput(fixture));
+    expect(product.record.snapshotAdherence).toMatchObject({ effectiveSnapshotManifest: effective });
+    expect(product.nodeRecords[0]!.snapshotAdherence).toMatchObject({ effectiveSnapshotRevisionBefore: 0,
+      reportedAdherence: { actualConsistency: "BEST_EFFORT" } });
+    fixture.result["outputHash"] = canonicalSha256(fixture.result["outputs"]);
+    expectExecutionError(() => normalizeWorldQueryExecution(worldInput(fixture)), "WORLD_QUERY_OUTPUT_HASH_MISMATCH");
+  });
+
+  it.each(["effectiveSnapshotRevisionAfter", "observedSnapshotResourceIdentities", "snapshotAdherence"])(
+    "rejects malformed current node snapshot field %s", key => {
+      const fixture = worldFixture();
+      (fixture.result["nodes"] as Record<string, unknown>[])[0]![key] = key === "effectiveSnapshotRevisionAfter" ? -1
+        : key === "observedSnapshotResourceIdentities" ? ["duplicate", "duplicate"] : { nodeId: "Other", status: "UNKNOWN", checkedResources: 0 };
+      expectExecutionError(() => normalizeWorldQueryExecution(worldInput(fixture)), "INVALID_WORLD_QUERY_RESULT");
+    });
+
   it("normalizes an asynchronous world-query terminal result and validates query/job identity", () => {
     const fixture = worldFixture();
     const product = normalizeWorldQueryExecution(worldInput(fixture, {
@@ -679,5 +709,26 @@ describe("GOWM execution evidence product", () => {
     (badSnapshot["snapshotManifest"] as Record<string, unknown>)["manifestHash"] = digest("9");
     expectExecutionError(() => normalizeWorldQueryExecution(worldInput({ ...snapshotFixture, result: badSnapshot })),
       "SNAPSHOT_MANIFEST_HASH_MISMATCH");
+  });
+});
+
+
+describe("unexecuted historical query nodes", () => {
+  it("does not require or invent an input hash for a skipped dependent node", () => {
+    const fixture = worldFixture({ secondNodeStatus: "SKIPPED", worldStatus: "PARTIAL" });
+    const node = (fixture.result["nodes"] as Array<Record<string, unknown>>)[1]!;
+    delete node["inputHash"];
+    const adherence = (fixture.result["snapshotAdherence"] as Array<Record<string, unknown>>)[1]!;
+    adherence["status"] = "UNSUPPORTED";
+    adherence["checkedResources"] = 0;
+    adherence["mismatches"] = [{ reason: "NODE_NOT_EXECUTED", resourceId: "NodeB", resourceKind: "SNAPSHOT" }];
+    const input = worldInput(fixture, { nodeRequestHashes: { NodeA: fixture.nodeRequestHashes["NodeA"]! } });
+    const result = normalizeWorldQueryExecution(input);
+    expect(result.nodeRecords).toHaveLength(1);
+    expect(result.snapshotGaps).toEqual([]);
+    expect(result.snapshotAdherence).toHaveLength(2);
+    expect(result.record.normalizedStatus).toBe("PARTIAL");
+    adherence["mismatches"] = [{ reason: "RESOURCE_UNSUPPORTED", resourceId: "NodeB", resourceKind: "SNAPSHOT" }];
+    expect(normalizeWorldQueryExecution(input).snapshotGaps).toHaveLength(1);
   });
 });

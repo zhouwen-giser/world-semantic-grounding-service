@@ -1,0 +1,13 @@
+{
+  "command": "npm run test:world-analysis:http",
+  "startedAt": "2026-09-07T00:21:17.581Z",
+  "finishedAt": "2026-09-07T00:21:30.919Z",
+  "exitCode": 0,
+  "signal": null,
+  "status": "PASS",
+  "testedCommit": "8060461de3d2f78afdf63dcdb24de9c7b025c1eb",
+  "trackedDiffSha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trackedWorkingTreeDirty": false,
+  "logPath": "reports/wsgs-v0.2.4-stable-world-analysis-service/W06/history-map-http.log",
+  "logSha256": "sha256:3441065a073bfc28dcfb5bb050d13b729b20b451afaac2520e780d915030144c"
+}

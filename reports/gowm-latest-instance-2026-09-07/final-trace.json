@@ -1,0 +1,19 @@
+{
+  "observedAt": "2026-09-07T11:58:45.234Z",
+  "status": "FAILED",
+  "cases": [
+    {
+      "name": "TRACE",
+      "http": 202,
+      "groundingId": "grounding-3621a7ca-b54f-4796-8a10-bc8fdb9c2269",
+      "status": "PARTIAL",
+      "validResult": true,
+      "resultHash": "sha256:17a28acdb5dcee1bf6925517a7a2812f46f75ab9e79eeab0aa20063e12d17883",
+      "elapsedMs": 99850,
+      "replayIdentical": true,
+      "findings": [],
+      "operations": [],
+      "gaps": []
+    }
+  ]
+}

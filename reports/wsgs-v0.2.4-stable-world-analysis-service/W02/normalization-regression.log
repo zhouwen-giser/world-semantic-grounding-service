@@ -1,0 +1,15 @@
+COMMAND ["npx","vitest","run","packages/historical-trace-consumer/src/historical.test.ts","packages/historical-trace-consumer/src/advanced-historical.test.ts","packages/historical-trace-consumer/src/public-world-analysis.test.ts","packages/contracts/src/world-analysis-contract.test.ts"]
+START 2026-09-06T15:30:13.005Z
+COMMIT 65704fbd87f15b9ae53eb2940600e60877a36dc1
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  4 passed (4)
+      Tests  157 passed (157)
+   Start at  23:30:13
+   Duration  7.68s (transform 3.32s, setup 0ms, import 8.74s, tests 6.32s, environment 1ms)
+
+
+EXIT_CODE 0
+SIGNAL NONE

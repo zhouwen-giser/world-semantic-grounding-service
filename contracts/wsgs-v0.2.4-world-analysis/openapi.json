@@ -1,0 +1,650 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "WSGS World Analysis 1.2 Public Contract",
+    "version": "1.0",
+    "description": "Read-only Grounding API. Exact header pair and server-owned principal authorization are required. This contract is not a deployment/readiness claim. No new selection or execution endpoint."
+  },
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "paths": {
+    "/v1/capabilities": {
+      "get": {
+        "operationId": "getWorldAnalysisCapabilities",
+        "parameters": [
+          {
+            "name": "WSGS-Contract-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "sacs-wsgs-grounding/1.2"
+            }
+          },
+          {
+            "name": "WSGS-Result-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "wsgs-world-analysis-findings/1.0"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Capabilities with supported versus currently available.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./capabilities-1.2.schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groundings": {
+      "post": {
+        "operationId": "createWorldAnalysisGrounding",
+        "parameters": [
+          {
+            "name": "WSGS-Contract-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "sacs-wsgs-grounding/1.2"
+            }
+          },
+          {
+            "name": "WSGS-Result-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "wsgs-world-analysis-findings/1.0"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "Prefer",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "respond-async"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Synchronous GroundingResult12.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./grounding-result-1.2.schema.json"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Asynchronous accepted GroundingJob12.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./grounding-job-1.2.schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./grounding-request-1.2.schema.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groundings/{groundingId}": {
+      "parameters": [
+        {
+          "name": "groundingId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getWorldAnalysisGrounding",
+        "parameters": [
+          {
+            "name": "WSGS-Contract-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "sacs-wsgs-grounding/1.2"
+            }
+          },
+          {
+            "name": "WSGS-Result-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "wsgs-world-analysis-findings/1.0"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stored GroundingJob12; result appears only for terminal jobs. Headers must equal the stored profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./grounding-job-1.2.schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groundings/{groundingId}:cancel": {
+      "parameters": [
+        {
+          "name": "groundingId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      ],
+      "post": {
+        "operationId": "cancelWorldAnalysisGrounding",
+        "parameters": [
+          {
+            "name": "WSGS-Contract-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "sacs-wsgs-grounding/1.2"
+            }
+          },
+          {
+            "name": "WSGS-Result-Profile",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "wsgs-world-analysis-findings/1.0"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "GroundingJob12 with actual cancellation or already-terminal state. No body is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./grounding-job-1.2.schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Protocol error. Contract mismatch is 406; conflicting idempotent input is 409.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./dependencies/legacy/protocol-error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
