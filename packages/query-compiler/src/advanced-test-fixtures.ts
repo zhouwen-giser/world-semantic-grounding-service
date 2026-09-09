@@ -4,7 +4,7 @@ import { AnalysisProviderContracts } from "@wsgs/gowm-contract-intake";
 import type { CompileInput, CapabilityDescriptor, QuerySemanticPattern } from "./types.js";
 
 export function advancedCompileFixture(pattern: QuerySemanticPattern = "HISTORICAL_ROAD_ASSOCIATION"): CompileInput {
-  const contracts = new AnalysisProviderContracts(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url).pathname);
+  const contracts = new AnalysisProviderContracts(fileURLToPath(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url)));
   const capabilities = ["map-matching", "temporal-events", "metric-ranking"].map(name => {
     const manifest = JSON.parse(readFileSync(fileURLToPath(new URL(`../../../contracts/upstream/gowm-analysis-providers-current/contracts/manifests/${name}-provider.json`, import.meta.url)), "utf8")) as { capabilities: CapabilityDescriptor[] };
     return manifest.capabilities[0]!;

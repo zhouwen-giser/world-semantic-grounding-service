@@ -1,10 +1,11 @@
+import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { AnalysisProviderContracts, analysisHash, GowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import { GowmGatewayClient } from "./client.js";
 import type { CapabilityCatalog, CapabilitySemanticCatalog, OperationAvailabilityList, OperationLock } from "./types.js";
 
-const contracts = new AnalysisProviderContracts(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url).pathname);
+const contracts = new AnalysisProviderContracts(fileURLToPath(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url)));
 function discovery() {
   const capabilities = ["map-matching", "temporal-events", "metric-ranking"].flatMap(name =>
     JSON.parse(readFileSync(new URL(`../../../contracts/upstream/gowm-analysis-providers-current/contracts/manifests/${name}-provider.json`, import.meta.url), "utf8")).capabilities);

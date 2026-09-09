@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import { AnalysisProviderContracts, analysisHash, type AnalysisOperationId, type ValidatedAnalysisEnvelope, type AnalysisProviderResultTypes } from "@wsgs/gowm-contract-intake";
@@ -9,7 +10,7 @@ import { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
 import { resolvePublicAdvancedFollowup, resolvePublicAdvancedFollowups } from "./advanced-followup.js";
 import { advancedHistoryConfigurationFromEnvironment } from "./advanced-config.js";
 
-const contracts = new AnalysisProviderContracts(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url).pathname);
+const contracts = new AnalysisProviderContracts(fileURLToPath(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url)));
 const catalog = new MetricSemanticCatalog();
 const validate = createWorldAnalysisValidator();
 const fixtureRoot = new URL("../../../validation/fixtures/advanced-history/", import.meta.url);

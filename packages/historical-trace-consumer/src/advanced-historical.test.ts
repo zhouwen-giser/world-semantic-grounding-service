@@ -17,7 +17,7 @@ import { createHash } from "node:crypto";
 const config = advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" });
 const history = historicalTraceConfigurationFromEnvironment({ WSGS_HISTORY_TRACE_ENABLED: "YES" });
 const catalog = new MetricSemanticCatalog();
-const contracts = new AnalysisProviderContracts(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url).pathname);
+const contracts = new AnalysisProviderContracts(fileURLToPath(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url)));
 const fixture = (name: string): Record<string, unknown> => JSON.parse(readFileSync(fileURLToPath(new URL(`../../../validation/fixtures/advanced-history/${name}.json`, import.meta.url)), "utf8")) as Record<string, unknown>;
 const parse = (text: string, prior?: AdvancedHistoricalIntent) => {
   const parsed = parseAdvancedHistoricalIntent(text, catalog, config, prior);
