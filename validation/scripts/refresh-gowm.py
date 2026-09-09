@@ -31,7 +31,7 @@ def latest(directory, pattern):
     if sum(v == version for v, _ in candidates) != 1:
         raise ValueError('LATEST_FORMAL_PACKAGE_AMBIGUOUS')
     data = path.read_bytes()
-    checksum = path.with_name(path.name + '.sha256').read_text().strip().split()
+    checksum = path.with_name(path.name + '.sha256').read_text(encoding="utf-8").strip().split()
     if checksum != [digest(data), path.name]:
         raise ValueError('LATEST_FORMAL_PACKAGE_INTEGRITY_MISMATCH')
     return path, data
@@ -169,7 +169,7 @@ def prepare(gowm_dir, combined_dir, destination):
         vocabularies[key] = json.loads(files[name])
     if set(vocabularies) != {'references', 'relations', 'statuses'}:
         raise ValueError('CATALOG_VOCABULARY_AUTHORITY_MISSING')
-    (destination / 'PROVIDER_INPUTS.json').write_text(json.dumps({'providers': manifests, 'vocabularies': vocabularies}, ensure_ascii=False) + '\n')
+    (destination / 'PROVIDER_INPUTS.json').write_text(json.dumps({'providers': manifests, 'vocabularies': vocabularies}, ensure_ascii=False) + '\n', encoding="utf-8", newline="\n")
     analysis_files = []
     for name, content in sorted(analysis.items()):
         if not name.startswith(('analysis/contracts/', 'analysis/integration/')):
@@ -182,7 +182,7 @@ def prepare(gowm_dir, combined_dir, destination):
     analysis_manifest = {'schemaVersion': '1.0', 'repository': 'zhouwen-giser/gowm-spatiotemporal-analysis-providers',
         'branch': 'published', 'commit': analysis_source['analysisSource']['gitCommit'], 'tree': digest(analysis_data),
         'capturedAt': analysis_source['generatedAt'], 'files': analysis_files}
-    (destination / 'analysis/source.json').write_text(json.dumps(analysis_manifest, indent=2) + '\n')
+    (destination / 'analysis/source.json').write_text(json.dumps(analysis_manifest, indent=2) + '\n', encoding="utf-8", newline="\n")
     (destination / 'gdps').mkdir()
     for name in ['product-type-descriptors.json', 'product-vocabularies.json']:
         (destination / 'gdps' / name).write_bytes(outer['gdps/config/' + name])
@@ -195,14 +195,14 @@ def prepare(gowm_dir, combined_dir, destination):
         'analysisPackage': {'name': analysis_path.name, 'sha256': digest(analysis_data)},
         'providerInputsSha256': digest((destination / 'PROVIDER_INPUTS.json').read_bytes()),
         'analysisSourceSha256': digest((destination / 'analysis/source.json').read_bytes())}
-    (destination / 'SNAPSHOT.json').write_text(json.dumps(snapshot, indent=2) + '\n')
+    (destination / 'SNAPSHOT.json').write_text(json.dumps(snapshot, indent=2) + '\n', encoding="utf-8", newline="\n")
     subprocess.run(['node', 'validation/scripts/project-current-gowm.mjs', str(destination)], cwd=ROOT, check=True)
     subprocess.run(['node', 'validation/scripts/verify-current-gowm.mjs', str(destination)], cwd=ROOT, check=True)
     if latest(gowm_dir, r'gowm-dev-server-(\d+\.\d+\.\d+)\.tar\.gz')[1] != data or latest(combined_dir, r'gdps-gowm-dev-server-(\d+\.\d+\.\d+)-gowm-\d+\.\d+\.\d+\.tar\.gz')[1] != combined_data:
         raise ValueError('FORMAL_RELEASE_CHANGED_DURING_REFRESH')
     if latest(analysis_dir, r'gowm-gdps-analysis-dev-server-(\d+\.\d+\.\d+)\.tar\.gz')[1] != analysis_data:
         raise ValueError('FORMAL_RELEASE_CHANGED_DURING_REFRESH')
-    return json.loads((destination / 'SNAPSHOT.json').read_text())
+    return json.loads((destination / 'SNAPSHOT.json').read_text(encoding="utf-8"))
 
 
 def main():

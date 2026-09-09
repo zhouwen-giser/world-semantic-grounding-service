@@ -25,7 +25,7 @@ class PublishedReleaseTests(unittest.TestCase):
     def package(self, version, data=b'published'):
         p = self.root / ('gowm-dev-server-' + version + '.tar.gz')
         p.write_bytes(data)
-        p.with_name(p.name + '.sha256').write_text(refresh.digest(data) + '  ' + p.name + '\n')
+        p.with_name(p.name + '.sha256').write_text(refresh.digest(data) + '  ' + p.name + '\n', encoding="utf-8", newline="\n")
         return p
 
     def test_selects_future_release_not_lexical_order_or_backup(self):
@@ -82,7 +82,7 @@ class FullConsumerRefreshTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.current = refresh.ROOT / 'contracts/upstream/gowm-current'
-        self.snapshot = json.loads((self.current / 'SNAPSHOT.json').read_text())
+        self.snapshot = json.loads((self.current / 'SNAPSHOT.json').read_text(encoding="utf-8"))
         self.dirs = [self.root / n for n in ['gowm', 'combined', 'analysis']]
         for p in self.dirs:
             p.mkdir()
@@ -100,7 +100,7 @@ class FullConsumerRefreshTests(unittest.TestCase):
         data = output.getvalue()
         target = directory / name
         target.write_bytes(data)
-        target.with_name(name + '.sha256').write_text(refresh.digest(data) + '  ' + name + '\n')
+        target.with_name(name + '.sha256').write_text(refresh.digest(data) + '  ' + name + '\n', encoding="utf-8", newline="\n")
         return data
 
     def fixture(self, missing_dependency=False):
@@ -110,8 +110,8 @@ class FullConsumerRefreshTests(unittest.TestCase):
             if isinstance(value, list): return [future(v) for v in value]
             return '9.0.0' if value == self.snapshot['packageVersion'] else value
         prefix = 'packages/platform/world-gateway-contracts/'
-        files = {prefix + 'package.json': encode(future(json.loads((self.current / 'package.json').read_text())))}
-        manifest = future(json.loads((self.current / 'bundle/MANIFEST.json').read_text()))
+        files = {prefix + 'package.json': encode(future(json.loads((self.current / 'package.json').read_text(encoding="utf-8"))))}
+        manifest = future(json.loads((self.current / 'bundle/MANIFEST.json').read_text(encoding="utf-8")))
         for entry in manifest['files']:
             data = (self.current / 'bundle' / entry['path']).read_bytes()
             if 'wsgs-southbound-operation-lock-v2' in entry['path']:
@@ -122,7 +122,7 @@ class FullConsumerRefreshTests(unittest.TestCase):
         for p, record in self.snapshot['supportingSchemas'].items():
             if not missing_dependency:
                 files[record['sourcePath']] = (self.current / 'bundle' / p).read_bytes()
-        inputs = json.loads((self.current / 'PROVIDER_INPUTS.json').read_text())
+        inputs = json.loads((self.current / 'PROVIDER_INPUTS.json').read_text(encoding="utf-8"))
         imports = []
         for name, value in inputs['vocabularies'].items():
             p = 'packages/platform/contract-runtime/src/' + name + '.json'
@@ -150,7 +150,7 @@ class FullConsumerRefreshTests(unittest.TestCase):
                     'deployment/generated/registry.json': encode({'providers': providers})}
         for p in (self.current / 'analysis').rglob('*'):
             if p.is_file() and p.name != 'source.json':
-                analysis['analysis/' + str(p.relative_to(self.current / 'analysis'))] = p.read_bytes()
+                analysis['analysis/' + p.relative_to(self.current / 'analysis').as_posix()] = p.read_bytes()
         self.publish(self.dirs[2], 'gowm-gdps-analysis-dev-server-9.0.0.tar.gz', analysis)
 
     def run_refresh(self):

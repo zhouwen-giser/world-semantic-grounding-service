@@ -11,6 +11,8 @@ npm run build
 npm run check
 ```
 
+CI 数据库任务使用 `npm run gowm:check && npm run typecheck`：先完整校验已提交的消费者快照，再编译数据库测试所需产物，不需要 Runner 上存在相邻上游仓库。它不确认最新正式发布，不能作为发布或实例部署入口，也不是正式刷新失败后的回退路径。CI 中的 `gowm:test` 仍用临时交付包验证未来版本选择、完整性与刷新失败行为。
+
 `npm run build` 的 prebuild 自动刷新。刷新器以正式交付目录中的包及 `.sha256` 发布记录为依据，按数值语义版本选择最新正式版本；拒绝缺失或损坏的最新包，不回退旧包。不使用源代码 HEAD、临时构建目录、备份或 sample handoff。
 
 可配置的是发布入口，不是版本号：
