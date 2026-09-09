@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync, realpathSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export interface CurrentGowmSnapshot {
@@ -27,7 +27,7 @@ export const currentGowmSnapshotHash = hash(join(currentGowmRoot, "SNAPSHOT.json
 export const currentGowmSnapshot = JSON.parse(readFileSync(join(currentGowmRoot, "SNAPSHOT.json"), "utf8")) as CurrentGowmSnapshot;
 export function currentGowmPath(relative: string): string {
   const path = resolve(currentGowmRoot, relative);
-  if (!path.startsWith(currentGowmRoot + "/")) throw new Error("CURRENT_GOWM_PATH_INVALID");
+  if (!path.startsWith(currentGowmRoot + sep)) throw new Error("CURRENT_GOWM_PATH_INVALID");
   return path;
 }
 const manifest = JSON.parse(readFileSync(currentGowmPath("bundle/MANIFEST.json"), "utf8")) as {files: {path: string; sha256: string}[]};
