@@ -20,3 +20,17 @@ Raw source text has independent retention from grounding results. PostgreSQL
 acceptance verifies that expiring source ciphertext does not remove retained
 result bytes/hash, while the result remains invisible to another data scope.
 
+
+The production worker clears expired request ciphertext and deletes its encrypted
+pipeline checkpoint in one transaction, only after the job is terminal. Accepted
+or running jobs may finish within their existing deadline; retention never extends
+that deadline. Analysis selections still expire at their original validity limit,
+even while an active job retains its checkpoint. Unexpired checkpoints remain
+available for recovery and authorized follow-ups. Result bytes, hashes, idempotency
+replay and append-only audit events are retained.
+
+Cleanup runs immediately at worker startup and then every 60 seconds, in batches
+of 100. With a healthy worker and no backlog, cleanup occurs within one scan
+interval after both expiry and termination. Downtime or backlog delays removal;
+later scans also remove old checkpoints whose request ciphertext was already
+cleared. This is application-level deletion, not erasure from PostgreSQL backups.

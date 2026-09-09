@@ -1,3 +1,4 @@
+import { sameReferenceIdentity } from "./context.js";
 import {
   createWorldAnalysisValidator, worldAnalysisCanonicalHash as hash,
   worldAnalysisFindingSetHash, worldAnalysisResultHash, aggregateAnalysisStatus,
@@ -83,7 +84,18 @@ export function projectPublicWorldAnalysis(input: {
     return matched[0]!.productId;
   }
   function base(kind: Finding["findingKind"], source: unknown, status: Finding["status"], subject: HistoricalReferenceKey | undefined, evidenceIds: string[], warnings: string[], count: number): Json {
-    const product = reference(subject, status === "COMPLETED" || status === "PARTIAL");
+    // Resolve a device once from GOWM's admitted reference products. Historical
+    // output keeps its original version; all findings point at the same device.
+    const required = status === "COMPLETED" || status === "PARTIAL";
+    let product: string | undefined;
+    if (subject) {
+      const expected = foundation?.intent.subjectReferenceKey ?? foundation?.finding.subjectReferenceKey;
+      if (expected && !sameReferenceIdentity(subject, expected)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
+      const candidates = context.referenceProducts.filter(item => sameReferenceIdentity(item.referenceKey, subject));
+      const canonical = candidates.find(item => expected && hash(item.referenceKey) === hash(expected)) ?? candidates[0];
+      if (canonical && validate("reference-product", canonical).valid) product = canonical.productId;
+    }
+    if (!product && required) throw new ProjectionError("REFERENCE_MISSING");
     if (evidenceIds.some(key => !evidenceItems.some(item => item.evidenceProductId === key))) throw new ProjectionError("REFERENCE_MISSING");
     return { findingId: id("finding", { kind, source }), findingKind: kind, semanticConcept: kind, status,
       subjectReferenceProductIds: product ? [product] : [], evidenceIds, unknowns: [], warnings: codes(warnings),
@@ -250,6 +262,9 @@ export function projectPublicWorldAnalysis(input: {
       METRIC_CONCEPT_UNSUPPORTED: "METRIC_UNSUPPORTED", METRIC_UNIT_CONFLICT: "METRIC_UNSUPPORTED",
       MULTI_EXECUTION_ADVANCED_ANALYSIS_NOT_SUPPORTED: "MULTI_EXECUTION_UNSUPPORTED",
       ADVANCED_HISTORY_DEADLINE_EXCEEDED: "UPSTREAM_TIMEOUT", ADVANCED_HISTORY_RESULT_INVALID: "UPSTREAM_CONTRACT_MISMATCH",
+      HISTORICAL_UPSTREAM_CONTRACT_MISMATCH: "UPSTREAM_CONTRACT_MISMATCH",
+      HISTORICAL_UPSTREAM_UNAVAILABLE: "UPSTREAM_FAILURE",
+      ANALYSIS_AVAILABILITY_STALE: "CAPABILITY_UNAVAILABLE",
       ADVANCED_HISTORY_UPSTREAM_FAILURE: "UPSTREAM_FAILURE",
       ANALYSIS_PROVIDER_CONTRACT_INVALID: "UPSTREAM_CONTRACT_MISMATCH", ANALYSIS_PROVIDER_CONTRACT_DRIFT: "UPSTREAM_CONTRACT_MISMATCH"
     };
@@ -258,8 +273,12 @@ export function projectPublicWorldAnalysis(input: {
   return finish();
 
   function assertScope(key: HistoricalReferenceKey, subject: HistoricalReferenceKey | undefined): void {
+    if (foundation?.finding.trajectory?.trajectoryReferenceKey &&
+        analysisHash(foundation.finding.trajectory.trajectoryReferenceKey) !== analysisHash(foundation.reference.referenceKey)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
+    if (foundation?.finding.subjectReferenceKey && subject &&
+        !sameReferenceIdentity(subject, foundation.finding.subjectReferenceKey)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
     if (foundation && analysisHash(key) !== analysisHash(foundation.reference.referenceKey)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
-    if (foundation?.intent.subjectReferenceKey && subject && analysisHash(subject) !== analysisHash(foundation.intent.subjectReferenceKey)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
+    if (foundation?.intent.subjectReferenceKey && subject && !sameReferenceIdentity(subject, foundation.intent.subjectReferenceKey)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
   }
   function finish(): PublicWorldAnalysisProjection {
     const component: WorldAnalysisFindings = { profile: WORLD_ANALYSIS_RESULT_PROFILE, findings, choices, gaps, findingSetHash: "" };

@@ -594,6 +594,7 @@ describe("GOWM Gateway client v2", () => {
     });
     await expect(gateway.listCapabilities()).rejects.toBeInstanceOf(GatewayProtocolError);
     await expect(gateway.listCapabilities()).rejects.toBeInstanceOf(CircuitOpenError);
+    await expect(gateway.listCapabilities()).rejects.toMatchObject({ code: "GATEWAY_CIRCUIT_OPEN" });
     now += 101;
     fail = false;
     await expect(gateway.listCapabilities()).resolves.toMatchObject({ contractCatalogRevision: revision });
@@ -622,5 +623,37 @@ describe("GOWM Gateway client v2", () => {
       sleep: async (milliseconds) => { now += milliseconds; }
     });
     await expect(gateway.pollJob("job-1", {}, 5)).rejects.toMatchObject({ code: "DEADLINE_EXCEEDED" });
+  });
+});
+
+describe("approved synchronous operation transport budget", () => {
+  const request = (deadline: number) => ({
+    requestVersion: "1.0", requestId: "budget-request", idempotencyKey: "budget-key",
+    operationVersion: lock.operationVersion, inputSchemaHash: lock.inputSchemaHash, outputSchemaHash: lock.outputSchemaHash,
+    input: {}, executionPolicy: { deadlineAt: new Date(deadline).toISOString(), maximumResultBytes: 4096, maximumCostClass: "LOW" }
+  });
+  it("waits beyond discovery timeout but inside the operation budget", async () => {
+    const gateway = client(async (_url, init) => new Promise<Response>((resolve, reject) => {
+      const timer = setTimeout(() => resolve(jsonResponse(gatewayResult())), 30);
+      init?.signal?.addEventListener("abort", () => { clearTimeout(timer); reject(init.signal?.reason); }, { once: true });
+    }), { timeoutMs: 5 });
+    const deadline = Date.now() + 1000;
+    expect((await gateway.executeOperation(lock, request(deadline), { deadlineAt: new Date(deadline) })).status).toBe(200);
+  });
+  it.each(["operation", "caller", "cancel"])("honors %s boundary without resetting retries", async kind => {
+    let calls = 0;
+    const controller = new AbortController();
+    const gateway = client(async (_url, init) => {
+      calls++;
+      return new Promise<Response>((_resolve, reject) => {
+        if (kind === "cancel") controller.abort(new Error("cancelled"));
+        if (init?.signal?.aborted) reject(init.signal.reason);
+        else init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), { once: true });
+      });
+    }, { timeoutMs: 5, maxRetries: 2 });
+    await expect(gateway.executeOperation(lock, request(Date.now() + (kind === "operation" ? 25 : 1000)), {
+      deadlineAt: new Date(Date.now() + (kind === "caller" ? 25 : 1000)), signal: controller.signal
+    })).rejects.toMatchObject({ code: kind === "cancel" ? "ABORTED" : "DEADLINE_EXCEEDED" });
+    expect(calls).toBe(1);
   });
 });

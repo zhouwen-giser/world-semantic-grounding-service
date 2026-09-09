@@ -6,6 +6,7 @@ import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import type { ValidateFunction } from "ajv";
 import { ANALYSIS_SOURCE_HASH } from "./analysis-source.generated.js";
+import { currentGowmPath, currentGowmSnapshot } from "./current.js";
 import type { MapMatchProviderResultV01 } from "./analysis-models/trajectory.js";
 import type { TemporalSpatialEventResultV01, SpatialEventTarget } from "./analysis-models/temporal-events.js";
 import type { MetricLocationRankingResultV01 } from "./analysis-models/metric-ranking.js";
@@ -89,10 +90,11 @@ export class AnalysisProviderContracts {
   readonly #capabilityDescriptorSchema: Record<string, unknown>;
   readonly #dataSnapshotSchema: Record<string, unknown>;
 
-  constructor(root = fileURLToPath(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url))) {
+  constructor(root = currentGowmPath("analysis")) {
     try {
       const sourceBytes = readFileSync(join(root, "source.json"));
-      assert(bytesHash(sourceBytes) === ANALYSIS_SOURCE_HASH, "ANALYSIS_PROVIDER_CONTRACT_DRIFT");
+      const isCurrent = bytesHash(sourceBytes) === `sha256:${currentGowmSnapshot.analysisSourceSha256}`;
+      assert(isCurrent || bytesHash(sourceBytes) === ANALYSIS_SOURCE_HASH, "ANALYSIS_PROVIDER_CONTRACT_DRIFT");
       this.source = JSON.parse(sourceBytes.toString()) as Source;
       const documents = new Map<string, Record<string, unknown>>();
       for (const entry of this.source.files) {

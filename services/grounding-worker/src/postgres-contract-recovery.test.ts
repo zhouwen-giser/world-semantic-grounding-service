@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import type { Pool } from "pg";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { Aes256GcmPayloadCodec, WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION, LEGACY_GROUNDING_CONTRACT_SELECTION } from "@wsgs/grounding-pipeline";
 import { PostgresGroundingWorkerStore } from "./postgres-store.js";
@@ -66,6 +66,10 @@ describe("production worker recovery policy with scripted SQL and real encrypted
     const legacy = await fixture({});
     expect((await legacy.store.claimNext("worker-a", 1000))?.initialState["contractSelection"]).toEqual(LEGACY_GROUNDING_CONTRACT_SELECTION);
     const invalid = await fixture({ contractSelection: { ...WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION, resultProfile: "unknown" } });
-    await expect(invalid.store.claimNext("worker-a", 1000)).rejects.toThrow("Stored grounding contract selection is invalid");
+    const settle = vi.spyOn(invalid.store, "settle");
+    await expect(invalid.store.claimNext("worker-a", 1000)).resolves.toBeNull();
+    expect(settle).toHaveBeenCalledWith(expect.objectContaining({ jobId: "job-1", generation: 5 }), {
+      kind: "FAILED", errorCode: "WORKER_CLAIM_INVALID", pipelineStage: "LOAD_CONTEXT", retryable: false
+    });
   });
 });

@@ -426,7 +426,8 @@ export class OpenAICompatibleSemanticModel {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(new Error("MODEL_DEADLINE_EXCEEDED")), this.#timeoutMs);
     const abortFromCaller = () => controller.abort(signal?.reason ?? new Error("MODEL_ABORTED"));
-    signal?.addEventListener("abort", abortFromCaller, { once: true });
+    if (signal?.aborted) abortFromCaller();
+    else signal?.addEventListener("abort", abortFromCaller, { once: true });
     const modelHash = sha256(this.#model);
     let promptHash = sha256(SYSTEM_INSTRUCTIONS);
     const schemaHash = sha256(stableJson(this.#schema));
@@ -515,6 +516,7 @@ export class OpenAICompatibleSemanticModel {
           await this.#backoff(attempt, controller.signal);
           continue;
         }
+        if (controller.signal.aborted) throw new SemanticModelError("MODEL_DEADLINE_EXCEEDED", true);
         return {
           frame: alignedCandidate,
           receipt: this.#receipt("SUCCEEDED", modelHash, promptHash, schemaHash, inputHash, lastOutput, requestId, attempts, started)

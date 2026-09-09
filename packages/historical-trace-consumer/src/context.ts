@@ -5,6 +5,10 @@ import type {
   OperationalTaskSnapshot
 } from "./types.js";
 
+export function sameReferenceIdentity(left: HistoricalReferenceKey, right: HistoricalReferenceKey): boolean {
+  return left.namespace === right.namespace && left.kind === right.kind && left.id === right.id;
+}
+
 function sameReference(left: HistoricalReferenceKey, right: HistoricalReferenceKey): boolean {
   return left.namespace === right.namespace && left.kind === right.kind && left.id === right.id && left.version === right.version;
 }
@@ -32,7 +36,7 @@ export function validateSubjectTaskAssociation(
   subject: HistoricalReferenceKey,
   task: OperationalTaskSnapshot
 ): HistoricalContextResolution {
-  if (!task.actorReferenceKeys.some((actor) => sameReference(actor, subject))) {
+  if (!task.actorReferenceKeys.some((actor) => sameReferenceIdentity(actor, subject))) {
     return { status: "CONTEXT_GAP", reason: "SUBJECT_TASK_MISMATCH", candidateCount: task.actorReferenceKeys.length };
   }
   return {
@@ -57,7 +61,7 @@ export function resolveHistoricalContext(input: {
   const subjectCandidates = unique([
     ...(input.intent.subjectReferenceKey ? [input.intent.subjectReferenceKey] : []),
     ...(input.explicitSubjectReferences ?? [])
-  ]);
+  ]).filter((value, index, values) => values.findIndex(candidate => sameReferenceIdentity(candidate, value)) === index);
   if (subjectCandidates.length > 1) {
     return { status: "CONTEXT_GAP", reason: "SUBJECT_CONTEXT_AMBIGUOUS", candidateCount: subjectCandidates.length };
   }

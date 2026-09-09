@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gowm:analysis:metric-ranking:request:0.1",
+  "title": "MetricLocationRankingRequestV01",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "trajectoryReferenceKey", "metricSelector"],
+  "properties": {
+    "schemaVersion": { "const": "0.1" },
+    "trajectoryReferenceKey": { "$ref": "#/$defs/historicalTrajectoryReferenceKey" },
+    "metricSelector": { "$ref": "#/$defs/metricSelector" },
+    "metricSeriesSelection": { "$ref": "#/$defs/metricSeriesSelection" },
+    "alignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maximumTimeDeltaMs": { "type": "number", "minimum": 0, "maximum": 86400000 },
+        "maximumInterpolationSpanMs": { "type": "number", "minimum": 0, "maximum": 86400000 },
+        "maximumTimeUncertaintySeconds": { "type": "number", "minimum": 0, "maximum": 86400 }
+      }
+    },
+    "aggregation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": { "const": "H3" },
+        "resolution": { "type": "integer", "minimum": 8, "maximum": 13 }
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "topK": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "minimumSamplesPerLocation": { "type": "integer", "minimum": 1, "maximum": 250000 },
+        "minimumObservationSpanSeconds": { "type": "number", "minimum": 0, "maximum": 31536000 }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "includeCellBoundary": { "type": "boolean" },
+        "maximumAlignedSamplePreview": { "type": "integer", "minimum": 0, "maximum": 250000 },
+        "maximumUnalignedSamplePreview": { "type": "integer", "minimum": 0, "maximum": 250000 },
+        "maximumRejectedMetricSamplePreview": { "type": "integer", "minimum": 0, "maximum": 250000 },
+        "maximumSeriesCandidatePreview": { "type": "integer", "minimum": 0, "maximum": 250000 }
+      }
+    },
+    "profile": { "const": "CAMPUS_TASK_DEFAULT" }
+  },
+  "$defs": {
+    "historicalTrajectoryReferenceKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "kind", "id", "version"],
+      "properties": {
+        "namespace": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,63}$" },
+        "kind": { "const": "HISTORICAL_TRAJECTORY" },
+        "id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "version": { "type": "string", "pattern": "^[1-9][0-9]*$", "maxLength": 128 }
+      }
+    },
+    "metricSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observedProperty", "optimizationDirection"],
+      "properties": {
+        "observedProperty": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "valueUnit": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "measurementStage": { "enum": ["NORMALIZED", "PARSED_NATIVE", "FUSED_DERIVED"] },
+        "optimizationDirection": { "enum": ["MAXIMIZE", "MINIMIZE"] },
+        "validValueRange": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "minimum": { "type": "number" },
+            "maximum": { "type": "number" }
+          }
+        },
+        "minimumQualityScore": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "metricSeriesSelection": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": { "mode": { "const": "ONLY_CANDIDATE" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": {
+            "mode": { "const": "EXPLICIT_SERIES" },
+            "sourceKey": { "type": "string", "minLength": 1, "maxLength": 256 },
+            "datastreamKey": { "type": "string", "minLength": 1, "maxLength": 256 },
+            "measurementKey": { "type": "string", "minLength": 1, "maxLength": 256 }
+          },
+          "anyOf": [
+            { "required": ["sourceKey"] },
+            { "required": ["datastreamKey"] },
+            { "required": ["measurementKey"] }
+          ]
+        }
+      ]
+    }
+  }
+}

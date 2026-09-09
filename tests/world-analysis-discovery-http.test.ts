@@ -5,7 +5,7 @@ import { join } from "node:path";
 import Fastify from "fastify";
 import { jwtVerify, SignJWT } from "jose";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { AnalysisProviderContracts, GowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
+import { currentGowmPath, currentGowmSnapshot, AnalysisProviderContracts, GowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { createWorldAnalysisValidator } from "@wsgs/contracts";
 import { ProductionGroundingBackend } from "@wsgs/grounding-pipeline";
@@ -65,7 +65,7 @@ describe("world analysis signed caller discovery through real local HTTP", () =>
     });
     const gatewayUrl = await gateway.listen({ host: "127.0.0.1", port: 0 });
     directory = mkdtempSync(join(tmpdir(), "wsgs-discovery-http-"));
-    const bytes = JSON.stringify(input.lock); const lockPath = join(directory, "lock.json"); writeFileSync(lockPath, bytes);
+    const bytes = readFileSync(currentGowmPath(currentGowmSnapshot.operationalLockPath), "utf8"); const lockPath = join(directory, "lock.json"); writeFileSync(lockPath, bytes);
     for (const name of ["WSGS_GDPS_RECIPE_LOCK_FILE", "WSGS_GDPS_RECIPE_LOCK_SHA256", "WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST",
       "WSGS_CROSS_SCOPE_GATEWAY_ROUTING", "WSGS_GDPS_CONSUMER_SNAPSHOT_FILE", "WSGS_GDPS_DESCRIPTOR_REGISTRY_FILE",
       "MODEL_BASE_URL", "MODEL_API_KEY", "MODEL_NAME", "GOWM_DELEGATION_PRIVATE_KEY_FILE"]) vi.stubEnv(name, "");

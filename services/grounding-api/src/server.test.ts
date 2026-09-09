@@ -455,6 +455,21 @@ describe("grounding API", () => {
       payload: JSON.stringify(requestBody("x".repeat(70_000)))
     });
     expect(oversized.statusCode).toBe(413);
+    expect(oversized.json()).toMatchObject({ error: { code: "REQUEST_TOO_LARGE", retryable: false } });
+    expect(service.create).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["application/json", "{", 400, "INVALID_JSON_BODY"],
+    ["application/json", "", 400, "INVALID_JSON_BODY"],
+    ["application/xml", "<secret/>", 415, "UNSUPPORTED_MEDIA_TYPE"]
+  ] as const)("classifies parser errors for %s (%j)", async (type, payload, status, code) => {
+    const service = backend();
+    const app = await staticApp([], service);
+    const response = await app.inject({ method: "POST", url: "/v1/groundings", headers: { "content-type": type }, payload });
+    expect(response.statusCode).toBe(status);
+    expect(response.json()).toMatchObject({ schemaVersion: "1.0", error: { code, retryable: false, stage: "REQUEST_VALIDATION" } });
+    expect(response.body).not.toContain("secret");
     expect(service.create).not.toHaveBeenCalled();
   });
 
@@ -525,7 +540,7 @@ describe("grounding API", () => {
       method: "POST", url: "/v1/groundings", headers: { "idempotency-key": "redact" }, payload: requestBody()
     });
     expect(response.statusCode).toBe(500);
-    expect(response.json()).toMatchObject({ error: { code: "INTERNAL_ERROR", message: "Request could not be completed" } });
+    expect(response.json()).toMatchObject({ error: { code: "INTERNAL_ERROR", message: "Request could not be completed", retryable: true } });
     expect(response.body).not.toMatch(/secret|POINT|model internal|stack/u);
   });
 });

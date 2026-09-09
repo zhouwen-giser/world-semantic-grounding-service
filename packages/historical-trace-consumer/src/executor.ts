@@ -1,4 +1,4 @@
-import { resolveHistoricalContext } from "./context.js";
+import { resolveHistoricalContext, sameReferenceIdentity } from "./context.js";
 import { normalizeExecutionIntervalResult, normalizeHistoricalTrajectoryResult } from "./normalizer.js";
 import type {
   HistoricalContextResolution,
@@ -12,7 +12,16 @@ import type {
 
 type JsonObject = Record<string, unknown>;
 
+export interface HistoricalQueryRequest {
+  pattern: "HISTORICAL_EXECUTION_INTERVAL" | "HISTORICAL_TRAJECTORY";
+  operationInput: JsonObject;
+  parameterValues: JsonObject;
+  attempt: number;
+}
+export interface HistoricalQueryResult { interval: unknown; trajectory?: unknown }
+
 export interface HistoricalGatewayOperationExecutor {
+  executeQuery(request: HistoricalQueryRequest): Promise<HistoricalQueryResult>;
   execute(operationId: string, input: JsonObject): Promise<unknown>;
 }
 
@@ -112,6 +121,23 @@ export async function executeHistoricalTrace(input: {
       return { status: "CAPABILITY_GAP", reasonCode: associated.reason, operations };
     }
     resolvedContext = associated;
+    // Actor membership is an identity assertion; its event-time version is not a
+    // requirement on the vehicle state used by this new query. Keep the original
+    // task snapshot and obtain the current vehicle through the authorized Gateway.
+    const actor = snapshot.actorReferenceKeys.find(candidate => associated.subjectReferenceKey &&
+      sameReferenceIdentity(candidate, associated.subjectReferenceKey));
+    if (actor && (!context.subjectReferenceKey || actor.version !== context.subjectReferenceKey.version)) {
+      operations.push("reference.get");
+      const descriptor = object(await input.gateway.execute("reference.get", {
+        schemaVersion: "1.0", referenceKey: actor
+      }), "HISTORICAL_ACTOR_REFERENCE_INVALID");
+      const current = object(descriptor["referenceKey"], "HISTORICAL_ACTOR_REFERENCE_INVALID") as unknown as HistoricalReferenceKey;
+      if (!sameReferenceIdentity(current, actor) || typeof current.version !== "string" || !current.version ||
+          descriptor["stale"] === true || descriptor["revalidationRequired"] === true) {
+        return { status: "CAPABILITY_GAP", reasonCode: "SUBJECT_CONTEXT_REQUIRED", operations };
+      }
+      resolvedContext = { ...associated, subjectReferenceKey: current };
+    }
   }
 
   operations.push("operational-task.get-execution-intervals");
@@ -119,17 +145,25 @@ export async function executeHistoricalTrace(input: {
     ? { kind: "ALL" as const, limit: input.intent.executionSelection.limit }
     : input.intent.executionSelection;
   const intervalInput = { taskReferenceKey: resolvedContext.taskReferenceKey, selection, phaseScope: input.intent.phaseScope };
-  let intervalFinding = normalizeExecutionIntervalResult(await input.gateway.execute(
-    "operational-task.get-execution-intervals",
-    intervalInput
-  ));
+  const queryRequest: HistoricalQueryRequest = {
+    pattern: trajectoryRequested ? "HISTORICAL_TRAJECTORY" : "HISTORICAL_EXECUTION_INTERVAL",
+    operationInput: intervalInput,
+    parameterValues: trajectoryRequested ? {
+      subjectReferenceKey: resolvedContext.subjectReferenceKey,
+      phaseScope: input.intent.phaseScope,
+      sourceSelection: input.intent.sourceSelection,
+      sourceSelectionProfileReferenceKey: input.configuration.sourceSelectionProfileReferenceKey,
+      ...(input.configuration.analysisSpaceReferenceKey ? { analysisSpaceReferenceKey: input.configuration.analysisSpaceReferenceKey } : {}),
+      maximumInlinePoints: input.intent.maximumInlinePoints
+    } : {}, attempt: 0
+  };
+  let query = await input.gateway.executeQuery(queryRequest);
+  let intervalFinding = normalizeExecutionIntervalResult(query.interval);
   if (intervalFinding.status === "PENDING" && input.configuration.pendingRetryMs > 0) {
     await retryDelay(input.configuration.pendingRetryMs);
     operations.push("operational-task.get-execution-intervals");
-    intervalFinding = normalizeExecutionIntervalResult(await input.gateway.execute(
-      "operational-task.get-execution-intervals",
-      intervalInput
-    ));
+    query = await input.gateway.executeQuery({ ...queryRequest, attempt: 1 });
+    intervalFinding = normalizeExecutionIntervalResult(query.interval);
   }
   intervalFinding.taskReferenceKey = resolvedContext.taskReferenceKey;
   if (!trajectoryRequested) {
@@ -159,25 +193,13 @@ export async function executeHistoricalTrace(input: {
     return { status: "CAPABILITY_GAP", reasonCode: "SUBJECT_CONTEXT_REQUIRED", context: resolvedContext, operations };
   }
   operations.push("history.get-trajectory");
-  const trajectoryInput = {
-    subjectReferenceKey: resolvedContext.subjectReferenceKey,
-    executionIntervalReferenceKey: interval.executionIntervalReferenceKey,
-    phaseScope: input.intent.phaseScope,
-    sourceSelection: input.intent.sourceSelection,
-    sourceSelectionProfileReferenceKey: input.configuration.sourceSelectionProfileReferenceKey,
-    ...(input.configuration.analysisSpaceReferenceKey
-      ? { analysisSpaceReferenceKey: input.configuration.analysisSpaceReferenceKey }
-      : {}),
-    maximumInlinePoints: input.intent.maximumInlinePoints
-  };
-  let trajectoryFinding = normalizeHistoricalTrajectoryResult(await input.gateway.execute("history.get-trajectory", trajectoryInput));
-  if (trajectoryFinding.status === "PENDING" && input.configuration.pendingRetryMs > 0) {
-    await retryDelay(input.configuration.pendingRetryMs);
-    operations.push("history.get-trajectory");
-    trajectoryFinding = normalizeHistoricalTrajectoryResult(await input.gateway.execute("history.get-trajectory", trajectoryInput));
-  }
+  if (query.trajectory === undefined) throw new Error("HISTORICAL_TRAJECTORY_NODE_MISSING");
+  const trajectoryFinding = normalizeHistoricalTrajectoryResult(query.trajectory);
   trajectoryFinding.taskReferenceKey = resolvedContext.taskReferenceKey;
-  trajectoryFinding.subjectReferenceKey = resolvedContext.subjectReferenceKey;
+  // GOWM's historical subject version is provenance, not a second device.
+  if (!trajectoryFinding.subjectReferenceKey || !sameReferenceIdentity(trajectoryFinding.subjectReferenceKey, resolvedContext.subjectReferenceKey)) {
+    throw new Error("HISTORICAL_SUBJECT_IDENTITY_MISMATCH");
+  }
   trajectoryFinding.executionInterval = interval;
   return {
     status: trajectoryFinding.status === "PENDING" ? "PENDING" : trajectoryFinding.status === "COMPLETED" ? "COMPLETED" : "PARTIAL",

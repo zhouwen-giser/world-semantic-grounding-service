@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+
+ Test Files  4 passed (4)
+      Tests  49 passed (49)
+   Start at  18:09:42
+   Duration  26.48s (transform 2.40s, setup 0ms, import 6.10s, tests 19.60s, environment 1ms)
+

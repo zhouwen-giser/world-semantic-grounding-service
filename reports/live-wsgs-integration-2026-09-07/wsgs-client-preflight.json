@@ -1,0 +1,21 @@
+{
+  "observedAt": "2026-09-07T10:47:28.923Z",
+  "path": "WSGS GowmGatewayClient -> SSH loopback tunnel -> deployed Gateway",
+  "cases": [
+    {
+      "method": "listCapabilities",
+      "status": "PASS",
+      "count": 158
+    },
+    {
+      "method": "listCapabilitySemantics",
+      "status": "PASS",
+      "count": 158
+    },
+    {
+      "method": "listOperationAvailability",
+      "status": "PASS",
+      "count": 158
+    }
+  ]
+}

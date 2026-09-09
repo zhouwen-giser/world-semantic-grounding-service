@@ -16,6 +16,7 @@ async function fixture(change: "none" | "scope" | "hash" | "cipher" | "result" |
   const identity = { servicePrincipalId: "service", actorId: "actor", dataScopes: ["scope"], datasetScopes: [], permissions: ["grounding.read"], authorizationContextHash: `sha256:${"a".repeat(64)}` as const };
   const advanced = { intent: { test: "server-owned" }, foundation: { test: "server-owned" }, analysisEvidence: [] };
   const state = { contractSelection: WORLD_ANALYSIS_GROUNDING_CONTRACT_SELECTION,
+    LOAD_CONTEXT: { consumerSnapshotHash: "original-snapshot" },
     PRODUCT_ASSEMBLE: { ...result, ...(change === "result" ? { resultHash: `sha256:${"f".repeat(64)}` } : {}) }, GOWM_EXECUTE: change === "reference" ? {} : { advancedExecution: advanced } };
   const checkpoint: PipelineCheckpoint = { schemaVersion: "1.0", jobId: "job-1", operation: "EXECUTE_WORLD_QUERY", runFingerprint: result.execution.runFingerprint,
     nextStageIndex: 14, nextEventSequence: 28, state, previousRecordHash: `sha256:${"c".repeat(64)}`, lastCompletedStage: "RESULT_PERSIST" };
@@ -40,6 +41,11 @@ async function fixture(change: "none" | "scope" | "hash" | "cipher" | "result" |
     pointer: request.contextCapsule.priorGroundings[0], selection: request.analysisSelections[0], now: new Date("2026-09-06T02:00:01Z") } };
 }
 describe("private analysis authority restoration", () => {
+  it("refuses to reinterpret a checkpoint with a different consumer snapshot", async () => {
+    const f = await fixture();
+    await expect(loadPriorAnalysisAuthority({ ...f.input, expectedConsumerSnapshotHash: "original-snapshot" })).resolves.toBeDefined();
+    await expect(loadPriorAnalysisAuthority({ ...f.input, expectedConsumerSnapshotHash: "new-snapshot" })).rejects.toThrow("SELECTION_INVALID");
+  });
   it("restores an ordinary reference Choice without fabricating historical analysis", async () => {
     const f = await fixture("reference");
     const restored = await loadPriorAnalysisAuthority(f.input);
@@ -54,6 +60,11 @@ describe("private analysis authority restoration", () => {
   it("never reads a checkpoint when the result is outside scope", async () => {
     const f = await fixture("scope");
     await expect(loadPriorAnalysisAuthority(f.input)).rejects.toThrow("PRIOR_RESULT_NOT_FOUND_IN_SCOPE");
+    expect(f.reads()).toBe(0);
+  });
+  it("rejects expired selection before reading the deleted checkpoint", async () => {
+    const f = await fixture("missing");
+    await expect(loadPriorAnalysisAuthority({ ...f.input, now: new Date("2026-09-06T02:02:00Z") })).rejects.toThrow("EXPIRED");
     expect(f.reads()).toBe(0);
   });
   it.each(["hash", "cipher", "result", "missing"] as const)("refuses %s checkpoint corruption or loss", async change => {

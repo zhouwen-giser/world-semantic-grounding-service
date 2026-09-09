@@ -44,7 +44,7 @@ export interface GdpsEvidenceContext {
   readonly descriptorHash: `sha256:${string}`;
   readonly productType: string;
   readonly productProfile: string;
-  readonly queryProfile: string;
+  readonly queryProfile?: string;
 }
 
 export type GdpsReplayMode = "PINNED" | "STRICT" | "BEST_EFFORT";
@@ -189,7 +189,7 @@ export function normalizeGdpsSourceEvidence(
     throw new Error("GDPS_CURRENT_SOURCE_IDENTITY_REQUIRED");
   }
   if (context && (![context.recipeLockHash, context.descriptorHash].every((value) => digestPattern.test(value)) ||
-      !context.recipeId || !context.descriptorId || !context.productType || !context.productProfile || !context.queryProfile)) {
+      !context.recipeId || !context.descriptorId || !context.productType || !context.productProfile || context.queryProfile === "")) {
     throw new Error("GDPS_EVIDENCE_CONTEXT_INVALID");
   }
   const receipts = Array.isArray(envelope["receipts"]) ? envelope["receipts"] : [];
@@ -220,7 +220,7 @@ export function normalizeGdpsSourceEvidence(
       descriptorHash: context.descriptorHash,
       productType: context.productType,
       productProfile: context.productProfile,
-      queryProfile: context.queryProfile
+      ...(context.queryProfile === undefined ? {} : { queryProfile: context.queryProfile })
     } : {}),
     ...(productId === undefined ? {} : { productId }),
     ...(contentHash === undefined ? {} : { contentHash: contentHash as `sha256:${string}` }),

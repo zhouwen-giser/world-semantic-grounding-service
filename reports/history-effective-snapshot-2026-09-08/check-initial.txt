@@ -1,0 +1,170 @@
+
+> world-semantic-grounding-service@0.2.1 check
+> npm run contracts:check && npm run architecture:check && npm run acceptance:check && npm run acceptance:v0.2:check && npm run development:check && npm run typecheck && npm test
+
+
+> world-semantic-grounding-service@0.2.1 contracts:check
+> npm run gowm:check && npm run gowm:test && node validation/scripts/verify-wsgs-contracts.mjs && node validation/scripts/verify-wsgs-v02-internal.mjs && npm run contracts:gdps:check && npm run contracts:sacs-geospatial:check && npm run findings:decoder:check && npm run findings:provenance:check && npm run contracts:types:check && npm run verify:world-analysis-contract && npm run world-analysis:runtime:check
+
+
+> world-semantic-grounding-service@0.2.1 gowm:check
+> node validation/scripts/verify-current-gowm.mjs
+
+{"status":"PASS","packageVersion":"0.7.1","schemas":85}
+
+> world-semantic-grounding-service@0.2.1 gowm:test
+> python3 validation/scripts/test_refresh_gowm.py
+
+{"status":"PASS","packageVersion":"9.0.0","schemas":85}
+..{"status":"PASS","packageVersion":"9.0.0","schemas":85}
+.......
+----------------------------------------------------------------------
+Ran 9 tests in 2.013s
+
+OK
+WSGS_CONTRACT_FREEZE_PASS schemas=19 examples=12 artifacts=32
+WSGS_V02_INTERNAL_CONTRACT_PASS schemas=12 stableRecipes=9 previewRecipes=5 examples=13 acceptance=279
+
+> world-semantic-grounding-service@0.2.1 contracts:gdps:check
+> node validation/scripts/verify-wsgs-gdps-contracts.mjs
+
+WSGS_V02_GDPS_CONTRACT_PASS schemas=9 productTypes=34 profiles=35 capabilities=30 recipes=14 concepts=16 e2e=16
+
+> world-semantic-grounding-service@0.2.1 contracts:sacs-geospatial:check
+> node validation/scripts/generate-sacs-geospatial-contract-evidence.mjs
+
+WSGS_V021_GEOSPATIAL_CONTRACT_READY schemas=10 examples=19 negative=11 sacsBidirectional=14 legacyArtifacts=32
+
+> world-semantic-grounding-service@0.2.1 findings:decoder:check
+> npm run findings:decoder:build && tsx validation/scripts/generate-sacs-geospatial-decoder-evidence.ts
+
+
+> world-semantic-grounding-service@0.2.1 findings:decoder:build
+> tsc -b packages/gowm-contract-intake packages/gdps-descriptor-consumer packages/gowm-execution-evidence packages/northbound-geospatial-findings --pretty false
+
+WSGS_V021_FINDING_DECODER_READY coverage=30 supported=29 notApplicable=1 findingKinds=6 realShapes=10 negatives>=28 runtime=NOT_RUN consumerCases=0/18
+
+> world-semantic-grounding-service@0.2.1 findings:provenance:check
+> tsx validation/scripts/generate-sacs-geospatial-provenance-evidence.ts
+
+WSGS_V021_N03_EVIDENCE_SOURCE_READY input=sha256:553abfdaf952164c9213720f831d146ec0286005901149e37454746b00d40f77 tests=120 real=NOT_RUN
+
+> world-semantic-grounding-service@0.2.1 contracts:types:check
+> node validation/scripts/generate-contract-types.mjs --check
+
+WSGS_CONTRACT_TYPES_CHECK_PASS files=37 embeddedSchemaDocuments=1
+
+> world-semantic-grounding-service@0.2.1 verify:world-analysis-contract
+> node validation/scripts/verify-world-analysis-contract.mjs
+
+WORLD_ANALYSIS_TYPES_CHECK_PASS schemas=45 types=15
+WORLD_ANALYSIS_EXAMPLES_CHECK_PASS cases=44 positive=20 negative=24
+{"status":"PASS","mode":"VERIFY","files":68,"manifest":"reports/wsgs-v0.2.4-stable-world-analysis-service/W00/legacy-contract-hashes.json"}
+{"status":"PASS","scope":"W01_FROZEN_CONTRACT_ONLY","schemas":45,"examples":44,"assertions":836,"runtimeValidated":false,"liveServicesUsed":false}
+
+> world-semantic-grounding-service@0.2.1 world-analysis:runtime:check
+> node validation/scripts/sync-world-analysis-runtime.mjs --check
+
+WORLD_ANALYSIS_RUNTIME_MIRROR_CHECK_PASS files=17
+
+> world-semantic-grounding-service@0.2.1 architecture:check
+> node validation/scripts/architecture-boundary.mjs
+
+ARCHITECTURE_BOUNDARY_PASS no_sdar=true no_a2a=true no_smpp=true no_gowm_db=true gateway_only=true no_direct_gdps=true no_prefix_auth=true planner_operation_free=true descriptor_consumer_pure=true finding_runtime_importer_locked=true no_langgraph=true
+
+> world-semantic-grounding-service@0.2.1 acceptance:check
+> node validation/scripts/generate-acceptance-ledger.mjs
+
+WSGS_ACCEPTANCE_LEDGER_PASS required=206 pass=145 not_run=2 blocked=59
+
+> world-semantic-grounding-service@0.2.1 acceptance:v0.2:check
+> node validation/scripts/generate-v02-acceptance-ledger.mjs
+
+WSGS_V02_ACCEPTANCE_LEDGER_BLOCKED required=279 pass=195 fail=0 not_run=17 blocked=67
+
+> world-semantic-grounding-service@0.2.1 development:check
+> npm run acceptance:development:check && node validation/scripts/verify-development-closure.mjs
+
+
+> world-semantic-grounding-service@0.2.1 acceptance:development:check
+> node validation/scripts/generate-development-acceptance-ledger.mjs
+
+WSGS_V02_DEVELOPMENT_DEVELOPMENT_READY required=63 pass=63 fail=0 not_run=0 blocked=0 sha256=fd2def26d5c34a68121fad531d336d46358b334213dfdefcb09c9e628f73bc74
+WSGS_V02_DEVELOPMENT_CLOSURE_PASS schemas=4 development=63/63 deferred=14 recipes=6 productionQualified=false
+
+> world-semantic-grounding-service@0.2.1 typecheck
+> tsc -b --pretty false
+
+
+> world-semantic-grounding-service@0.2.1 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/zhouwen/web-download/world-semantic-grounding-service
+
+stderr | tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty MAP over Gateway HTTP
+{"level":"error","event":"advanced_execution_failed","groundingId":"grounding-de193bf5-13b8-4bf1-97a9-86586a18dec5","phase":"FOUNDATION","code":"UNCLASSIFIED_EXECUTION_ERROR","classification":"ADVANCED_HISTORY_RESULT_INVALID","lastOperation":"operational-task.get-execution-intervals","attemptedOperations":2,"analysisEvidenceCount":0}
+
+stderr | tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty CROSS over Gateway HTTP
+{"level":"error","event":"advanced_execution_failed","groundingId":"grounding-0ff742b4-ed15-4b35-8d50-238361380c7b","phase":"FOUNDATION","code":"UNCLASSIFIED_EXECUTION_ERROR","classification":"ADVANCED_HISTORY_RESULT_INVALID","lastOperation":"operational-task.get-execution-intervals","attemptedOperations":2,"analysisEvidenceCount":0}
+
+stderr | tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty CROSS_COMPLETE over Gateway HTTP
+{"level":"error","event":"advanced_execution_failed","groundingId":"grounding-8ff9c731-b28e-4a3c-91a7-9142bdfb53d2","phase":"FOUNDATION","code":"UNCLASSIFIED_EXECUTION_ERROR","classification":"ADVANCED_HISTORY_RESULT_INVALID","lastOperation":"operational-task.get-execution-intervals","attemptedOperations":2,"analysisEvidenceCount":0}
+
+stderr | tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty CROSS_HASH_DRIFT over Gateway HTTP
+{"level":"error","event":"advanced_execution_failed","groundingId":"grounding-d07c874a-7b71-4a28-bd1c-556af08c7985","phase":"FOUNDATION","code":"UNCLASSIFIED_EXECUTION_ERROR","classification":"ADVANCED_HISTORY_RESULT_INVALID","lastOperation":"operational-task.get-execution-intervals","attemptedOperations":2,"analysisEvidenceCount":0}
+
+stderr | tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty CROSS_MAP_UNAVAILABLE over Gateway HTTP
+{"level":"error","event":"advanced_execution_failed","groundingId":"grounding-2b852963-9475-4eb1-b2fe-537afe58fec2","phase":"FOUNDATION","code":"UNCLASSIFIED_EXECUTION_ERROR","classification":"ADVANCED_HISTORY_RESULT_INVALID","lastOperation":"operational-task.get-execution-intervals","attemptedOperations":2,"analysisEvidenceCount":0}
+
+stderr | tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty RANK over Gateway HTTP
+{"level":"error","event":"advanced_execution_failed","groundingId":"grounding-25608043-bad2-4799-a9af-bfc861c7d9fd","phase":"FOUNDATION","code":"UNCLASSIFIED_EXECUTION_ERROR","classification":"ADVANCED_HISTORY_RESULT_INVALID","lastOperation":"operational-task.get-execution-intervals","attemptedOperations":2,"analysisEvidenceCount":0}
+
+stderr | tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty SERIES_RANK_ACTION over Gateway HTTP
+{"level":"error","event":"advanced_execution_failed","groundingId":"grounding-7901142b-f5dc-48c7-8a1b-ad5b48d3ca7b","phase":"FOUNDATION","code":"UNCLASSIFIED_EXECUTION_ERROR","classification":"ADVANCED_HISTORY_RESULT_INVALID","lastOperation":"operational-task.get-execution-intervals","attemptedOperations":2,"analysisEvidenceCount":0}
+
+ ❯ tests/world-analysis-business-http.test.ts (8 tests | 8 failed) 26147ms
+     × queries nonempty TRACE over Gateway HTTP 3339ms
+     × queries nonempty MAP over Gateway HTTP 2997ms
+     × queries nonempty CROSS over Gateway HTTP 3080ms
+     × queries nonempty CROSS_COMPLETE over Gateway HTTP 2933ms
+     × queries nonempty CROSS_HASH_DRIFT over Gateway HTTP 2891ms
+     × queries nonempty CROSS_MAP_UNAVAILABLE over Gateway HTTP 3687ms
+     × queries nonempty RANK over Gateway HTTP 3563ms
+     × queries nonempty SERIES_RANK_ACTION over Gateway HTTP 3652ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty TRACE over Gateway HTTP
+AssertionError: {"result":{"schemaVersion":"1.0","requestId":"request-ab2d83a7-e724-49d1-9d24-7d7704f3f293","error":{"code":"INTERNAL_ERROR","message":"Request could not be completed","retryable":true,"stage":"REQUEST_VALIDATION"}},"calls":["reference.validate","operational-task.get"],"gatewayErrors":[],"errors":[null],"events":[{"groundingId":"grounding-9f932584-57c9-4a61-89e7-c43e7e69d9ed","stage":"GOWM_EXECUTE","attempt":1,"generation":1,"status":"FAILED","inputHash":"sha256:b28718592adf2bdf1fbd40f43aa2c0c9e414a15a7f26446a825c8768d0b0dcc9","elapsedMs":44,"errorCode":"Error","createdAt":"2026-09-08T09:00:05.374Z"}]}: expected 500 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 500
+
+ ❯ tests/world-analysis-business-http.test.ts:261:229
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty MAP over Gateway HTTP
+ FAIL  tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty CROSS over Gateway HTTP
+ FAIL  tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty CROSS_COMPLETE over Gateway HTTP
+ FAIL  tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty CROSS_HASH_DRIFT over Gateway HTTP
+ FAIL  tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty CROSS_MAP_UNAVAILABLE over Gateway HTTP
+ FAIL  tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty RANK over Gateway HTTP
+ FAIL  tests/world-analysis-business-http.test.ts > nonempty historical production HTTP > queries nonempty SERIES_RANK_ACTION over Gateway HTTP
+AssertionError: expected [ 'reference.validate', …(1) ] to include 'history.get-trajectory'
+ ❯ tests/world-analysis-business-http.test.ts:263:19
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+
+ Test Files  1 failed | 77 passed | 4 skipped (82)
+      Tests  8 failed | 1004 passed | 47 skipped (1059)
+   Start at  16:59:56
+   Duration  48.07s (transform 9.39s, setup 0ms, import 66.76s, tests 99.52s, environment 19ms)
+

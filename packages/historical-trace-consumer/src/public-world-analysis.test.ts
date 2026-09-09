@@ -9,7 +9,7 @@ import { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
 import { resolvePublicAdvancedFollowup, resolvePublicAdvancedFollowups } from "./advanced-followup.js";
 import { advancedHistoryConfigurationFromEnvironment } from "./advanced-config.js";
 
-const contracts = new AnalysisProviderContracts();
+const contracts = new AnalysisProviderContracts(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url).pathname);
 const catalog = new MetricSemanticCatalog();
 const validate = createWorldAnalysisValidator();
 const fixtureRoot = new URL("../../../validation/fixtures/advanced-history/", import.meta.url);
@@ -223,6 +223,12 @@ describe("public world analysis projection", () => {
     expect(result.worldAnalysisFindings.findings.length).toBeGreaterThanOrEqual(2);
     expect(projectPublicWorldAnalysis(input)).toEqual(projection);
     expect({ profileHash: result.worldAnalysisFindings.findingSetHash, resultHash: result.resultHash, kinds: result.worldAnalysisFindings.findings.map(finding => finding.findingKind) }).toMatchSnapshot();
+  });
+  it.each([["HISTORICAL_UPSTREAM_CONTRACT_MISMATCH", "UPSTREAM_CONTRACT_MISMATCH"], ["HISTORICAL_UPSTREAM_UNAVAILABLE", "UPSTREAM_FAILURE"]])("publishes a blocking gap for historical query failure %s", (reason, gapKind) => {
+    const { advanced: _advanced, ...input } = setup("metric-shared-campus");
+    const projection = projectPublicWorldAnalysis({ ...input, failureReasonCode: reason });
+    expect(projection.component.gaps).toEqual(expect.arrayContaining([expect.objectContaining({ gapKind, severity: "BLOCKING" })]));
+    expect(assemblePublicWorldAnalysisResult(input.base, projection).status).toBe("PARTIAL");
   });
   it("keeps independent history but rejects a tampered Provider result", () => {
     const input = setup("metric-shared-campus");
@@ -450,5 +456,33 @@ describe("public world analysis projection", () => {
     const projection = projectPublicWorldAnalysis(input);
     expect(projection.component.gaps[0]?.gapKind).toBe("UPSTREAM_CONTRACT_MISMATCH");
     expect(projection.component.findings.map(finding => finding.findingKind)).toEqual(["HISTORICAL_TRACE"]);
+  });
+});
+
+describe("stable device identity across GOWM versions", () => {
+  it.each(["map-match", "stop", "metric-shared-campus"])("projects %s across current and frozen device versions without rewriting evidence", name => {
+    const input = setup(name);
+    const before = structuredClone(input.advanced.analysisEvidence);
+    const current = { ...input.advanced.foundation!.intent.subjectReferenceKey!, version: "9000" };
+    input.advanced.foundation!.intent.subjectReferenceKey = current;
+    const device = input.context.referenceProducts.find(p => p.referenceKey.id === current.id)!;
+    device.referenceKey = { ...device.referenceKey, version: current.version };
+    const result = projectPublicWorldAnalysis(input);
+    expect(result.component.gaps.some(g => g.gapKind === "UPSTREAM_CONTRACT_MISMATCH" || g.gapKind === "REFERENCE_MISSING")).toBe(false);
+    expect(result.component.findings.some(f => f.findingKind !== "HISTORICAL_TRACE")).toBe(true);
+    expect(result.component.findings.every(f => f.subjectReferenceProductIds.includes(device.productId))).toBe(true);
+    expect(input.advanced.analysisEvidence).toEqual(before);
+    expect(device.referenceKey.version).toBe("9000");
+  });
+  it.each(["different_device", "trajectory_version", "lineage_device"])("retains %s consistency checks", kind => {
+    const input = setup("stop");
+    if (kind === "different_device") input.advanced.foundation!.intent.subjectReferenceKey = key("WORLD_OBJECT", "different-device");
+    if (kind === "trajectory_version") input.advanced.foundation!.reference.referenceKey = {
+      ...input.advanced.foundation!.reference.referenceKey, version: "999"
+    };
+    if (kind === "lineage_device") input.advanced.foundation!.finding.subjectReferenceKey = key("WORLD_OBJECT", "other-lineage-device");
+    const result = projectPublicWorldAnalysis(input);
+    expect(result.component.findings.some(f => f.findingKind === "TEMPORAL_EVENT")).toBe(false);
+    expect(result.component.gaps.some(g => g.gapKind === "UPSTREAM_CONTRACT_MISMATCH")).toBe(true);
   });
 });

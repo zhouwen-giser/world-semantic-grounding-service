@@ -11,3 +11,7 @@ secrets/
 .task-shims/
 .intake/
 WSGS_v0.1_Grounding_Core_Codex_Goal/
+
+__pycache__/
+
+validation/live-site-references.json

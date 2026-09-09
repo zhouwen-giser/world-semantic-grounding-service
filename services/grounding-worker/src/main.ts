@@ -13,6 +13,12 @@ import { Pool } from "pg";
 import { PostgresCancellationListener, PostgresGroundingWorkerStore } from "./postgres-store.js";
 import { productionPipelinePolicyFromEnvironment } from "./pipeline-policy.js";
 import { GroundingWorker } from "./worker.js";
+import { cleanupExpiredSources, SourceCleanupLoop } from "./source-cleanup.js";
+import { safeRuntimeErrorCode, type WorkerRuntimeLogger } from "./runtime-errors.js";
+
+const log: WorkerRuntimeLogger = event => {
+  process.stdout.write(`${JSON.stringify({ level: event.code ? "error" : "info", ...event })}\n`);
+};
 
 function required(name: string): string {
   const value = process.env[name];
@@ -22,7 +28,7 @@ function required(name: string): string {
 
 function integerEnvironment(name: string, fallback: number, minimum: number): number {
   const value = Number(process.env[name] ?? fallback);
-  if (!Number.isInteger(value) || value < minimum) {
+  if (!Number.isSafeInteger(value) || value < minimum) {
     throw new Error(`${name} must be an integer of at least ${minimum}`);
   }
   return value;
@@ -51,13 +57,16 @@ const codec = Aes256GcmPayloadCodec.fromBase64(required("WSGS_REQUEST_ENCRYPTION
 const pool = new Pool({
   connectionString: databaseUrl,
   max: integerEnvironment("WSGS_WORKER_DATABASE_POOL_SIZE", 8, 2),
+  connectionTimeoutMillis: 5_000,
+  query_timeout: 30_000,
   application_name: "wsgs-grounding-worker"
 });
+pool.on("error", error => log({ event: "worker_database_error", stage: "DATABASE", code: safeRuntimeErrorCode(error) }));
 await pool.query("SELECT 1 FROM wsgs.pipeline_checkpoint LIMIT 0");
 const journal = new PostgresPipelineJournal(pool, codec);
 const executor = await loadExecutor(pool, journal);
 
-const store = new PostgresGroundingWorkerStore(pool, codec);
+const store = new PostgresGroundingWorkerStore(pool, codec, log);
 const pipeline = new GroundingPipeline({
   executor,
   journal,
@@ -67,6 +76,7 @@ const worker = new GroundingWorker({
   workerId: process.env["WSGS_WORKER_ID"] ?? `worker-${randomUUID()}`,
   store,
   pipeline,
+  log,
   leaseMs: integerEnvironment("WSGS_WORKER_LEASE_MS", 30_000, 100),
   heartbeatMs: integerEnvironment("WSGS_WORKER_HEARTBEAT_MS", 5_000, 10),
   pollIntervalMs: integerEnvironment("WSGS_WORKER_POLL_INTERVAL_MS", 250, 1),
@@ -74,26 +84,42 @@ const worker = new GroundingWorker({
   maxJobAttempts: integerEnvironment("WSGS_WORKER_MAX_JOB_ATTEMPTS", 3, 1),
   retryBackoffMs: integerEnvironment("WSGS_WORKER_RETRY_BACKOFF_MS", 500, 0)
 });
-const cancellationListener = new PostgresCancellationListener(pool);
+const cancellationListener = new PostgresCancellationListener(pool, log);
 await cancellationListener.start(worker);
+const cleanupBatchSize = integerEnvironment("WSGS_SOURCE_CLEANUP_BATCH_SIZE", 100, 1);
+const cleanup = new SourceCleanupLoop(
+  () => cleanupExpiredSources(pool, cleanupBatchSize),
+  integerEnvironment("WSGS_SOURCE_CLEANUP_INTERVAL_MS", 60_000, 1),
+  log
+);
+cleanup.start();
 
-let closing = false;
-async function shutdown(signal: string): Promise<void> {
-  if (closing) return;
-  closing = true;
-  process.stdout.write(`${JSON.stringify({ level: "info", event: "shutdown", signal })}\n`);
-  await worker.stop(integerEnvironment("WSGS_WORKER_SHUTDOWN_GRACE_MS", 10_000, 0));
-  await cancellationListener.close();
-  await pool.end();
+let closing: Promise<void> | undefined;
+function shutdown(): Promise<void> {
+  closing ??= (async () => {
+    log({ event: "shutdown", stage: "SHUTDOWN" });
+    const outcomes = await Promise.allSettled([
+      worker.stop(integerEnvironment("WSGS_WORKER_SHUTDOWN_GRACE_MS", 10_000, 0)), cleanup.stop()
+    ]);
+    try { await cancellationListener.close(); }
+    finally { await pool.end(); }
+    const failed = outcomes.find(outcome => outcome.status === "rejected");
+    if (failed?.status === "rejected") throw failed.reason;
+  })();
+  return closing;
 }
 
-process.once("SIGTERM", () => { void shutdown("SIGTERM"); });
-process.once("SIGINT", () => { void shutdown("SIGINT"); });
+function reportFatal(error: unknown): void {
+  log({ event: "worker_fatal", stage: "WORKER_RUNTIME", code: safeRuntimeErrorCode(error) });
+  process.exitCode = 1;
+}
+process.once("SIGTERM", () => { void shutdown().catch(reportFatal); });
+process.once("SIGINT", () => { void shutdown().catch(reportFatal); });
 
 try {
   await worker.start();
 } catch (error) {
-  await cancellationListener.close();
-  await pool.end();
-  throw error;
+  reportFatal(error);
+} finally {
+  await shutdown().catch(reportFatal);
 }

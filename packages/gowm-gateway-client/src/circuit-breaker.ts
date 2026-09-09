@@ -1,4 +1,5 @@
 export class CircuitOpenError extends Error {
+  readonly code = "GATEWAY_CIRCUIT_OPEN";
   constructor(readonly retryAt: number) {
     super("GOWM Gateway circuit is open");
   }

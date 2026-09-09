@@ -1,0 +1,7 @@
+{"status":"PASS","packageVersion":"9.0.0","schemas":84}
+..{"status":"PASS","packageVersion":"9.0.0","schemas":84}
+.......
+----------------------------------------------------------------------
+Ran 9 tests in 1.513s
+
+OK

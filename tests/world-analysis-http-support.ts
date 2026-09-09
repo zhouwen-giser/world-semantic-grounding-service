@@ -8,7 +8,7 @@ import {
 import { buildTrustedCapabilitySnapshot, hashCanonicalJson } from "@wsgs/trusted-capability-snapshot";
 import type { CapabilityCatalog, CapabilitySemanticCatalog, OperationAvailabilityList } from "@wsgs/gowm-gateway-client";
 import type { OperationalGowmLock } from "@wsgs/gowm-contract-intake";
-import { AnalysisProviderContracts, analysisHash, defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
+import { currentGowmPath, currentGowmSnapshot, AnalysisProviderContracts, analysisHash, defaultGowmConsumerSchemaRegistry } from "@wsgs/gowm-contract-intake";
 import { selectProductionSouthboundLock } from "../services/grounding-worker/src/production-module.js";
 import { assertNegotiatedGroundingResult } from "../services/grounding-worker/src/result-schema.js";
 import type { GroundingWorkerStore, WorkerExecutionFence, WorkerSettlement } from "../services/grounding-worker/src/types.js";
@@ -43,24 +43,10 @@ export function admissionFixture() {
 }
 
 export function analysisAdmissionFixture() {
-  const read = (path: string) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), "utf8"));
-  const base = read("validation/fixtures/world-analysis-http/gateway-catalog.json");
-  const bytes = readFileSync(new URL("../validation/fixtures/world-analysis-http/history-metadata.json", import.meta.url));
-  if (`sha256:${createHash("sha256").update(bytes).digest("hex")}` !== read("validation/fixtures/world-analysis-http/HISTORY_SOURCE.json").fixtureSha256) throw new Error("HISTORY_FIXTURE_DRIFT");
-  const history = JSON.parse(bytes.toString("utf8"));
+  // Current formal metadata; only HTTP behavior and result payloads are fixtures.
+  const { capabilities, profiles } = JSON.parse(readFileSync(currentGowmPath("CATALOG.json"), "utf8")) as { capabilities: any[]; profiles: any[] };
+  const lock = JSON.parse(readFileSync(currentGowmPath(currentGowmSnapshot.operationalLockPath), "utf8"));
   const contracts = new AnalysisProviderContracts();
-  const replacements = [...history.capabilities, ...["map-matching", "temporal-events", "metric-ranking"].flatMap(name =>
-    read(`contracts/upstream/gowm-analysis-providers-current/contracts/manifests/${name}-provider.json`).capabilities)];
-  const capabilities = [...base.capabilities.filter((entry: any) => !replacements.some(value => value.operationId === entry.operationId)), ...replacements]
-    .sort((a, b) => `${a.operationId}@${a.operationVersion}` < `${b.operationId}@${b.operationVersion}` ? -1 : 1);
-  const profiles = capabilities.map(entry => ({ operationId: entry.operationId, operationVersion: entry.operationVersion,
-    semanticProfile: entry.semanticProfile, semanticProfileHash: analysisHash(entry.semanticProfile) }));
-  const lock = read("contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json");
-  lock.previewOperations = [...lock.previewOperations.filter((entry: any) => !replacements.some(value => value.operationId === entry.operationId)),
-    ...history.operations, ...contracts.authorizations.map(auth => ({ operationId: auth.operationId, operationVersion: auth.operationVersion,
-      inputSchemaHash: auth.inputSchemaHash, outputSchemaHash: auth.outputSchemaHash, semanticProfileHash: auth.semanticProfileHash,
-      maturity: "PREVIEW", requiredPermissions: ["data:read"], snapshotSupport: "CONSISTENT_AT_START" }))];
-  lock.contractCatalogRevision = analysisHash(capabilities); lock.semanticCatalogHash = analysisHash(profiles);
   const bindingRevision = analysisHash("controlled-discovery-binding");
   const catalog = { registryVersion: "registry-1", contractCatalogRevision: lock.contractCatalogRevision, bindingRevision, capabilities };
   const semantics = { schemaVersion: "1.1", contractCatalogRevision: lock.contractCatalogRevision, bindingRevision, profiles, catalogHash: lock.semanticCatalogHash };
@@ -185,6 +171,7 @@ export class HttpMemoryStore implements ProductionGroundingStore, GroundingWorke
     }
     return true;
   }
+  readonly worldQueries = new Map<string, { plan: any; plan_hash: string; grounding_id: unknown }>();
   private readonly query = async (sql: string, values: unknown[] = []) => {
     this.sql.push(sql);
     if (sql.includes("FROM wsgs.grounding_result AS result") && sql.includes("JOIN wsgs.grounding_request AS request") && sql.includes("JOIN wsgs.grounding_job AS job")) {
@@ -199,6 +186,9 @@ export class HttpMemoryStore implements ProductionGroundingStore, GroundingWorke
         dataset_scopes: identity.datasetScopes, authorization_context_hash: identity.authorizationContextHash,
         result_hash: result.resultHash, result_bytes: Buffer.from(job.resultBytes), source_expires_at: job.submission.sourceExpiresAt }] };
     }
+    if (sql.includes("SELECT plan,plan_hash FROM wsgs.world_query")) return { rows: [...this.worldQueries.values()].filter(row => row.grounding_id === values[0] && row.plan.idempotencyKey === values[1]), rowCount: 0 };
+    if (sql.includes("INSERT INTO wsgs.world_query(")) { this.worldQueries.set(String(values[0]), { grounding_id: values[1], plan: JSON.parse(String(values[3])), plan_hash: String(values[4]) }); return { rows: [], rowCount: 1 }; }
+    if (sql.includes("UPDATE wsgs.world_query") || sql.includes("INSERT INTO wsgs.gowm_execution(")) return { rows: [], rowCount: 1 };
     if (["BEGIN", "COMMIT", "ROLLBACK"].includes(sql)) return { rowCount: 0, rows: [] };
     if (sql.includes("SELECT 1 FROM wsgs.grounding_job")) return { rowCount: this.owns({ jobId: String(values[0]), leaseToken: String(values[1]), generation: Number(values[2]) }) ? 1 : 0, rows: [] };
     if (/INSERT INTO wsgs\.(capability_snapshot|model_receipt|semantic_frame|grounding_graph)/u.test(sql)) return { rowCount: 1, rows: [] };

@@ -6,7 +6,7 @@ import { advancedHistoryConfigurationFromEnvironment, historicalTraceConfigurati
   parseAdvancedHistoricalIntent, normalizeMetricRanking, type AdvancedHistoricalExecutionResult } from "@wsgs/historical-trace-consumer";
 import { advancedEvidence, historicalFoundationForAdvanced, selectProductionSouthboundLock } from "./production-module.js";
 
-const contracts = new AnalysisProviderContracts();
+const contracts = new AnalysisProviderContracts(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url).pathname);
 const config = advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" });
 const history = historicalTraceConfigurationFromEnvironment({ WSGS_HISTORY_TRACE_ENABLED: "YES" });
 const baselineLock = (): OperationalGowmLock => JSON.parse(readFileSync(fileURLToPath(new URL("../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json", import.meta.url)), "utf8")) as OperationalGowmLock;

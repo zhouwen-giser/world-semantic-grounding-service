@@ -4,7 +4,7 @@ import { AnalysisProviderContracts, analysisHash, GowmConsumerSchemaRegistry } f
 import { GowmGatewayClient } from "./client.js";
 import type { CapabilityCatalog, CapabilitySemanticCatalog, OperationAvailabilityList, OperationLock } from "./types.js";
 
-const contracts = new AnalysisProviderContracts();
+const contracts = new AnalysisProviderContracts(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url).pathname);
 function discovery() {
   const capabilities = ["map-matching", "temporal-events", "metric-ranking"].flatMap(name =>
     JSON.parse(readFileSync(new URL(`../../../contracts/upstream/gowm-analysis-providers-current/contracts/manifests/${name}-provider.json`, import.meta.url), "utf8")).capabilities);
@@ -29,8 +29,8 @@ function client(optIn: boolean) {
 }
 
 describe("verified opt-in analysis Gateway semantics", () => {
-  it("retains rejection of profile 1.1 in the default frozen Gateway registry", () => {
-    expect(() => client(false).validateTrustedContracts(discovery())).toThrow();
+  it("accepts published profile 1.1 in the current Gateway registry", () => {
+    expect(() => client(false).validateTrustedContracts(discovery())).not.toThrow();
   });
   it("accepts all three real pinned GSAP manifests through the actual Gateway validator", () => {
     const input = discovery();
@@ -65,9 +65,9 @@ describe("verified opt-in analysis Gateway semantics", () => {
     expect(() => new GowmConsumerSchemaRegistry({ analysisContracts: contracts })
       .validate("platform/capability-result-envelope.schema.json", envelope)).toThrow();
   });
-  it("preserves closed snapshot resources and the default legacy envelope validator", () => {
+  it("accepts published snapshot resources and rejects additional resource properties", () => {
     const envelope = JSON.parse(readFileSync(new URL("../../../validation/fixtures/advanced-history/metric-shared-campus.json", import.meta.url), "utf8"));
-    expect(() => new GowmConsumerSchemaRegistry().validate("platform/capability-result-envelope.schema.json", envelope)).toThrow();
+    expect(() => new GowmConsumerSchemaRegistry().validate("platform/capability-result-envelope.schema.json", envelope)).not.toThrow();
     envelope.dataSnapshot.resources[0].untrusted = true;
     expect(() => new GowmConsumerSchemaRegistry({ analysisContracts: contracts })
       .validate("platform/capability-result-envelope.schema.json", envelope)).toThrow();

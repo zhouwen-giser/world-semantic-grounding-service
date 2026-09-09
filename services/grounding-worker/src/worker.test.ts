@@ -76,6 +76,98 @@ function worker(
 }
 
 describe("GroundingWorker", () => {
+  it("backs off transient claim errors, caps delays, resets after success and interrupts on stop", async () => {
+    vi.useFakeTimers();
+    try {
+      const store = new MemoryWorkerStore();
+      const failure = Object.assign(new Error("secret database URL"), { code: "ECONNRESET" });
+      const claimNext = vi.spyOn(store, "claimNext").mockRejectedValue(failure);
+      const log = vi.fn();
+      const value = worker(store, async () => success(), { log });
+      const running = value.start();
+      await vi.advanceTimersByTimeAsync(0);
+      let calls = 1;
+      for (const delay of [500, 1000, 2000, 4000, 8000, 16000, 30000, 30000]) {
+        await vi.advanceTimersByTimeAsync(delay - 1);
+        expect(claimNext).toHaveBeenCalledTimes(calls);
+        await vi.advanceTimersByTimeAsync(1);
+        expect(claimNext).toHaveBeenCalledTimes(++calls);
+      }
+      claimNext.mockResolvedValueOnce(null);
+      await vi.advanceTimersByTimeAsync(30000);
+      await vi.advanceTimersByTimeAsync(5);
+      const before = claimNext.mock.calls.length;
+      await vi.advanceTimersByTimeAsync(499);
+      expect(claimNext).toHaveBeenCalledTimes(before);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(claimNext).toHaveBeenCalledTimes(before + 1);
+      await value.stop();
+      await running;
+      expect(JSON.stringify(log.mock.calls)).not.toContain("secret");
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("continues to the next job after a transient claim failure", async () => {
+    const store = new MemoryWorkerStore();
+    store.claims.push(claim());
+    vi.spyOn(store, "claimNext").mockRejectedValueOnce(Object.assign(new Error("disconnect"), { code: "08006" }));
+    let completed!: () => void;
+    const done = new Promise<void>(resolve => { completed = resolve; });
+    const settle = store.settle.bind(store);
+    vi.spyOn(store, "settle").mockImplementation(async (fence, value) => {
+      const result = await settle(fence, value); completed(); return result;
+    });
+    const value = worker(store, async () => success());
+    const running = value.start();
+    await done;
+    await value.stop();
+    await running;
+    expect(store.settlements).toHaveLength(1);
+  });
+
+  it("never writes FAILED after a result COMMIT transport failure", async () => {
+    const store = new MemoryWorkerStore();
+    store.claims.push(claim());
+    const error = Object.assign(new Error("lost commit response"), { code: "ECONNRESET" });
+    const settle = vi.spyOn(store, "settle").mockRejectedValue(error);
+    await expect(worker(store, async () => success()).runOnce()).rejects.toBe(error);
+    expect(settle).toHaveBeenCalledTimes(1);
+    expect(settle.mock.calls[0]?.[1].kind).toBe("RESULT");
+  });
+
+  it("drains concurrent jobs before propagating a fatal claim error", async () => {
+    const store = new MemoryWorkerStore();
+    const fatal = new TypeError("unexpected program error");
+    let started!: () => void;
+    const inFlight = new Promise<void>(resolve => { started = resolve; });
+    vi.spyOn(store, "claimNext").mockResolvedValueOnce(claim()).mockImplementationOnce(async () => {
+      await inFlight; throw fatal;
+    });
+    const value = worker(store, async input => {
+      started();
+      return new Promise((_resolve, reject) => input.signal.addEventListener("abort", () => reject(input.signal.reason), { once: true }));
+    }, { concurrency: 2 });
+    await expect(value.start()).rejects.toBe(fatal);
+    expect(value.activeJobs).toBe(0);
+    expect(store.settlements.map(entry => entry.value.kind)).toEqual(["RETRY"]);
+    await expect(value.stop()).resolves.toMatchObject({ drained: true });
+  });
+
+  it("requeues a claim arriving after stop without entering the pipeline", async () => {
+    const store = new MemoryWorkerStore();
+    let deliver!: (value: WorkerClaim) => void;
+    vi.spyOn(store, "claimNext").mockImplementationOnce(() => new Promise(resolve => { deliver = resolve; }));
+    const run = vi.fn(async () => success());
+    const value = worker(store, run);
+    const running = value.start();
+    const stopping = value.stop(0);
+    deliver(claim());
+    await stopping;
+    await running;
+    expect(run).not.toHaveBeenCalled();
+    expect(store.settlements[0]?.value.kind).toBe("RETRY");
+  });
+
   it("claims a durable job and publishes with the exact lease generation fence", async () => {
     const store = new MemoryWorkerStore();
     store.claims.push(claim({ generation: 7, leaseToken: "lease-7" }));

@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import {
   Aes256GcmPayloadCodec,
+  PayloadCipherError,
   GROUNDING_OPERATIONS,
+  PIPELINE_STAGES,
   LEGACY_GROUNDING_CONTRACT_SELECTION,
   canonicalSha256,
   parseGroundingContractSelection,
@@ -22,6 +24,7 @@ import type {
   WorkerSettlement,
   WorkerSettlementOutcome
 } from "./types.js";
+import { safeRuntimeErrorCode, type WorkerRuntimeLogger } from "./runtime-errors.js";
 import { assertNegotiatedGroundingResult } from "./result-schema.js";
 
 interface ClaimRow {
@@ -44,6 +47,10 @@ interface ClaimRow {
   idempotency_key: string;
 }
 
+class WorkerResultValidationError extends Error {
+  readonly code = "WORKER_RESULT_INVALID";
+}
+
 export class PostgresWorkerStoreError extends Error {
   readonly code = "WORKER_STORE_ERROR";
 }
@@ -56,7 +63,7 @@ async function transaction<T>(pool: Pool, run: (client: PoolClient) => Promise<T
     await client.query("COMMIT");
     return value;
   } catch (error) {
-    await client.query("ROLLBACK");
+    await client.query("ROLLBACK").catch(() => undefined);
     throw error;
   } finally {
     client.release();
@@ -119,14 +126,16 @@ function assertResult(
   contractSelection: GroundingContractSelection
 ): Readonly<Record<string, unknown>> {
   if (!/^sha256:[0-9a-f]{64}$/u.test(settlement.resultHash)) {
-    throw new PostgresWorkerStoreError("Worker result hash is not a tagged SHA-256 digest");
+    throw new WorkerResultValidationError("Worker result hash is not a tagged SHA-256 digest");
   }
   if (settlement.resultBytes.byteLength > maximumBytes) {
-    throw new PostgresWorkerStoreError("Worker result exceeds the persisted maximum result size");
+    throw new WorkerResultValidationError("Worker result exceeds the persisted maximum result size");
   }
-  const result = jsonObject(settlement.resultBytes);
+  let result: Readonly<Record<string, unknown>>;
+  try { result = jsonObject(settlement.resultBytes); }
+  catch { throw new WorkerResultValidationError("Worker result is not valid JSON"); }
   if (result["resultHash"] !== settlement.resultHash || result["status"] !== settlement.status) {
-    throw new PostgresWorkerStoreError("Worker result bytes do not match their settlement metadata");
+    throw new WorkerResultValidationError("Worker result bytes do not match their settlement metadata");
   }
   assertNegotiatedGroundingResult(result, contractSelection);
   return result;
@@ -230,7 +239,8 @@ async function persistResultProducts(
 export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
   constructor(
     private readonly pool: Pool,
-    private readonly codec: Aes256GcmPayloadCodec
+    private readonly codec: Aes256GcmPayloadCodec,
+    private readonly log: WorkerRuntimeLogger = () => undefined
   ) {}
 
   async claimNext(workerId: string, leaseMs: number): Promise<WorkerClaim | null> {
@@ -250,10 +260,12 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
             ORDER BY deadline_at, job_id FOR UPDATE SKIP LOCKED LIMIT 100
          )
          UPDATE wsgs.grounding_job AS job
-            SET status = 'FAILED', finished_at = clock_timestamp(), error = $1::jsonb,
+            SET status = 'FAILED', finished_at = clock_timestamp(),
+                error = jsonb_set($1::jsonb, '{stage}', to_jsonb(COALESCE($2::jsonb->>job.pipeline_stage, 'CONTEXT_LOADING'))),
                 lease_token = NULL, lease_owner = NULL, lease_expires_at = NULL
            FROM overdue WHERE job.job_id = overdue.job_id`,
-        [JSON.stringify(jobError("WORKER_DEADLINE_EXCEEDED", false))]
+        [JSON.stringify(jobError("WORKER_DEADLINE_EXCEEDED", false)),
+          JSON.stringify(Object.fromEntries(PIPELINE_STAGES.map(stage => [stage, publicErrorStage(stage)])))]
       );
       const selected = await client.query<ClaimRow>(
         `SELECT job.job_id, job.grounding_id, request.request_id,
@@ -320,33 +332,43 @@ export class PostgresGroundingWorkerStore implements GroundingWorkerStore {
       return { row, leaseToken, immutableLocks, ...fence };
     });
     if (!claimed) return null;
-    const plaintext = await this.codec.openRequest(
-      new Uint8Array(claimed.row.source_text_ciphertext as Buffer),
-      { groundingId: claimed.row.grounding_id, requestId: claimed.row.request_id }
-    );
-    const metadata = claimed.row.request_metadata && typeof claimed.row.request_metadata === "object" &&
-      !Array.isArray(claimed.row.request_metadata)
-      ? claimed.row.request_metadata as Record<string, unknown>
-      : {};
-    const identity = restoredIdentity(claimed.row, metadata);
-    const contractSelection = storedContractSelection(metadata);
-    return {
-      jobId: claimed.row.job_id,
-      groundingId: claimed.row.grounding_id,
-      operation: operation(claimed.row.operation),
-      leaseToken: claimed.leaseToken,
-      generation: claimed.stage_generation,
-      attempt: claimed.attempts,
-      deadlineAt: claimed.row.deadline_at,
-      maxResultBytes: claimed.row.max_result_bytes,
-      initialState: {
-        request: jsonObject(plaintext),
-        idempotencyKey: claimed.row.idempotency_key,
-        contractSelection,
-        identity
-      },
-      immutableLocks: claimed.immutableLocks
-    };
+    try {
+      const plaintext = await this.codec.openRequest(
+        new Uint8Array(claimed.row.source_text_ciphertext as Buffer),
+        { groundingId: claimed.row.grounding_id, requestId: claimed.row.request_id }
+      );
+      const metadata = claimed.row.request_metadata && typeof claimed.row.request_metadata === "object" &&
+        !Array.isArray(claimed.row.request_metadata)
+        ? claimed.row.request_metadata as Record<string, unknown>
+        : {};
+      const identity = restoredIdentity(claimed.row, metadata);
+      const contractSelection = storedContractSelection(metadata);
+      return {
+        jobId: claimed.row.job_id,
+        groundingId: claimed.row.grounding_id,
+        operation: operation(claimed.row.operation),
+        leaseToken: claimed.leaseToken,
+        generation: claimed.stage_generation,
+        attempt: claimed.attempts,
+        deadlineAt: claimed.row.deadline_at,
+        maxResultBytes: claimed.row.max_result_bytes,
+        initialState: {
+          request: jsonObject(plaintext),
+          idempotencyKey: claimed.row.idempotency_key,
+          contractSelection,
+          identity
+        },
+        immutableLocks: claimed.immutableLocks
+      };
+    } catch (error) {
+      if (!(error instanceof PayloadCipherError || error instanceof PostgresWorkerStoreError)) throw error;
+      this.log({ event: "worker_claim_invalid", stage: "CLAIM_HYDRATION", jobId: claimed.row.job_id,
+        code: safeRuntimeErrorCode(error), attempt: claimed.attempts });
+      await this.settle({ jobId: claimed.row.job_id, leaseToken: claimed.leaseToken, generation: claimed.stage_generation }, {
+        kind: "FAILED", errorCode: "WORKER_CLAIM_INVALID", pipelineStage: "LOAD_CONTEXT", retryable: false
+      });
+      return null;
+    }
   }
 
   async heartbeat(fence: WorkerExecutionFence, leaseMs: number): Promise<WorkerHeartbeat> {
@@ -477,19 +499,37 @@ export class PostgresCancellationListener {
   readonly #notification = (message: Notification): void => {
     if (message.channel === "wsgs_grounding_cancel" && message.payload) this.#worker?.cancel(message.payload);
   };
+  readonly #error = (error: Error): void => {
+    const client = this.#client;
+    if (!client) return;
+    this.#client = undefined;
+    this.#worker = undefined;
+    client.removeListener("notification", this.#notification);
+    client.removeListener("error", this.#error);
+    client.release(true);
+    // Notifications only accelerate cancellation. Lease heartbeats continue
+    // reading cancel_requested_at if the dedicated LISTEN connection is lost.
+    this.log({ event: "worker_cancellation_listener_lost", stage: "DATABASE", code: safeRuntimeErrorCode(error) });
+  };
 
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly pool: Pool, private readonly log: WorkerRuntimeLogger = () => undefined) {}
 
   async start(worker: GroundingWorker): Promise<void> {
     if (this.#client) throw new PostgresWorkerStoreError("Cancellation listener has already started");
     const client = await this.pool.connect();
+    this.#client = client;
+    this.#worker = worker;
+    client.on("error", this.#error);
     try {
       await client.query("LISTEN wsgs_grounding_cancel");
       client.on("notification", this.#notification);
-      this.#client = client;
-      this.#worker = worker;
     } catch (error) {
-      client.release();
+      if (this.#client === client) {
+        this.#client = undefined;
+        this.#worker = undefined;
+        client.removeListener("error", this.#error);
+        client.release(true);
+      }
       throw error;
     }
   }
@@ -500,10 +540,15 @@ export class PostgresCancellationListener {
     this.#client = undefined;
     this.#worker = undefined;
     client.removeListener("notification", this.#notification);
+    let failed = false;
     try {
       await client.query("UNLISTEN wsgs_grounding_cancel");
+    } catch (error) {
+      failed = true;
+      throw error;
     } finally {
-      client.release();
+      client.removeListener("error", this.#error);
+      client.release(failed);
     }
   }
 }

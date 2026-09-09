@@ -106,7 +106,7 @@ export function primaryDataScopeFromEnvironment(
   environment: Readonly<NodeJS.ProcessEnv> = process.env
 ): string | undefined {
   const value = environment["WSGS_PRIMARY_DATA_SCOPE"];
-  if (value === undefined) return undefined;
+  if (value === undefined || value === "") return undefined;
   if (!authorityIdentifierPattern.test(value)) {
     throw new Error("WSGS_PRIMARY_DATA_SCOPE must be one exact authority identifier");
   }

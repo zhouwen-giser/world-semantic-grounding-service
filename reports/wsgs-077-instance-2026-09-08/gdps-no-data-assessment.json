@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "scope": "GDPS_NO_DATA_END_TO_END",
+  "businessDataAvailable": false,
+  "activated": false,
+  "originalHarnessStatus": "FAILED",
+  "correction": "The WORLD_EVIDENCE profile carries NO_DATA in evidenceItems.upstreamStatus and unknowns; a findings gap is not required. Both persisted public evidence and actual node receipts were checked for the same grounding/result hash.",
+  "publicResultMetadata": {
+    "groundingId": "grounding-7c9f51cb-9a7f-4ea8-8e1f-03004920211d",
+    "resultHash": "sha256:594553f9851e2e25fb39e247bbd8d1a8b1bb19c66a84155ddaa3d2a2d2dab64b",
+    "evidence": [
+      {
+        "operation": "world.get-current-state",
+        "upstreamStatus": "COMPLETED",
+        "receiptCount": 1,
+        "unknowns": []
+      },
+      {
+        "operation": "landcover.get-class",
+        "upstreamStatus": "NO_DATA",
+        "receiptCount": 1,
+        "unknowns": [
+          "NO_DATA"
+        ]
+      }
+    ]
+  },
+  "executions": [
+    {
+      "operation_id": "landcover.get-class",
+      "upstream_status": "NO_DATA",
+      "normalized_status": "NO_DATA",
+      "receipt_count": 1
+    },
+    {
+      "operation_id": "world.get-current-state",
+      "upstream_status": "COMPLETED",
+      "normalized_status": "COMPLETED",
+      "receipt_count": 1
+    }
+  ]
+}

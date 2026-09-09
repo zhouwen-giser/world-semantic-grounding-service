@@ -1,3 +1,5 @@
+import { sameReferenceIdentity } from "./context.js";
+import type { AdvancedAvailabilityObservation } from "./advanced-types.js";
 import {
   AnalysisProviderContracts, AnalysisContractError, analysisHash, type AnalysisOperationId,
   type MapMatchProviderResultV01, type SpatialEventTarget
@@ -23,7 +25,9 @@ export interface AdvancedExecutionInput {
   taskReferenceKeys?: readonly HistoricalReferenceKey[]; subjectReferenceKeys?: readonly HistoricalReferenceKey[];
   reusableFoundation?: AdvancedHistoricalFoundation;
   resolveTarget?: (mention: string) => Promise<SpatialEventTarget | { reasonCode: string }>;
+  observeAvailability?: (operationIds: readonly string[]) => Promise<AdvancedAvailabilityObservation>;
   onCompiled?: (plan: Extract<CompileResult, { status: "COMPILED" }>) => void;
+  onFailure?: (diagnostic: { phase: "FOUNDATION" | "ANALYSIS"; code: string; classification: string; lastOperation?: string; attemptedOperations: number; analysisEvidenceCount: number }) => void;
 }
 
 export function advancedAnalysisPattern(intent: AdvancedHistoricalIntent): QuerySemanticPattern {
@@ -87,7 +91,7 @@ export function canReuseAdvancedFoundation(prior: AdvancedHistoricalFoundation, 
     scope.phaseScope === old.phaseScope && analysisHash(scope.executionSelection) === analysisHash(old.executionSelection) &&
     analysisHash(scope.sourceSelection) === analysisHash(old.sourceSelection) &&
     (!scope.taskReferenceKey || analysisHash(scope.taskReferenceKey) === analysisHash(old.taskReferenceKey)) &&
-    (!scope.subjectReferenceKey || analysisHash(scope.subjectReferenceKey) === analysisHash(old.subjectReferenceKey)) &&
+    (!scope.subjectReferenceKey || sameReferenceIdentity(scope.subjectReferenceKey, old.subjectReferenceKey)) &&
     (!scope.subjectMention || scope.subjectMention === old.subjectMention) && (!scope.taskMention || scope.taskMention === old.taskMention);
 }
 
@@ -106,7 +110,15 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
       const executed = await executeHistoricalTrace({
         intent: { ...input.intent.historicalScope, queryKind: "HISTORICAL_TRAJECTORY", maximumInlinePoints: 0 },
         configuration: { ...input.history, pendingRetryMs: 0 },
-        gateway: { execute: async (id, value) => { checkDeadline(); result.operations.push(id); return input.foundationGateway.execute(id, value); } },
+        gateway: {
+          execute: async (id, value) => { checkDeadline(); result.operations.push(id); return input.foundationGateway.execute(id, value); },
+          executeQuery: async request => {
+            checkDeadline(); result.operations.push("operational-task.get-execution-intervals");
+            const queried = await input.foundationGateway.executeQuery(request);
+            if (queried.trajectory !== undefined) result.operations.push("history.get-trajectory");
+            return queried;
+          }
+        },
         ...(input.taskReferenceKeys ? { taskReferenceKeys: input.taskReferenceKeys } : {}),
         ...(input.subjectReferenceKeys ? { subjectReferenceKeys: input.subjectReferenceKeys } : {})
       });
@@ -134,12 +146,22 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
     const operation = operationInput(input.intent, result.foundation, input.configuration, result.target);
     const cross = analysis.kind === "TEMPORAL_EVENT" && analysis.eventType === "CROSS";
     const nodes = cross ? 2 : 1;
+    const requiredOperations = cross ? ["trajectory.map-match", "temporal-spatial.find-events"]
+      : [analysis.kind === "ROAD_ASSOCIATION" ? "trajectory.map-match"
+        : analysis.kind === "METRIC_RANKING" ? "spatiotemporal-metric.rank-locations" : "temporal-spatial.find-events"];
+    let executionAvailability = input.compileContext.availability;
+    const observe = async (ids: readonly string[]) => {
+      const observation = await input.observeAvailability!(ids);
+      (result.executionAvailabilityObservations ??= []).push(observation);
+      executionAvailability = [...executionAvailability.filter(entry => !ids.includes(entry.operationId)), ...observation.operations];
+    };
+    if (input.observeAvailability) await observe(requiredOperations);
     const compiled = new TypedWorldQueryCompiler().compile({
       ...input.compileContext, pattern: advancedAnalysisPattern(input.intent), requiredForProduct: "WORLD_EVIDENCE", operationInput: operation,
       ...(cross ? { parameterValues: { selection: analysis.selection } } : {}),
       advancedHistoryEnabled: true, analysisProviderAuthorizations: input.contracts.authorizations,
       maturityPolicy: { allowPreview: false }, degradedPolicy: "REJECT", snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false },
-      observedAt: new Date(now()).toISOString(),
+      availability: executionAvailability, observedAt: new Date(now()).toISOString(),
       budgets: { ...input.compileContext.budgets, maximumNodes: Math.min(nodes, input.compileContext.budgets.maximumNodes),
         maximumDepth: Math.min(nodes, input.compileContext.budgets.maximumDepth),
         maximumExecutionMs: Math.min(input.compileContext.budgets.maximumExecutionMs, input.deadlineAt.getTime() - now()) }
@@ -156,6 +178,13 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
     for (const node of compiled.submission.plan.nodes) {
       checkDeadline();
       const id = node.operation.operationId as AnalysisOperationId;
+      let availability = executionAvailability.find(entry => entry.operationId === id && entry.operationVersion === node.operation.operationVersion);
+      if ((!availability || Date.parse(availability.validUntil) <= now()) && input.observeAvailability) {
+        await observe([id]);
+        availability = executionAvailability.find(entry => entry.operationId === id && entry.operationVersion === node.operation.operationVersion);
+      }
+      if (!availability || !Number.isFinite(Date.parse(availability.validUntil)) || Date.parse(availability.validUntil) <= now()) return stop("ANALYSIS_AVAILABILITY_STALE");
+      if (availability.availability !== "AVAILABLE") return stop("ANALYSIS_CAPABILITY_UNAVAILABLE");
       if (cross && id === "temporal-spatial.find-events" && (!mapResult || !["COMPLETED", "PARTIAL"].includes(mapResult.status))) return stop("MAP_MATCH_PRECONDITION_NOT_SATISFIED", "PARTIAL");
       const request = materializeNode(node, compiled.submission.parameters, outputs);
       input.contracts.validateInput(id, request);
@@ -213,11 +242,21 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
     return result;
   } catch (error) {
     const transportCode = error && typeof error === "object" && "code" in error ? error.code : undefined;
-    if (transportCode === "ABORTED") throw error;
-    const code = error instanceof AnalysisContractError ? error.code : transportCode === "DEADLINE_EXCEEDED" ||
+    if (transportCode === "ABORTED" || error && typeof error === "object" &&
+        (("retryable" in error && error.retryable === true && !result.foundation) ||
+         ("name" in error && error.name === "PipelineFenceRejectedError") ||
+         typeof transportCode === "string" && /^(08[A-Z0-9]{3}|40001|40P01|57P0[123]|53300)$/.test(transportCode))) throw error;
+    const code = error instanceof AnalysisContractError ? error.code : transportCode === "HISTORICAL_AVAILABILITY_EXPIRED" ? "ANALYSIS_AVAILABILITY_STALE" : transportCode === "DEADLINE_EXCEEDED" ||
       error instanceof Error && error.message === "ADVANCED_HISTORY_DEADLINE_EXCEEDED" ? "ADVANCED_HISTORY_DEADLINE_EXCEEDED" :
-      typeof transportCode === "string" && (transportCode === "TRANSPORT_FAILURE" || /^HTTP_[45]\d\d(?:_|$)/u.test(transportCode)) ?
+      typeof transportCode === "string" && (["TRANSPORT_FAILURE", "GATEWAY_CIRCUIT_OPEN", "HISTORICAL_UPSTREAM_UNAVAILABLE"].includes(transportCode) || /^HTTP_[45]\d\d(?:_|$)/u.test(transportCode)) ?
         "ADVANCED_HISTORY_UPSTREAM_FAILURE" : "ADVANCED_HISTORY_RESULT_INVALID";
+    // Record only bounded protocol categories, never exception messages or payloads.
+    const httpStatus = typeof transportCode === "string" ? /^HTTP_([45]\d\d)(?:_|$)/u.exec(transportCode)?.[1] : undefined;
+    const diagnosticCode = typeof transportCode === "string" && ["TRANSPORT_FAILURE", "GATEWAY_CIRCUIT_OPEN", "DEADLINE_EXCEEDED", "RESPONSE_SCHEMA_MISMATCH", "REQUEST_SCHEMA_MISMATCH", "INVALID_JSON_RESPONSE", "GATEWAY_OUTPUT_MISSING", "GATEWAY_OUTPUT_SCHEMA_MISMATCH"].includes(transportCode)
+      ? transportCode : typeof transportCode === "string" && /^HISTORICAL_[A-Z0-9_]{1,100}$/.test(transportCode) ? transportCode : httpStatus ? `HTTP_${httpStatus}` : "UNCLASSIFIED_EXECUTION_ERROR";
+    input.onFailure?.({ phase: result.foundation ? "ANALYSIS" : "FOUNDATION", code: diagnosticCode, classification: code,
+      ...(result.operations.at(-1) ? { lastOperation: result.operations.at(-1)! } : {}),
+      attemptedOperations: result.operations.length, analysisEvidenceCount: result.analysisEvidence.length });
     return stop(code, code === "ADVANCED_HISTORY_DEADLINE_EXCEEDED" ? "PARTIAL" : "FAILED");
   }
 }

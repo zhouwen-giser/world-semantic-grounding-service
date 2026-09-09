@@ -1,4 +1,5 @@
 import { PIPELINE_STAGES, type PipelineStage } from "@wsgs/grounding-pipeline";
+import { isTransientStoreError, safeRuntimeErrorCode, type WorkerRuntimeLogger } from "./runtime-errors.js";
 
 import {
   WorkerConfigurationError,
@@ -26,6 +27,7 @@ export interface GroundingWorkerConfig {
   maxJobAttempts?: number;
   retryBackoffMs?: number;
   now?: () => number;
+  log?: WorkerRuntimeLogger;
 }
 
 function errorCode(error: unknown): string {
@@ -122,9 +124,10 @@ class LeaseHeartbeat {
 }
 
 export class GroundingWorker {
-  readonly #config: Required<Omit<GroundingWorkerConfig, "store" | "pipeline" | "now">> &
+  readonly #config: Required<Omit<GroundingWorkerConfig, "store" | "pipeline" | "now" | "log">> &
     Pick<GroundingWorkerConfig, "store" | "pipeline">;
   readonly #now: () => number;
+  readonly #log: WorkerRuntimeLogger;
   readonly #active = new Map<string, AbortController>();
   readonly #loopController = new AbortController();
   #running: Promise<void> | undefined;
@@ -143,6 +146,7 @@ export class GroundingWorker {
       retryBackoffMs: config.retryBackoffMs ?? 500
     };
     this.#now = config.now ?? Date.now;
+    this.#log = config.log ?? (() => undefined);
     this.#validateConfig();
   }
 
@@ -154,15 +158,27 @@ export class GroundingWorker {
     if (!this.#accepting) return { kind: "IDLE" };
     const claim = await this.#config.store.claimNext(this.#config.workerId, this.#config.leaseMs);
     if (!claim) return { kind: "IDLE" };
+    // A stop/fatal error may arrive while claimNext is awaiting the database.
+    if (!this.#accepting) return this.#settle(claim, {
+      kind: "RETRY", errorCode: "WORKER_SHUTDOWN", retryable: true, availableAt: new Date(this.#now())
+    }, "RETRY_SCHEDULED");
     return this.#runClaim(claim);
   }
 
   start(): Promise<void> {
     if (this.#running) return this.#running;
     if (!this.#accepting) throw new WorkerConfigurationError("A stopped worker cannot be restarted");
-    this.#running = Promise.all(
-      Array.from({ length: this.#config.concurrency }, () => this.#loop())
-    ).then(() => undefined);
+    this.#running = Promise.allSettled(
+      Array.from({ length: this.#config.concurrency }, () => this.#loop().catch(error => {
+        this.#accepting = false;
+        this.#loopController.abort(new WorkerShutdownError());
+        for (const controller of this.#active.values()) controller.abort(new WorkerShutdownError());
+        throw error;
+      }))
+    ).then(outcomes => {
+      const failed = outcomes.find(outcome => outcome.status === "rejected");
+      if (failed?.status === "rejected") throw failed.reason;
+    });
     return this.#running;
   }
 
@@ -178,30 +194,42 @@ export class GroundingWorker {
     this.#accepting = false;
     this.#loopController.abort(new WorkerShutdownError());
     if (this.#active.size === 0) {
-      await this.#running;
+      await this.#running?.catch(() => undefined);
       return { drained: true, aborted: 0 };
     }
+    let graceTimer: ReturnType<typeof setTimeout> | undefined;
     const drained = await Promise.race([
       this.#waitForActiveJobs().then(() => true),
-      new Promise<false>((resolve) => setTimeout(() => resolve(false), graceMs))
+      new Promise<false>((resolve) => { graceTimer = setTimeout(() => resolve(false), graceMs); })
     ]);
+    clearTimeout(graceTimer);
     if (drained) {
-      await this.#running;
+      await this.#running?.catch(() => undefined);
       return { drained: true, aborted: 0 };
     }
     const controllers = [...this.#active.values()];
     controllers.forEach((controller) => controller.abort(new WorkerShutdownError()));
     await this.#waitForActiveJobs();
-    await this.#running;
+    await this.#running?.catch(() => undefined);
     return { drained: false, aborted: controllers.length };
   }
 
   async #loop(): Promise<void> {
+    let failures = 0;
     while (this.#accepting) {
-      const outcome = await this.runOnce();
-      if (outcome.kind !== "IDLE") continue;
+      let delayMs = this.#config.pollIntervalMs;
       try {
-        await abortableDelay(this.#config.pollIntervalMs, this.#loopController.signal);
+        const outcome = await this.runOnce();
+        failures = 0;
+        if (outcome.kind !== "IDLE") continue;
+      } catch (error) {
+        failures += 1;
+        this.#log({ event: "worker_loop_failed", stage: "WORKER_LOOP", code: safeRuntimeErrorCode(error), attempt: failures });
+        if (!isTransientStoreError(error)) throw error;
+        delayMs = Math.min(500 * 2 ** Math.min(failures - 1, 6), 30_000);
+      }
+      try {
+        await abortableDelay(delayMs, this.#loopController.signal);
       } catch {
         return;
       }
@@ -225,6 +253,7 @@ export class GroundingWorker {
     });
     heartbeat.start();
 
+    let settlingResult = false;
     try {
       if (claim.deadlineAt.getTime() <= this.#now()) throw new WorkerDeadlineExceededError();
       const result = await this.#config.pipeline.run({
@@ -240,6 +269,7 @@ export class GroundingWorker {
       if (controller.signal.aborted) throw controller.signal.reason;
       const status = result.status;
       if (status === "CANCELLED") throw new WorkerJobCancelledError();
+      settlingResult = true;
       return await this.#settle(fence, {
         kind: "RESULT",
         status,
@@ -247,7 +277,16 @@ export class GroundingWorker {
         resultBytes: result.resultBytes
       }, status === "FAILED" ? "FAILED" : "SUCCEEDED");
     } catch (caught) {
+      // A transport error may follow a successful COMMIT. Leave the durable
+      // state untouched; the next claim/recovery determines its actual state.
+      const code = safeRuntimeErrorCode(caught);
+      if (isTransientStoreError(caught) || (settlingResult && ![
+        "WORKER_RESULT_INVALID", "GROUNDING_RESULT_SCHEMA_INVALID", "GROUNDING_RESULT_MAX_BYTES_EXCEEDED"
+      ].includes(code))) throw caught;
+      if (!controller.signal.aborted && (code === "WORKER_RUNTIME_ERROR" || caught instanceof WorkerConfigurationError)) throw caught;
       const error = controller.signal.aborted ? controller.signal.reason : caught;
+      this.#log({ event: "worker_job_failed", stage: pipelineStage(error) ?? "WORKER_JOB",
+        code: safeRuntimeErrorCode(error), jobId: claim.jobId, attempt: claim.attempt });
       if (error instanceof WorkerLeaseLostError) return { kind: "FENCE_REJECTED", jobId: claim.jobId };
       if (error instanceof WorkerJobCancelledError) {
         return this.#settle(fence, {

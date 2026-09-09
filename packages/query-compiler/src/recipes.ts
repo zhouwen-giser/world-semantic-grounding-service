@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { analysisHash, currentGowmPath } from "@wsgs/gowm-contract-intake";
 import type {
   PortRequirement,
   QuerySemanticPattern,
@@ -91,6 +93,13 @@ const arrayLiteralPort: SchemaPort = {
   valueKind: "ANY", unitSemantics: "UNSPECIFIED"
 };
 
+function publishedValuePort(kind: "object" | "integer"): SchemaPort {
+  const schema = JSON.parse(readFileSync(currentGowmPath(`bundle/schemas/platform/value-${kind}.schema.json`), "utf8"));
+  return { schemaUri: schema.$id, schemaHash: analysisHash(schema), valueKind: "ANY", unitSemantics: "UNSPECIFIED" };
+}
+const objectLiteralPort = publishedValuePort("object");
+const integerLiteralPort = publishedValuePort("integer");
+
 const schemaVersionLiteral: QueryTemplateLiteralBinding = {
   inputName: "schemaVersion",
   value: "1.0",
@@ -130,18 +139,18 @@ const historicalTrajectoryStep: QueryTemplateStep = {
     targetPath: "/executionIntervalReferenceKey"
   }],
   requestBindings: [
-    { inputName: "subjectReferenceKey", path: "/subjectReferenceKey", targetPath: "/subjectReferenceKey", literalFromParameter: true },
-    { inputName: "phaseScope", path: "/phaseScope", targetPath: "/phaseScope", literalFromParameter: true },
-    { inputName: "sourceSelection", path: "/sourceSelection", targetPath: "/sourceSelection", literalFromParameter: true },
+    { inputName: "subjectReferenceKey", path: "/subjectReferenceKey", targetPath: "/subjectReferenceKey", literalFromParameter: true, port: objectLiteralPort },
+    { inputName: "phaseScope", path: "/phaseScope", targetPath: "/phaseScope", literalFromParameter: true, port: stringLiteralPort },
+    { inputName: "sourceSelection", path: "/sourceSelection", targetPath: "/sourceSelection", literalFromParameter: true, port: objectLiteralPort },
     {
       inputName: "sourceSelectionProfileReferenceKey", path: "/sourceSelectionProfileReferenceKey",
-      targetPath: "/sourceSelectionProfileReferenceKey", literalFromParameter: true
+      targetPath: "/sourceSelectionProfileReferenceKey", literalFromParameter: true, port: objectLiteralPort
     },
     {
       inputName: "analysisSpaceReferenceKey", path: "/analysisSpaceReferenceKey",
-      targetPath: "/analysisSpaceReferenceKey", literalFromParameter: true, optional: true
+      targetPath: "/analysisSpaceReferenceKey", literalFromParameter: true, port: objectLiteralPort, optional: true
     },
-    { inputName: "maximumInlinePoints", path: "/maximumInlinePoints", targetPath: "/maximumInlinePoints", literalFromParameter: true }
+    { inputName: "maximumInlinePoints", path: "/maximumInlinePoints", targetPath: "/maximumInlinePoints", literalFromParameter: true, port: integerLiteralPort }
   ],
   preconditions: [
     { kind: "NODE_STATUS", sourceStepId: "read-task-execution-interval", statuses: ["COMPLETED", "PARTIAL"] },
@@ -235,6 +244,12 @@ const readGeometry = worldFactStep("read-geometry", "world.get-geometry", ["HAS_
 
 const readCurrentPosition = worldFactStep("read-current-position", "world.get-current-state", [], [
   { name: "positionCoordinates", valueKind: "ANY", unitSemantics: "ANGULAR_DEGREES" }
+]);
+
+// GDPS accepts horizontal WGS84 pairs; require the published projection port.
+// The original position port retains its 2D/3D world-evidence semantics.
+const readHorizontalPosition = worldFactStep("read-current-position", "world.get-current-state", [], [
+  { name: "horizontalPositionCoordinates", valueKind: "ANY", unitSemantics: "ANGULAR_DEGREES" }
 ]);
 
 const positionCoordinatesLink: QueryTemplateLink = {
@@ -354,7 +369,7 @@ function gdpsPointStep(
     failurePolicy: "FAIL_FAST",
     links: [{
       sourceStepId: "read-current-position",
-      outputPort: "positionCoordinates",
+      outputPort: "horizontalPositionCoordinates",
       inputName: "pointCoordinates",
       targetPath: "/point/coordinates"
     }],
@@ -740,7 +755,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       gdpsPointStep("read-land-cover", "landcover.get-class", "SPATIAL", "FACT")]
   },
   {
@@ -760,7 +775,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       gdpsPointStep("find-obstacles", "obstacle.find-nearby", "SPATIAL", "DERIVED", [{
         inputName: "distanceMetres",
         path: "/distanceMetres",
@@ -801,7 +816,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       gdpsPointStep("read-elevation", "elevation.sample", "ANALYSIS", "FACT")]
   },
   {
@@ -811,7 +826,7 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       gdpsPointStep("explain-traversability", "traversability.explain", "ANALYSIS", "DERIVED")]
   },
   {
@@ -821,11 +836,11 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       genericGdpsStep("sample-product", "geo-raster.sample", {
         domain: "ANALYSIS", relationSemantics: ["DESCRIBES"], resultNature: "FACT"
       }, {
-        sourceStepId: "read-current-position", outputPort: "positionCoordinates",
+        sourceStepId: "read-current-position", outputPort: "horizontalPositionCoordinates",
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
       }, [], [geoJsonPointType])]
   },
@@ -886,11 +901,11 @@ export const queryTemplateRules: readonly QueryTemplateRule[] = [
     previewAuthorizationRequired: true,
     allowDegraded: false,
     defaultSnapshotMode: "BEST_EFFORT",
-    steps: [resolveReference, readCurrentPosition,
+    steps: [resolveReference, readHorizontalPosition,
       genericGdpsStep("find-vector-nearby", "geo-vector.find-nearby", {
         domain: "SPATIAL", relationSemantics: ["NEAR"], resultNature: "DERIVED"
       }, {
-        sourceStepId: "read-current-position", outputPort: "positionCoordinates",
+        sourceStepId: "read-current-position", outputPort: "horizontalPositionCoordinates",
         inputName: "pointCoordinates", targetPath: "/point/coordinates"
       }, [{
         inputName: "distanceMetres", path: "/distanceM", targetPath: "/distanceMetres",

@@ -1,0 +1,1 @@
+{"event": "advanced_execution_failed", "groundingId": "grounding-7966141d-8f8d-4097-8a51-59e43f6d5c8e", "phase": "FOUNDATION", "code": "HTTP_422", "classification": "ADVANCED_HISTORY_UPSTREAM_FAILURE", "lastOperation": "operational-task.get-execution-intervals", "attemptedOperations": 3, "analysisEvidenceCount": 0}

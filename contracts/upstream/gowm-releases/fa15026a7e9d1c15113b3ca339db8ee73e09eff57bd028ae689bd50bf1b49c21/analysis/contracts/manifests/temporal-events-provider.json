@@ -1,0 +1,107 @@
+{
+  "providerProtocolVersion": "1.0",
+  "manifestSchemaVersion": "1.1",
+  "provider": {
+    "providerId": "gowm.analysis.temporal-events",
+    "providerVersion": "0.1.0",
+    "owner": "gowm-analysis",
+    "implementationDigest": "sha256:181fac096026548df9dd0d74521056ec6ef043fb095d994839966ca0f087079a",
+    "sourceRef": "urn:gowm:source:external:temporal-events-provider:0.1.0"
+  },
+  "endpoints": {
+    "manifest": "/v1/manifest",
+    "liveness": "/health/live",
+    "readiness": "/health/ready",
+    "execute": "/v1/operations/{operationId}:execute",
+    "job": "/v1/jobs/{jobId}"
+  },
+  "capabilities": [
+    {
+      "operationId": "temporal-spatial.find-events",
+      "operationVersion": "0.1",
+      "semanticProfile": {
+        "profileVersion": "1.1",
+        "domain": "ANALYSIS",
+        "acceptedReferenceKinds": [
+          "HISTORICAL_TRAJECTORY"
+        ],
+        "producedReferenceKinds": [],
+        "relationSemantics": [
+          "INSIDE",
+          "INTERSECTS",
+          "NEAR",
+          "TEMPORALLY_OVERLAPS"
+        ],
+        "spatialSemantics": "CANDIDATE",
+        "timeSemantics": "HISTORICAL",
+        "resultNature": "DERIVED",
+        "negativeEvidencePolicy": "NO_DATA_IS_UNKNOWN",
+        "freshnessSemantics": "SNAPSHOT_CURRENTNESS",
+        "domainStatus": {
+          "path": "/status",
+          "mapping": {
+            "COMPLETED": "COMPLETED",
+            "PARTIAL": "PARTIAL",
+            "NO_DATA": "NO_DATA",
+            "INDETERMINATE": "INDETERMINATE"
+          }
+        },
+        "notes": [
+          "Temporal-spatial findings are task-level derived analysis, not authoritative GOWM Operational Events.",
+          "CROSS uses only T2 junction pass candidates and preserves network-local junction identity."
+        ]
+      },
+      "semanticRole": "DOMAIN_ANALYSIS",
+      "dataBinding": "WORLD_SNAPSHOT_BOUND",
+      "resultSemantics": "DERIVED_ANALYSIS",
+      "executionBindings": [
+        "SYNC_HTTP",
+        "VERSIONED_SQL_CONTRACT"
+      ],
+      "criticalPathPolicy": "REMOTE_ONLY",
+      "maturity": "PREVIEW",
+      "inputSchemaUri": "urn:gowm:analysis:temporal-events:request:0.1",
+      "inputSchemaHash": "sha256:a176f1be958f8d5f87069e8d305d3fa4b1b7bcb7b7c6a1db7f6c076ae1c467db",
+      "outputSchemaUri": "urn:gowm:analysis:temporal-events:result:0.1",
+      "outputSchemaHash": "sha256:85a2b586c9821ac20d7876d509cc9d8016d7c71dc964fbe3851c32bfd694347a",
+      "scopePolicy": "DATA_SCOPE_REQUIRED",
+      "execution": {
+        "mode": "SYNC",
+        "defaultTimeoutMs": 15000,
+        "maximumTimeoutMs": 30000,
+        "costClass": "MEDIUM"
+      },
+      "limits": {
+        "maximumInputBytes": 16777216,
+        "maximumOutputBytes": 16777216,
+        "maximumRows": 100000,
+        "maximumCandidates": 100000
+      },
+      "snapshotPolicy": {
+        "dataSnapshot": "REQUIRED",
+        "computeSnapshot": "REQUIRED",
+        "resourceResolution": "DISCOVER_RESOURCES"
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "request",
+            "schemaUri": "urn:gowm:analysis:temporal-events:request:0.1",
+            "schemaHash": "sha256:a176f1be958f8d5f87069e8d305d3fa4b1b7bcb7b7c6a1db7f6c076ae1c467db",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "result",
+            "schemaUri": "urn:gowm:analysis:temporal-events:result:0.1",
+            "schemaHash": "sha256:85a2b586c9821ac20d7876d509cc9d8016d7c71dc964fbe3851c32bfd694347a",
+            "valueKind": "ANY",
+            "unitSemantics": "UNSPECIFIED"
+          }
+        ]
+      }
+    }
+  ]
+}

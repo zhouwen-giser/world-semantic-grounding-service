@@ -1,0 +1,62 @@
+{
+  "observedAt": "2026-09-08T08:16:42.072102+00:00",
+  "snapshot": "edfb07a91457a59dd927884d049b1cb84bc96dac8adff412ab1a2dcc85026472",
+  "source": {
+    "package": "gowm-dev-server-0.7.1.tar.gz",
+    "sha256": "1ad2edcc2cbe0859e4481401e8cbc82548d35aa89ab9b688cc30caf3c1147e05",
+    "combinedPackage": "gdps-gowm-dev-server-0.2.2-gowm-0.7.1.tar.gz",
+    "combinedSha256": "40f5980ef78b2c4903c0773643fdab6ac8e3a40e08bbc704e3835031d3906790",
+    "sourceLock": {
+      "schemaVersion": "gdps-gowm-dev-package-lock/1.0",
+      "packageName": "gowm-dev-server-0.7.1.tar.gz",
+      "softwareVersion": "0.7.1",
+      "sourceCommit": "cd4d748878390bb7a9ed93af3ed6a6c36cc4069f",
+      "sha256": "1ad2edcc2cbe0859e4481401e8cbc82548d35aa89ab9b688cc30caf3c1147e05",
+      "expectedRoot": "gowm-dev-server-0.7.1",
+      "providerCount": 16,
+      "operationCount": 124,
+      "sourceProvenance": {
+        "kind": "working-tree",
+        "baseCommit": "cd4d748878390bb7a9ed93af3ed6a6c36cc4069f",
+        "inventorySha256": "9a275313fa0f95df1a2ba1bcf69228ecb6e53a685fa7ac446c2a6bea3eba8871",
+        "verifiedFileCount": 1895,
+        "modifiedPackagedFiles": [
+          ".env.example",
+          "config/ugv-source-schema/README.md",
+          "config/ugv-source-schema/SOURCE_LOCK.json",
+          "config/ugv-source-schema/error_codes.json",
+          "config/ugv-source-schema/mcp_ugv.json",
+          "config/ugv-source-schema/mqtt_topics.json",
+          "docker-compose.yml",
+          "docs/DEV_DEPLOYMENT.md",
+          "docs/UGV_DEVICE_ACTOR.md",
+          "docs/shared-business-storage-handoff/connection-examples.env",
+          "packages/integrations/device-business-storage/src/bootstrap.ts",
+          "scripts/business-storage/accounts.ts",
+          "scripts/dev-deploy.sh",
+          "scripts/package-dev-deployment.sh",
+          "scripts/verify-ugv-bootstrap-package.mjs"
+        ]
+      }
+    }
+  },
+  "analysisPackage": {
+    "name": "gowm-gdps-analysis-dev-server-0.1.0.tar.gz",
+    "sha256": "9f19951ac4ad691e4896c2f578fd4f0351a45d458f12c5f6eb299bc52521adf2"
+  },
+  "upstreamRoot": "/mnt/data/gowm-analysis-releases/9f19951ac4ad691e/gowm-gdps-analysis-dev-server-0.1.0",
+  "siteReferences": {
+    "subject": {
+      "namespace": "gowm",
+      "kind": "WORLD_OBJECT",
+      "id": "wrf_9905ca9544ac4b25926ead291d636934",
+      "version": "1"
+    },
+    "task": {
+      "namespace": "gowm",
+      "kind": "OPERATIONAL_TASK",
+      "id": "wrf_a7b65a87df244ce19c9e173190a7b490",
+      "version": "3219"
+    }
+  }
+}

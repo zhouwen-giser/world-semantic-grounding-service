@@ -272,6 +272,10 @@ export class TypedWorldQueryCompiler {
       [...input.availability].map((entry) => entry.checkedAt).sort().at(-1) ??
       "1970-01-01T00:00:00.000Z";
     const units: CompiledUnit[] = [];
+    const referenceLinks = rule.steps.flatMap(step => step.links).filter(link => link.sourceStepId === "resolve-reference");
+    const bindResolvedReference = input.resolvedReferenceKey !== undefined && referenceLinks.length > 0 &&
+      referenceLinks.every(link => link.outputPort === "candidateReferenceKey");
+    let resolvedReferencePort: CapabilityPort | undefined;
     const bindings: MatchedCapability["binding"][] = [];
     for (const step of rule.steps) {
       const requirement = semanticRequirementFor(rule, step, input.requiredForProduct, policy.mode);
@@ -286,6 +290,11 @@ export class TypedWorldQueryCompiler {
         observedAt
       });
       if (matched.status === "CAPABILITY_GAP") return matched;
+      if (bindResolvedReference && step.stepId === "resolve-reference") {
+        resolvedReferencePort = matched.primary.descriptor.ports.outputs.find(port => port.name === "candidateReferenceKey");
+        if (!resolvedReferencePort) throw new QueryCompilationError("RESOLVED_REFERENCE_PORT_MISSING");
+        continue;
+      }
       units.push({
         unitId: step.stepId,
         matched: matched.primary,
@@ -372,6 +381,11 @@ export class TypedWorldQueryCompiler {
         };
       } else {
         for (const link of unit.links) {
+          if (bindResolvedReference && link.sourceStepId === "resolve-reference") {
+            nodeInputs[link.inputName] = { kind: "LITERAL", port: schemaPort(resolvedReferencePort!),
+              value: structuredClone(input.resolvedReferenceKey), targetPath: link.targetPath };
+            continue;
+          }
           const source = resolvedByUnitId.get(link.sourceStepId);
           if (!source) throw new QueryCompilationError("TEMPLATE_DEPENDENCY_ORDER");
           const outputPort = sourceOutput(source, link.outputPort);

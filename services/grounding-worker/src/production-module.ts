@@ -1,5 +1,10 @@
+import { validateExecutionAvailability, executionAvailabilityObservation } from "./execution-availability.js";
+import { parseWithModelBudget } from "./model-budget.js";
+import { sameReferenceIdentity, type HistoricalQueryRequest, type HistoricalQueryResult } from "@wsgs/historical-trace-consumer";
+import { refreshStaleReferences } from "./refresh-references.js";
+import { gatewayRequestId } from "./gateway-request-id.js";
 import { createHash, randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { assembleProductionWorldAnalysis } from "./world-analysis-result.js";
 import { projectWorldAnalysisAvailability } from "./world-analysis-capabilities.js";
@@ -26,9 +31,12 @@ import {
   type SemanticConceptMap
 } from "@wsgs/gdps-descriptor-consumer";
 import {
-  GOWM_SOUTHBOUND_LOCK_RAW_SHA256,
+  currentGowmPath,
+  currentGowmSnapshot,
+  currentGowmSnapshotHash,
   AnalysisProviderContracts,
   GowmConsumerSchemaRegistry,
+  defaultGowmConsumerSchemaRegistry,
   ANALYSIS_OPERATION_IDS,
   analysisHash,
   type AnalysisProviderAuthorization,
@@ -37,7 +45,7 @@ import {
   loadWorldQueryParameterSchemaHash,
   type LoadedOperationalGowmLock,
   type OperationalGowmLock,
-  verifyGowmContractIntake
+  verifyCurrentGowmSnapshot
 } from "@wsgs/gowm-contract-intake";
 import {
   GowmExecutionEvidenceNormalizer,
@@ -144,7 +152,6 @@ import {
   OpenAICompatibleSemanticModel,
   SemanticModelError,
   compileWorldSemanticFrameSchema,
-  parseSemanticModelWithPolicy,
   semanticModelConfigFromEnvironment,
   type ModelReceipt,
   type SemanticModelParser,
@@ -183,10 +190,7 @@ import {
 type JsonObject = Record<string, unknown>;
 
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
-const lockPath = fileURLToPath(new URL(
-  "../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/locks/wsgs-southbound-operation-lock-v2.json",
-  import.meta.url
-));
+const lockPath = currentGowmPath(currentGowmSnapshot.operationalLockPath);
 const frameSchemaPath = fileURLToPath(new URL(
   "../../../contracts/wsgs-v0.1/contracts/world-semantic-frame.schema.json",
   import.meta.url
@@ -374,6 +378,9 @@ function readOperationalLock(): LoadedOperationalGowmLock {
   if (externalPath) {
     const expectedSha256 = process.env["GOWM_SOUTHBOUND_LOCK_SHA256"]?.trim();
     if (!expectedSha256) throw new ProductionStageModuleError("MISSING_GOWM_SOUTHBOUND_LOCK_SHA256");
+    if (expectedSha256 !== `sha256:${currentGowmSnapshot.operationalLockSha256}`) {
+      throw new ProductionStageModuleError("CURRENT_SOUTHBOUND_LOCK_REQUIRED");
+    }
     return loadOperationalGowmLock({
       lockPath: externalPath,
       expectedSha256: expectedSha256 as `sha256:${string}`,
@@ -386,7 +393,7 @@ function readOperationalLock(): LoadedOperationalGowmLock {
   }
   return loadOperationalGowmLock({
     lockPath,
-    expectedSha256: `sha256:${GOWM_SOUTHBOUND_LOCK_RAW_SHA256}`,
+    expectedSha256: `sha256:${currentGowmSnapshot.operationalLockSha256}`,
     hashMode: "EXACT_BYTES"
   });
 }
@@ -548,8 +555,8 @@ function configuredGdpsDescriptor(
     expectedRegistryHash: loaded.lock.descriptorRegistryHash,
     conceptMap,
     vocabularies,
-    expectedProductTypeCount: 34,
-    expectedDescriptorProfileCount: 35,
+    expectedProductTypeCount: loaded.lock.productTypeCount,
+    expectedDescriptorProfileCount: loaded.lock.profileCount,
     recipes: authorizedRecipes
   });
   if (consumer.registryHash !== loaded.lock.descriptorRegistryHash) {
@@ -605,6 +612,9 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const allowPreview = process.env["WSGS_ALLOW_PREVIEW_CAPABILITIES"] === "YES";
   const history = historicalTraceConfigurationFromEnvironment();
   const advancedHistory = advancedHistoryConfigurationFromEnvironment();
+  if (advancedHistory.enabled && advancedHistory.contractRoot !== undefined && realpathSync(advancedHistory.contractRoot) !== currentGowmPath("analysis")) {
+    throw new ProductionStageModuleError("CURRENT_ANALYSIS_CONTRACT_REQUIRED");
+  }
   const analysisContracts = advancedHistory.enabled ? new AnalysisProviderContracts(advancedHistory.contractRoot) : undefined;
   const metadataContracts = analysisContracts ?? (history.enabled && allowPreview
     ? new AnalysisProviderContracts(advancedHistory.contractRoot) : undefined);
@@ -707,7 +717,7 @@ async function liveAuthority(
   const now = Date.now();
   if (!force && cachedAuthority && cachedAuthority.expiresAt > now) return cachedAuthority.value;
   if (!staticIntakeVerified) {
-    verifyGowmContractIntake({ repositoryRoot, verifyRecordedEvidence: true });
+    verifyCurrentGowmSnapshot();
     staticIntakeVerified = true;
   }
   const lock = value.operationalLock.lock;
@@ -746,16 +756,10 @@ async function liveAuthority(
     value.gateway.listCapabilitySemantics(publicContext),
     value.gateway.listOperationAvailability(authenticatedContext)
   ]);
-  const operationAvailability = new Map(availability.operations.map((entry) => [
-    `${entry.operationId}@${entry.operationVersion}`,
-    entry.availability
-  ]));
   const capturedLock: OperationalGowmLock = {
     ...productionLock,
-    previewOperations: productionLock.previewOperations.filter((entry) =>
-      !optionalHistoryOperationIds.has(entry.operationId) ||
-      operationAvailability.get(`${entry.operationId}@${entry.operationVersion}`) === "AVAILABLE")
-      .filter(entry => {
+    // Registration is stable even when readiness is temporarily unavailable.
+    previewOperations: productionLock.previewOperations.filter(entry => {
         if (!ANALYSIS_OPERATION_IDS.includes(entry.operationId as typeof ANALYSIS_OPERATION_IDS[number])) return true;
         const descriptor = catalog.capabilities.find(candidate => candidate.operationId === entry.operationId && candidate.operationVersion === entry.operationVersion);
         const semantic = semantics.profiles.find(candidate => candidate.operationId === entry.operationId && candidate.operationVersion === entry.operationVersion);
@@ -819,7 +823,7 @@ async function liveAuthority(
   if (!force) {
     cachedAuthority = {
       value: result,
-      expiresAt: now + environmentInteger("WSGS_READINESS_CACHE_MS", 5_000, 0, 60_000)
+      expiresAt: Date.now() + environmentInteger("WSGS_READINESS_CACHE_MS", 5_000, 0, 60_000)
     };
   }
   return result;
@@ -1057,7 +1061,7 @@ async function executeOperation(
   const signed = await value.signer.sign({
     kind: "DIRECT_OPERATION",
     identity: caller,
-    requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
+    requestId: gatewayRequestId(text(request(context)["requestId"], "REQUEST_ID_MISSING")),
     operation: { operationId: lock.operationId, operationVersion: lock.operationVersion },
     dataScopes: [trustedOperationDataScope(segmentedScopeAuthority, caller, lock)],
     datasetScopes: caller.datasetScopes
@@ -1080,7 +1084,7 @@ async function executeOperation(
       : "AUTO" as const;
   const executionRequest = {
     requestVersion: "1.0",
-    requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
+    requestId: gatewayRequestId(text(request(context)["requestId"], "REQUEST_ID_MISSING")),
     idempotencyKey: `${idempotencyKey(context)}:${suffix}`,
     operationVersion: lock.operationVersion,
     inputSchemaHash: lock.inputSchemaHash,
@@ -1104,6 +1108,10 @@ async function executeOperation(
     delegationToken: signed.token,
     preferAsync: preferredExecution !== "SYNC"
   };
+  // A bounded operation can be called repeatedly with a different input or
+  // timeout. Bind its key to the complete wire request, keeping retries of
+  // that request identical without colliding with another read operation.
+  executionRequest.idempotencyKey = `wsgs-${canonicalSha256(executionRequest).slice(7)}`;
   const response = await value.gateway.executeOperation(lock, executionRequest, gatewayContext);
   if (response.status === 200) return object(response.value, "INVALID_GATEWAY_ENVELOPE");
   const accepted = object(response.value, "INVALID_GATEWAY_ACCEPTANCE");
@@ -1483,7 +1491,7 @@ export function historicalFoundationForAdvanced(prior: PriorHistoricalResult | u
   // Legacy historical evidence did not persist the original execution selector.
   // Never relabel that trajectory as a newly requested execution or source.
   if (/第.*次(?:任务|执行)|本次|最近一次|更新了吗|有更新/u.test(sourceText) || scope.executionSelection.kind !== "LATEST" || scope.sourceSelection.mode !== "ONLY_CANDIDATE") return undefined;
-  if (scope.subjectMention && (!scope.subjectReferenceKey || analysisHash(scope.subjectReferenceKey) !== analysisHash(prior.subjectReferenceKey))) return undefined;
+  if (scope.subjectMention && (!scope.subjectReferenceKey || !sameReferenceIdentity(scope.subjectReferenceKey, prior.subjectReferenceKey))) return undefined;
   if (scope.taskMention && (!scope.taskReferenceKey || analysisHash(scope.taskReferenceKey) !== analysisHash(prior.taskReferenceKey))) return undefined;
   return { intent: { ...scope, taskReferenceKey: prior.taskReferenceKey, subjectReferenceKey: prior.subjectReferenceKey, phaseScope: prior.phaseScope },
     finding: prior.finding, reference: prior.reference };
@@ -1512,7 +1520,7 @@ function historicalOperationIds(intent: HistoricalTraceIntent): string[] {
   ];
 }
 
-function historicalCapabilityGaps(authority: PersistedAuthority, intent: HistoricalTraceIntent): JsonObject[] {
+export function historicalCapabilityGaps(authority: PersistedAuthority, intent: HistoricalTraceIntent): JsonObject[] {
   const locks = allGatewayLocks(authority.southboundLock);
   return historicalOperationIds(intent).flatMap((operationId) => {
     const descriptor = authority.capabilityCatalog.capabilities.find((entry) =>
@@ -1521,7 +1529,7 @@ function historicalCapabilityGaps(authority: PersistedAuthority, intent: Histori
     const availability = authority.availability.operations.find((entry) =>
       entry.operationId === operationId && entry.operationVersion === "1.0");
     if (descriptor && lock && availability?.availability === "AVAILABLE") return [];
-    const reason = !descriptor || !lock ? "NOT_REGISTERED" : "OPERATION_UNAVAILABLE";
+    const reason = !descriptor ? "NOT_REGISTERED" : "OPERATION_UNAVAILABLE";
     return [{
       gapId: `history-gap-${canonicalSha256({ operationId, reason }).slice(7, 31)}`,
       semanticCapability: `${operationId}@1.0`,
@@ -1532,6 +1540,7 @@ function historicalCapabilityGaps(authority: PersistedAuthority, intent: Histori
         operationId,
         descriptorAvailable: Boolean(descriptor),
         operationAuthorized: Boolean(lock),
+        ...(availability ? { checkedAt: availability.checkedAt, validUntil: availability.validUntil, reasonCodes: availability.reasonCodes } : {}),
         availability: availability?.availability ?? "UNKNOWN",
         substituted: false
       }
@@ -1545,6 +1554,7 @@ export type RecipeOperationInputResult =
       requiredForProduct: string;
       operationInput: JsonObject;
       parameterValues: JsonObject;
+      resolvedReferenceKey?: JsonObject;
     }
   | { status: "CAPABILITY_GAP"; gap: CapabilityGap };
 
@@ -1556,6 +1566,7 @@ export interface RecipeOperationInputOptions {
   locale?: string;
   maximumCandidates: number;
   originalText?: string;
+  requireValidatedReference?: boolean;
 }
 
 function stringArray(value: unknown): string[] {
@@ -1700,6 +1711,21 @@ export function buildRecipeOperationInput(options: RecipeOperationInputOptions):
     options.maximumCandidates
   );
   if (!operationInput) return recipeInputGap(options.recipeId, requiredForProduct, "REFERENCE_MENTION_INPUT_MISSING");
+  let resolvedReferenceKey: JsonObject | undefined;
+  if (options.requireValidatedReference) {
+    const mentions = operationInput["mentions"] as JsonObject[];
+    if (mentions.length !== 1) return recipeInputGap(options.recipeId, requiredForProduct, "REFERENCE_AMBIGUOUS");
+    const mention = mentions[0]!;
+    const grounded = options.references.mentions.find(entry => entry.mentionId === mention["mentionId"]);
+    const candidates = options.references.referenceProducts.filter(product =>
+      product.revalidationRequired === false && product.validUntil && Date.parse(product.validUntil) > Date.now() &&
+      (stringArray(mention["expectedKinds"]).length === 0 || stringArray(mention["expectedKinds"]).includes(product.referenceKey.kind)) &&
+      (grounded?.status === "RESOLVED_EXACT" && grounded.candidateProductIds.includes(product.productId) ||
+        product.matchedBy === "EXACT_REFERENCE_KEY" && product.displayName === mention["surfaceText"]));
+    const unique = [...new Map(candidates.map(product => [canonicalSha256(product.referenceKey), product.referenceKey])).values()];
+    if (unique.length !== 1) return recipeInputGap(options.recipeId, requiredForProduct, unique.length ? "REFERENCE_AMBIGUOUS" : "REFERENCE_UNRESOLVED");
+    resolvedReferenceKey = unique[0] as unknown as JsonObject;
+  }
   const parameterValues: JsonObject = {};
   const gdpsRule = queryTemplateRules.find((entry) =>
     entry.pattern === options.recipeId && entry.previewAuthorizationRequired === true);
@@ -1781,7 +1807,7 @@ export function buildRecipeOperationInput(options: RecipeOperationInputOptions):
       return recipeInputGap(options.recipeId, requiredForProduct, "SPATIAL_CONSTRAINT_INPUT_MISSING");
     }
   }
-  return { status: "READY", requiredForProduct, operationInput, parameterValues };
+  return { status: "READY", requiredForProduct, operationInput, parameterValues, ...(resolvedReferenceKey ? { resolvedReferenceKey } : {}) };
 }
 
 function mappedGap(gap: CapabilityGap | JsonObject): JsonObject {
@@ -2084,7 +2110,8 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
   // GSAP envelopes are projected independently from the legacy, size-bounded safePayload preview.
   if (executed?.advancedExecution) document["evidenceItems"] = (document["evidenceItems"] as GroundingEvidenceItem[])
     .filter(item => !ANALYSIS_OPERATION_IDS.includes(item.sourceOperation as typeof ANALYSIS_OPERATION_IDS[number]));
-  const failureReasonCode = executed?.advancedFailure ?? compiled?.advancedFailure;
+  const failureReasonCode = executed?.advancedFailure ?? compiled?.advancedFailure ??
+    (executed?.historicalExecution?.status === "CAPABILITY_GAP" ? executed.historicalExecution.reasonCode : undefined);
   return assembleProductionWorldAnalysis({
     base: document, runFingerprint: context.runFingerprint,
     validUntil: new Date(Date.parse(String(stageValue<JsonObject>(context, "LOAD_CONTEXT")["startedAt"])) + 60_000).toISOString(),
@@ -2111,7 +2138,7 @@ async function transaction<T>(pool: Pool, run: (client: PoolClient) => Promise<T
   }
 }
 
-async function withFence(context: PipelineStageContext, pool: Pool, run: (client: PoolClient) => Promise<void>): Promise<void> {
+async function withFence(context: Pick<PipelineStageContext, "jobId" | "leaseToken" | "generation">, pool: Pool, run: (client: PoolClient) => Promise<void>): Promise<void> {
   await transaction(pool, async (client) => {
     const owned = await client.query(
       `SELECT 1 FROM wsgs.grounding_job
@@ -2187,6 +2214,271 @@ interface NormalizationUnit {
   startedAt: string;
   finishedAt: string;
   encryptedCheckpointEvidenceMaterial: EncryptedCheckpointEvidenceMaterial;
+}
+
+async function executeSingleWorldQuery(value: Runtime, context: PipelineStageContext,
+  item: Pick<Extract<CompileResult, { status: "COMPILED" }>, "submission" | "planHash">, executionDataScope: string): Promise<PersistedSingleWorldQueryOutcome> {
+  const caller = identity(context);
+
+        const signed = await value.signer.sign({
+          kind: "WORLD_QUERY", identity: caller,
+          requestId: gatewayRequestId(text(request(context)["requestId"], "REQUEST_ID_MISSING")),
+          plan: item.submission.plan,
+          dataScopes: [executionDataScope], datasetScopes: caller.datasetScopes
+        });
+        const gatewayContext: GatewayRequestContext = {
+          signal: context.signal, deadlineAt: context.deadlineAt,
+          requestId: gatewayRequestId(text(request(context)["requestId"], "REQUEST_ID_MISSING")),
+          delegationToken: signed.token,
+          preferAsync: true
+        };
+        const startedAt = new Date().toISOString();
+        const response = await value.gateway.submitWorldQuery(item.submission as unknown as JsonObject, gatewayContext)
+          .catch(gatewayFailure);
+        const accepted = response.status === 202 ? object(response.value, "WORLD_QUERY_ACCEPTANCE_INVALID") : undefined;
+        if (accepted) {
+          // This fenced write is deliberately before the first poll. A crash can
+          // recover the authoritative upstream job id and idempotently resume.
+          await persistAcceptedWorldQueryJob(context, value.pool, item.submission, accepted);
+        }
+        let terminal: JsonObject | undefined;
+        try {
+          terminal = accepted
+            ? await value.gateway.pollJob(text(accepted["jobId"], "WORLD_QUERY_JOB_ID_MISSING"), gatewayContext)
+            : undefined;
+        } catch (error) {
+          // A transport failure or an attempt timeout must leave the accepted
+          // query available for an idempotent retry. Only the actual job's
+          // cancellation or hard deadline can terminate upstream work.
+          if (accepted && shouldCancelUpstreamQuery(context.signal, context.deadlineAt)) {
+            // The cancellation authority is the world-query id, not the
+            // generic job id. Never reuse the submit request binding, JTI, or
+            // the already-aborted caller signal.
+            try {
+              const cancelRequestId = `wsgs-cancel-${createHash("sha256")
+                .update(`${item.submission.plan.queryId}:${randomUUID()}`)
+                .digest("hex").slice(0, 32)}`;
+              const cancelDelegation = await value.signer.sign({
+                kind: "WORLD_QUERY",
+                identity: caller,
+                requestId: cancelRequestId,
+                plan: item.submission.plan,
+                dataScopes: [executionDataScope],
+                datasetScopes: caller.datasetScopes
+              });
+              await value.gateway.cancelWorldQuery(item.submission.plan.queryId, {
+                deadlineAt: new Date(Date.now() + environmentInteger("GOWM_CANCEL_TIMEOUT_MS", 2_000, 100, 10_000)),
+                requestId: cancelRequestId,
+                delegationToken: cancelDelegation.token
+              });
+            } catch {
+              // Best effort only: the local PostgreSQL generation fence still
+              // prevents any late upstream value from becoming authoritative.
+            }
+          }
+          throw error;
+        }
+        const world = response.status === 200
+          ? object(response.value, "WORLD_QUERY_RESULT_INVALID")
+          : object(object(terminal, "WORLD_QUERY_JOB_INVALID")["result"], "WORLD_QUERY_JOB_RESULT_MISSING");
+        const status = text(world["status"], "WORLD_QUERY_STATUS_MISSING");
+        const resultHash = text(world["outputHash"], "WORLD_QUERY_RESULT_HASH_MISSING");
+        const outcome: PersistedSingleWorldQueryOutcome = {
+          executionMode: "SINGLE_GATEWAY_QUERY",
+          submission: item.submission,
+          status, resultHash, delegatedIdentityHash: signed.jtiHash,
+          startedAt, finishedAt: new Date().toISOString(),
+          encryptedCheckpointEvidenceMaterial: {
+            checkpointProtection: "AES_256_GCM_INTERNAL_ONLY",
+            responseStatus: response.status,
+            response: response.value,
+            ...(terminal ? { terminal } : {})
+          }
+        };
+        await withFence(context, value.pool, async (client) => {
+          await client.query(
+            `UPDATE wsgs.world_query
+                SET gateway_query_id = $2, gateway_job_id = $3,
+                    upstream_job_id = COALESCE($3, upstream_job_id),
+                    query_snapshot_manifest = $4::jsonb,
+                    snapshot_adherence = $5::jsonb,
+                    upstream_status = $6, upstream_result_hash = $7
+              WHERE query_id = $1 AND grounding_id = $8`,
+            [item.submission.plan.queryId, world["queryId"] ?? item.submission.plan.queryId,
+              accepted?.["jobId"] ?? null, JSON.stringify(world["snapshotManifest"] ?? null),
+              JSON.stringify(world["snapshotAdherence"] ?? null), status, resultHash, context.groundingId]
+          );
+        });
+        if (status === "FAILED") throw new ProductionStageModuleError(worldQueryFailureCode(world, item.submission));
+        return outcome;
+}
+
+function normalizeQueryUnit(value: Runtime, context: PipelineStageContext, unit: NormalizationUnit,
+  normalizationProducts: EvidenceRequestedProduct[], maximumInlinePayloadBytes: number): ExecutionEvidenceProduct {
+  const authority = persistedAuthority(context, value.gateway);
+  const semantic = context.state["SEMANTIC_MODEL_PARSE"] as PersistedSemanticModelResult | undefined;
+          const nodes = Array.isArray(unit.world["nodes"]) ? unit.world["nodes"] : [];
+          const planByNode = new Map(unit.submission.plan.nodes.map((node) => [node.nodeId, node]));
+          const operationsByNode: Record<string, OperationExecutionContractTrace> = {};
+          const nodeRequestHashes = computeWorldQueryNodeRequestHashes(
+            unit.submission,
+            unit.world,
+            authority.capabilityCatalog.capabilities
+          );
+          for (const rawNode of nodes) {
+            const node = object(rawNode, "WORLD_QUERY_NODE_INVALID");
+            const nodeId = text(node["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
+            const planned = planByNode.get(nodeId);
+            if (!planned) throw new ProductionStageModuleError("WORLD_QUERY_NODE_NOT_IN_PLAN");
+            const descriptor = authority.capabilityCatalog.capabilities.find((entry) =>
+              entry.operationId === planned.operation.operationId && entry.operationVersion === planned.operation.operationVersion);
+            if (!descriptor) throw new ProductionStageModuleError("WORLD_QUERY_CAPABILITY_MISSING");
+            const profile = authority.semanticCatalog.profiles.find((entry) =>
+              entry.operationId === descriptor.operationId && entry.operationVersion === descriptor.operationVersion);
+            const observed = authority.availability.operations.find((entry) =>
+              entry.operationId === descriptor.operationId && entry.operationVersion === descriptor.operationVersion);
+            if (!profile || !observed) throw new ProductionStageModuleError("WORLD_QUERY_CONTRACT_TRACE_MISSING");
+            operationsByNode[nodeId] = {
+              nodeId,
+              operationId: descriptor.operationId,
+              operationVersion: descriptor.operationVersion,
+              inputSchemaHash: descriptor.inputSchemaHash,
+              outputSchemaUri: descriptor.outputSchemaUri,
+              outputSchemaHash: descriptor.outputSchemaHash,
+              semanticProfileHash: profile.semanticProfileHash,
+              negativeEvidencePolicy: text(profile.semanticProfile["negativeEvidencePolicy"], "NEGATIVE_EVIDENCE_POLICY_MISSING"),
+              availability: {
+                availability: observed.availability,
+                checkedAt: observed.checkedAt,
+                reasonCodes: [...observed.reasonCodes]
+              }
+            };
+          }
+          const material = unit.encryptedCheckpointEvidenceMaterial;
+          const responseStatus = material.responseStatus;
+          if (responseStatus !== 200 && responseStatus !== 202) {
+            throw new ProductionStageModuleError("WORLD_QUERY_RESPONSE_STATUS_INVALID");
+          }
+          return new GowmExecutionEvidenceNormalizer().normalizeWorldQuery({
+            context: {
+              executionId: `execution-${createHash("sha256").update(`${context.groundingId}:${unit.submission.plan.queryId}`).digest("hex").slice(0, 32)}`,
+              groundingId: context.groundingId,
+              requestPayload: unit.submission,
+              startedAt: unit.startedAt,
+              finishedAt: unit.finishedAt,
+              contractCatalogRevision: authority.trustedCapabilitySnapshot.contractCatalogRevision,
+              bindingRevision: authority.trustedCapabilitySnapshot.bindingRevision,
+              authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest,
+              delegatedIdentityHash: unit.delegatedIdentityHash as Sha256Digest,
+              ...(semantic?.receiptId ? { modelReceiptIds: [semantic.receiptId] } : {}),
+              requestedProducts: normalizationProducts,
+              maximumInlinePayloadBytes
+            },
+            operationsByNode,
+            nodeRequestHashes,
+            snapshotExpectation: {
+              mode: unit.submission.snapshotPolicy.mode,
+              allowDowngrade: false
+            },
+            outcome: responseStatus === 200
+              ? { mode: "SYNC", status: 200, result: material.response }
+              : {
+                  mode: "ASYNC", status: 202,
+                  acceptedJob: material.response,
+                  terminalJob: material.terminal
+                }
+          });
+}
+
+export async function loadOrCreateHistoricalQueryPlan(
+  context: Pick<PipelineStageContext, "jobId" | "leaseToken" | "generation" | "groundingId">,
+  pool: Pool, dataScope: string, key: string, create: () => CompileResult
+): Promise<{ submission: WorldQuerySubmission; planHash: `sha256:${string}` }> {
+  let saved: { submission: WorldQuerySubmission; planHash: `sha256:${string}` } | undefined;
+  await withFence(context, pool, async client => {
+    const previous = await client.query<{ plan: WorldQuerySubmission; plan_hash: `sha256:${string}` }>(
+      "SELECT plan,plan_hash FROM wsgs.world_query WHERE grounding_id=$1 AND plan->>'idempotencyKey'=$2", [context.groundingId, key]);
+    if (previous.rows.length > 1) throw new ProductionStageModuleError("HISTORICAL_PLAN_AMBIGUOUS");
+    if (previous.rows[0]) { saved = { submission: previous.rows[0].plan, planHash: previous.rows[0].plan_hash }; return; }
+    const compiled = create();
+    if (compiled.status !== "COMPILED") throw new ProductionStageModuleError(
+      ["OPERATION_UNAVAILABLE", "OPERATION_DEGRADED"].includes(compiled.gap.reason)
+        ? "HISTORICAL_UPSTREAM_UNAVAILABLE" : `HISTORICAL_QUERY_${compiled.gap.reason}`);
+    await client.query(`INSERT INTO wsgs.world_query(query_id,grounding_id,data_scope,plan,plan_hash) VALUES ($1,$2,$3,$4::jsonb,$5)`,
+      [compiled.submission.plan.queryId, context.groundingId, dataScope, JSON.stringify(compiled.submission), compiled.planHash]);
+    saved = { submission: compiled.submission, planHash: compiled.planHash };
+  });
+  if (!saved) throw new ProductionStageModuleError("HISTORICAL_PLAN_MISSING");
+  if (canonicalPlanHash(saved.submission.plan) !== saved.planHash || saved.submission.idempotencyKey !== key ||
+      saved.submission.snapshotPolicy.mode !== "LATEST_AT_START" || saved.submission.snapshotPolicy.allowDowngrade !== false) {
+    throw new ProductionStageModuleError("HISTORICAL_PERSISTED_PLAN_INVALID");
+  }
+  return saved;
+}
+
+async function executeHistoricalWorldQuery(value: Runtime, context: PipelineStageContext,
+  query: HistoricalQueryRequest, outcomes: PersistedWorldQueryOutcome[]): Promise<HistoricalQueryResult> {
+  const authority = persistedAuthority(context, value.gateway);
+  const caller = identity(context);
+  const policy = requestParts(context).policy;
+  const key = `${idempotencyKey(context)}:history-foundation:${query.pattern}:${query.attempt}`;
+  const saved = await loadOrCreateHistoricalQueryPlan(context, value.pool, caller.dataScope, key, () => {
+    const compiled = new TypedWorldQueryCompiler().compile({
+      groundingId: context.groundingId, requestId: gatewayRequestId(String(request(context)["requestId"])), idempotencyKey: key,
+      pattern: query.pattern, operationInput: query.operationInput, parameterValues: query.parameterValues,
+      requiredForProduct: "WORLD_EVIDENCE", capabilities: authority.capabilityCatalog.capabilities,
+      semanticProfiles: authority.semanticCatalog.profiles, operationLocks: allGatewayLocks(authority.southboundLock),
+      availability: authority.availability.operations, parameterSchemaHash: value.parameterSchemaHash,
+      maturityPolicy: { allowPreview: value.history.enabled }, grantedPermissions: caller.permissions,
+      snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false }, observedAt: authority.availability.checkedAt,
+      budgets: { maximumNodes: Math.min(2, integer(policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID")), maximumDepth: 2,
+        maximumRows: 250000, maximumCandidates: 250000, maximumOutputBytes: integer(policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+        maximumExecutionMs: Math.max(1, context.deadlineAt.getTime() - Date.now()) }
+    });
+    return compiled;
+  });
+  const scopes = trustedPlanDataScopes(segmentedScopeAuthorityForPersisted(value, authority), caller, saved.submission);
+  if (scopes.length !== 1) throw new ProductionStageModuleError("HISTORICAL_SCOPE_AMBIGUOUS");
+  const outcome = await executeSingleWorldQuery(value, context, saved, scopes[0]!);
+  const unit = normalizationUnits(outcome)[0]!;
+  let upstreamUnavailable = false;
+  for (const node of unit.world["nodes"] as JsonObject[]) {
+    if (node["status"] !== "FAILED") continue;
+    const planned = saved.submission.plan.nodes.find(entry => entry.nodeId === node["nodeId"]);
+    const envelope = node["error"] as JsonObject | undefined;
+    const upstreamCode = (envelope?.["error"] as JsonObject | undefined)?.["code"];
+    const code = typeof upstreamCode === "string" && /^[A-Z][A-Z0-9_]{0,100}$/.test(upstreamCode) ? upstreamCode : "HISTORICAL_NODE_FAILED";
+    if (["PROVIDER_NOT_READY", "PROVIDER_TIMEOUT", "PROVIDER_UNAVAILABLE", "UPSTREAM_TIMEOUT"].includes(code)) upstreamUnavailable = true;
+    console.error(JSON.stringify({ event: "historical_query_node_failed", stage: "FOUNDATION", code,
+      groundingId: context.groundingId, queryId: saved.submission.plan.queryId, operationId: planned?.operation.operationId }));
+  }
+  if (upstreamUnavailable) throw new ProductionStageModuleError("HISTORICAL_UPSTREAM_UNAVAILABLE");
+  if (!unit.world["requestedSnapshotManifest"] || !unit.world["effectiveSnapshotManifest"]) {
+    throw new ProductionStageModuleError("HISTORICAL_SNAPSHOT_MANIFEST_MISSING");
+  }
+  const evidence = normalizeQueryUnit(value, context, unit, ["WORLD_EVIDENCE"], integer(policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"));
+  if (evidence.snapshotGaps.length > 0) throw new ProductionStageModuleError("HISTORICAL_SNAPSHOT_ADHERENCE_FAILED");
+  if (evidence.nodeRecords.some(record => ["COMPLETED", "PARTIAL", "NO_DATA"].includes(record.upstreamStatus) && record.receiptIds.length === 0)) {
+    throw new ProductionStageModuleError("HISTORICAL_NODE_RECEIPT_MISSING");
+  }
+  const records = [evidence.record, ...evidence.nodeRecords];
+  await persistExecutionRecords(context, value.pool, records, new Map(records.map(record => [record.executionId, scopes[0]!])));
+  outcomes.push(outcome);
+  const nodeValue = (id: string): unknown => {
+    const planned = saved!.submission.plan.nodes.find(node => node.operation.operationId === id);
+    if (!planned) return undefined;
+    const node = (unit.world["nodes"] as JsonObject[]).find(entry => entry["nodeId"] === planned.nodeId);
+    if (!node || node["status"] === "SKIPPED") return undefined;
+    const result = envelopeValue(object(node["result"], "HISTORICAL_NODE_RESULT_MISSING"), operationLock(authority, id));
+    const descriptor = authority.capabilityCatalog.capabilities.find(entry => entry.operationId === id);
+    if (!descriptor) throw new ProductionStageModuleError("HISTORICAL_OUTPUT_CONTRACT_MISSING");
+    defaultGowmConsumerSchemaRegistry().validatePublished(descriptor.outputSchemaUri, result);
+    return result;
+  };
+  const interval = nodeValue("operational-task.get-execution-intervals");
+  if (!interval) throw new ProductionStageModuleError("HISTORICAL_INTERVAL_NODE_MISSING");
+  const trajectory = nodeValue("history.get-trajectory");
+  return { interval, ...(trajectory === undefined ? {} : { trajectory }) };
 }
 
 function finalSingleWorldResult(outcome: PersistedSingleWorldQueryOutcome): JsonObject {
@@ -2430,9 +2722,17 @@ export function normalizeGdpsWorldQuerySources(
     if (node["result"] === undefined) throw new ProductionStageModuleError("GDPS_NODE_RESULT_MISSING");
     const descriptorId = text(parameters["descriptorId"], "GDPS_DESCRIPTOR_ID_MISSING");
     const descriptorHash = text(parameters["descriptorHash"], "GDPS_DESCRIPTOR_HASH_MISSING") as `sha256:${string}`;
-    const productType = text(parameters["productType"], "GDPS_PRODUCT_TYPE_MISSING");
-    const productProfile = text(parameters["productProfile"], "GDPS_PRODUCT_PROFILE_MISSING");
-    const queryProfile = text(parameters["queryProfile"], "GDPS_QUERY_PROFILE_MISSING");
+    if (recipe.descriptorConstraint && (descriptorId !== recipe.descriptorConstraint.descriptorId ||
+      descriptorHash !== recipe.descriptorConstraint.descriptorHash)) throw new ProductionStageModuleError("GDPS_DESCRIPTOR_LOCK_MISMATCH");
+    const productType = text(parameters["productType"] ?? recipe.inputBindings["productTypeConstraint"], "GDPS_PRODUCT_TYPE_MISSING");
+    const productProfile = text(parameters["productProfile"] ?? recipe.inputBindings["productProfileConstraint"], "GDPS_PRODUCT_PROFILE_MISSING");
+    for (const [actual, expected] of [[productType, recipe.inputBindings["productTypeConstraint"]],
+      [productProfile, recipe.inputBindings["productProfileConstraint"]]]) {
+      if (expected !== undefined && actual !== expected) throw new ProductionStageModuleError("GDPS_DESCRIPTOR_LOCK_MISMATCH");
+    }
+    // Specialized recipes explicitly publish null: there is no generic query profile.
+    const queryProfile = recipe.queryProfile === null && parameters["queryProfile"] === undefined ? undefined
+      : text(parameters["queryProfile"] ?? recipe.queryProfile, "GDPS_QUERY_PROFILE_MISSING");
     return [{
       nodeId,
       evidence: normalizeGdpsSourceEvidence(node["result"], {
@@ -2442,7 +2742,7 @@ export function normalizeGdpsWorldQuerySources(
         descriptorHash,
         productType,
         productProfile,
-        queryProfile
+        ...(queryProfile === undefined ? {} : { queryProfile })
       })
     }];
   });
@@ -2760,6 +3060,7 @@ export function computeWorldQueryNodeRequestHashes(
     const nodeId = text(returned["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
     const planned = planByNode.get(nodeId);
     if (!planned) throw new ProductionStageModuleError("WORLD_QUERY_NODE_NOT_IN_PLAN");
+    if (returned["status"] === "SKIPPED" && returned["result"] === undefined && returned["inputHash"] === undefined) continue;
     const entries = Object.entries(planned.inputs).map(([name, binding]) => ({
       name,
       binding,
@@ -2920,7 +3221,6 @@ export async function createPipelineStageExecutor(
   const planner = new SemanticRequirementPlanner();
   const matcher = new CapabilityMatcher();
   const compiler = new TypedWorldQueryCompiler();
-  const evidenceNormalizer = new GowmExecutionEvidenceNormalizer();
   const productAssembler = new OperationalProductAssembler();
 
   return new ProductionPipelineStageExecutor({
@@ -2945,6 +3245,7 @@ export async function createPipelineStageExecutor(
           if (structuredSelections.length > 8 || priorGroundings.length !== 1 || !options.priorAnalysisJournal || structuredSelections.length > 1 && ordinal !== undefined) throw new PriorGroundingError("SELECTION_AMBIGUOUS");
           for (const selection of structuredSelections.length ? structuredSelections : [undefined]) {
             publicAnalysisAuthorities.push(await loadPriorAnalysisAuthority({ pool: value.pool, journal: options.priorAnalysisJournal,
+            expectedConsumerSnapshotHash: currentGowmSnapshotHash,
             identity: { ...identity(context), authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest }, dataScope: identity(context).dataScope, pointer: priorGroundings[0] as PriorGroundingPointer,
             ...(selection ? { selection: selection as NonNullable<GroundingRequest12["analysisSelections"]>[number] } : {}),
             ...(ordinal === undefined ? {} : { ordinal }) }));
@@ -2978,9 +3279,8 @@ export async function createPipelineStageExecutor(
         ? resolveHistoricalFollowup(sourceText, priorHistorical, value.history)
         : undefined;
       const historicalFollowup = followupDecision?.mode === "NOT_HISTORICAL" ? undefined : followupDecision;
-      // W11 requires replay of the exact historical snapshot. The current
-      // frozen 0.6.3 locks expose CONSISTENT_AT_START only, so accepting a
-      // prior result here would silently weaken its authority boundary.
+      // W11 requires exact historical snapshot support in the selected
+      // operation contracts; discover support instead of assuming it.
       assertPriorGroundingReplaySupport(
         allGatewayLocks(authority.southboundLock),
         publicSelectionRequested || historicalFollowup || advancedFollowup?.resolution.status === "PARSED" || priorHistorical && parsedAdvanced.status === "PARSED" ? 0 : priorGroundings.length
@@ -3022,6 +3322,7 @@ export async function createPipelineStageExecutor(
       });
       return {
         startedAt: new Date().toISOString(),
+        consumerSnapshotHash: currentGowmSnapshotHash,
         capabilitySnapshotId: snapshotId,
         knownWorldReferences: [...(Array.isArray(parts.capsule["knownWorldReferences"]) ? parts.capsule["knownWorldReferences"] : []), ...publicKnownReferences],
         priorGroundings,
@@ -3050,11 +3351,11 @@ export async function createPipelineStageExecutor(
     SEMANTIC_MODEL_PARSE: async (context) => {
       const parts = requestParts(context);
       const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
-      const parsed = await parseSemanticModelWithPolicy(value.model, {
+      const parsed = await parseWithModelBudget(value.model, {
         sourceText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
         ...(typeof parts.source["locale"] === "string" ? { locale: parts.source["locale"] } : {}),
         excludedSpans: deterministic.mentions.map((mention) => mention.span)
-      }, value.modelPolicy, context.signal);
+      }, value.modelPolicy, context.deadlineAt, context.signal);
       const receipt = parsed.receipt;
       if (!receipt) return parsed;
       const receiptId = modelReceiptId(receipt);
@@ -3128,20 +3429,49 @@ export async function createPipelineStageExecutor(
       const resolved = context.state["REFERENCE_RESOLVE"] as ReferenceGroundingResult | undefined;
       const parts = requestParts(context);
       const known = knownReferenceValues(context).map((entry) => object(entry, "INVALID_KNOWN_REFERENCE"));
-      const result = mergeKnownReferenceProducts(resolved, known);
+      let result = mergeKnownReferenceProducts(resolved, known);
       const references = result.referenceProducts.map((entry) => ({
         referenceKey: entry.referenceKey, requireCurrentSnapshot: true
       }));
       if (references.length === 0) return result;
       const lock = operationLock(authority, "reference.validate");
       const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", references }, "reference-validate");
-      const validations = normalizeValidation(envelopeValue(envelope, lock));
+      let validations = normalizeValidation(envelopeValue(envelope, lock));
+      let refreshes: unknown[] = [];
+      let refreshSequence = 0;
+      // New executions may resolve live identities again after model latency. Never
+      // reinterpret a prior grounding or an explicit validation-only request.
+      if (request(context)["operation"] === "EXECUTE_WORLD_QUERY" &&
+          (!Array.isArray(parts.capsule["priorGroundings"]) || parts.capsule["priorGroundings"].length === 0)) {
+        const refreshed = await refreshStaleReferences({ products: result.referenceProducts, validations,
+          resolve: async key => {
+            const id = key.kind === "OPERATIONAL_TASK" ? "operational-task.get" : "reference.get";
+            const currentLock = operationLock(authority, id);
+            const currentEnvelope = await executeOperation(value, context, currentLock,
+              { schemaVersion: "1.0", referenceKey: key }, `reference-refresh-${refreshSequence++}`);
+            const current = object(envelopeValue(currentEnvelope, currentLock), "REFERENCE_REFRESH_INVALID");
+            if (current["stale"] === true || current["revalidationRequired"] === true) throw new ProductionStageModuleError("REFERENCE_REFRESH_UNAVAILABLE");
+            return referenceKey(current["referenceKey"]);
+          },
+          validate: async key => {
+            const checked = await executeOperation(value, context, lock,
+              { schemaVersion: "1.0", references: [{ referenceKey: key, requireCurrentSnapshot: true }] }, `reference-refresh-validate-${refreshSequence++}`);
+            const rows = normalizeValidation(envelopeValue(checked, lock));
+            if (rows.length !== 1) throw new ProductionStageModuleError("REFERENCE_REFRESH_VALIDATION_MISSING");
+            return rows[0]!;
+          }
+        });
+        result = { ...result, referenceProducts: refreshed.products };
+        validations = refreshed.validations;
+        refreshes = refreshed.refreshes;
+      }
       const evaluatedAt = new Date().toISOString();
       const validityTtlMs = environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000);
       const byKey = new Map(validations.map((entry) => [canonicalSha256(referenceKey(entry.referenceKey)), entry]));
       const validated = {
         ...result,
         validationResults: validations,
+        refreshes,
         referenceProducts: result.referenceProducts.map((product) => {
           const validation = byKey.get(canonicalSha256(referenceKey(product.referenceKey)));
           if (!validation) throw new ProductionStageModuleError("REFERENCE_VALIDATION_MISSING");
@@ -3361,6 +3691,7 @@ export async function createPipelineStageExecutor(
           planning,
           groundingGraph,
           references,
+          requireValidatedReference: true,
           ...(typeof parts.source["locale"] === "string" ? { locale: parts.source["locale"] } : {}),
           maximumCandidates: integer(parts.policy["maxCandidatesPerMention"], "MAX_CANDIDATES_INVALID")
           , originalText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING")
@@ -3379,11 +3710,12 @@ export async function createPipelineStageExecutor(
           : gdpsRecipe?.descriptorConstraint?.descriptorHash;
         const result = compiler.compile({
           groundingId: context.groundingId,
-          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
+          requestId: gatewayRequestId(text(request(context)["requestId"], "REQUEST_ID_MISSING")),
           idempotencyKey: `${idempotencyKey(context)}:${recipeId}`,
           pattern: recipeId as QuerySemanticPattern,
           requiredForProduct: recipeInput.requiredForProduct,
           operationInput: recipeInput.operationInput,
+          ...(recipeInput.resolvedReferenceKey ? { resolvedReferenceKey: recipeInput.resolvedReferenceKey } : {}),
           parameterValues: gdpsRecipe && descriptorId && descriptorHash ? {
             ...recipeInput.parameterValues,
             descriptorId,
@@ -3443,6 +3775,8 @@ export async function createPipelineStageExecutor(
 
     GOWM_EXECUTE: async (context) => {
       const compilation = stageValue<HistoricalCompilation>(context, "WORLD_QUERY_COMPILE");
+      const foundationOutcomes: PersistedWorldQueryOutcome[] = [];
+      const executeHistoryQuery = (query: HistoricalQueryRequest) => executeHistoricalWorldQuery(value, context, query, foundationOutcomes);
       if (compilation.advancedResolution) {
         if (!compilation.advancedIntent || !value.advancedHistory.enabled || !value.history.enabled || !value.analysisContracts) {
           return { outcomes: [], advancedFailure: compilation.advancedResolution.status === "UNRESOLVED" ? compilation.advancedResolution.reasonCode :
@@ -3475,16 +3809,41 @@ export async function createPipelineStageExecutor(
         const advancedExecution = await executeAdvancedHistoricalAnalysis({
           intent: compilation.advancedIntent, configuration: value.advancedHistory, history: value.history,
           contracts: value.analysisContracts, catalog: value.metricCatalog, deadlineAt: context.deadlineAt,
+          observeAvailability: async operationIds => {
+            const caller = identity(context);
+            const locks = allGatewayLocks(authority.southboundLock);
+            const selected = operationIds.map(id => operationLock(authority, id));
+            if (selected.some(lock => (lock.requiredPermissions ?? []).some(permission => !caller.permissions.includes(permission)))) {
+              throw new ProductionStageModuleError("HISTORICAL_AVAILABILITY_AUTHORITY_MISMATCH");
+            }
+            const requestId = `wsgs-availability-${randomUUID()}`;
+            const signed = await value.signer.sign({ kind: "WORLD_QUERY", identity: caller, requestId,
+              plan: { nodes: selected.map((lock, index) => ({ nodeId: `Availability_${index}`, operation: { operationId: lock.operationId, operationVersion: lock.operationVersion } })) },
+              dataScopes: [caller.dataScope], datasetScopes: caller.datasetScopes });
+            const observed = await value.gateway.listOperationAvailability({ requestId, delegationToken: signed.token,
+              deadlineAt: context.deadlineAt, signal: context.signal });
+            const observedAt = new Date().toISOString();
+            const operations = validateExecutionAvailability({ operationIds, locks, permissions: caller.permissions,
+              catalogRevision: authority.capabilityCatalog.contractCatalogRevision, bindingRevision: authority.capabilityCatalog.bindingRevision,
+              operations: observed.operations, observedAt });
+            const observation = executionAvailabilityObservation({ requestId, observedAt, operations,
+              authorityHash: authority.trustedCapabilitySnapshot.snapshotHash, principalHash: canonicalSha256(caller), delegationHash: signed.jtiHash });
+            console.info(JSON.stringify({ event: "execution_availability_observed", groundingId: context.groundingId,
+              observationHash: observation.observationHash, authorityHash: observation.authorityHash,
+              operationIds, observedAt, statuses: operations.map(entry => entry.availability) }));
+            return observation;
+          },
+          onFailure: diagnostic => console.error(JSON.stringify({ level: "error", event: "advanced_execution_failed", groundingId: context.groundingId, ...diagnostic })),
           ...(reusableFoundation ? { reusableFoundation } : {}),
           taskReferenceKeys: historicalReferences(references, "OPERATIONAL_TASK"), subjectReferenceKeys: advancedSubjectReferences(references, compilation.advancedIntent),
-          compileContext: { groundingId: context.groundingId, requestId: String(request(context)["requestId"]), idempotencyKey: idempotencyKey(context),
+          compileContext: { groundingId: context.groundingId, requestId: gatewayRequestId(String(request(context)["requestId"])), idempotencyKey: idempotencyKey(context),
             capabilities: authority.capabilityCatalog.capabilities, semanticProfiles: authority.semanticCatalog.profiles,
             operationLocks: allGatewayLocks(authority.southboundLock), availability: authority.availability.operations,
             grantedPermissions: identity(context).permissions, parameterSchemaHash: value.parameterSchemaHash,
             budgets: { maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"), maximumDepth: 2,
               maximumRows: 250000, maximumCandidates: 250000, maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
               maximumExecutionMs: Math.max(1, context.deadlineAt.getTime() - Date.now()) } },
-          foundationGateway: { execute: async (operationId, input) => {
+          foundationGateway: { executeQuery: executeHistoryQuery, execute: async (operationId, input) => {
             const lock = operationLock(authority, operationId);
             const envelope = await executeOperation(value, context, lock, input, `advanced-foundation-${operationId}-${analysisHash(input).slice(7)}`);
             // Historical domain NO_DATA / INDETERMINATE are meaningful payloads.
@@ -3511,7 +3870,7 @@ export async function createPipelineStageExecutor(
           advancedExecution.comparison = { changed: changedFields.length > 0, changedFields };
         }
         const publicAuthority = stageValue<{ publicAnalysisAuthority?: PriorAnalysisAuthority }>(context, "LOAD_CONTEXT").publicAnalysisAuthority;
-        return { outcomes: [], advancedExecution, ...(publicAuthority ? { publicReferenceProducts: publicAuthority.result.referenceProducts } : {}) };
+        return { outcomes: foundationOutcomes, advancedExecution, ...(publicAuthority ? { publicReferenceProducts: publicAuthority.result.referenceProducts } : {}) };
       }
       if (compilation.historicalPlan) {
         if (compilation.historicalReuse) {
@@ -3536,6 +3895,12 @@ export async function createPipelineStageExecutor(
           return { outcomes: [], historicalExecution };
         }
         if (compilation.capabilityGaps.length > 0) {
+          for (const gap of compilation.capabilityGaps) {
+            const details = gap["details"] as JsonObject | undefined;
+            console.error(JSON.stringify({ level: "error", event: "historical_capability_unavailable", groundingId: context.groundingId,
+              stage: "HISTORICAL_CAPABILITY_CHECK", code: gap["reason"], operationId: details?.["operationId"],
+              descriptorAvailable: details?.["descriptorAvailable"], operationAuthorized: details?.["operationAuthorized"], availability: details?.["availability"] }));
+          }
           return {
             outcomes: [],
             historicalExecution: {
@@ -3552,6 +3917,7 @@ export async function createPipelineStageExecutor(
           intent: compilation.historicalPlan.intent,
           configuration: value.history,
           gateway: {
+            executeQuery: executeHistoryQuery,
             execute: async (operationId, input) => {
               const lock = operationLock(persistedAuthority(context, value.gateway), operationId);
               const envelope = await executeOperation(value, context, lock, input, `history-${operationId}`);
@@ -3560,6 +3926,15 @@ export async function createPipelineStageExecutor(
           },
           ...(taskReferenceKeys.length > 0 ? { taskReferenceKeys } : {}),
           ...(subjectReferenceKeys.length > 0 ? { subjectReferenceKeys } : {})
+        }).catch((error: unknown): HistoricalExecutionResult => {
+          const knownContractError = error instanceof ProductionStageModuleError || error instanceof Error &&
+            ["ExecutionEvidenceError", "GowmSchemaValidationError"].includes(error.name);
+          if (!knownContractError) throw error;
+          const code = error && typeof error === "object" && "code" in error && typeof error.code === "string"
+            && /^[A-Z][A-Z0-9_]{0,100}$/.test(error.code) ? error.code : "HISTORICAL_RESULT_INVALID";
+          console.error(JSON.stringify({ event: "historical_execution_failed", stage: "FOUNDATION", code,
+            groundingId: context.groundingId }));
+          return { status: "CAPABILITY_GAP", reasonCode: code === "HISTORICAL_UPSTREAM_UNAVAILABLE" ? code : "HISTORICAL_UPSTREAM_CONTRACT_MISMATCH", operations: [] };
         });
         const historicalExecution: HistoricalExecutionResult = {
           ...executed,
@@ -3568,7 +3943,7 @@ export async function createPipelineStageExecutor(
             comparison: compareHistoricalFindings(compilation.historicalPriorForComparison.finding, executed.finding)
           } : {})
         };
-        return { outcomes: [], historicalExecution };
+        return { outcomes: foundationOutcomes, historicalExecution };
       }
       const caller = identity(context);
       const persisted = persistedAuthority(context, value.gateway);
@@ -3639,97 +4014,7 @@ export async function createPipelineStageExecutor(
           });
           continue;
         }
-        const executionDataScope = planDataScopes[0] ?? caller.dataScope;
-        const signed = await value.signer.sign({
-          kind: "WORLD_QUERY", identity: caller,
-          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
-          plan: item.submission.plan,
-          dataScopes: [executionDataScope], datasetScopes: caller.datasetScopes
-        });
-        const gatewayContext: GatewayRequestContext = {
-          signal: context.signal, deadlineAt: context.deadlineAt,
-          requestId: text(request(context)["requestId"], "REQUEST_ID_MISSING"),
-          delegationToken: signed.token,
-          preferAsync: true
-        };
-        const startedAt = new Date().toISOString();
-        const response = await value.gateway.submitWorldQuery(item.submission as unknown as JsonObject, gatewayContext)
-          .catch(gatewayFailure);
-        const accepted = response.status === 202 ? object(response.value, "WORLD_QUERY_ACCEPTANCE_INVALID") : undefined;
-        if (accepted) {
-          // This fenced write is deliberately before the first poll. A crash can
-          // recover the authoritative upstream job id and idempotently resume.
-          await persistAcceptedWorldQueryJob(context, value.pool, item.submission, accepted);
-        }
-        let terminal: JsonObject | undefined;
-        try {
-          terminal = accepted
-            ? await value.gateway.pollJob(text(accepted["jobId"], "WORLD_QUERY_JOB_ID_MISSING"), gatewayContext)
-            : undefined;
-        } catch (error) {
-          // A transport failure or an attempt timeout must leave the accepted
-          // query available for an idempotent retry. Only the actual job's
-          // cancellation or hard deadline can terminate upstream work.
-          if (accepted && shouldCancelUpstreamQuery(context.signal, context.deadlineAt)) {
-            // The v0.6.3 cancellation authority is the world-query id, not the
-            // generic job id. Never reuse the submit request binding, JTI, or
-            // the already-aborted caller signal.
-            try {
-              const cancelRequestId = `wsgs-cancel-${createHash("sha256")
-                .update(`${item.submission.plan.queryId}:${randomUUID()}`)
-                .digest("hex").slice(0, 32)}`;
-              const cancelDelegation = await value.signer.sign({
-                kind: "WORLD_QUERY",
-                identity: caller,
-                requestId: cancelRequestId,
-                plan: item.submission.plan,
-                dataScopes: [executionDataScope],
-                datasetScopes: caller.datasetScopes
-              });
-              await value.gateway.cancelWorldQuery(item.submission.plan.queryId, {
-                deadlineAt: new Date(Date.now() + environmentInteger("GOWM_CANCEL_TIMEOUT_MS", 2_000, 100, 10_000)),
-                requestId: cancelRequestId,
-                delegationToken: cancelDelegation.token
-              });
-            } catch {
-              // Best effort only: the local PostgreSQL generation fence still
-              // prevents any late upstream value from becoming authoritative.
-            }
-          }
-          throw error;
-        }
-        const world = response.status === 200
-          ? object(response.value, "WORLD_QUERY_RESULT_INVALID")
-          : object(object(terminal, "WORLD_QUERY_JOB_INVALID")["result"], "WORLD_QUERY_JOB_RESULT_MISSING");
-        const status = text(world["status"], "WORLD_QUERY_STATUS_MISSING");
-        const resultHash = text(world["outputHash"], "WORLD_QUERY_RESULT_HASH_MISSING");
-        outcomes.push({
-          executionMode: "SINGLE_GATEWAY_QUERY",
-          submission: item.submission,
-          status, resultHash, delegatedIdentityHash: signed.jtiHash,
-          startedAt, finishedAt: new Date().toISOString(),
-          encryptedCheckpointEvidenceMaterial: {
-            checkpointProtection: "AES_256_GCM_INTERNAL_ONLY",
-            responseStatus: response.status,
-            response: response.value,
-            ...(terminal ? { terminal } : {})
-          }
-        });
-        await withFence(context, value.pool, async (client) => {
-          await client.query(
-            `UPDATE wsgs.world_query
-                SET gateway_query_id = $2, gateway_job_id = $3,
-                    upstream_job_id = COALESCE($3, upstream_job_id),
-                    query_snapshot_manifest = $4::jsonb,
-                    snapshot_adherence = $5::jsonb,
-                    upstream_status = $6, upstream_result_hash = $7
-              WHERE query_id = $1 AND grounding_id = $8`,
-            [item.submission.plan.queryId, world["queryId"] ?? item.submission.plan.queryId,
-              accepted?.["jobId"] ?? null, JSON.stringify(world["snapshotManifest"] ?? null),
-              JSON.stringify(world["snapshotAdherence"] ?? null), status, resultHash, context.groundingId]
-          );
-        });
-        if (status === "FAILED") throw new ProductionStageModuleError(worldQueryFailureCode(world, item.submission));
+        outcomes.push(await executeSingleWorldQuery(value, context, item, planDataScopes[0] ?? caller.dataScope));
       }
       return { outcomes };
     },
@@ -3824,77 +4109,7 @@ export async function createPipelineStageExecutor(
         const gdpsSources = normalizeGdpsWorldQuerySources(outcome.submission, findingWorld, value.gdpsRecipeLock);
         const gdpsByNode = new Map(gdpsSources.map((entry) => [entry.nodeId, entry.evidence]));
         for (const unit of units) {
-          const nodes = Array.isArray(unit.world["nodes"]) ? unit.world["nodes"] : [];
-          const planByNode = new Map(unit.submission.plan.nodes.map((node) => [node.nodeId, node]));
-          const operationsByNode: Record<string, OperationExecutionContractTrace> = {};
-          const nodeRequestHashes = computeWorldQueryNodeRequestHashes(
-            unit.submission,
-            unit.world,
-            authority.capabilityCatalog.capabilities
-          );
-          for (const rawNode of nodes) {
-            const node = object(rawNode, "WORLD_QUERY_NODE_INVALID");
-            const nodeId = text(node["nodeId"], "WORLD_QUERY_NODE_ID_MISSING");
-            const planned = planByNode.get(nodeId);
-            if (!planned) throw new ProductionStageModuleError("WORLD_QUERY_NODE_NOT_IN_PLAN");
-            const descriptor = authority.capabilityCatalog.capabilities.find((entry) =>
-              entry.operationId === planned.operation.operationId && entry.operationVersion === planned.operation.operationVersion);
-            if (!descriptor) throw new ProductionStageModuleError("WORLD_QUERY_CAPABILITY_MISSING");
-            const profile = authority.semanticCatalog.profiles.find((entry) =>
-              entry.operationId === descriptor.operationId && entry.operationVersion === descriptor.operationVersion);
-            const observed = authority.availability.operations.find((entry) =>
-              entry.operationId === descriptor.operationId && entry.operationVersion === descriptor.operationVersion);
-            if (!profile || !observed) throw new ProductionStageModuleError("WORLD_QUERY_CONTRACT_TRACE_MISSING");
-            operationsByNode[nodeId] = {
-              nodeId,
-              operationId: descriptor.operationId,
-              operationVersion: descriptor.operationVersion,
-              inputSchemaHash: descriptor.inputSchemaHash,
-              outputSchemaUri: descriptor.outputSchemaUri,
-              outputSchemaHash: descriptor.outputSchemaHash,
-              semanticProfileHash: profile.semanticProfileHash,
-              negativeEvidencePolicy: text(profile.semanticProfile["negativeEvidencePolicy"], "NEGATIVE_EVIDENCE_POLICY_MISSING"),
-              availability: {
-                availability: observed.availability,
-                checkedAt: observed.checkedAt,
-                reasonCodes: [...observed.reasonCodes]
-              }
-            };
-          }
-          const material = unit.encryptedCheckpointEvidenceMaterial;
-          const responseStatus = material.responseStatus;
-          if (responseStatus !== 200 && responseStatus !== 202) {
-            throw new ProductionStageModuleError("WORLD_QUERY_RESPONSE_STATUS_INVALID");
-          }
-          const evidence = evidenceNormalizer.normalizeWorldQuery({
-            context: {
-              executionId: `execution-${createHash("sha256").update(`${context.groundingId}:${unit.submission.plan.queryId}`).digest("hex").slice(0, 32)}`,
-              groundingId: context.groundingId,
-              requestPayload: unit.submission,
-              startedAt: unit.startedAt,
-              finishedAt: unit.finishedAt,
-              contractCatalogRevision: authority.trustedCapabilitySnapshot.contractCatalogRevision,
-              bindingRevision: authority.trustedCapabilitySnapshot.bindingRevision,
-              authorizationContextHash: identity(context).authorizationContextHash as Sha256Digest,
-              delegatedIdentityHash: unit.delegatedIdentityHash as Sha256Digest,
-              ...(semantic?.receiptId ? { modelReceiptIds: [semantic.receiptId] } : {}),
-              requestedProducts: normalizationProducts,
-              maximumInlinePayloadBytes
-            },
-            operationsByNode,
-            nodeRequestHashes,
-            snapshotExpectation: {
-              mode: unit.submission.snapshotPolicy.mode,
-              allowDowngrade: false
-            },
-            outcome: responseStatus === 200
-              ? { mode: "SYNC", status: 200, result: material.response }
-              : {
-                  mode: "ASYNC", status: 202,
-                  acceptedJob: material.response,
-                  terminalJob: material.terminal
-                }
-          });
+          const evidence = normalizeQueryUnit(value, context, unit, normalizationProducts, maximumInlinePayloadBytes);
           const unitDataScopes = trustedPlanDataScopes(segmentedScopeAuthority, identity(context), unit.submission);
           if (unitDataScopes.length !== 1) {
             throw new ProductionStageModuleError("NORMALIZED_SEGMENT_DATA_SCOPE_AMBIGUOUS");

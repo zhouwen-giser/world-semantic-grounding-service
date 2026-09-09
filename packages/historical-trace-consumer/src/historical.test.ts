@@ -1,3 +1,4 @@
+import { historicalQueryFixture } from "./query-test-support.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -289,7 +290,7 @@ describe("historical Gateway orchestration", () => {
       intent: { ...projectHistoricalTraceIntent("2号车本次任务走过哪里？", configuration)!, subjectReferenceKey: vehicle },
       configuration: runtimeConfiguration,
       subjectReferenceKeys: [vehicle],
-      gateway: { execute: async (operationId) => {
+      gateway: { executeQuery(request) { return historicalQueryFixture(this, request); }, execute: async (operationId) => {
         calls.push(operationId);
         if (operationId === "operational-task.find") return { schemaVersion: "1.0", tasks: [snapshot], truncated: false };
         if (operationId === "operational-task.get") return snapshot;
@@ -303,6 +304,41 @@ describe("historical Gateway orchestration", () => {
     ]);
   });
 
+  it("resolves an actor vehicle version without changing event-time membership", async () => {
+    const actor = { ...vehicle, version: "1" };
+    const current = { ...vehicle, version: "9000" };
+    const calls: Array<{ id: string; value: Record<string, unknown> }> = [];
+    const result = await executeHistoricalTrace({
+      intent: { ...projectHistoricalTraceIntent("2号车本次任务走过哪里？", configuration)!, taskReferenceKey: task, subjectReferenceKey: vehicle },
+      configuration: runtimeConfiguration, taskReferenceKeys: [task], subjectReferenceKeys: [vehicle],
+      gateway: { executeQuery(request) { return historicalQueryFixture(this, request); }, execute: async (id, value) => {
+        calls.push({ id, value });
+        if (id === "operational-task.get") return { ...snapshot, actorReferenceKeys: [actor] };
+        if (id === "reference.get") return { referenceKey: current };
+        if (id === "operational-task.get-execution-intervals") return intervalResult;
+        return trajectoryResult();
+      } }
+    });
+    expect(result.status).toBe("COMPLETED");
+    expect(result.context?.subjectReferenceKey).toEqual(current);
+    expect(result.finding?.subjectReferenceKey).toEqual(trajectoryResult()["subjectReferenceKey"]);
+    expect(result.context?.taskSnapshot?.actorReferenceKeys).toEqual([actor]);
+    expect(calls.find(call => call.id === "reference.get")?.value).toMatchObject({ referenceKey: actor });
+    expect(calls.find(call => call.id === "history.get-trajectory")?.value).toMatchObject({ subjectReferenceKey: current });
+  });
+
+  it("rejects another identity returned while refreshing an actor", async () => {
+    const result = await executeHistoricalTrace({
+      intent: { ...projectHistoricalTraceIntent("2号车本次任务走过哪里？", configuration)!, taskReferenceKey: task, subjectReferenceKey: vehicle },
+      configuration: runtimeConfiguration, taskReferenceKeys: [task], subjectReferenceKeys: [vehicle],
+      gateway: { executeQuery(request) { return historicalQueryFixture(this, request); }, execute: async id => id === "operational-task.get"
+        ? { ...snapshot, actorReferenceKeys: [{ ...vehicle, version: "1" }] }
+        : { referenceKey: otherVehicle } }
+    });
+    expect(result).toMatchObject({ status: "CAPABILITY_GAP", reasonCode: "SUBJECT_CONTEXT_REQUIRED" });
+    expect(result.operations).not.toContain("history.get-trajectory");
+  });
+
   it("stops before trajectory on subject mismatch", async () => {
     const calls: string[] = [];
     const result = await executeHistoricalTrace({
@@ -314,7 +350,7 @@ describe("historical Gateway orchestration", () => {
       configuration: runtimeConfiguration,
       taskReferenceKeys: [task],
       subjectReferenceKeys: [otherVehicle],
-      gateway: { execute: async (operationId) => {
+      gateway: { executeQuery(request) { return historicalQueryFixture(this, request); }, execute: async (operationId) => {
         calls.push(operationId);
         return snapshot;
       } }
@@ -334,7 +370,7 @@ describe("historical Gateway orchestration", () => {
       configuration: runtimeConfiguration,
       taskReferenceKeys: [task],
       subjectReferenceKeys: [vehicle],
-      gateway: { execute: async (operationId) => {
+      gateway: { executeQuery(request) { return historicalQueryFixture(this, request); }, execute: async (operationId) => {
         calls.push(operationId);
         if (operationId === "operational-task.get") return snapshot;
         return { ...intervalResult, status: "NO_DATA", reasonCode: "PROJECTION_PENDING", intervals: [] };
@@ -356,7 +392,7 @@ describe("historical Gateway orchestration", () => {
       configuration: { ...runtimeConfiguration, pendingRetryMs: 1 },
       taskReferenceKeys: [task],
       subjectReferenceKeys: [vehicle],
-      gateway: { execute: async (operationId) => {
+      gateway: { executeQuery(request) { return historicalQueryFixture(this, request); }, execute: async (operationId) => {
         calls.push(operationId);
         if (operationId === "operational-task.get") return snapshot;
         if (operationId === "operational-task.get-execution-intervals") {

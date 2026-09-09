@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-09-07",
+  "provider": "gowm.operational-reality",
+  "operation": "operational-task.get",
+  "directReadRepositoryFind": {
+    "status": "PASS",
+    "count": 1
+  },
+  "providerRepositoryExecute": {
+    "status": "FAILED",
+    "code": "42501",
+    "message": "permission denied for table world_reference_identity"
+  },
+  "upstreamMutationPerformed": false
+}

@@ -1,3 +1,4 @@
+import { historicalQueryFixture } from "./query-test-support.js";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
@@ -16,7 +17,7 @@ import { createHash } from "node:crypto";
 const config = advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" });
 const history = historicalTraceConfigurationFromEnvironment({ WSGS_HISTORY_TRACE_ENABLED: "YES" });
 const catalog = new MetricSemanticCatalog();
-const contracts = new AnalysisProviderContracts();
+const contracts = new AnalysisProviderContracts(new URL("../../../contracts/upstream/gowm-analysis-providers-current", import.meta.url).pathname);
 const fixture = (name: string): Record<string, unknown> => JSON.parse(readFileSync(fileURLToPath(new URL(`../../../validation/fixtures/advanced-history/${name}.json`, import.meta.url)), "utf8")) as Record<string, unknown>;
 const parse = (text: string, prior?: AdvancedHistoricalIntent) => {
   const parsed = parseAdvancedHistoricalIntent(text, catalog, config, prior);
@@ -40,7 +41,7 @@ function executionInput(text: string, name: string): AdvancedExecutionInput {
   const intent = parse(text);
   return { intent, configuration: config, history, contracts, catalog,
     compileContext: advancedCompileFixture(), deadlineAt: new Date(Date.now() + 30000), reusableFoundation: foundation(name, intent),
-    foundationGateway: { execute: vi.fn(async () => { throw new Error("unexpected foundation query"); }) },
+    foundationGateway: { executeQuery(request) { return historicalQueryFixture(this, request); }, execute: vi.fn(async () => { throw new Error("unexpected foundation query"); }) },
     gateway: { execute: vi.fn(async (id: AnalysisOperationId, request) => {
       const envelope = fixture(id === "trajectory.map-match" ? "map-match" : name);
       for (const receipt of envelope["receipts"] as Array<Record<string, unknown>>) receipt["inputHash"] = analysisHash(request);
@@ -194,13 +195,28 @@ describe("advanced execution through a mock Gateway", () => {
     input.gateway.execute = vi.fn(async () => { throw Object.assign(new Error("cancelled"), { code: "ABORTED" }); });
     await expect(executeAdvancedHistoricalAnalysis(input)).rejects.toMatchObject({ code: "ABORTED" });
   });
-  it.each(["TRANSPORT_FAILURE", "HTTP_503", "HTTP_502_PROVIDER_DOWN", "HTTP_403_FORBIDDEN"])("classifies %s separately from contract mismatch", async code => {
+  it.each(["TRANSPORT_FAILURE", "GATEWAY_CIRCUIT_OPEN", "HTTP_503", "HTTP_502_PROVIDER_DOWN", "HTTP_403_FORBIDDEN"])("classifies %s separately from contract mismatch", async code => {
     const input = executionInput("2号车经过哪些道路", "map-match");
     input.gateway.execute = vi.fn(async () => { throw Object.assign(new Error("private upstream details"), { code }); });
     const result = await executeAdvancedHistoricalAnalysis(input);
     expect(result).toMatchObject({ status: "FAILED", reasonCode: "ADVANCED_HISTORY_UPSTREAM_FAILURE" });
     expect(JSON.stringify(result)).not.toContain("private upstream details");
     expect(result.foundation).toBeDefined();
+  });
+  it("diagnoses a foundation circuit failure without claiming analysis ran or disclosing error text", async () => {
+    const input = executionInput("2号车经过哪些道路", "map-match");
+    const old = input.reusableFoundation!;
+    delete input.reusableFoundation;
+    input.intent.historicalScope.taskReferenceKey = old.intent.taskReferenceKey!;
+    input.subjectReferenceKeys = [old.intent.subjectReferenceKey!];
+    const onFailure = vi.fn();
+    input.onFailure = onFailure;
+    input.foundationGateway.execute = vi.fn(async () => { throw Object.assign(new Error("private credential and request"), { code: "GATEWAY_CIRCUIT_OPEN" }); });
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(result).toMatchObject({ status: "FAILED", reasonCode: "ADVANCED_HISTORY_UPSTREAM_FAILURE", analysisEvidence: [] });
+    expect(onFailure).toHaveBeenCalledWith({ phase: "FOUNDATION", code: "GATEWAY_CIRCUIT_OPEN", classification: "ADVANCED_HISTORY_UPSTREAM_FAILURE",
+      lastOperation: result.operations.at(-1), attemptedOperations: 1, analysisEvidenceCount: 0 });
+    expect(JSON.stringify(onFailure.mock.calls)).not.toContain("private");
   });
   it.each(["RESPONSE_SCHEMA_MISMATCH", "INVALID_JSON_RESPONSE", "HTTP_503garbage"])("keeps %s fail-closed as contract mismatch", async code => {
     const input = executionInput("2号车经过哪些道路", "map-match");
@@ -251,6 +267,9 @@ describe("advanced execution through a mock Gateway", () => {
     const input = executionInput("2号车经过哪些道路", "map-match");
     const prior = input.reusableFoundation!;
     expect(canReuseAdvancedFoundation(prior, input.intent, Date.now())).toBe(true);
+    expect(canReuseAdvancedFoundation(prior, { ...input.intent, historicalScope: {
+      ...input.intent.historicalScope, subjectReferenceKey: { ...prior.intent.subjectReferenceKey!, version: "9000" }
+    } }, Date.now())).toBe(true);
     expect(canReuseAdvancedFoundation({ ...prior, reference: { ...prior.reference, validUntil: "2000-01-01T00:00:00Z" } }, input.intent, Date.now())).toBe(false);
     expect(canReuseAdvancedFoundation(prior, { ...input.intent, historicalScope: { ...input.intent.historicalScope, phaseScope: "ACTIVE_PHASES_ONLY" } }, Date.now())).toBe(false);
     expect(canReuseAdvancedFoundation(prior, { ...input.intent, historicalScope: { ...input.intent.historicalScope, subjectMention: "3号车" } }, Date.now())).toBe(false);
@@ -353,5 +372,51 @@ describe("trusted advanced multi-turn", () => {
     events["summary"] = { truncated: false }; events["truncated"] = false;
     expect(resolveAdvancedFollowup("最后一个呢", prior, catalog, config).reuse?.findings[0]).toMatchObject({ selection: { confirmed: true } });
     expect(resolveAdvancedFollowup("最后一次进入A区", prior, catalog, config).reuse).toBeUndefined();
+  });
+});
+
+describe("execution availability observations", () => {
+  it.each(["fresh", "stale", "unavailable", "absent"])("handles %s observation after admission expires", async mode => {
+    const input = executionInput("2号车任务期间在哪里停车", "stop");
+    input.compileContext.availability.forEach(entry => { entry.validUntil = new Date(Date.now() - 1).toISOString(); });
+    const frozen = structuredClone(input.compileContext);
+    if (mode !== "absent") input.observeAvailability = async ids => ({
+      schemaVersion: "1.0", kind: "EXECUTION_AVAILABILITY", requestId: "probe",
+      observedAt: new Date().toISOString(), authorityHash: analysisHash(frozen),
+      principalHash: analysisHash("principal"), delegationHash: analysisHash("delegation"), observationHash: analysisHash(mode),
+      operations: frozen.availability.filter(entry => ids.includes(entry.operationId)).map(entry => ({
+        ...entry, checkedAt: new Date().toISOString(),
+        validUntil: new Date(Date.now() + (mode === "stale" ? -1 : 5000)).toISOString(),
+        availability: mode === "unavailable" ? "UNAVAILABLE" : "AVAILABLE"
+      }))
+    });
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(input.compileContext).toEqual(frozen);
+    if (mode === "fresh") {
+      expect(result.analysisEvidence).toHaveLength(1);
+      expect(result.executionAvailabilityObservations).toHaveLength(1);
+    } else expect(input.gateway.execute).not.toHaveBeenCalled();
+  });
+  it("reobserves the second CROSS node after the first node outlives the health TTL", async () => {
+    const input = executionInput("2号车最后经过哪个路口", "cross-last");
+    let clock = Date.now();
+    input.now = () => clock;
+    const observe = vi.fn(async (ids: readonly string[]) => ({
+      schemaVersion: "1.0" as const, kind: "EXECUTION_AVAILABILITY" as const, requestId: "probe",
+      observedAt: new Date(clock).toISOString(), authorityHash: analysisHash("authority"),
+      principalHash: analysisHash("principal"), delegationHash: analysisHash("delegation"), observationHash: analysisHash(clock),
+      operations: input.compileContext.availability.filter(entry => ids.includes(entry.operationId)).map(entry => ({
+        ...entry, checkedAt: new Date(clock).toISOString(), validUntil: new Date(clock + 5000).toISOString()
+      }))
+    }));
+    input.observeAvailability = observe;
+    const execute = input.gateway.execute;
+    input.gateway.execute = vi.fn(async (id, request, options) => { const result = await execute(id, request, options); clock += 6000; return result; });
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(result.analysisEvidence).toHaveLength(2);
+    expect(observe.mock.calls.map(call => call[0])).toEqual([
+      ["trajectory.map-match", "temporal-spatial.find-events"], ["temporal-spatial.find-events"]
+    ]);
+    expect(result.executionAvailabilityObservations).toHaveLength(2);
   });
 });

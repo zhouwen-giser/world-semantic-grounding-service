@@ -1,0 +1,1 @@
+{"event": "advanced_execution_failed", "groundingId": "grounding-44c04744-8f85-4fed-8bf5-80ba587a089e", "phase": "ANALYSIS", "code": "HTTP_413", "classification": "ADVANCED_HISTORY_UPSTREAM_FAILURE", "lastOperation": "trajectory.map-match", "attemptedOperations": 5, "analysisEvidenceCount": 0}

@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import type { DeterministicParseResult } from "@wsgs/deterministic-parser";
+import { currentGowmPath } from "@wsgs/gowm-contract-intake";
 import { canonicalSha256, type PipelineStageContext } from "@wsgs/grounding-pipeline";
 import { stableRecipeIds } from "@wsgs/requirement-planner";
 import type { GdpsLockedRecipe } from "@wsgs/trusted-capability-snapshot";
@@ -18,6 +19,7 @@ import {
   applyReferenceValidation,
   assertPriorGroundingReplaySupport,
   buildRecipeOperationInput,
+  historicalCapabilityGaps,
   capabilityCatalogHash,
   canonicalLfSha256,
   computeWorldQueryNodeRequestHashes,
@@ -345,6 +347,27 @@ describe("production stage module authority boundaries", () => {
     }]);
   });
 
+  it("preserves specialized NO_DATA using the formal bound product context without inventing a query profile", () => {
+    const lock = JSON.parse(readFileSync(currentGowmPath("gdps/wsgs-gdps-recipe-lock.json"), "utf8")) as
+      NonNullable<Parameters<typeof normalizeGdpsWorldQuerySources>[2]>["lock"];
+    const recipe = lock.recipes.find(entry => entry.semanticPattern === "GDPS_LAND_COVER_AT_REFERENCE")!;
+    const operation = recipe.allowedOperations[0]!;
+    const base = worldQuerySubmission();
+    const submission = { ...base, plan: { ...base.plan, nodes: [{ ...base.plan.nodes[0]!, nodeId: "Land", operation }] },
+      parameters: { descriptorId: recipe.descriptorConstraint!.descriptorId, descriptorHash: recipe.descriptorConstraint!.descriptorHash } };
+    const world = { nodes: [{ nodeId: "Land", result: { operation, status: "NO_DATA",
+      output: { value: { code: "PRODUCT_NOT_AVAILABLE", message: "No current product" } },
+      receipts: [{ receiptId: "gdps-no-data-receipt" }], evidenceReferences: [] } }] };
+    const loaded = { lock, lockHash: canonicalSha256(lock) };
+    const [source] = normalizeGdpsWorldQuerySources(submission, world, loaded);
+    expect(source?.evidence).toMatchObject({ productType: "LAND_COVER", productProfile: "DEFAULT", upstreamStatus: "NO_DATA",
+      gapKind: "DATA_GAP", receiptIds: ["gdps-no-data-receipt"] });
+    expect(source?.evidence).not.toHaveProperty("queryProfile");
+    expect(source?.evidence).not.toHaveProperty("productId");
+    expect(() => normalizeGdpsWorldQuerySources({ ...submission, parameters: { ...submission.parameters, productType: "SLOPE" } }, world, loaded))
+      .toThrow("GDPS_DESCRIPTOR_LOCK_MISMATCH");
+  });
+
   it("publishes candidate rank without leaking provider topology", () => {
     const result = normalizeReferenceResolution({
       schemaVersion: "1.0",
@@ -594,6 +617,27 @@ describe("production stage module authority boundaries", () => {
     addFormatsModule.default(ajv);
     ajv.addSchema(common);
     expect(ajv.validate(schema, result.operationInput), ajv.errorsText()).toBe(true);
+  });
+  it("requires one fresh validated reference and preserves an explicit known alias", () => {
+    const input = nearbyPlanning();
+    input.requireValidatedReference = true;
+    input.references = { mentions: [], referenceProducts: [], ambiguities: [], unresolvedMentions: [], warnings: [] } as never;
+    expect(buildRecipeOperationInput(input)).toMatchObject({ status: "CAPABILITY_GAP", gap: { details: { code: "REFERENCE_UNRESOLVED" } } });
+    const product = { productId: "known-1", referenceKey: { namespace: "gowm", kind: "WORLD_OBJECT", id: `wrf_${"a".repeat(32)}`, version: "812" },
+      matchedBy: "EXACT_REFERENCE_KEY", displayName: "2号车", revalidationRequired: false, validUntil: new Date(Date.now() + 60000).toISOString() };
+    input.references.referenceProducts = [product] as never;
+    expect(buildRecipeOperationInput(input)).toMatchObject({ status: "READY", resolvedReferenceKey: product.referenceKey });
+    input.references.referenceProducts = [{ ...product, validUntil: "2000-01-01T00:00:00Z" }] as never;
+    expect(buildRecipeOperationInput(input)).toMatchObject({ status: "CAPABILITY_GAP" });
+    input.references.referenceProducts = [product, { ...product, productId: "known-2", referenceKey: { ...product.referenceKey, id: `wrf_${"b".repeat(32)}` } }] as never;
+    expect(buildRecipeOperationInput(input)).toMatchObject({ status: "CAPABILITY_GAP", gap: { details: { code: "REFERENCE_AMBIGUOUS" } } });
+  });
+  it("does not label an unavailable operation removed from admission grants as unregistered", () => {
+    const gaps = historicalCapabilityGaps({ southboundLock: { defaultOperations: [], previewOperations: [] },
+      capabilityCatalog: { capabilities: [{ operationId: "operational-task.get-execution-intervals", operationVersion: "1.0" }] },
+      availability: { operations: [{ operationId: "operational-task.get-execution-intervals", operationVersion: "1.0", availability: "UNAVAILABLE", reasonCodes: ["PROVIDER_NOT_READY"], checkedAt: "2026-09-07T00:00:00Z", validUntil: "2026-09-07T00:01:00Z" }] }
+    } as never, { queryKind: "EXECUTION_INTERVAL" } as never);
+    expect(gaps).toMatchObject([{ reason: "OPERATION_UNAVAILABLE", details: { descriptorAvailable: true, operationAuthorized: false, availability: "UNAVAILABLE" } }]);
   });
 
   it.each(stableRecipeIds)("returns a typed gap when %s has no requirement graph inputs", (recipeId) => {

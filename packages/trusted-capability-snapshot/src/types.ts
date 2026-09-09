@@ -18,14 +18,14 @@ export interface SouthboundOperationLockEntry {
 
 /**
  * A southbound lock which the contract-intake boundary has already validated
- * against the GOWM 0.6.3 schema and consumer artifact.
+ * against the selected published GOWM schema and consumer artifact.
  */
 export interface SchemaValidatedSouthboundLock {
   readonly schemaVersion: "2.0";
-  readonly gatewayContractVersion: "0.6.3";
+  readonly gatewayContractVersion: string;
   readonly consumerContractPackage: {
     readonly name: "@gowm/world-gateway-contracts";
-    readonly version: "0.6.3";
+    readonly version: string;
     readonly integrity: Sha512Integrity;
   };
   readonly contractCatalogRevision: Sha256Digest;
@@ -106,7 +106,7 @@ export interface TrustedCapabilitySnapshotAvailability {
 
 export interface TrustedCapabilitySnapshotBody {
   readonly capturedAt: string;
-  readonly gatewayContractVersion: "0.6.3";
+  readonly gatewayContractVersion: string;
   readonly contractCatalogRevision: Sha256Digest;
   readonly semanticCatalogHash: Sha256Digest;
   readonly bindingRevision: Sha256Digest;

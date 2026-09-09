@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const GOWM_RUNTIME_CONTRACT_ALIGNMENT_LOCK_RELATIVE_PATH =
-  "contracts/upstream/gowm-runtime-contract-alignment-lock-v1.json" as const;
+  "contracts/upstream/gowm-current/ALIGNMENT.json" as const;
 
 export type GowmSha256Digest = `sha256:${string}`;
 export type GowmSha512Integrity = `sha512-${string}`;
@@ -113,7 +113,7 @@ export class GowmRuntimeContractAlignmentLockError extends Error {
 }
 
 const defaultLockPath = fileURLToPath(new URL(
-  "../../../contracts/upstream/gowm-runtime-contract-alignment-lock-v1.json",
+  "../../../contracts/upstream/gowm-current/ALIGNMENT.json",
   import.meta.url
 ));
 const commitPattern = /^[0-9a-f]{40}$/u;

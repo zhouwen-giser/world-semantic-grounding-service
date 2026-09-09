@@ -93,6 +93,8 @@ export interface CompileInput {
   operationInput: Record<string, unknown>;
   /** Additional registered world-query parameters used by typed request bindings. */
   parameterValues?: Record<string, unknown>;
+  /** Server-owned reference already selected and validated in the caller's scope. */
+  resolvedReferenceKey?: Record<string, unknown>;
   capabilities: CapabilityDescriptor[];
   semanticProfiles: CapabilitySemanticEntry[];
   operationLocks: OperationLock[];

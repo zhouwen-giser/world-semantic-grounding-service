@@ -1,0 +1,12 @@
+{
+  "providerId": "gowm.analysis.map-matching",
+  "providerVersion": "0.1.0",
+  "implementationDigest": "sha256:77c13b16767ada6dd71bf55da7c1d53def48172042d9238661ce2fef04e4e9d8",
+  "manifestHash": "sha256:b5d0fa188e21ee54e151cd06e78248c984bd9fb255c46c800c5642e70e35098e",
+  "manifestPath": "contracts/manifests/providers/map-matching-provider.json",
+  "endpoint": "http://map-matching-provider:18120",
+  "approvalId": "map-matching-provider-v0.1-development",
+  "approvedBy": "development-operator",
+  "transportTokenEnv": "MAP_MATCHING_PROVIDER_TRANSPORT_TOKEN",
+  "allowPlaintextPrivateNetwork": true
+}

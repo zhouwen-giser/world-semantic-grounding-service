@@ -33,6 +33,7 @@ export async function loadPriorAnalysisAuthority(input: {
   selection?: NonNullable<GroundingRequest12["analysisSelections"]>[number];
   ordinal?: number;
   now?: Date;
+  expectedConsumerSnapshotHash?: string;
 }): Promise<PriorAnalysisAuthority> {
   const found = await input.pool.query<PriorRow>(
     `SELECT result.grounding_id, result.result_hash, result.result_bytes,
@@ -56,6 +57,10 @@ export async function loadPriorAnalysisAuthority(input: {
   if (!checkpoint || checkpoint.jobId !== row!.job_id || checkpoint.runFingerprint !== fingerprint ||
     !isWorldAnalysisContract(parseGroundingContractSelection(checkpoint.state["contractSelection"]))) throw new PriorGroundingError("SELECTION_INVALID");
   const assembled = record(checkpoint.state["PRODUCT_ASSEMBLE"]);
+  if (input.expectedConsumerSnapshotHash !== undefined &&
+    record(checkpoint.state["LOAD_CONTEXT"])?.["consumerSnapshotHash"] !== input.expectedConsumerSnapshotHash) {
+    throw new PriorGroundingError("SELECTION_INVALID");
+  }
   if (!assembled || assembled["groundingId"] !== row!.grounding_id || assembled["resultHash"] !== row!.result_hash) throw new PriorGroundingError("SELECTION_INVALID");
   const execution = record(checkpoint.state["GOWM_EXECUTE"]);
   const advanced = record(execution?.["advancedExecution"]);

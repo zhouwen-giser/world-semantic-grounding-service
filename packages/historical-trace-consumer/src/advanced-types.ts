@@ -1,3 +1,4 @@
+import type { OperationAvailability } from "@wsgs/gowm-gateway-client";
 import type {
   AnalysisOperationId, AnalysisProviderResultTypes, EventSelection, MetricSelector, MetricSeriesSelection,
   TemporalEventType, ValidatedAnalysisEnvelope, SpatialEventTarget
@@ -27,6 +28,12 @@ export interface AdvancedAnalysisEvidence {
   operationId: AnalysisOperationId;
   envelope: AdvancedEnvelope;
 }
+export interface AdvancedAvailabilityObservation {
+  schemaVersion: "1.0"; kind: "EXECUTION_AVAILABILITY"; requestId: string; observedAt: string;
+  authorityHash: string; principalHash: string; delegationHash: string; observationHash: string;
+  operations: OperationAvailability[];
+}
+
 export interface AdvancedHistoricalExecutionResult {
   status: "COMPLETED" | "PARTIAL" | "PENDING" | "AMBIGUOUS" | "UNRESOLVED" | "CAPABILITY_GAP" | "FAILED";
   reasonCode: string;
@@ -37,6 +44,7 @@ export interface AdvancedHistoricalExecutionResult {
   findings: Record<string, unknown>[];
   operations: string[];
   planHash?: string;
+  executionAvailabilityObservations?: AdvancedAvailabilityObservation[];
   publicEventSelection?: { sourceResultHash: string; eventId: string };
   comparison?: { changed: boolean; changedFields: string[] };
 }

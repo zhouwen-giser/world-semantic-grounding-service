@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-09-07T12:02:13.890Z",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "CANCEL",
+      "groundingId": "grounding-a0bbac5d-7afc-40fc-bad8-8de74c5126fe",
+      "status": "CANCELLED",
+      "cancelled": true,
+      "deniedScope": 404,
+      "badSignature": 401
+    }
+  ]
+}

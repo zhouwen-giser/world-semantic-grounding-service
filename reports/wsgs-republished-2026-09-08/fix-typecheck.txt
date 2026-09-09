@@ -1,0 +1,4 @@
+
+> world-semantic-grounding-service@0.2.1 typecheck
+> tsc -b --pretty false
+

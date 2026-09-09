@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-09-07T10:28:55.015952+00:00",
+  "configuredModel": "qwen3.8-27b",
+  "adapterGate": {
+    "status": "PASS",
+    "completedCases": 6,
+    "marker": "WSGS_REAL_MODEL_GATE_PASS",
+    "schemaValidation": "PASS",
+    "exactUtf16Mentions": "PASS",
+    "authorityScan": "PASS"
+  },
+  "previousAttempts": [
+    {
+      "model": "qwen3.8-plus",
+      "http": 404,
+      "code": "model_not_found"
+    },
+    {
+      "model": "qwen3.7-plus",
+      "http": 403,
+      "code": "AllocationQuota.FreeTierOnly"
+    }
+  ],
+  "credentialsPersisted": false
+}

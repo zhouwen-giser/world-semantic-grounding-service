@@ -1,0 +1,114 @@
+{
+  "observedAt": "2026-09-07T10:21:23.964883+00:00",
+  "host": "sz-gowm",
+  "endpoints": [
+    {
+      "path": "/health/live",
+      "http": 200,
+      "bodySha256": "sha256:40e1f68b4fa34fcfd5ff5d4299f1902a27a2d0e47a13c5f4bb06b000314b2ef5",
+      "status": "ok",
+      "count": 0,
+      "registryRevision": null
+    },
+    {
+      "path": "/health/ready",
+      "http": 200,
+      "bodySha256": "sha256:557ba11b3b4a5e8f0f32eba6a5e46db5201ffadb668cbb4f2822c1a0857d8fe0",
+      "status": "ok",
+      "count": 0,
+      "registryRevision": null
+    },
+    {
+      "path": "/v1/capabilities",
+      "http": 200,
+      "bodySha256": "sha256:a6c16f08a561c4b1fabd96da5eb08bec3256eefc0dd3de6bd1e238d42ffc5bd7",
+      "status": null,
+      "count": 158,
+      "registryRevision": "sha256:090e365e44730eb9707f5ae1de98dea82608b6c679afb52a151a4399aa84596d"
+    },
+    {
+      "path": "/v1/capability-semantics",
+      "http": 200,
+      "bodySha256": "sha256:36ca1946a599789524e66d7d6b1b371901014ca5286e4c68255076b051702edf",
+      "status": null,
+      "count": 158,
+      "registryRevision": "sha256:090e365e44730eb9707f5ae1de98dea82608b6c679afb52a151a4399aa84596d"
+    },
+    {
+      "path": "/v1/operation-availability",
+      "http": 200,
+      "bodySha256": "sha256:6d7b0f4393e1e7aaa452e3e0c3e4df516ac31fbb47ae9a20578f8e883d2be62f",
+      "status": null,
+      "count": 158,
+      "registryRevision": null
+    }
+  ],
+  "analysisOperations": [
+    {
+      "operationId": "history.get-trajectory",
+      "operationVersion": "1.0",
+      "maturity": "PREVIEW",
+      "checkedAt": "2026-09-07T10:21:26.883Z",
+      "validUntil": "2026-09-07T10:21:31.883Z",
+      "contractCatalogRevision": "sha256:090e365e44730eb9707f5ae1de98dea82608b6c679afb52a151a4399aa84596d",
+      "bindingRevision": "sha256:7fc144ab75cd56722433a1404cc1f15dbf78ebdeb799414aaa3efa731a591520",
+      "availability": "AVAILABLE",
+      "reasonCodes": [
+        "READY"
+      ]
+    },
+    {
+      "operationId": "operational-task.get-execution-intervals",
+      "operationVersion": "1.0",
+      "maturity": "PREVIEW",
+      "checkedAt": "2026-09-07T10:21:27.829Z",
+      "validUntil": "2026-09-07T10:21:32.829Z",
+      "contractCatalogRevision": "sha256:090e365e44730eb9707f5ae1de98dea82608b6c679afb52a151a4399aa84596d",
+      "bindingRevision": "sha256:7fc144ab75cd56722433a1404cc1f15dbf78ebdeb799414aaa3efa731a591520",
+      "availability": "UNAVAILABLE",
+      "reasonCodes": [
+        "PROVIDER_UNREACHABLE"
+      ],
+      "retryAfterMs": 5000
+    },
+    {
+      "operationId": "spatiotemporal-metric.rank-locations",
+      "operationVersion": "0.1",
+      "maturity": "PREVIEW",
+      "checkedAt": "2026-09-07T10:21:28.867Z",
+      "validUntil": "2026-09-07T10:21:33.867Z",
+      "contractCatalogRevision": "sha256:090e365e44730eb9707f5ae1de98dea82608b6c679afb52a151a4399aa84596d",
+      "bindingRevision": "sha256:7fc144ab75cd56722433a1404cc1f15dbf78ebdeb799414aaa3efa731a591520",
+      "availability": "AVAILABLE",
+      "reasonCodes": [
+        "READY"
+      ]
+    },
+    {
+      "operationId": "temporal-spatial.find-events",
+      "operationVersion": "0.1",
+      "maturity": "PREVIEW",
+      "checkedAt": "2026-09-07T10:21:29.549Z",
+      "validUntil": "2026-09-07T10:21:34.549Z",
+      "contractCatalogRevision": "sha256:090e365e44730eb9707f5ae1de98dea82608b6c679afb52a151a4399aa84596d",
+      "bindingRevision": "sha256:7fc144ab75cd56722433a1404cc1f15dbf78ebdeb799414aaa3efa731a591520",
+      "availability": "AVAILABLE",
+      "reasonCodes": [
+        "READY"
+      ]
+    },
+    {
+      "operationId": "trajectory.map-match",
+      "operationVersion": "0.1",
+      "maturity": "PREVIEW",
+      "checkedAt": "2026-09-07T10:21:29.740Z",
+      "validUntil": "2026-09-07T10:21:34.740Z",
+      "contractCatalogRevision": "sha256:090e365e44730eb9707f5ae1de98dea82608b6c679afb52a151a4399aa84596d",
+      "bindingRevision": "sha256:7fc144ab75cd56722433a1404cc1f15dbf78ebdeb799414aaa3efa731a591520",
+      "availability": "AVAILABLE",
+      "reasonCodes": [
+        "READY"
+      ]
+    }
+  ]
+}

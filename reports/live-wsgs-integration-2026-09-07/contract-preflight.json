@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-09-07T10:22:03.313Z",
+  "localVersion": "0.6.3",
+  "serverVersion": "0.7.1",
+  "localOperations": 120,
+  "serverOperations": 122,
+  "intake": {
+    "status": "BLOCKED",
+    "code": "OPERATIONAL_LOCK_SCHEMA_MISMATCH",
+    "message": "Operational GOWM lock schema mismatch: data must NOT have additional properties; data must NOT have additional properties; data must NOT have additional properties; data must NOT have additional properties; data must NOT have additional properties; data/gatewayContractVersion must be equal to constant; data/consumerContractPackage/version must be equal to constant"
+  },
+  "changedOperations": [
+    {
+      "operation": "operational-task.get-timeline@1.0",
+      "changed": [
+        "outputSchemaHash"
+      ]
+    },
+    {
+      "operation": "world-event.find-by-correlation@1.0",
+      "changed": [
+        "outputSchemaHash"
+      ]
+    }
+  ],
+  "addedOperations": [
+    "history.get-trajectory@1.0",
+    "operational-task.get-execution-intervals@1.0"
+  ]
+}

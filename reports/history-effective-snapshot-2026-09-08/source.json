@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0",
+  "policy": "LATEST_FORMAL_AT_BUILD_AND_DEPLOY",
+  "runtimeVersion": "0.7.1",
+  "packageVersion": "0.7.1",
+  "gatewayContractVersion": "0.7.1",
+  "source": {
+    "package": "gowm-dev-server-0.7.1.tar.gz",
+    "sha256": "1ad2edcc2cbe0859e4481401e8cbc82548d35aa89ab9b688cc30caf3c1147e05",
+    "combinedPackage": "gdps-gowm-dev-server-0.2.2-gowm-0.7.1.tar.gz",
+    "combinedSha256": "40f5980ef78b2c4903c0773643fdab6ac8e3a40e08bbc704e3835031d3906790",
+    "sourceLock": {
+      "schemaVersion": "gdps-gowm-dev-package-lock/1.0",
+      "packageName": "gowm-dev-server-0.7.1.tar.gz",
+      "softwareVersion": "0.7.1",
+      "sourceCommit": "cd4d748878390bb7a9ed93af3ed6a6c36cc4069f",
+      "sha256": "1ad2edcc2cbe0859e4481401e8cbc82548d35aa89ab9b688cc30caf3c1147e05",
+      "expectedRoot": "gowm-dev-server-0.7.1",
+      "providerCount": 16,
+      "operationCount": 124,
+      "sourceProvenance": {
+        "kind": "working-tree",
+        "baseCommit": "cd4d748878390bb7a9ed93af3ed6a6c36cc4069f",
+        "inventorySha256": "9a275313fa0f95df1a2ba1bcf69228ecb6e53a685fa7ac446c2a6bea3eba8871",
+        "verifiedFileCount": 1895,
+        "modifiedPackagedFiles": [
+          ".env.example",
+          "config/ugv-source-schema/README.md",
+          "config/ugv-source-schema/SOURCE_LOCK.json",
+          "config/ugv-source-schema/error_codes.json",
+          "config/ugv-source-schema/mcp_ugv.json",
+          "config/ugv-source-schema/mqtt_topics.json",
+          "docker-compose.yml",
+          "docs/DEV_DEPLOYMENT.md",
+          "docs/UGV_DEVICE_ACTOR.md",
+          "docs/shared-business-storage-handoff/connection-examples.env",
+          "packages/integrations/device-business-storage/src/bootstrap.ts",
+          "scripts/business-storage/accounts.ts",
+          "scripts/dev-deploy.sh",
+          "scripts/package-dev-deployment.sh",
+          "scripts/verify-ugv-bootstrap-package.mjs"
+        ]
+      }
+    }
+  },
+  "lockPath": "bundle/locks/wsgs-southbound-operation-lock-v2.json",
+  "lockSha256": "8902be38bb41333989f51238050439c4c7147254d382d954c50d6f6a2fd997bf",
+  "lockSchemaPath": "bundle/schemas/gowm-v0.7.1/wsgs-southbound-operation-lock-v2.schema.json",
+  "manifestSha256": "534636bb13dd7dfcae36b37792976bfe828e8e5cae6a37bbf62ebc244878fc62",
+  "supportingSchemas": {
+    "schemas/gowm-v0.5/network-common.schema.json": {
+      "sourcePath": "contracts/gowm-v0.5/network-common.schema.json",
+      "sha256": "1f35b48d91d8138e3a52762e9fdfb9ee21a97980b43fb6bf15126cd8faae149c"
+    },
+    "schemas/gowm-v0.4/common.schema.json": {
+      "sourcePath": "contracts/gowm-v0.4/common.schema.json",
+      "sha256": "a777aa3293ca9165d3fa88006dfb4a29fcf3f82e77970929ba41536a2299d1b5"
+    },
+    "schemas/gowm-v0.4/external-correlation-claim.schema.json": {
+      "sourcePath": "contracts/gowm-v0.4/external-correlation-claim.schema.json",
+      "sha256": "d4774aaec5500cb46c675e42ee2a8d4a0fed98f342a420e90a64cc98625e4d5c"
+    }
+  },
+  "analysisPackage": {
+    "name": "gowm-gdps-analysis-dev-server-0.1.0.tar.gz",
+    "sha256": "9f19951ac4ad691e4896c2f578fd4f0351a45d458f12c5f6eb299bc52521adf2"
+  },
+  "providerInputsSha256": "5701017aa167ea0906df3b17ded1b821e7605e071b5d1cf86f675962c6aaccb5",
+  "analysisSourceSha256": "b65f08f88b543f01d3b120278b88b4c8716bedafbc15d77f4cd3c3bc6403c88f",
+  "excludedOperations": [
+    {
+      "operationId": "spatial.aggregate",
+      "operationVersion": "1.0",
+      "maturity": "EXPERIMENTAL"
+    },
+    {
+      "operationId": "spatial.join",
+      "operationVersion": "1.0",
+      "maturity": "EXPERIMENTAL"
+    }
+  ],
+  "operationalLockPath": "OPERATION_LOCK.json",
+  "operationalLockSha256": "bfae0a7eadbc60320bb08fe735eacb29a628e19b76de596583a6483536f6b8a2",
+  "catalogSha256": "e49af90ac8f6ba32aaf093ae3ff44e386e84d8cb8c53c3646ab6c02665bd4246",
+  "alignmentSha256": "23e62b479243b453e181d3465fc3c11da389ddef16cf5ecc67d00401a029f268",
+  "gdpsArtifacts": {
+    "product-type-descriptors.json": "1ff45e1b5184cce52b7cf53a7162e419a31e815a8e3e13aca1b1167bd747f846",
+    "product-vocabularies.json": "36a00e43cb742d2946bc09c1f9ac68d3ec5ac57011b11d17ed5d6c19b095c25e",
+    "wsgs-gdps-recipe-lock.json": "0ae786680ae40c4778e50326cb3fdf7c08d6887cb90a019148466ae7b694d5dc",
+    "gdps-consumer-snapshot.json": "c2a1f40a2b9ab7e3ecf0f167c981a6291a41f7308ed2112acca8a610c8806d62"
+  },
+  "gdpsRecipeTemplateSha256": "807f536ad3493e5823c1c04c15d634d74d3fac8f7c81f0985ae148878d11f92b"
+}

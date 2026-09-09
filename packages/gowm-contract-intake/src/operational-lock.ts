@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import Ajv2020Module from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
+import { currentGowmPath, currentGowmSnapshot } from "./current.js";
 
 export type OperationalLockHashMode = "CANONICAL_LF" | "EXACT_BYTES";
 
@@ -21,10 +22,10 @@ export interface OperationalLockEntry {
 
 export interface OperationalGowmLock {
   readonly schemaVersion: "2.0";
-  readonly gatewayContractVersion: "0.6.3";
+  readonly gatewayContractVersion: string;
   readonly consumerContractPackage: {
     readonly name: "@gowm/world-gateway-contracts";
-    readonly version: "0.6.3";
+    readonly version: string;
     readonly integrity: `sha512-${string}`;
   };
   readonly contractCatalogRevision: `sha256:${string}`;
@@ -41,7 +42,7 @@ export interface LoadOperationalGowmLockOptions {
   readonly expectedSha256: `sha256:${string}`;
   readonly hashMode: OperationalLockHashMode;
   readonly schemaPath?: string;
-  readonly operationCountPolicy?: "FROZEN_0_6_3" | "HASH_LOCKED_EXTENSION";
+  readonly operationCountPolicy?: "HASH_LOCKED_EXTENSION";
 }
 
 export interface LoadedOperationalGowmLock {
@@ -70,10 +71,7 @@ function canonicalJson(value: unknown): string {
 
 /** Verifies the frozen consumer manifest before returning the canonical parameter-schema hash. */
 export function loadWorldQueryParameterSchemaHash(): `sha256:${string}` {
-  const bundleRoot = fileURLToPath(new URL(
-    "../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/",
-    import.meta.url
-  ));
+  const bundleRoot = currentGowmPath("bundle");
   const manifest = JSON.parse(readFileSync(join(bundleRoot, "MANIFEST.json"), "utf8")) as {
     files?: Array<{ path?: string; sha256?: string }>;
   };
@@ -103,20 +101,13 @@ function sha256(bytes: Uint8Array): `sha256:${string}` {
 }
 
 function defaultSchemaPath(): string {
-  return fileURLToPath(new URL(
-    "../../../contracts/upstream/gowm-0.6.3/extracted/package/bundle/schemas/gowm-v0.6.3/wsgs-southbound-operation-lock-v2.schema.json",
-    import.meta.url
-  ));
+  return currentGowmPath(currentGowmSnapshot.lockSchemaPath);
 }
 
 function assertOperationalInvariants(
   lock: OperationalGowmLock,
-  operationCountPolicy: "FROZEN_0_6_3" | "HASH_LOCKED_EXTENSION"
+  operationCountPolicy: "HASH_LOCKED_EXTENSION"
 ): void {
-  if (operationCountPolicy === "FROZEN_0_6_3" &&
-      (lock.defaultOperations.length !== 31 || lock.previewOperations.length !== 89)) {
-    throw new OperationalGowmLockError("OPERATIONAL_LOCK_OPERATION_COUNT_MISMATCH");
-  }
   if (operationCountPolicy === "HASH_LOCKED_EXTENSION" && lock.defaultOperations.length === 0) {
     throw new OperationalGowmLockError("OPERATIONAL_LOCK_DEFAULT_OPERATIONS_EMPTY");
   }
@@ -161,6 +152,6 @@ export function loadOperationalGowmLock(options: LoadOperationalGowmLockOptions)
       `Operational GOWM lock schema mismatch: ${ajv.errorsText(validate.errors, { separator: "; " })}`
     );
   }
-  assertOperationalInvariants(lock as OperationalGowmLock, options.operationCountPolicy ?? "FROZEN_0_6_3");
+  assertOperationalInvariants(lock as OperationalGowmLock, options.operationCountPolicy ?? "HASH_LOCKED_EXTENSION");
   return { lock: lock as OperationalGowmLock, lockHash: actual, hashMode: options.hashMode };
 }

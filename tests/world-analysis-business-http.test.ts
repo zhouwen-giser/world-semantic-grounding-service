@@ -7,7 +7,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 import { jwtVerify } from "jose";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AnalysisProviderContracts, GowmConsumerSchemaRegistry, analysisHash } from "@wsgs/gowm-contract-intake";
+import { currentGowmPath, currentGowmSnapshot, AnalysisProviderContracts, GowmConsumerSchemaRegistry, analysisHash } from "@wsgs/gowm-contract-intake";
 import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { createWorldAnalysisValidator } from "@wsgs/contracts";
 import { GroundingPipeline, ProductionGroundingBackend, utf8Sha256 } from "@wsgs/grounding-pipeline";
@@ -149,6 +149,17 @@ describe("nonempty historical production HTTP", () => {
     }
     gateway = Fastify();
     gateway.setErrorHandler((error, _request, reply) => { gatewayErrors.push(JSON.stringify({ message: error.message, issues: (error as any).issues })); return reply.code(500).send({ error: "CONTROLLED_GATEWAY_TEST_FAILURE" }); });
+    gateway.get("/v1/operation-availability", async request => {
+      const { payload } = await jwtVerify(String(request.headers["x-gowm-delegation"]), keys.publicKey,
+        { issuer: "business-issuer", audience: "business-audience", algorithms: ["RS256"] });
+      const allowed = payload["allowedOperations"] as string[];
+      expect(allowed.length).toBeGreaterThan(0);
+      const checkedAt = new Date().toISOString();
+      const availability = fixture.admission.immutableLocks.availability;
+      return { ...availability, checkedAt, operations: availability.operations
+        .filter(entry => allowed.includes(`${entry.operationId}@${entry.operationVersion}`))
+        .map(entry => ({ ...entry, checkedAt, validUntil: new Date(Date.now() + 5000).toISOString() })) };
+    });
     gateway.post("/v1/operations/:operation", async (request, reply) => {
       const body = request.body as any;
       const operationId = String((request.params as any).operation).replace(/:execute$/, "");
@@ -176,6 +187,9 @@ describe("nonempty historical production HTTP", () => {
         }
         const envelope = structuredClone(operationId === "trajectory.map-match" ? mapEnvelope : operationId === "temporal-spatial.find-events" ? crossEnvelope :
           ambiguousSeries && body.input.metricSeriesSelection.mode !== "EXPLICIT_SERIES" ? ambiguousEnvelope : metricEnvelope); envelope.requestId = body.requestId;
+        // Synthetic HTTP fixture rebinds its payload to the current published schema.
+        envelope.output.schemaUri = descriptor.outputSchemaUri; envelope.output.schemaHash = descriptor.outputSchemaHash;
+        envelope.computeSnapshot.schemas = { inputSchemaHash: descriptor.inputSchemaHash, outputSchemaHash: descriptor.outputSchemaHash };
         envelope.execution.resultHash = analysisHash(envelope.output.value);
         for (const receipt of envelope.receipts) { receipt.inputHash = analysisHash(body.input); receipt.outputHash = envelope.execution.resultHash; receipt.computeSnapshotHash = analysisHash(envelope.computeSnapshot); }
         new AnalysisProviderContracts().validateEnvelope(operationId, envelope, body.input);
@@ -195,9 +209,54 @@ describe("nonempty historical production HTTP", () => {
       registry.validate("platform/capability-result-envelope.schema.json", envelope);
       return envelope;
     });
+    // Wire fixture for the production World Query path. Provider snapshot injection
+    // is covered independently with the actual Gateway runtime.
+    gateway.post("/v1/world-queries", async request => {
+      const submission = request.body as any;
+      const { payload } = await jwtVerify(String(request.headers["x-gowm-delegation"]), keys.publicKey,
+        { issuer: "business-issuer", audience: "business-audience", algorithms: ["RS256"] });
+      expect(payload["allowedOperations"]).toEqual(submission.plan.nodes.map((n: any) => `${n.operation.operationId}@${n.operation.operationVersion}`).sort());
+      expect(submission.snapshotPolicy).toEqual({ mode: "LATEST_AT_START", allowDowngrade: false });
+      const now = new Date().toISOString();
+      const snapshotBody = { querySnapshotId: `snapshot-${submission.plan.queryId}`, mode: "LATEST_AT_START", consistency: "CONSISTENT_AT_START", capturedAt: now,
+        resources: [{ resourceKind: "WORLD_OBJECT", resourceId: subject.id, version: subject.version, pinning: "PINNED" }] };
+      const snapshot = { ...snapshotBody, manifestHash: analysisHash(snapshotBody) };
+      const read = (value: any, path?: string) => !path ? value : path.split('/').slice(1).reduce((v: any, k: string) => v[k], value);
+      const produced = new Map<string, any>();
+      const nodes = submission.plan.nodes.map((node: any) => {
+        const operationId = node.operation.operationId; calls.push(operationId);
+        const descriptor = fixture.metadata.catalog.capabilities.find(entry => entry.operationId === operationId)!;
+        let input: any = {};
+        for (const binding of Object.values(node.inputs) as any[]) {
+          const v = binding.kind === "LITERAL" ? binding.value : binding.kind === "REQUEST_PATH" ? read(submission.parameters, binding.path) : read(produced.get(binding.nodeId), binding.path);
+          if (!binding.targetPath) input = structuredClone(v);
+          else { const path = binding.targetPath.split('/').slice(1); let target = input; for (const part of path.slice(0,-1)) target = target[part] ??= {}; target[path.at(-1)] = structuredClone(v); }
+        }
+        const output = { ...outputs[operationId], ...(operationId === "operational-task.get-execution-intervals" ? { requestedPhaseScope: input.phaseScope } : {}) };
+        produced.set(node.nodeId, output);
+        const operation = { operationId, operationVersion: descriptor.operationVersion };
+        const provider = { providerId: "controlled.history", providerVersion: "1.0", implementationDigest: analysisHash("controlled-history-http") };
+        const computeSnapshot = { provider, operation, engine: { name: "CONTROLLED_FIXTURE", version: "1.0" }, policy: { version: "controlled-fixture/1.0", digest: analysisHash("controlled-fixture-policy") }, schemas: { inputSchemaHash: descriptor.inputSchemaHash, outputSchemaHash: descriptor.outputSchemaHash } };
+        const resultHash = analysisHash(output), inputHash = analysisHash(input);
+        const envelope = { providerProtocolVersion: "1.0", requestId: submission.requestId, operation, status: "COMPLETED", output: { schemaUri: descriptor.outputSchemaUri, schemaHash: descriptor.outputSchemaHash, value: output }, computeSnapshot,
+          dataSnapshot: { consistency: "CONSISTENT_AT_START", capturedAt: now, scopeDigest: analysisHash(identity.dataScopes), resources: [{ referenceKey: subject, authority: "controlled.history", pinning: "PINNED", digest: analysisHash(output) }] },
+          receipts: [{ receiptId: `receipt-${node.nodeId}`, operationId, operationVersion: descriptor.operationVersion, providerId: provider.providerId, providerVersion: provider.providerVersion,
+            inputHash, outputHash: resultHash, computeSnapshotHash: analysisHash(computeSnapshot), generatedAt: now, durationMs: 1,
+            method: { engine: "CONTROLLED_FIXTURE", engineVersion: "1.0", methodId: "fixture", methodVersion: "1.0" }, changes: { repairApplied: false, typeChanged: false }, warnings: [] }],
+          evidenceReferences: [], warnings: [], consumption: { outputBytes: Buffer.byteLength(JSON.stringify(output)) }, execution: { providerId: provider.providerId, providerVersion: provider.providerVersion, elapsedMs: 1, resultHash } };
+        return { nodeId: node.nodeId, operation: node.operation, status: "COMPLETED", attempt: 1, startedAt: now, finishedAt: now, inputHash, outputHash: analysisHash(envelope), result: envelope };
+      });
+      const resultOutputs = Object.fromEntries(submission.plan.outputs.map((entry: any) => [entry.name, read(produced.get(entry.binding.nodeId), entry.binding.path)]));
+      const result = { queryPlanVersion: "2.0", queryId: submission.plan.queryId, jobId: `job-${submission.plan.queryId}`, status: "COMPLETED", nodes, outputs: resultOutputs, warnings: [],
+        snapshotManifest: snapshot, requestedSnapshotManifest: snapshot, effectiveSnapshotManifest: snapshot,
+        snapshotAdherence: nodes.map((node: any) => ({ nodeId: node.nodeId, status: "MATCHED", checkedResources: 1, mismatches: [] })), startedAt: now, finishedAt: now,
+        outputHash: analysisHash({ outputs: resultOutputs, effectiveSnapshotManifest: snapshot }) };
+      registry.validate("platform/world-query-result.schema.json", result);
+      return result;
+    });
     const gatewayUrl = await gateway.listen({ host: "127.0.0.1", port: 0 });
     directory = mkdtempSync(join(tmpdir(), "wsgs-business-http-"));
-    const bytes = JSON.stringify(fixture.metadata.lock); const lockPath = join(directory, "lock.json"); writeFileSync(lockPath, bytes);
+    const bytes = readFileSync(currentGowmPath(currentGowmSnapshot.operationalLockPath), "utf8"); const lockPath = join(directory, "lock.json"); writeFileSync(lockPath, bytes);
     for (const name of ["WSGS_GDPS_RECIPE_LOCK_FILE", "WSGS_GDPS_RECIPE_LOCK_SHA256", "WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST", "WSGS_CROSS_SCOPE_GATEWAY_ROUTING", "WSGS_GDPS_CONSUMER_SNAPSHOT_FILE", "WSGS_GDPS_DESCRIPTOR_REGISTRY_FILE", "MODEL_BASE_URL", "MODEL_API_KEY", "MODEL_NAME", "GOWM_DELEGATION_PRIVATE_KEY_FILE"]) vi.stubEnv(name, "");
     for (const [name, value] of Object.entries({ GOWM_SOUTHBOUND_LOCK_FILE: lockPath, GOWM_SOUTHBOUND_LOCK_SHA256: hashBytes(bytes), WSGS_HISTORY_TRACE_ENABLED: "YES", WSGS_ADVANCED_HISTORY_ENABLED: advanced ? "YES" : "NO", WSGS_ALLOW_PREVIEW_CAPABILITIES: advanced ? "NO" : "YES", WSGS_MODEL_POLICY: "MODEL_OPTIONAL", GOWM_GATEWAY_BASE_URL: gatewayUrl, GOWM_GATEWAY_TOKEN: "controlled-test-only", GOWM_GATEWAY_MAX_RETRIES: "0", GOWM_DELEGATION_ISSUER: "business-issuer", GOWM_DELEGATION_AUDIENCE: "business-audience", GOWM_DELEGATION_SERVICE_PRINCIPAL_ID: identity.servicePrincipalId, GOWM_DELEGATION_PRIVATE_KEY_PKCS8: keys.privateKey.export({ type: "pkcs8", format: "pem" }).toString() })) vi.stubEnv(name, value);
     store = new HttpMemoryStore();
@@ -257,6 +316,20 @@ describe("nonempty historical production HTTP", () => {
     const result = await response.json();
     expect(response.status, JSON.stringify({ result, calls, gatewayErrors, errors: [...store.jobs.values()].map(job => job.error), events: store.records.map(record => record.event).filter(event => event.status === "FAILED") })).toBe(200);
     expect(validate("result", result)).toEqual({ valid: true, errors: [] });
+    expect(JSON.stringify(result)).not.toContain("executionAvailabilityObservations");
+    if (advanced) {
+      const checkpoints = await Promise.all([...store.checkpoints.entries()].map(([id, stored]) =>
+        store.loadLatestCheckpoint(id, stored.metadata.runFingerprint)));
+      const observations: any[] = [];
+      const collect = (value: any): void => {
+        if (!value || typeof value !== "object") return;
+        if (value.kind === "EXECUTION_AVAILABILITY") observations.push(value);
+        else Object.values(value).forEach(collect);
+      };
+      checkpoints.forEach(collect);
+      expect(observations.length).toBeGreaterThan(0);
+      for (const { observationHash, ...body } of observations) expect(observationHash).toBe(analysisHash(body));
+    }
     expect(calls).toContain("history.get-trajectory");
     const finding = result.worldAnalysisFindings.findings.find((entry: any) => entry.findingKind === "HISTORICAL_TRACE");
     expect(finding, JSON.stringify(result)).toBeDefined();
