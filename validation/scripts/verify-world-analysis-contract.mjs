@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
-import { dirname, resolve, join, relative } from "node:path";
+import { dirname, resolve, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createPublicValidator, canonicalJson, canonicalHash, findingSetHash, resultHash, aggregateAnalysisStatus, isWorldAnalysisTransport, contractVersion, resultProfile } from "../../contracts/wsgs-v0.2.4-world-analysis/validator.mjs";
@@ -96,7 +96,7 @@ function openapiRefs(value) {
   if (!value || typeof value !== "object") return;
   if (value.$ref) {
     const path = resolve(directory, value.$ref);
-    check(path.startsWith(directory + "/") && existsSync(path), "OpenAPI offline reference");
+    check(path.startsWith(directory + sep) && existsSync(path), "OpenAPI offline reference");
     check(documentsById.has(JSON.parse(readFileSync(path, "utf8")).$id), "OpenAPI references included schema");
   }
   for (const child of Object.values(value)) openapiRefs(child);
