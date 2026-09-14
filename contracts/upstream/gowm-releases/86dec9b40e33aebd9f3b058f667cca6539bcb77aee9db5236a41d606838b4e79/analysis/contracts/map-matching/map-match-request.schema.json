@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gowm:analysis:map-matching:request:0.1",
+  "title": "MapMatchRequestV01",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "trajectoryReferenceKey"],
+  "properties": {
+    "schemaVersion": { "const": "0.1" },
+    "trajectoryReferenceKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "kind", "id", "version"],
+      "properties": {
+        "namespace": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,63}$" },
+        "kind": { "const": "HISTORICAL_TRAJECTORY" },
+        "id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "version": { "type": "string", "pattern": "^[1-9][0-9]*$", "maxLength": 128 }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "graphKey": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "graphVersion": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "profile": { "const": "CAMPUS_TASK_DEFAULT" },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maximumPointPreview": { "type": "integer", "minimum": 0, "maximum": 5000 },
+        "maximumRejectedSamplePreview": { "type": "integer", "minimum": 0, "maximum": 1000 },
+        "maximumOffNetworkPathPreviewPoints": { "type": "integer", "minimum": 2, "maximum": 1000 }
+      }
+    }
+  }
+}

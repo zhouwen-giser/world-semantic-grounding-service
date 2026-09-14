@@ -102,3 +102,21 @@ describe("validateSemanticFrame", () => {
     }, text)).toThrow(/INVALID_SPATIAL_EXPRESSION/u);
   });
 });
+
+describe("explicit operational task labels", () => {
+  const empty: WorldSemanticFrame = { schemaVersion: "1.0", mentions: [], spatialExpressions: [], relationExpressions: [], temporalConstraints: [], aggregationExpressions: [], rankingExpressions: [] };
+  it.each(["任务 task-42", "任务ID：task-42", "任务 ID : task-42", "任务编号：task-42", "任务引用 wrf_0123456789abcdef0123456789abcdef"])("extracts only the identifier in %s despite incorrect model kind", label => {
+    const source = `🚗 查询${label} 的信息。`;
+    const token = label.includes("wrf_") ? "wrf_0123456789abcdef0123456789abcdef" : "task-42";
+    const start = source.indexOf(token);
+    for (const mentions of [[], [{ mentionId: "model", surfaceText: token, span: { encoding: "UTF16_CODE_UNIT" as const, start, end: start + token.length }, expectedKinds: ["WORLD_OBJECT"] }]]) {
+      const frame = stabilizeSemanticFrame({ ...empty, mentions }, source);
+      expect(frame.mentions).toEqual([expect.objectContaining({ surfaceText: token, expectedKinds: ["OPERATIONAL_TASK"], span: { encoding: "UTF16_CODE_UNIT", start, end: start + token.length } })]);
+    }
+  });
+  it("keeps two task candidates and does not reinterpret unlabelled identifiers", () => {
+    const source = "查询任务 task-42，核对其任务引用 wrf_0123456789abcdef0123456789abcdef。";
+    expect(stabilizeSemanticFrame(empty, source).mentions).toHaveLength(2);
+    expect(stabilizeSemanticFrame(empty, "task-42 和 wrf_0123456789abcdef0123456789abcdef").mentions).toHaveLength(0);
+  });
+});

@@ -1,0 +1,18 @@
+{
+  "requestHash": "0d1ceb04aeb019c770d4a7edf778ef34303442d73b51bd4860ca24edd026ccc6",
+  "uniqueReferenceGate": "PASS",
+  "mentions": 2,
+  "resolvedExactMentions": 2,
+  "candidatesPerMention": [1, 1],
+  "unresolvedMentions": 0,
+  "ambiguities": 0,
+  "referenceProducts": 2,
+  "uniqueReferenceKeys": 1,
+  "kind": "OPERATIONAL_TASK",
+  "validationStatuses": ["VALID", "VALID"],
+  "validAtResponse": true,
+  "overallBusinessStatus": "PARTIAL",
+  "requirementPlannerStatus": "CAPABILITY_GAP",
+  "advancedAnalysisTestsRun": false,
+  "cleanup": "PASS"
+}

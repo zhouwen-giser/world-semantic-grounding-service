@@ -11,3 +11,5 @@ The v0.2.3 advanced-history work item adds opt-in GSAP road association, tempora
 The container surface builds one `wsgs:0.2.1` image and runs it as separate non-root, read-only API and worker services behind a checksum-verified PostgreSQL migration job. Only the API binds a loopback host port. Copy `.env.example` to `.env`, replace every placeholder without committing secrets, and follow the startup and readiness procedure in the runbook.
 
 See [historical trace consumption](docs/historical-trace-consumption.md), [the v0.2.1 SACS geospatial handoff plan](execplans/EP-wsgs-v0.2.1-sacs-geospatial-handoff.md), [the historical v0.2 Development Ready report](reports/wsgs-v0.2/development-ready-report.md), [the runbook](docs/runbook.md), [security and authority notes](docs/security.md), and current phase evidence under `reports/sacs-geospatial-v1/`.
+
+开发服务器免用户、免验证部署：参见 [一键部署包与完整环境配置说明](docs/development-deployment.md)。运行 `npm run deploy:dev:package` 生成部署包；服务器初始化配置后运行 `./deploy-dev.sh`。

@@ -1,0 +1,31 @@
+# 任务引用类型与索引修复
+
+已按计划先部署GOWM增量迁移、补建default范围目录，再部署WSGS类型修复。模型kimi-k3、120秒预算、匿名访问方式不变。
+
+WSGS对明确任务/任务ID/任务编号/任务引用标签提取标识本身，并使用OPERATIONAL_TASK提示覆盖同跨度错误模型类型。裸标识不会自动变可信ReferenceKey，继续由GOWM解析及验证；两个提及保留原结构。
+
+GOWM新增084_operational_task_reference_search.sql，不修改旧迁移；在project_operational_task的快照不变提前返回前维护引用索引。新增任务ID受管外部标识、引用键及有效名称索引，使用既有task/identity/descriptor校验归属，不修改历史轨迹或任务事实。补建命令scripts/backfill-operational-task-references.mjs默认预览，要求显式scope。
+
+部署预览：default有23个任务、23个缺失。应用新增23个外部标识、69条搜索索引，缺失0；第二次应用新增0、缺失0。GOWM无需重启服务。
+
+验证：WSGS类型/模型/预算/快照相关57项测试通过，GOWM目录Provider 23项测试通过；隔离PostgreSQL全84个迁移成功，旧任务投影断言及新增索引断言通过；旧001–068迁移冻结校验通过，WSGS类型检查和128项环境配置覆盖通过。隔离测试前两次因缺少旧迁移模板参数、初始化临时数据库重启中断，补齐参数并等待正式TCP就绪后通过。目录Provider初次误用Node测试入口，改用仓库Vitest后23项通过。
+
+GOWM迁移SHA-256：fb204e44d9d1182a6951db99426a64049f45bf7573f614c3a5b7c9578be50b5f，已登记schema_migration。
+WSGS部署包SHA-256：77a1671036c352393402d2aff07bd4f5e66ba17903c27a37b2d4004be884a49b。
+发布目录：/mnt/data/wsgs-live/releases/77a1671036c35239/wsgs-development。
+WSGS镜像配置摘要：20dabc1afb27093a78e4711eb951c9555e68101dd13d6ab52ea499221f5b9a9c。
+排空initialJobs=0后仅重建API/Worker，均healthy。已有GOWM服务、数据库及数据卷保留。
+
+## 真实验收：唯一引用前置条件通过
+
+通过原私有输入仅复测一次，时间2026-09-09T08:21:20.302Z–08:22:27.674Z。POST202/ACCEPTED，deadline120000ms，1635ms。请求摘要0d1ceb04aeb019c770d4a7edf778ef34303442d73b51bd4860ca24edd026ccc6。
+
+原来的2个UNRESOLVED提及现均为OPERATIONAL_TASK、RESOLVED_EXACT，各1个候选；ambiguities=0、unresolvedMentions=0。保留2个产品，最终完整ReferenceKey哈希均为sha256:1064d3fa3ce5f4e95f8acc8d7ff4304d309551ca0d9e7ceed5612fdd444d66fe，因此唯一引用数为1。
+
+检查点完整性校验通过。REFERENCE_VALIDATE两项均VALID、revalidationRequired=false；有效期截至2026-09-09T08:23:24.397Z，在响应时有效。resolver先返回描述符版本297，既有公开刷新/验证路径将其更新为有效任务引用版本1；此次修复没有硬编码版本。后续请求需重新验证，不复用已过期验证租期。
+
+整体结果仍PARTIAL，findingCount=0、choiceCount=0、worldAnalysis gapKinds=[]；REQUIREMENT_PLAN阶段为CAPABILITY_GAP。模型和图阶段均COMPLETE、无warnings。此状态不再是对象引用未解析/歧义，但不能声明完整分析业务PASS。按范围停止扩大测试，没有执行高级分析验收或设备动作。
+
+最终结果hash：sha256:8f70aa701d5a240be5e3cdea9dd11c599c03054ce208e6e2a5ab116fc2bd3bb9。SACS正常RUN_FINISHED、无RUN_ERROR，临时数据库cleanup PASS；测试程序返回INCOMPLETE/OBSERVED，保留原始语义未改写为全面PASS。唯一引用前置条件依据上述明确断言通过，后续高级测试可据此独立安排。
+
+完整脱敏证据：reference-probe/INTEGRATION_EVIDENCE.json。两个产品对应同一完整引用，不应按productCount=2判断为歧义。

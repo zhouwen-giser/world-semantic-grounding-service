@@ -239,11 +239,14 @@ export function createProductionBackendFromEnvironment(
     readiness,
     captureAdmissionSnapshot: (context) => requiredReadiness.captureAdmissionSnapshot(context),
     capabilities: async (identity, contractSelection) => {
+      // Model/database probes can outlast the five-second availability snapshot.
+      // Finish readiness first, then capture caller-scoped discovery immediately before projection.
+      const currentReadiness = await readiness();
       let discovery: unknown;
       if (isWorldAnalysisContract(contractSelection)) {
         try { discovery = await requiredReadiness.discoverWorldAnalysis?.(identity); } catch { /* Optional discovery stays unavailable. */ }
       }
-      return groundingCapabilitiesForSelection(contractSelection, await readiness(), discovery);
+      return groundingCapabilitiesForSelection(contractSelection, currentReadiness, discovery);
     },
     ...(primaryDataScope === undefined ? {} : { selectDataScope: () => primaryDataScope }),
     sourceRetentionMs: integerEnvironment("WSGS_SOURCE_RETENTION_MS", 3_600_000, 1_000, 604_800_000)

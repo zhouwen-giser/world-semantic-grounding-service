@@ -9,6 +9,8 @@ export {
 } from "./schema.js";
 export { modelOutputModes, semanticModelPolicyModes } from "./types.js";
 export type {
+  ModelDiagnostic,
+  ModelObserver,
   ModelOutputMode,
   ModelReceipt,
   SemanticModelAdapterConfig,

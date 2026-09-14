@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "image": "sha256:9ff3943cd6e5132a9be343981807cc15d6ef8f17143cceefdc0887fc99f94f61",
+  "services": [
+    "grounding-api",
+    "grounding-worker"
+  ],
+  "initialJobs": 0,
+  "health": {
+    "grounding-api": "healthy",
+    "grounding-worker": "healthy"
+  },
+  "runtimeEnvironmentUnchanged": true,
+  "mountsUnchanged": true,
+  "databaseUnchanged": true,
+  "noBusinessRequestSubmitted": true
+}

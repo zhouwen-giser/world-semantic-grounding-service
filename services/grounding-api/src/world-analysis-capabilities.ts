@@ -31,7 +31,11 @@ export function worldAnalysisCapabilities(ready: boolean, discovery?: unknown): 
     const candidate = discovery as Discovery;
     const projected = { ...result, worldAnalysis: { ...result.worldAnalysis,
       capabilities: candidate.capabilities, checkedAt: candidate.checkedAt, validUntil: candidate.validUntil } };
-    if (validate("capabilities", projected).valid && Date.parse(candidate.checkedAt) <= now && Date.parse(candidate.validUntil) > now) return projected;
+    if (validate("capabilities", projected).valid && Date.parse(candidate.checkedAt) <= now) {
+      if (Date.parse(candidate.validUntil) > now) return projected;
+      return { ...result, worldAnalysis: { ...result.worldAnalysis,
+        capabilities: fallback.capabilities.map(capability => ({ ...capability, reasonCodes: ["SNAPSHOT_EXPIRED"] })) } };
+    }
   }
   return result;
 }

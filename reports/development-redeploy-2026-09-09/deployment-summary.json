@@ -1,0 +1,61 @@
+{
+  "observedAt": "2026-09-09T02:15:56.665736+00:00",
+  "status": "DEPLOYED",
+  "project": "wsgs-dev",
+  "release": "/mnt/data/wsgs-live/releases/abc04d9917d085e5/wsgs-development",
+  "archiveSha256": "abc04d9917d085e5d4ccc7ce0cdf7f4084c375f5ae6641852e873b978cd79e53",
+  "apiUrl": "http://17.26.1.20:18082",
+  "authMode": "STATIC_TRUSTED",
+  "anonymousReadiness": "ready",
+  "anonymousCapabilities12Http": 200,
+  "anonymousSubmitHttp": 202,
+  "idempotencyReplayIdentical": true,
+  "smoke": {
+    "stage": "completed",
+    "groundingId": "grounding-f36dd677-90ec-4224-9b98-a69767750430",
+    "status": "UNRESOLVED",
+    "validResult": true,
+    "resultHash": "sha256:2e88fdc102fa1ab5a20cd00462765b1f141e02e1696cabc620107d519c1f654e",
+    "referenceCount": 0,
+    "elapsedMs": 35298
+  },
+  "gatewayReusedUnchanged": "15824f0df349c212f4936b783ece9d3739c181e17f730b8c67be331d3796c7d4",
+  "containers": [
+    {
+      "name": "/wsgs-dev-grounding-worker-1",
+      "status": "running",
+      "health": "healthy",
+      "imageId": "sha256:d15588d06720f1340e46972fe23c20fc5604a69b65868e79a394a476c68fb967"
+    },
+    {
+      "name": "/wsgs-dev-grounding-api-1",
+      "status": "running",
+      "health": "healthy",
+      "imageId": "sha256:d15588d06720f1340e46972fe23c20fc5604a69b65868e79a394a476c68fb967"
+    },
+    {
+      "name": "/wsgs-dev-wsgs-migrate-1",
+      "status": "exited",
+      "health": null,
+      "imageId": "sha256:d15588d06720f1340e46972fe23c20fc5604a69b65868e79a394a476c68fb967"
+    },
+    {
+      "name": "/wsgs-dev-postgres-1",
+      "status": "running",
+      "health": "healthy",
+      "imageId": "sha256:8189a1f6e40904781fc9e2612687877791d21679866db58b1de996b31fc312e4"
+    }
+  ],
+  "cleanup": {
+    "removedContainers": 7,
+    "removedVolumes": [
+      "wsgs-live-delegation",
+      "wsgs-live_gateway-data",
+      "wsgs-live_wsgs-postgres-data"
+    ],
+    "oldWsgsImageTagsRemaining": 0,
+    "oldSignedGatewayImageTagsRemaining": 0,
+    "existingGatewayId": "15824f0df349c212f4936b783ece9d3739c181e17f730b8c67be331d3796c7d4",
+    "existingGatewayHealth": "healthy"
+  }
+}

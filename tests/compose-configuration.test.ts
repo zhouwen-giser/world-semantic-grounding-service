@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const path = fileURLToPath(new URL("../compose.yaml", import.meta.url));
 const source = readFileSync(path, "utf8");
 // Never inherit credentials or the developer's .env when expanding Compose.
-const environment: NodeJS.ProcessEnv = { PATH: process.env["PATH"] };
+const environment: NodeJS.ProcessEnv = { PATH: process.env["PATH"], WSGS_ENV_FILE: "/dev/null" };
 for (const match of source.matchAll(/\$\{([A-Z0-9_]+):\?/gu)) environment[match[1]!] = "review-placeholder";
 let available = true;
 try { execFileSync("docker", ["compose", "version"], { env: environment, stdio: "ignore", timeout: 10_000 }); }

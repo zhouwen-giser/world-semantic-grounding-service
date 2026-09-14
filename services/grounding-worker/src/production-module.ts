@@ -1,3 +1,7 @@
+import { ReadinessCache } from "./readiness-cache.js";
+import { admitHistoricalSubject } from "./historical-subject.js";
+import { referenceValidationLease } from "./reference-validation-lease.js";
+import { loadGatewayAvailability } from "./gateway-availability.js";
 import { validateExecutionAvailability, executionAvailabilityObservation } from "./execution-availability.js";
 import { parseWithModelBudget } from "./model-budget.js";
 import { sameReferenceIdentity, type HistoricalQueryRequest, type HistoricalQueryResult } from "@wsgs/historical-trace-consumer";
@@ -680,7 +684,8 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
 }
 
 let sharedRuntime: Runtime | undefined;
-let cachedAuthority: { expiresAt: number; value: LiveAuthority } | undefined;
+const modelReadinessCaches = new WeakMap<Runtime, ReadinessCache<void>>();
+const authorityCaches = new WeakMap<Runtime, ReadinessCache<LiveAuthority>>();
 let staticIntakeVerified = false;
 
 function readinessRuntime(): Runtime {
@@ -714,8 +719,28 @@ async function liveAuthority(
   principal: GroundingIdentityV2 = readinessIdentity(),
   probeModel = true
 ): Promise<LiveAuthority> {
+  if (probeModel && value.modelPolicy === "MODEL_REQUIRED") {
+    const probe = async () => {
+      const probeText = "2号车在哪里？";
+      const parsed = await value.model.parse({ sourceText: probeText, locale: "zh-CN" }, undefined,
+        diagnostic => console.info(JSON.stringify({ scope: "readiness", ...diagnostic })));
+      stabilizeSemanticFrame(parsed.frame, probeText);
+    };
+    if (force) await probe();
+    else {
+      let cache = modelReadinessCaches.get(value);
+      if (!cache) { cache = new ReadinessCache(); modelReadinessCaches.set(value, cache); }
+      await cache.get(probe, environmentInteger("WSGS_MODEL_READINESS_CACHE_MS", 60_000, 0, 300_000));
+    }
+  }
+  if (force) return captureLiveAuthority(value, principal);
+  let cache = authorityCaches.get(value);
+  if (!cache) { cache = new ReadinessCache(); authorityCaches.set(value, cache); }
+  return cache.get(() => captureLiveAuthority(value, principal), environmentInteger("WSGS_READINESS_CACHE_MS", 5_000, 0, 60_000));
+}
+
+async function captureLiveAuthority(value: Runtime, principal: GroundingIdentityV2): Promise<LiveAuthority> {
   const now = Date.now();
-  if (!force && cachedAuthority && cachedAuthority.expiresAt > now) return cachedAuthority.value;
   if (!staticIntakeVerified) {
     verifyCurrentGowmSnapshot();
     staticIntakeVerified = true;
@@ -754,7 +779,7 @@ async function liveAuthority(
     // availability is authenticated and filtered by exact operation grants.
     value.gateway.listCapabilities(publicContext),
     value.gateway.listCapabilitySemantics(publicContext),
-    value.gateway.listOperationAvailability(authenticatedContext)
+    loadGatewayAvailability(value.gateway, allGatewayLocks(productionLock), authenticatedContext)
   ]);
   const capturedLock: OperationalGowmLock = {
     ...productionLock,
@@ -788,11 +813,6 @@ async function liveAuthority(
   });
   if (!validation.requiredReady) throw new ProductionStageModuleError("STABLE_GOWM_OPERATIONS_NOT_READY");
   await value.signer.ready();
-  if (probeModel && value.modelPolicy === "MODEL_REQUIRED") {
-    const probeText = "2号车在哪里？";
-    const probe = await value.model.parse({ sourceText: probeText, locale: "zh-CN" });
-    stabilizeSemanticFrame(probe.frame, probeText);
-  }
   const persisted: PersistedAuthority = {
     schemaVersion: "1.0",
     trustedCapabilitySnapshot,
@@ -818,14 +838,6 @@ async function liveAuthority(
     gowmOperationLockHash: trustedCapabilitySnapshot.southboundLockHash
   };
   const result = { persisted, admission };
-  // Admission captures are scoped to the actual caller and must never replace
-  // the readiness principal's cached view of filtered operation availability.
-  if (!force) {
-    cachedAuthority = {
-      value: result,
-      expiresAt: Date.now() + environmentInteger("WSGS_READINESS_CACHE_MS", 5_000, 0, 60_000)
-    };
-  }
   return result;
 }
 
@@ -902,7 +914,7 @@ export async function discoverWorldAnalysis(identity: GroundingIdentityV2) {
     const deadlineAt = new Date(Date.now() + environmentInteger("WSGS_READINESS_TIMEOUT_MS", 15_000, 500, 120_000));
     const catalog = await value.gateway.listCapabilities({ deadlineAt });
     const semantics = await value.gateway.listCapabilitySemantics({ deadlineAt });
-    const availability = await value.gateway.listOperationAvailability({ deadlineAt, requestId, delegationToken: signed.token });
+    const availability = await loadGatewayAvailability(value.gateway, input.locks, { deadlineAt, requestId, delegationToken: signed.token });
     return projectWorldAnalysisAvailability({ ...input, catalog, semantics, availability });
   } catch {
     return projectWorldAnalysisAvailability(input);
@@ -1324,19 +1336,16 @@ export function applyReferenceValidation(
   if (!Number.isFinite(timestamp) || !Number.isInteger(validityTtlMs) || validityTtlMs < 1) {
     throw new ProductionStageModuleError("REFERENCE_VALIDATION_LEASE_INVALID");
   }
-  const usable = validation.status === "VALID" && !validation.revalidationRequired;
+  const lease = referenceValidationLease(validation, evaluatedAt, validityTtlMs);
   const { validUntil: _priorValidity, ...withoutPriorValidity } = product;
   return {
     ...withoutPriorValidity,
     sourceOperation: "VALIDATE_REFERENCES",
-    revalidationRequired: !usable,
-    ...(usable ? { validUntil: new Date(timestamp + validityTtlMs).toISOString() } : {}),
+    revalidationRequired: lease.revalidationRequired,
+    ...(lease.validUntil ? { validUntil: lease.validUntil } : {}),
     safeSummary: {
       ...product.safeSummary,
-      validationStatus: validation.status,
-      validationSourceOperation: "reference.validate",
-      validationEvaluatedAt: new Date(timestamp).toISOString(),
-      validitySemantics: "GOWM_REFERENCE_VALIDATE_BOUNDED_LEASE"
+      ...lease.validationSummary
     }
   };
 }
@@ -2010,6 +2019,8 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     historicalExecution?: HistoricalExecutionResult;
     advancedExecution?: AdvancedHistoricalExecutionResult;
     publicReferenceProducts?: JsonObject[];
+    historicalSubjectReferenceKey?: HistoricalReferenceKey;
+    historicalSubjectFailure?: string;
     advancedFailure?: string;
   } | undefined;
   const normalized = context.state["EVIDENCE_NORMALIZE"] as {
@@ -2073,6 +2084,8 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     ...(semantic ? { semanticFrame: semantic.frame } : {}),
     ...(graph ? { groundingGraph: graph.graph } : {}),
     referenceProducts: [...(references?.referenceProducts ?? []), ...(normalized?.referenceProducts ?? []), ...(executed?.publicReferenceProducts ?? [])]
+      .map(product => executed?.historicalSubjectReferenceKey && canonicalSha256(product.referenceKey) === canonicalSha256(executed.historicalSubjectReferenceKey)
+        ? executed.publicReferenceProducts?.find(p => canonicalSha256(p["referenceKey"]) === canonicalSha256(product.referenceKey)) ?? product : product)
       .filter((product, index, all) => !executed?.publicReferenceProducts || all.findIndex(other => canonicalSha256(other.referenceKey) === canonicalSha256(product.referenceKey)) === index),
     evidenceItems: normalized?.evidenceItems ?? evidenceItems,
     ...(normalized?.geospatialFindings === undefined
@@ -2098,6 +2111,10 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     const reference = projectHistoricalReference(finding, runtime.history.provisionalReferenceTtlMs);
     if (reference) foundation = { intent: compiled.historicalPlan.intent, finding, reference };
   }
+  if (foundation && executed?.historicalSubjectReferenceKey) {
+    foundation = { ...foundation, intent: { ...foundation.intent, subjectReferenceKey: executed.historicalSubjectReferenceKey } };
+  }
+  if (executed?.historicalSubjectFailure) foundation = undefined;
   let foundationEvidenceIds = (document["evidenceItems"] as GroundingEvidenceItem[])
     .filter(item => item.sourceOperation === "history.get-trajectory" || item.sourceOperation === "operational-task.get-execution-intervals")
     .map(item => item.evidenceProductId);
@@ -2110,8 +2127,7 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
   // GSAP envelopes are projected independently from the legacy, size-bounded safePayload preview.
   if (executed?.advancedExecution) document["evidenceItems"] = (document["evidenceItems"] as GroundingEvidenceItem[])
     .filter(item => !ANALYSIS_OPERATION_IDS.includes(item.sourceOperation as typeof ANALYSIS_OPERATION_IDS[number]));
-  const failureReasonCode = executed?.advancedFailure ?? compiled?.advancedFailure ??
-    (executed?.historicalExecution?.status === "CAPABILITY_GAP" ? executed.historicalExecution.reasonCode : undefined);
+  const failureReasonCode = executed?.advancedFailure ?? compiled?.advancedFailure ?? executed?.historicalSubjectFailure;
   return assembleProductionWorldAnalysis({
     base: document, runFingerprint: context.runFingerprint,
     validUntil: new Date(Date.parse(String(stageValue<JsonObject>(context, "LOAD_CONTEXT")["startedAt"])) + 60_000).toISOString(),
@@ -2119,6 +2135,7 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     ...(runtime.analysisContracts ? { contracts: runtime.analysisContracts } : {}), catalog: runtime.metricCatalog,
     ...(executed?.advancedExecution ? { advanced: executed.advancedExecution } : {}),
     ...(failureReasonCode ? { failureReasonCode } : {}),
+    ...(executed?.historicalExecution ? { historicalExecution: executed.historicalExecution } : {}),
     ...(foundation ? { foundation } : {}), foundationEvidenceIds
   }) as unknown as JsonObject;
 }
@@ -3351,13 +3368,18 @@ export async function createPipelineStageExecutor(
     SEMANTIC_MODEL_PARSE: async (context) => {
       const parts = requestParts(context);
       const deterministic = stageValue<DeterministicParseResult>(context, "DETERMINISTIC_PARSE");
-      const parsed = await parseWithModelBudget(value.model, {
-        sourceText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
-        ...(typeof parts.source["locale"] === "string" ? { locale: parts.source["locale"] } : {}),
-        excludedSpans: deterministic.mentions.map((mention) => mention.span)
-      }, value.modelPolicy, context.deadlineAt, context.signal);
-      const receipt = parsed.receipt;
-      if (!receipt) return parsed;
+      let parsed: SemanticModelPolicyResult | undefined;
+      let failure: unknown;
+      try {
+        parsed = await parseWithModelBudget(value.model, {
+          sourceText: text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
+          ...(typeof parts.source["locale"] === "string" ? { locale: parts.source["locale"] } : {}),
+          excludedSpans: deterministic.mentions.map((mention) => mention.span)
+        }, value.modelPolicy, context.deadlineAt, context.signal, Date.now,
+        diagnostic => console.info(JSON.stringify({ scope: "business", groundingIdHash: createHash("sha256").update(context.groundingId).digest("hex"), ...diagnostic })));
+      } catch (error) { failure = error; }
+      const receipt = parsed?.receipt ?? (failure instanceof SemanticModelError ? failure.receipt : undefined);
+      if (!receipt) { if (failure) throw failure; return parsed; }
       const receiptId = modelReceiptId(receipt);
       await withFence(context, value.pool, async (client) => {
         await client.query(
@@ -3371,6 +3393,7 @@ export async function createPipelineStageExecutor(
             receipt.inputHash, receipt.outputHash || null, receipt.status, receipt.elapsedMs]
         );
       });
+      if (failure) throw failure;
       return { ...parsed, receiptId };
     },
 
@@ -3943,6 +3966,36 @@ export async function createPipelineStageExecutor(
             comparison: compareHistoricalFindings(compilation.historicalPriorForComparison.finding, executed.finding)
           } : {})
         };
+        if (isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION)) &&
+            ["COMPLETED", "PARTIAL"].includes(historicalExecution.status) && historicalExecution.finding?.trajectory?.trajectoryReferenceKey) {
+          const admission = await admitHistoricalSubject({ execution: historicalExecution, references,
+            validityTtlMs: environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000),
+            resolve: async (key, attempt) => {
+              const lock = operationLock(persistedAuthority(context, value.gateway), "reference.get");
+              const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", referenceKey: key }, `history-subject-get-${attempt}`);
+              const descriptor = object(envelopeValue(envelope, lock), "HISTORICAL_SUBJECT_DESCRIPTOR_MISSING");
+              const snapshot = object(envelope["dataSnapshot"], "INVALID_DATA_SNAPSHOT");
+              return { referenceKey: referenceKey(descriptor["referenceKey"]), referenceType: text(descriptor["referenceType"], "INVALID_REFERENCE_TYPE"),
+                displayName: text(descriptor["displayName"], "INVALID_REFERENCE_DISPLAY_NAME"),
+                sourceWorldVersion: typeof snapshot["worldVersion"] === "number" ? integer(snapshot["worldVersion"], "INVALID_WORLD_VERSION") : 0,
+                stale: descriptor["stale"] === true || descriptor["revalidationRequired"] === true };
+            },
+            validate: async (key, attempt) => {
+              const lock = operationLock(persistedAuthority(context, value.gateway), "reference.validate");
+              const envelope = await executeOperation(value, context, lock,
+                { schemaVersion: "1.0", references: [{ referenceKey: key, requireCurrentSnapshot: true }] }, `history-subject-validate-${attempt}`);
+              const validations = normalizeValidation(envelopeValue(envelope, lock));
+              if (validations.length !== 1) throw new ProductionStageModuleError("HISTORICAL_SUBJECT_VALIDATION_MISSING");
+              return validations[0]!;
+            }
+          }).catch(error => {
+            if (context.signal.aborted || error instanceof PipelineFenceRejectedError) throw error;
+            return { status: "REJECTED" as const, reasonCode: "REFERENCE_MISSING" as const };
+          });
+          return { outcomes: foundationOutcomes, historicalExecution, historicalSubjectAdmission: admission,
+            ...(admission.status === "ADMITTED" ? { publicReferenceProducts: [admission.product], historicalSubjectReferenceKey: admission.product.referenceKey }
+              : { historicalSubjectFailure: admission.reasonCode }) };
+        }
         return { outcomes: foundationOutcomes, historicalExecution };
       }
       const caller = identity(context);

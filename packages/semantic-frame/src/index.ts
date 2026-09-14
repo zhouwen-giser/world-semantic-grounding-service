@@ -75,10 +75,21 @@ function namedEntityCandidates(sourceText: string): Array<{ surfaceText: string;
     { expression: /[A-Za-z0-9一二三四五六七八九十]+区/gu, expectedKinds: ["LAYER_FEATURE"] }
   ];
   const values: Array<{ surfaceText: string; start: number; end: number; expectedKinds: string[] }> = [];
+  // Explicit task labels provide a type hint, never a trusted ReferenceKey.
+  const taskLabels: Array<{ start: number; end: number }> = [];
+  const taskPattern = /任务(?:\s*(?:引用|编号|ID)\s*[:：]?\s*|\s+[:：]?\s*|[:：]\s*)([A-Za-z0-9][A-Za-z0-9._:-]{0,255})(?![A-Za-z0-9._:-])/giu;
+  for (const match of sourceText.matchAll(taskPattern)) {
+    const token = match[1];
+    if (!token) continue;
+    taskLabels.push({ start: match.index, end: match.index + match[0].length });
+    const start = match.index + match[0].lastIndexOf(token);
+    values.push({ surfaceText: token, start, end: start + token.length, expectedKinds: ["OPERATIONAL_TASK"] });
+  }
   for (const { expression, expectedKinds } of patterns) {
     for (const match of sourceText.matchAll(expression)) {
       const start = match.index;
       if (start === undefined || !match[0]) continue;
+      if (taskLabels.some(value => start < value.end && start + match[0].length > value.start)) continue;
       values.push({ surfaceText: match[0], start, end: start + match[0].length, expectedKinds });
     }
   }

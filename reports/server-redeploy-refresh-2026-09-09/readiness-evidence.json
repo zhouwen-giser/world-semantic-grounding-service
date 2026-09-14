@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "anonymousRequests": true,
+  "checks": [
+    {
+      "path": "/health/ready",
+      "httpStatus": 200,
+      "elapsedMs": 8178
+    },
+    {
+      "path": "/v1/capabilities",
+      "httpStatus": 200,
+      "elapsedMs": 3540,
+      "contractVersion": "sacs-wsgs-grounding/1.2",
+      "resultProfile": "wsgs-world-analysis-findings/1.0",
+      "requiredCapabilitiesReady": true,
+      "capabilities": [
+        {
+          "capability": "HISTORICAL_TRACE",
+          "available": true,
+          "reasonCodes": [
+            "AVAILABLE"
+          ]
+        },
+        {
+          "capability": "ROAD_ASSOCIATION",
+          "available": true,
+          "reasonCodes": [
+            "AVAILABLE"
+          ]
+        },
+        {
+          "capability": "TEMPORAL_EVENT",
+          "available": true,
+          "reasonCodes": [
+            "AVAILABLE"
+          ]
+        },
+        {
+          "capability": "CROSS",
+          "available": true,
+          "reasonCodes": [
+            "AVAILABLE"
+          ]
+        },
+        {
+          "capability": "METRIC_RANKING",
+          "available": true,
+          "reasonCodes": [
+            "AVAILABLE"
+          ]
+        },
+        {
+          "capability": "ACTION_TARGET_CANDIDATE",
+          "available": true,
+          "reasonCodes": [
+            "AVAILABLE"
+          ]
+        }
+      ]
+    }
+  ],
+  "initialCheckerCorrection": "requiredCapabilitiesReady is a top-level contract field",
+  "noBusinessQuerySubmitted": true
+}

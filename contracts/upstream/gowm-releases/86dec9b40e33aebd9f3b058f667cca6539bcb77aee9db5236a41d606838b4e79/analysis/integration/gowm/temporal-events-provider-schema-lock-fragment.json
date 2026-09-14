@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "gowm-canonical-schema-lock/1.0",
+  "lockId": "gowm-analysis-temporal-events-v0.1",
+  "providerId": "gowm.analysis.temporal-events",
+  "schemas": [
+    {
+      "schemaUri": "urn:gowm:analysis:temporal-events:request:0.1",
+      "schemaHash": "sha256:a176f1be958f8d5f87069e8d305d3fa4b1b7bcb7b7c6a1db7f6c076ae1c467db",
+      "schemaPath": "contracts/temporal-events/temporal-events-request.schema.json"
+    },
+    {
+      "schemaUri": "urn:gowm:analysis:temporal-events:result:0.1",
+      "schemaHash": "sha256:85a2b586c9821ac20d7876d509cc9d8016d7c71dc964fbe3851c32bfd694347a",
+      "schemaPath": "contracts/temporal-events/temporal-events-result.schema.json"
+    }
+  ],
+  "supportingSchemas": [
+    {
+      "schemaUri": "urn:gowm:analysis:map-matching:result:0.1",
+      "schemaHash": "sha256:0ff90c4b9678ee265607dab71708b02475114b574fa3a7ca417721991051e9b7",
+      "schemaPath": "contracts/map-matching/map-match-result.schema.json"
+    }
+  ]
+}

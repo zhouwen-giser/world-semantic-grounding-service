@@ -1,0 +1,32 @@
+{
+  "startedAt": "2026-09-09T05:37:30.936162+00:00",
+  "samples": [
+    {
+      "label": "concurrent-cold-1",
+      "httpStatus": 200,
+      "elapsedMs": 122999,
+      "ready": true,
+      "available": true,
+      "checkedAt": "2026-09-09T05:39:33.917Z",
+      "validUntil": "2026-09-09T05:39:37.591Z"
+    },
+    {
+      "label": "concurrent-cold-2",
+      "httpStatus": 200,
+      "elapsedMs": 123193,
+      "ready": true,
+      "available": true,
+      "checkedAt": "2026-09-09T05:39:34.127Z",
+      "validUntil": "2026-09-09T05:39:37.670Z"
+    },
+    {
+      "label": "after-authority-cache-expired",
+      "httpStatus": 200,
+      "elapsedMs": 4918,
+      "ready": true,
+      "available": true,
+      "checkedAt": "2026-09-09T05:39:45.050Z",
+      "validUntil": "2026-09-09T05:39:49.030Z"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gowm:analysis:map-matching:result:0.1",
+  "title": "MapMatchResultV01",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "status", "reasonCode", "matchingLevel", "algorithm", "networkRole", "analysisId", "trajectoryReferenceKey", "roadVisits", "offNetworkSegments", "ambiguousSegments", "junctionPassCandidates", "networkDataIssueCandidates", "qualityBreaks", "upstreamGaps", "associationCompleteness", "summary", "pointAssociationPreview", "rejectedSamplePreview", "warnings"],
+  "properties": {
+    "schemaVersion": { "const": "0.1" },
+    "status": { "enum": ["COMPLETED", "PARTIAL", "NO_DATA", "INDETERMINATE"] },
+    "reasonCode": { "type": "string", "minLength": 1 },
+    "matchingLevel": { "const": "TASK_LEVEL_APPROXIMATE" },
+    "algorithm": { "const": "CAMPUS_NEAREST_TOPOLOGY_V1" },
+    "networkRole": { "const": "REFERENCE_MODEL_NOT_PHYSICAL_TRUTH" },
+    "analysisId": { "type": "string", "pattern": "^mma_[0-9a-f]{32}$" },
+    "trajectoryReferenceKey": { "$ref": "#/$defs/referenceKey" },
+    "subjectReferenceKey": { "$ref": "#/$defs/referenceKey" },
+    "networkContext": {
+      "type": "object", "additionalProperties": false,
+      "required": ["graphKey", "graphVersionId", "graphVersion", "topologyHash", "contentHash", "timeBasis"],
+      "properties": {
+        "graphKey": { "type": "string" }, "graphVersionId": { "type": "string" }, "graphVersion": { "type": "string" },
+        "topologyHash": { "$ref": "#/$defs/digest" }, "contentHash": { "$ref": "#/$defs/digest" },
+        "datasetReferenceKey": { "$ref": "#/$defs/referenceKey" }, "timeBasis": { "const": "CURRENT_ACTIVE_TOPOLOGY" }
+      }
+    },
+    "inputCompleteness": {
+      "type": "object", "additionalProperties": false,
+      "required": ["temporalCoverageRatio", "sampleCount", "sequenceCount", "gapCount", "prefixComplete", "suffixComplete", "finalizationState"],
+      "properties": {
+        "temporalCoverageRatio": { "type": "number", "minimum": 0, "maximum": 1 }, "sampleCount": { "type": "integer", "minimum": 0 },
+        "sequenceCount": { "type": "integer", "minimum": 0 }, "gapCount": { "type": "integer", "minimum": 0 },
+        "prefixComplete": { "type": "boolean" }, "suffixComplete": { "type": "boolean" },
+        "finalizationState": { "enum": ["PROVISIONAL", "SEALED", "CONFLICTED"] }
+      }
+    },
+    "roadVisits": { "type": "array", "items": { "$ref": "#/$defs/roadVisit" } },
+    "offNetworkSegments": { "type": "array", "items": { "$ref": "#/$defs/offNetworkSegment" } },
+    "ambiguousSegments": { "type": "array", "items": { "$ref": "#/$defs/ambiguousSegment" } },
+    "junctionPassCandidates": { "type": "array", "items": { "$ref": "#/$defs/junction" } },
+    "networkDataIssueCandidates": { "type": "array", "items": { "$ref": "#/$defs/networkIssue" } },
+    "qualityBreaks": { "type": "array", "items": { "$ref": "#/$defs/qualityBreak" } },
+    "upstreamGaps": { "type": "array", "items": { "$ref": "#/$defs/upstreamGap" } },
+    "associationCompleteness": {
+      "type": "object", "additionalProperties": false,
+      "required": ["inputPrefixComplete", "inputSuffixComplete", "associationPrefixComplete", "associationSuffixComplete", "offNetworkPeriods", "ambiguousPeriods", "qualityBreakPeriods", "upstreamGapPeriods"],
+      "properties": {
+        "inputPrefixComplete": { "type": "boolean" }, "inputSuffixComplete": { "type": "boolean" },
+        "associationPrefixComplete": { "type": "boolean" }, "associationSuffixComplete": { "type": "boolean" },
+        "offNetworkPeriods": { "$ref": "#/$defs/periods" }, "ambiguousPeriods": { "$ref": "#/$defs/periods" },
+        "qualityBreakPeriods": { "$ref": "#/$defs/periods" }, "upstreamGapPeriods": { "$ref": "#/$defs/periods" }
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sourceSampleCount", "acceptedSampleCount", "rejectedSampleCount", "onNetworkSampleCount", "offNetworkSampleCount", "ambiguousSampleCount", "acceptedRatio", "onNetworkAcceptedRatio", "roadVisitCount", "offNetworkSegmentCount", "ambiguousSegmentCount", "junctionPassCandidateCount"],
+      "properties": {
+        "sourceSampleCount": { "$ref": "#/$defs/count" }, "acceptedSampleCount": { "$ref": "#/$defs/count" }, "rejectedSampleCount": { "$ref": "#/$defs/count" },
+        "onNetworkSampleCount": { "$ref": "#/$defs/count" }, "offNetworkSampleCount": { "$ref": "#/$defs/count" }, "ambiguousSampleCount": { "$ref": "#/$defs/count" },
+        "acceptedRatio": { "$ref": "#/$defs/ratio" }, "onNetworkAcceptedRatio": { "$ref": "#/$defs/ratio" },
+        "roadVisitCount": { "$ref": "#/$defs/count" }, "offNetworkSegmentCount": { "$ref": "#/$defs/count" },
+        "ambiguousSegmentCount": { "$ref": "#/$defs/count" }, "junctionPassCandidateCount": { "$ref": "#/$defs/count" }
+      }
+    },
+    "pointAssociationPreview": { "type": "array", "maxItems": 5000, "items": { "$ref": "#/$defs/pointAssociation" } },
+    "rejectedSamplePreview": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/rejectedSample" } },
+    "warnings": { "type": "array", "items": { "type": "string", "maxLength": 1024 } }
+  },
+  "allOf": [{
+    "if": {
+      "properties": { "status": { "enum": ["COMPLETED", "PARTIAL"] } },
+      "required": ["status"]
+    },
+    "then": { "required": ["subjectReferenceKey", "networkContext", "inputCompleteness"] }
+  }],
+  "$defs": {
+    "count": { "type": "integer", "minimum": 0 },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "referenceKey": {
+      "type": "object", "additionalProperties": false, "required": ["namespace", "kind", "id", "version"],
+      "properties": { "namespace": { "type": "string" }, "kind": { "type": "string" }, "id": { "type": "string" }, "version": { "type": "string" } }
+    },
+    "position": { "type": "array", "prefixItems": [{"type":"number","minimum":-180,"maximum":180},{"type":"number","minimum":-90,"maximum":90}], "minItems": 2, "maxItems": 2 },
+    "point": { "type": "object", "additionalProperties": false, "required": ["type", "coordinates"], "properties": { "type": { "const": "Point" }, "coordinates": { "$ref": "#/$defs/position" } } },
+    "rawPoint": { "type": "object", "additionalProperties": false, "required": ["type", "coordinates"], "properties": { "type": { "const": "Point" }, "coordinates": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "oneOf": [{"type":"number"},{"enum":["NaN","+Infinity","-Infinity"]}] } } } },
+    "line": { "type": "object", "additionalProperties": false, "required": ["type", "coordinates"], "properties": { "type": { "const": "LineString" }, "coordinates": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/position" } } } },
+    "period": { "type": "object", "additionalProperties": false, "required": ["start", "end"], "properties": { "start": { "type": "string", "format": "date-time" }, "end": { "type": "string", "format": "date-time" } } },
+    "periods": { "type": "array", "items": { "$ref": "#/$defs/period" } },
+    "roadVisit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sequenceNo", "visitNo", "sourceFeatureReferenceId", "edgeKeys", "startTime", "endTime", "entryPosition", "exitPosition", "matchedSampleCount", "bridgedAmbiguousSampleCount", "confidence"],
+      "properties": { "sequenceNo": {"type":"integer"}, "visitNo": {"type":"integer"}, "sourceFeatureReferenceId": {"type":"string"}, "roadDisplayName": {"type":"string"}, "edgeKeys": {"type":"array","items":{"type":"string"}}, "startTime":{"type":"string","format":"date-time"}, "endTime":{"type":"string","format":"date-time"}, "entryPosition":{"$ref":"#/$defs/point"}, "exitPosition":{"$ref":"#/$defs/point"}, "matchedSampleCount":{"$ref":"#/$defs/count"}, "bridgedAmbiguousSampleCount":{"$ref":"#/$defs/count"}, "confidence":{"$ref":"#/$defs/ratio"} }
+    },
+    "offNetworkSegment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sequenceNo","segmentNo","startTime","endTime","sampleCount","estimatedLengthM","entryPosition","exitPosition","pathPreview","interpretationHint","confidence","reasonCodes"],
+      "properties": { "sequenceNo":{"type":"integer"},"segmentNo":{"type":"integer"},"startTime":{"type":"string","format":"date-time"},"endTime":{"type":"string","format":"date-time"},"sampleCount":{"$ref":"#/$defs/count"},"estimatedLengthM":{"type":"number","minimum":0},"entryPosition":{"$ref":"#/$defs/point"},"exitPosition":{"$ref":"#/$defs/point"},"precedingRoadVisitNo":{"type":"integer"},"followingRoadVisitNo":{"type":"integer"},"pathPreview":{"oneOf":[{"$ref":"#/$defs/point"},{"$ref":"#/$defs/line"}]},"interpretationHint":{"enum":["UNMAPPED_PATH_CANDIDATE","OPEN_AREA_MOVEMENT","NETWORK_GEOMETRY_OFFSET_CANDIDATE","TEMPORARY_PATH_CANDIDATE","UNKNOWN"]},"confidence":{"$ref":"#/$defs/ratio"},"reasonCodes":{"type":"array","items":{"type":"string"}} }
+    },
+    "ambiguousSegment": { "type":"object","additionalProperties":false,"required":["sequenceNo","segmentNo","start","end","sampleCount","candidateRoadFeatureReferenceIds","confidence"],"properties":{"sequenceNo":{"type":"integer"},"segmentNo":{"type":"integer"},"start":{"type":"string","format":"date-time"},"end":{"type":"string","format":"date-time"},"sampleCount":{"$ref":"#/$defs/count"},"candidateRoadFeatureReferenceIds":{"type":"array","items":{"type":"string"}},"confidence":{"$ref":"#/$defs/ratio"}} },
+    "junction": { "type":"object","additionalProperties":false,"required":["sequenceNo","transitionNo","fromEdgeKey","toEdgeKey","fromSourceFeatureReferenceId","toSourceFeatureReferenceId","viaNodeKey","incidentEdgeCount","distinctRoadFeatureCount","eventTimeEstimate","eventTimeWindow","position","confidence","reasonCodes"],"properties":{"sequenceNo":{"type":"integer"},"transitionNo":{"type":"integer"},"fromEdgeKey":{"type":"string"},"toEdgeKey":{"type":"string"},"fromSourceFeatureReferenceId":{"type":"string"},"toSourceFeatureReferenceId":{"type":"string"},"viaNodeKey":{"type":"string"},"incidentEdgeCount":{"$ref":"#/$defs/count"},"distinctRoadFeatureCount":{"$ref":"#/$defs/count"},"eventTimeEstimate":{"type":"string","format":"date-time"},"eventTimeWindow":{"$ref":"#/$defs/period"},"position":{"$ref":"#/$defs/point"},"confidence":{"$ref":"#/$defs/ratio"},"reasonCodes":{"type":"array","items":{"type":"string"}}} },
+    "networkIssue": { "type":"object","additionalProperties":false,"required":["issueType","observedPeriod","relatedRoadFeatureReferenceIds","observationCount","confidence","reasonCodes"],"properties":{"issueType":{"enum":["MISSING_PATH_CANDIDATE","MISSING_TOPOLOGY_CONNECTION_CANDIDATE","ROAD_GEOMETRY_OFFSET_CANDIDATE","DIRECTION_CONFLICT_CANDIDATE"]},"observedPeriod":{"$ref":"#/$defs/period"},"geometryPreview":{"oneOf":[{"$ref":"#/$defs/point"},{"$ref":"#/$defs/line"}]},"relatedRoadFeatureReferenceIds":{"type":"array","items":{"type":"string"}},"observationCount":{"$ref":"#/$defs/count"},"confidence":{"$ref":"#/$defs/ratio"},"reasonCodes":{"type":"array","items":{"type":"string"}}} },
+    "qualityBreak": { "type":"object","additionalProperties":false,"required":["sequenceNo","start","end","reasonCode"],"properties":{"sequenceNo":{"type":"integer"},"start":{"type":"string","format":"date-time"},"end":{"type":"string","format":"date-time"},"reasonCode":{"type":"string"}} },
+    "upstreamGap": { "type":"object","additionalProperties":false,"required":["gapNo","gapKind","start","end","reasonCodes"],"properties":{"gapNo":{"type":"integer"},"gapKind":{"type":"string"},"start":{"type":"string","format":"date-time"},"end":{"type":"string","format":"date-time"},"reasonCodes":{"type":"array","items":{"type":"string"}}} },
+    "pointAssociation": { "type":"object","additionalProperties":false,"required":["sampleId","sequenceNo","observedAt","position","status","confidence","reasonCodes"],"properties":{"sampleId":{"type":"string"},"sequenceNo":{"type":"integer"},"observedAt":{"type":"string","format":"date-time"},"position":{"$ref":"#/$defs/point"},"status":{"enum":["ON_NETWORK","OFF_NETWORK_VALID","NETWORK_AMBIGUOUS","REJECTED_OUTLIER"]},"edgeKey":{"type":"string"},"sourceFeatureReferenceId":{"type":"string"},"distanceM":{"type":"number","minimum":0},"confidence":{"$ref":"#/$defs/ratio"},"reasonCodes":{"type":"array","items":{"type":"string"}}} },
+    "rejectedSample": { "type":"object","additionalProperties":false,"required":["sampleId","sequenceNo","observedAt","status","reasonCode"],"oneOf":[{"required":["position"],"not":{"required":["rawPosition"]}},{"required":["rawPosition"],"not":{"required":["position"]}}],"properties":{"sampleId":{"type":"string"},"sequenceNo":{"type":"integer"},"observedAt":{"type":"string"},"position":{"$ref":"#/$defs/point"},"rawPosition":{"$ref":"#/$defs/rawPoint"},"status":{"const":"REJECTED_OUTLIER"},"reasonCode":{"type":"string"}} }
+  }
+}

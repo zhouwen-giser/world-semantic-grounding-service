@@ -38,8 +38,24 @@ export interface SemanticModelResult {
   receipt: ModelReceipt;
 }
 
+/** Metadata only: never contains prompts, model text, credentials or provider error bodies. */
+export interface ModelDiagnostic {
+  event: "MODEL_ATTEMPT_STARTED" | "MODEL_HEADERS" | "MODEL_BODY_COMPLETE" | "MODEL_ATTEMPT_FAILED" | "MODEL_FINISHED" | "MODEL_BUDGET";
+  elapsedMs: number;
+  attempt?: number;
+  attemptElapsedMs?: number;
+  httpStatus?: number;
+  requestIdHash?: string;
+  code?: string;
+  receipt?: ModelReceipt;
+  remainingMs?: number;
+  reserveMs?: number;
+  budgetMs?: number;
+}
+export type ModelObserver = (diagnostic: ModelDiagnostic) => void;
+
 export interface SemanticModelParser {
-  parse(input: SemanticModelInput, signal?: AbortSignal): Promise<SemanticModelResult>;
+  parse(input: SemanticModelInput, signal?: AbortSignal, observe?: ModelObserver): Promise<SemanticModelResult>;
 }
 
 export type SemanticModelPolicyResult =

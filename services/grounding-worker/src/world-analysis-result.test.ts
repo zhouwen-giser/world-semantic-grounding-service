@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { createWorldAnalysisValidator, worldAnalysisResultHash } from "@wsgs/contracts";
+import { createWorldAnalysisValidator, worldAnalysisResultHash, worldAnalysisFindingSetHash } from "@wsgs/contracts";
 import { assembleProductionWorldAnalysis } from "./world-analysis-result.js";
 
 const example = (name: string) => JSON.parse(readFileSync(new URL(`../../../contracts/wsgs-v0.2.4-world-analysis/examples/${name}.json`, import.meta.url), "utf8"));
@@ -11,6 +11,41 @@ function assemble(base: Record<string, unknown>) {
 }
 
 describe("production world-analysis consumer boundary", () => {
+  it.each(["PROJECTION_PENDING", "HISTORICAL_PROJECTION_PENDING"])("exposes %s without a trajectory foundation", reasonCode => {
+    const base = example("empty"); base.status = "PARTIAL";
+    const input = { base, historicalExecution: { status: "PENDING" as const, reasonCode },
+      runFingerprint: `sha256:${"b".repeat(64)}`, validUntil: "2026-09-06T00:01:00Z",
+      maxResultBytes: 1048576, foundationEvidenceIds: [] };
+    const result = assembleProductionWorldAnalysis(input);
+    expect(result.status).toBe("PARTIAL");
+    expect(result.worldAnalysisFindings.gaps).toEqual([expect.objectContaining({
+      gapKind: "HISTORICAL_PROJECTION_PENDING", messageCode: "HISTORICAL_PROJECTION_PENDING", severity: "BLOCKING"
+    })]);
+    expect(result.worldAnalysisFindings.findings).toEqual([]);
+    expect(result.worldAnalysisFindings.choices).toEqual([]);
+    expect(result.referenceProducts).toEqual(base.referenceProducts);
+    expect(validate("result", result)).toEqual({ valid: true, errors: [] });
+    expect(result.resultHash).toBe(worldAnalysisResultHash(result));
+    expect(result.worldAnalysisFindings.findingSetHash).toBe(worldAnalysisFindingSetHash(result.worldAnalysisFindings));
+    expect(assembleProductionWorldAnalysis(input)).toEqual(result);
+  });
+  it.each(["COMPLETED", "PARTIAL"] as const)("does not invent a pending gap for %s history", status => {
+    const base = example("empty"); base.status = status;
+    const result = assembleProductionWorldAnalysis({ base, historicalExecution: { status, reasonCode: "PROVISIONAL" },
+      runFingerprint: `sha256:${"b".repeat(64)}`, validUntil: "2026-09-06T00:01:00Z",
+      maxResultBytes: 1048576, foundationEvidenceIds: [] });
+    expect(result.worldAnalysisFindings.gaps).toEqual([]);
+    expect(result.status).toBe(status);
+  });
+  it("retains historical capability gaps and existing failure precedence", () => {
+    const base = example("empty"); base.status = "PARTIAL";
+    const input = { base, historicalExecution: { status: "CAPABILITY_GAP" as const, reasonCode: "TASK_CONTEXT_REQUIRED" },
+      runFingerprint: `sha256:${"b".repeat(64)}`, validUntil: "2026-09-06T00:01:00Z",
+      maxResultBytes: 1048576, foundationEvidenceIds: [] };
+    expect(assembleProductionWorldAnalysis(input).worldAnalysisFindings.gaps.map(g => g.gapKind)).toEqual(["TASK_CONTEXT_REQUIRED"]);
+    expect(assembleProductionWorldAnalysis({ ...input, failureReasonCode: "SELECTION_EXPIRED" })
+      .worldAnalysisFindings.gaps.map(g => g.gapKind)).toEqual(["SELECTION_EXPIRED"]);
+  });
   it.each([
     ["ADVANCED_HISTORY_DISABLED", "CAPABILITY_UNAVAILABLE"],
     ["ADVANCED_HISTORY_REQUIRES_HISTORY", "CAPABILITY_UNAVAILABLE"],

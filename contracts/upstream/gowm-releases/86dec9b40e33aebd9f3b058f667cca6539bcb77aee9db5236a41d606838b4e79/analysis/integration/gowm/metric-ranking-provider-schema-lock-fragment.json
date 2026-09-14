@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "gowm-canonical-schema-lock/1.0",
+  "lockId": "gowm-analysis-metric-ranking-v0.1",
+  "providerId": "gowm.analysis.metric-ranking",
+  "schemas": [
+    {
+      "schemaUri": "urn:gowm:analysis:metric-ranking:request:0.1",
+      "schemaHash": "sha256:c9c882bf7c25ba0526e685090a9ef8603beec437a33ba67750660e54e105e601",
+      "schemaPath": "contracts/metric-ranking/metric-ranking-request.schema.json"
+    },
+    {
+      "schemaUri": "urn:gowm:analysis:metric-ranking:result:0.1",
+      "schemaHash": "sha256:56a0db70b82cf1af4b0ddb3b01746565e63572ee1f66e97b73d57f788857df27",
+      "schemaPath": "contracts/metric-ranking/metric-ranking-result.schema.json"
+    }
+  ],
+  "supportingSchemas": []
+}

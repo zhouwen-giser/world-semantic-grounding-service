@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 
+if (fs.existsSync('.env')) process.loadEnvFile('.env');
+
 const host=process.env.WSGS_DEPLOY_HOST ?? 'sz-gowm';
 const prepareOnly=process.argv.includes('--prepare-only');
 const diagnosticCase=process.argv.find(arg=>arg.startsWith('--diagnostic-case='))?.split('=')[1];
@@ -26,7 +28,6 @@ try{
  const release='/mnt/data/wsgs-live/releases/'+releaseId;
  const ssh=(script,options={})=>run('ssh',['-o','BatchMode=yes',host,script],options);
  ssh(`mkdir -p '${release}' && tar -xzf - -C '${release}'`,{input:fs.readFileSync(archive)});
- process.loadEnvFile('.env');
  const model=Object.fromEntries(['MODEL_BASE_URL','MODEL_API_KEY','MODEL_NAME','MODEL_OUTPUT_MODE','MODEL_TIMEOUT_MS','MODEL_MAX_RETRIES'].filter(k=>process.env[k]).map(k=>[k,process.env[k]]));
  ssh(`python3 '${release}/deployment/prepare-instance.py' '${release}'`,{input:JSON.stringify({model,upstreamDeploymentRoot:process.env.WSGS_UPSTREAM_DEPLOYMENT_ROOT})});
  const compose=`docker compose --project-name wsgs-live --project-directory '${release}' --env-file '${release}/.env' -f '${release}/compose.yaml' -f '${release}/compose.instance.json'`;

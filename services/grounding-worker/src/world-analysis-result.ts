@@ -1,5 +1,5 @@
 import { worldAnalysisCanonicalHash, worldAnalysisFindingSetHash, type GroundingResult12 } from "@wsgs/contracts";
-import { assemblePublicWorldAnalysisResult, projectHistoricalReference, projectPublicWorldAnalysis } from "@wsgs/historical-trace-consumer";
+import { assemblePublicWorldAnalysisResult, projectHistoricalReference, projectPublicWorldAnalysis, type HistoricalExecutionResult } from "@wsgs/historical-trace-consumer";
 
 type ProjectionInput = Parameters<typeof projectPublicWorldAnalysis>[0];
 type RecordValue = Record<string, unknown>;
@@ -20,9 +20,15 @@ export function assembleProductionWorldAnalysis(input: {
   catalog?: ProjectionInput["catalog"];
   advanced?: ProjectionInput["advanced"];
   failureReasonCode?: string;
+  historicalExecution?: Pick<HistoricalExecutionResult, "status" | "reasonCode">;
   foundation?: ProjectionInput["foundation"];
   foundationEvidenceIds: string[];
 }): GroundingResult12 {
+  // Pending history has no trusted trajectory reference, but its blocking reason
+  // must survive independently of the optional foundation projection.
+  const failureReasonCode = input.failureReasonCode ??
+    (input.historicalExecution?.status === "PENDING" ? "HISTORICAL_PROJECTION_PENDING" :
+      input.historicalExecution?.status === "CAPABILITY_GAP" ? input.historicalExecution.reasonCode : undefined);
   const references = (input.base["referenceProducts"] as RecordValue[]).map(item => pick(item, referenceFields));
   const foundation = input.foundation ?? input.advanced?.foundation;
   if (foundation) {
@@ -59,7 +65,7 @@ export function assembleProductionWorldAnalysis(input: {
     ...(input.contracts ? { contracts: input.contracts } : {}),
     ...(input.catalog ? { catalog: input.catalog } : {}),
     ...(input.advanced ? { advanced: input.advanced } : {}),
-    ...(input.failureReasonCode ? { failureReasonCode: input.failureReasonCode } : {}),
+    ...(failureReasonCode ? { failureReasonCode } : {}),
     ...(input.foundation ? { foundation: input.foundation } : {})
   });
   for (const ambiguity of base.ambiguities) {

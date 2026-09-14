@@ -340,3 +340,31 @@ describe("semantic model environment", () => {
     expect(() => semanticModelConfigFromEnvironment({})).toThrow(/MODEL_BASE_URL/u);
   });
 });
+
+describe("metadata-only model observations", () => {
+  it("reports retries, HTTP headers and completion without raw input or provider data", async () => {
+    const events: unknown[] = [];
+    const fetchMock = vi.fn().mockResolvedValueOnce(new Response("private provider error", { status: 429 }))
+      .mockResolvedValueOnce(responseFor(emptyFrame, { "x-request-id": "private-provider-id" }));
+    await adapter(fetchMock as typeof fetch, { maxRetries: 1, sleep: async () => undefined })
+      .parse({ sourceText: "private source" }, undefined, event => events.push(event));
+    expect(events).toEqual(expect.arrayContaining([
+      expect.objectContaining({ event: "MODEL_HEADERS", httpStatus: 429 }),
+      expect.objectContaining({ event: "MODEL_ATTEMPT_FAILED", code: "MODEL_HTTP_429" }),
+      expect.objectContaining({ event: "MODEL_FINISHED", receipt: expect.objectContaining({ attempts: 2, status: "SUCCEEDED" }) })
+    ]));
+    for (const secret of ["private source", "private provider error", "private-provider-id", "test-secret-not-for-logs"])
+      expect(JSON.stringify(events)).not.toContain(secret);
+  });
+  it("emits failure receipt synchronously on abort even if transport never settles", async () => {
+    const events: unknown[] = [];
+    const controller = new AbortController();
+    const pending = adapter(vi.fn(() => new Promise(() => undefined)) as typeof fetch)
+      .parse({ sourceText: "private source" }, controller.signal, event => events.push(event));
+    // The transport promise intentionally never resolves; the observer must still expose abort metadata.
+    controller.abort(new SemanticModelError("MODEL_BUDGET_EXCEEDED", false));
+    expect(events).toContainEqual(expect.objectContaining({ event: "MODEL_FINISHED",
+      receipt: expect.objectContaining({ status: "FAILED", attempts: 1, failureCode: "MODEL_BUDGET_EXCEEDED" }) }));
+    void pending;
+  });
+});

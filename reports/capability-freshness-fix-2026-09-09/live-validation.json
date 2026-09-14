@@ -1,0 +1,173 @@
+[
+  {
+    "scenario": "cold-start",
+    "http": 200,
+    "elapsedSeconds": 21.513,
+    "remainingValidityMs": 4309,
+    "requiredCapabilitiesReady": true,
+    "capabilities": [
+      {
+        "capability": "HISTORICAL_TRACE",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "ROAD_ASSOCIATION",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "TEMPORAL_EVENT",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "CROSS",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "METRIC_RANKING",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "ACTION_TARGET_CANDIDATE",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      }
+    ]
+  },
+  {
+    "scenario": "warm-cache",
+    "http": 200,
+    "elapsedSeconds": 1.58,
+    "remainingValidityMs": 4350,
+    "requiredCapabilitiesReady": true,
+    "capabilities": [
+      {
+        "capability": "HISTORICAL_TRACE",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "ROAD_ASSOCIATION",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "TEMPORAL_EVENT",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "CROSS",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "METRIC_RANKING",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "ACTION_TARGET_CANDIDATE",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      }
+    ]
+  },
+  {
+    "scenario": "expired-readiness-cache",
+    "http": 200,
+    "elapsedSeconds": 20.951,
+    "remainingValidityMs": 4288,
+    "requiredCapabilitiesReady": true,
+    "capabilities": [
+      {
+        "capability": "HISTORICAL_TRACE",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "ROAD_ASSOCIATION",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "TEMPORAL_EVENT",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "CROSS",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "METRIC_RANKING",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      {
+        "capability": "ACTION_TARGET_CANDIDATE",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      }
+    ]
+  }
+]

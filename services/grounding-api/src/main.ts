@@ -3,6 +3,7 @@ import { createGroundingIdentity } from "@wsgs/delegated-identity";
 import { createProductionBackendFromEnvironment } from "./production.js";
 import { parseContractNegotiationConfig } from "./contract-negotiation.js";
 import { createGroundingApi } from "./server.js";
+import { apiOptionsFromEnvironment } from "./environment.js";
 import type { ApiAuthConfig } from "./types.js";
 
 const schemaDirectory = new URL("../../../contracts/wsgs-v0.1/contracts/", import.meta.url);
@@ -72,7 +73,7 @@ const app = await createGroundingApi({
     process.env["WSGS_WORLD_ANALYSIS_CONSUMER_PRINCIPALS_JSON"]
   ),
   schemas: loadFrozenSchemas(),
-  logger: true
+  ...apiOptionsFromEnvironment()
 });
 
 let closing = false;

@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import type {
+  ModelObserver,
+  ModelDiagnostic,
   ModelOutputMode,
   ModelReceipt,
   SemanticModelAdapterConfig,
@@ -24,7 +26,11 @@ Keep entity-name mentions separate from Chinese spatial/query suffixes: words su
 "哪里", and "有哪些" belong to expressions or the question, never to the entity surfaceText.
 Mentions are named entities only; never emit punctuation, question/spatial words, units, or generic
 result classes as mentions. Use WORLD_OBJECT for named vehicles/devices and LAYER_FEATURE for named
-roads/areas. "X 在哪里" means one CURRENT_STATE relation whose subject is X. "X 附近" means one NEAR
+roads/areas. Explicit operational task labels such as "任务 task-42", "任务ID：task-42",
+"任务编号：task-42", and "任务引用 wrf_0123456789abcdef0123456789abcdef" indicate OPERATIONAL_TASK.
+For these labels the mention surfaceText is only the identifier, excluding the label and whitespace.
+Two identifiers remain separate candidate mentions; never assert their identity or manufacture a ReferenceKey.
+"X 在哪里" means one CURRENT_STATE relation whose subject is X. "X 附近" means one NEAR
 expression whose only argument is X. "X 内" means one WITHIN expression whose only argument is X.
 Copy an explicit distance to distanceM, converting 1 公里 to 1000. Every expression argument and
 relation subject/object must name an emitted mention; do not invent identifiers.
@@ -420,7 +426,7 @@ export class OpenAICompatibleSemanticModel {
     this.#sleep = config.sleep ?? defaultSleep;
   }
 
-  async parse(input: SemanticModelInput, signal?: AbortSignal): Promise<SemanticModelResult> {
+  async parse(input: SemanticModelInput, signal?: AbortSignal, observe?: ModelObserver): Promise<SemanticModelResult> {
     if (!input.sourceText || input.sourceText.length > 32_768) throw new SemanticModelError("INVALID_SOURCE_TEXT", false);
     const started = this.#now();
     const controller = new AbortController();
@@ -436,6 +442,19 @@ export class OpenAICompatibleSemanticModel {
     let lastOutput = "";
     let requestId = "";
     let lastCode = "MODEL_UNAVAILABLE";
+    const emit = (event: ModelDiagnostic) => { try { observe?.(event); } catch { /* Observability must not affect parsing. */ } };
+    let finished = false;
+    const finish = (status: "SUCCEEDED" | "FAILED", code?: string) => {
+      const receipt = this.#receipt(status, modelHash, promptHash, schemaHash, inputHash, lastOutput, requestId, attempts, started, code);
+      if (!finished) { finished = true; emit({ event: "MODEL_FINISHED", elapsedMs: receipt.elapsedMs, receipt }); }
+      return receipt;
+    };
+    const onAbort = () => {
+      clearTimeout(timeout);
+      finish("FAILED", controller.signal.reason instanceof SemanticModelError
+        ? controller.signal.reason.code : "MODEL_DEADLINE_EXCEEDED");
+    };
+    controller.signal.addEventListener("abort", onAbort, { once: true });
     try {
       for (let attempt = 0; attempt <= this.#maxRetries; attempt += 1) {
         attempts = attempt + 1;
@@ -446,6 +465,11 @@ export class OpenAICompatibleSemanticModel {
           ? makeOpenAIStrictTransportSchema(this.#schema)
           : this.#schema;
         const body = makeBody(this.#mode, this.#model, transportSchema, input, repair);
+        const attemptStarted = this.#now();
+        const attemptEvent = (event: ModelDiagnostic["event"], code?: string) => emit({ event,
+          elapsedMs: Math.max(0, this.#now() - started), attempt: attempts,
+          attemptElapsedMs: Math.max(0, this.#now() - attemptStarted), ...(code ? { code } : {}) });
+        attemptEvent("MODEL_ATTEMPT_STARTED");
         let response: Response;
         try {
           const base = this.#baseUrl.href.endsWith("/") ? this.#baseUrl : new URL(`${this.#baseUrl.href}/`);
@@ -463,14 +487,19 @@ export class OpenAICompatibleSemanticModel {
         } catch {
           if (controller.signal.aborted) throw new SemanticModelError("MODEL_DEADLINE_EXCEEDED", true);
           lastCode = "MODEL_TRANSPORT_ERROR";
+          attemptEvent("MODEL_ATTEMPT_FAILED", lastCode);
           if (attempt >= this.#maxRetries) throw new SemanticModelError(lastCode, true);
           await this.#backoff(attempt, controller.signal);
           continue;
         }
         requestId = response.headers.get("x-request-id") ?? response.headers.get("request-id") ?? "";
+        emit({ event: "MODEL_HEADERS", elapsedMs: Math.max(0, this.#now() - started), attempt: attempts,
+          attemptElapsedMs: Math.max(0, this.#now() - attemptStarted), httpStatus: response.status,
+          ...(requestId ? { requestIdHash: sha256(requestId) } : {}) });
         if (!response.ok) {
           await response.body?.cancel();
           lastCode = `MODEL_HTTP_${response.status}`;
+          attemptEvent("MODEL_ATTEMPT_FAILED", lastCode);
           if (!retryableStatuses.has(response.status) || attempt >= this.#maxRetries) {
             throw new SemanticModelError(lastCode, retryableStatuses.has(response.status));
           }
@@ -478,6 +507,7 @@ export class OpenAICompatibleSemanticModel {
           continue;
         }
         const rawEnvelope = await readBoundedText(response, this.#maxResponseBytes);
+        attemptEvent("MODEL_BODY_COMPLETE");
         try {
           const parsed: unknown = JSON.parse(rawEnvelope);
           if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("not object");
@@ -487,6 +517,7 @@ export class OpenAICompatibleSemanticModel {
         } catch (error) {
           if (error instanceof SemanticModelError && error.code === "MODEL_REFUSAL") throw error;
           lastCode = "INVALID_MODEL_ENVELOPE";
+          attemptEvent("MODEL_ATTEMPT_FAILED", lastCode);
           if (attempt >= this.#maxRetries) throw new SemanticModelError(lastCode, false);
           await this.#backoff(attempt, controller.signal);
           continue;
@@ -496,6 +527,7 @@ export class OpenAICompatibleSemanticModel {
           candidate = JSON.parse(lastOutput);
         } catch {
           lastCode = "INVALID_MODEL_JSON";
+          attemptEvent("MODEL_ATTEMPT_FAILED", lastCode);
           if (attempt >= this.#maxRetries) throw new SemanticModelError(lastCode, false);
           await this.#backoff(attempt, controller.signal);
           continue;
@@ -505,6 +537,7 @@ export class OpenAICompatibleSemanticModel {
         )));
         if (!this.#validate(candidate)) {
           lastCode = "INVALID_MODEL_SCHEMA";
+          attemptEvent("MODEL_ATTEMPT_FAILED", lastCode);
           if (attempt >= this.#maxRetries) throw new SemanticModelError(lastCode, false);
           await this.#backoff(attempt, controller.signal);
           continue;
@@ -512,6 +545,7 @@ export class OpenAICompatibleSemanticModel {
         const alignedCandidate = alignUnambiguousMentionSpans(candidate, input);
         if (!hasValidMentionSpans(alignedCandidate, input)) {
           lastCode = "INVALID_MODEL_SEMANTICS";
+          attemptEvent("MODEL_ATTEMPT_FAILED", lastCode);
           if (attempt >= this.#maxRetries) throw new SemanticModelError(lastCode, false);
           await this.#backoff(attempt, controller.signal);
           continue;
@@ -519,7 +553,7 @@ export class OpenAICompatibleSemanticModel {
         if (controller.signal.aborted) throw new SemanticModelError("MODEL_DEADLINE_EXCEEDED", true);
         return {
           frame: alignedCandidate,
-          receipt: this.#receipt("SUCCEEDED", modelHash, promptHash, schemaHash, inputHash, lastOutput, requestId, attempts, started)
+          receipt: finish("SUCCEEDED")
         };
       }
       throw new SemanticModelError(lastCode, true);
@@ -527,11 +561,10 @@ export class OpenAICompatibleSemanticModel {
       const modelError = error instanceof SemanticModelError
         ? error
         : new SemanticModelError(controller.signal.aborted ? "MODEL_DEADLINE_EXCEEDED" : "MODEL_UNAVAILABLE", true);
-      const receipt = this.#receipt(
-        "FAILED", modelHash, promptHash, schemaHash, inputHash, lastOutput, requestId, attempts, started, modelError.code
-      );
+      const receipt = finish("FAILED", modelError.code);
       throw new SemanticModelError(modelError.code, modelError.retryable, receipt);
     } finally {
+      controller.signal.removeEventListener("abort", onAbort);
       clearTimeout(timeout);
       signal?.removeEventListener("abort", abortFromCaller);
     }

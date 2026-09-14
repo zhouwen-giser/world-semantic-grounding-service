@@ -11,3 +11,6 @@ secrets
 reports
 coverage
 npm-debug.log*
+
+output
+compose.dev.generated.json

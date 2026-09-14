@@ -37,3 +37,17 @@ describe("model budget inside the original task deadline", () => {
     expect(parse).not.toHaveBeenCalled();
   });
 });
+
+it.each(["MODEL_REQUIRED", "MODEL_OPTIONAL"] as const)("retains abort receipt in %s before outer budget wins", async mode => {
+  vi.useFakeTimers(); vi.setSystemTime(1_850);
+  const parser: SemanticModelParser = { parse: async (_input, signal, observe) => {
+    signal?.addEventListener("abort", () => observe?.({ event: "MODEL_FINISHED", elapsedMs: 88_150,
+      receipt: { ...result.receipt, status: "FAILED", elapsedMs: 88_150, failureCode: "MODEL_BUDGET_EXCEEDED" } }));
+    return new Promise(() => undefined);
+  } };
+  const pending = parseWithModelBudget(parser, { sourceText: "STOP" }, mode, new Date(120_000), new AbortController().signal);
+  const expected = mode === "MODEL_REQUIRED"
+    ? expect(pending).rejects.toMatchObject({ code: "MODEL_BUDGET_EXCEEDED", receipt: { status: "FAILED", attempts: 1 } })
+    : expect(pending).resolves.toMatchObject({ status: "UNAVAILABLE", receipt: { status: "FAILED", attempts: 1 } });
+  await vi.advanceTimersByTimeAsync(88_150); await expected;
+});

@@ -2,6 +2,9 @@ x-wsgs-container: &wsgs-container
   image: ${WSGS_RUNTIME_IMAGE:-wsgs:0.2.1}
   build:
     context: .
+  env_file:
+    - path: ${WSGS_ENV_FILE:-.env}
+      required: false
   user: "10001:10001"
   read_only: true
   init: true
@@ -27,9 +30,9 @@ x-wsgs-runtime-environment: &wsgs-runtime-environment
   WSGS_READINESS_DATASET_SCOPES: ${WSGS_READINESS_DATASET_SCOPES:-}
   WSGS_READINESS_PERMISSIONS: ${WSGS_READINESS_PERMISSIONS:-data:read,dataset:read}
   WSGS_MODEL_POLICY: ${WSGS_MODEL_POLICY:-MODEL_REQUIRED}
-  MODEL_BASE_URL: ${MODEL_BASE_URL:?Set MODEL_BASE_URL in .env}
-  MODEL_API_KEY: ${MODEL_API_KEY:?Set MODEL_API_KEY in .env}
-  MODEL_NAME: ${MODEL_NAME:?Set MODEL_NAME in .env}
+  MODEL_BASE_URL: ${MODEL_BASE_URL:-}
+  MODEL_API_KEY: ${MODEL_API_KEY:-}
+  MODEL_NAME: ${MODEL_NAME:-}
   MODEL_OUTPUT_MODE: ${MODEL_OUTPUT_MODE:-CHAT_COMPLETIONS_STRICT}
   MODEL_TIMEOUT_MS: ${MODEL_TIMEOUT_MS:-120000}
   MODEL_MAX_RETRIES: ${MODEL_MAX_RETRIES:-1}
@@ -104,24 +107,25 @@ services:
     <<: *wsgs-container
     environment:
       <<: *wsgs-runtime-environment
-      PORT: "8080"
+      PORT: ${PORT:-8080}
       WSGS_AUTH_MODE: ${WSGS_AUTH_MODE:-JWT_SERVICE}
-      WSGS_JWT_HS256_SECRET: ${WSGS_JWT_HS256_SECRET:?Set WSGS_JWT_HS256_SECRET in .env}
-      WSGS_JWT_ISSUER: ${WSGS_JWT_ISSUER:?Set WSGS_JWT_ISSUER in .env}
+      WSGS_JWT_HS256_SECRET: ${WSGS_JWT_HS256_SECRET:-}
+      WSGS_JWT_ISSUER: ${WSGS_JWT_ISSUER:-}
       WSGS_JWT_AUDIENCE: ${WSGS_JWT_AUDIENCE:-wsgs}
       WSGS_SACS_GEOSPATIAL_CONSUMER_PRINCIPALS_JSON: '${WSGS_SACS_GEOSPATIAL_CONSUMER_PRINCIPALS_JSON:-[]}'
       WSGS_WORLD_ANALYSIS_CONSUMER_PRINCIPALS_JSON: '${WSGS_WORLD_ANALYSIS_CONSUMER_PRINCIPALS_JSON:-[]}'
       WSGS_PRIMARY_DATA_SCOPE: ${WSGS_PRIMARY_DATA_SCOPE:-}
       WSGS_SOURCE_RETENTION_MS: ${WSGS_SOURCE_RETENTION_MS:-3600000}
     secrets:
-      - gowm_delegation_private_key
+      - source: gowm_delegation_private_key
+        target: gowm-delegation-private-key.pem
     volumes:
       - type: bind
         source: ${GOWM_SOUTHBOUND_LOCK_HOST_FILE:-./contracts/upstream/gowm-current/OPERATION_LOCK.json}
         target: /run/wsgs/gowm-southbound-operation-lock.json
         read_only: true
     ports:
-      - "127.0.0.1:${WSGS_API_PORT:-8080}:8080"
+      - "${WSGS_API_BIND_ADDRESS:-127.0.0.1}:${WSGS_API_PORT:-8080}:${PORT:-8080}"
     depends_on:
       wsgs-migrate:
         condition: service_completed_successfully
@@ -136,7 +140,8 @@ services:
       WSGS_SOURCE_CLEANUP_INTERVAL_MS: ${WSGS_SOURCE_CLEANUP_INTERVAL_MS:-60000}
       WSGS_SOURCE_CLEANUP_BATCH_SIZE: ${WSGS_SOURCE_CLEANUP_BATCH_SIZE:-100}
     secrets:
-      - gowm_delegation_private_key
+      - source: gowm_delegation_private_key
+        target: gowm-delegation-private-key.pem
     volumes:
       - type: bind
         source: ${GOWM_SOUTHBOUND_LOCK_HOST_FILE:-./contracts/upstream/gowm-current/OPERATION_LOCK.json}
