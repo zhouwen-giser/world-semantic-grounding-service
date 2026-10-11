@@ -68,4 +68,6 @@ ssh -N -L 18082:127.0.0.1:18082 sz-gowm
 
 `real-wsgs-instance-gate.mjs` 通过真实 HTTP、Worker、模型和 Provider 执行现场用例。合法的 PARTIAL/PROVISIONAL 会如实记录；缺少业务证据或包含 BLOCKING gap 不算通过。现场参考对象需要真实存在且可被现有 Provider 读取。该脚本不建立测试业务数据，不修改上游授权。
 
+脚本默认仅运行 `FUNCTIONAL`，按正向业务断言检查实际 Finding、非空排名及 CROSS 双操作/事件证据。GDPS 默认也要求正向数据；只有显式运行 `GDPS --expect-no-data` 才验证无数据传播，此时 `businessStatus=NOT_PROVEN`。取消用例须显式选择 `CANCEL`；跨范围和坏签名负例还需显式附加 `--auth-negative`，且要求服务运行在 `JWT_SERVICE` 模式。匿名开发访问不运行这些鉴权负例。
+
 `npm run check` 中受环境保护的数据库用例须另外配置 `TEST_DATABASE_URL` 和 `TEST_UPGRADE_DATABASE_URL` 在一次性 PostgreSQL 中执行。不能用跳过状态或历史通过记录代替本次数据库验证。

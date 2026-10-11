@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "wsgs-gdps-current-intake-verification/1.0",
+  "observedAt": "2026-10-11T11:59:52.044393+00:00",
+  "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+  "workingTreeDirty": true,
+  "target": {
+    "release": "GDPS v0.2.1",
+    "providerId": "gdps.geospatial-products",
+    "providerVersion": "0.2.1",
+    "capabilityCount": 30,
+    "productTypeCount": 34,
+    "descriptorProfileCount": 35
+  },
+  "environment": "LOCAL_SOURCE_AND_SCHEMA_ONLY",
+  "positive": {
+    "command": "node validation/scripts/intake-gdps-v021-handoff.mjs --check",
+    "exitCode": 0,
+    "output": "WSGS_GDPS_CONSUMER_LOCK_READY mode=check operations=30 productTypes=34 profiles=35 outputSchemas=30 dependencies=9 closureHash=sha256:077f491462d1908ab7bb23c21fa1b1e6fd683ed92ca7cf8ea407529131501ece",
+    "handoffFiles": {
+      "CHECKSUMS.json": "sha256:1aeb68955da57c0a8ab1367685dee6263978cacaab33d6039c6aaaf33b4b26dc",
+      "GDPS_CAPABILITY_LOCK.json": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
+      "GDPS_CONSUMER_LOCK.json": "sha256:fe7e5b8ec76e7eaac61b0df084e99efa3dff59ddac99fe279922f40abc732740",
+      "GDPS_PRODUCT_DESCRIPTOR_LOCK.json": "sha256:b5695bb3322dcd1a39279cfb02248b22d764199d8e8f506085dbc7970550a191",
+      "GDPS_RECIPE_LOCK.json": "sha256:fde020db21aae9158a420725b322aa0cd1baa8bac83b35ba795eb252502b2994",
+      "GDPS_SAMPLE_DATASET_LOCK.json": "sha256:f9b85a90fbc025658ccf4cd742e54f0d411fe9dec33f31e4cd5a2de34c07f6cf",
+      "GOWM_GATEWAY_BINDING_LOCK.json": "sha256:1f47abdc29e977ee01969e2d0daf2e68891260b8d978bb6148ebe88dd777918f",
+      "WSGS_QUERY_CORPUS.json": "sha256:a0fa13fdee57e2cd7e9f3eb539d1e904a875c4d08d86ea10aae140ee899e5b3a",
+      "WSGS_TEST_BASELINE.json": "sha256:d93813bb3c6878b5d61382c64ba8b36d56111ce1732f86060b8d41a46022736c"
+    },
+    "intake": {
+      "schemaVersion": "wsgs-gdps-handoff-intake/1.0",
+      "sources": {
+        "wsgsSha": "bcad5b05491208f4b549f937cf6e9a62f936d6cb",
+        "gdpsSha": "d9238d19bae98e387d390c936300358a30b024cb",
+        "gowmSha": "c49bf415fdb4cbe19a09f341c34b6dd825e3ca14"
+      },
+      "provider": {
+        "providerId": "gdps.geospatial-products",
+        "providerVersion": "0.2.1",
+        "manifestHash": "sha256:e33fe3e114f74ba285caffdfcfe0cfeca1a7103497d20f834eb0d821fa435a18"
+      },
+      "inventory": {
+        "productTypeCount": 34,
+        "descriptorProfileCount": 35,
+        "capabilityCount": 30
+      },
+      "locks": {
+        "consumerLockHash": "sha256:fe7e5b8ec76e7eaac61b0df084e99efa3dff59ddac99fe279922f40abc732740",
+        "capabilityLockHash": "sha256:d7e15a24bc84723e2ede2a41587d3ab868868ac2e44b7f5d9e39ea3036d1d9f9",
+        "descriptorLockHash": "sha256:5398f91d67fdaafdc0cf552b8613d7ac7229957bb32743fd8bc93d406091d31a",
+        "recipeLockHash": "sha256:807f536ad3493e5823c1c04c15d634d74d3fac8f7c81f0985ae148878d11f92b",
+        "providerRecipeLockHash": "sha256:fde020db21aae9158a420725b322aa0cd1baa8bac83b35ba795eb252502b2994",
+        "runtimeRecipeLockHash": "sha256:807f536ad3493e5823c1c04c15d634d74d3fac8f7c81f0985ae148878d11f92b",
+        "checksumHash": "sha256:1aeb68955da57c0a8ab1367685dee6263978cacaab33d6039c6aaaf33b4b26dc"
+      },
+      "gatewayBinding": {
+        "contractCatalogRevision": "sha256:17629f27dc08d944b81b94437c06c576efaa8c45f3af2cb89da648ac58401a54",
+        "semanticCatalogHash": "sha256:b9416337424191f4b7627e7025444b6103b218404cdd159e06a1acfc3fe36a1f",
+        "bindingRevision": "sha256:89fbbd742663f08fc118e76322a9610015aecbca9fdc73e5bc2be85bafbc1d66"
+      },
+      "status": "PASS"
+    },
+    "assertions": {
+      "W33-008": "PASS",
+      "W33-009": "PASS",
+      "W33-010": "PASS",
+      "W33-012": "PASS",
+      "W33-013": "PASS",
+      "W33-014": "PASS",
+      "W33-015": "PASS",
+      "W33-018": "PASS"
+    }
+  },
+  "negative": {
+    "command": "node validation/scripts/intake-gdps-v021-handoff.mjs --check --handoff <temporary-copy-without-CHECKSUMS.json>",
+    "exitCode": 2,
+    "errorCode": "WSGS_GDPS_V021_HANDOFF_NOT_READY",
+    "missingRequiredFiles": [
+      "CHECKSUMS.json"
+    ],
+    "assertions": {
+      "W33-020": "PASS"
+    }
+  },
+  "businessAcceptance": "NOT_RUN",
+  "runtimeQualification": "NOT_RUN"
+}

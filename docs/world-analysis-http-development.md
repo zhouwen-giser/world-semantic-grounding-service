@@ -46,6 +46,11 @@ required follow-on work. No database URL or deployment credential is used.
 - Compile-only advanced analysis returns the public result at WORLD_QUERY_COMPILE
   without entering GOWM_EXECUTE, including the default-disabled typed gap.
 - Unchanged 1.0 and 1.1 public results through the same production path.
+- Task-only trace, map and ranking requests admit one validated subject product; denied subjects never invoke analysis.
+- Unsupported time windows and compound analysis produce typed gaps without history/analysis calls.
+- Ordinary history runs when advanced history is enabled and global PREVIEW is disabled.
+- Compile-only succeeds with a trusted selected prior foundation and executes no history/analysis operation.
+- Legacy historical follow-ups requery changed phase scope and preserve that scope through later reuse.
 
 The discovery suite adds a second real local HTTP Gateway listener. Northbound
 HS256 service tokens are authenticated by the actual API, and the Gateway

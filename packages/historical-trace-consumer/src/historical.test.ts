@@ -5,6 +5,7 @@ import {
   compareHistoricalFindings,
   executeHistoricalTrace,
   historicalTraceConfigurationFromEnvironment,
+  historicalTraceEnabled,
   normalizeExecutionIntervalResult,
   normalizeHistoricalTrajectoryResult,
   planHistoricalRequirements,
@@ -30,6 +31,27 @@ const snapshot: OperationalTaskSnapshot = {
 };
 
 describe("historical intent projection", () => {
+  it.each(["2026-09-01T08:03:00Z至2026-09-01T08:04:00Z", "昨天上午", "过去十分钟", "8点到9点", "between 08:00 and 09:00"])("rejects unsupported time windows: %s", async window => {
+    const intent = projectHistoricalTraceIntent(`2号车历史轨迹，仅限${window}`, configuration)!;
+    expect(planHistoricalRequirements({ intent, historyEnabled: true })).toMatchObject({ status: "CAPABILITY_GAP", reason: "HISTORICAL_TIME_WINDOW_UNSUPPORTED" });
+    let calls = 0;
+    const executed = await executeHistoricalTrace({ intent, configuration: historicalTraceConfigurationFromEnvironment({ WSGS_HISTORY_TRACE_ENABLED: "YES" }),
+      gateway: { execute: async () => { calls++; throw new Error("unexpected upstream call"); }, executeQuery: async () => { calls++; throw new Error("unexpected query"); } } });
+    expect(executed).toEqual({ status: "CAPABILITY_GAP", reasonCode: "HISTORICAL_TIME_WINDOW_UNSUPPORTED", operations: [] });
+    expect(calls).toBe(0);
+  });
+  it("honors model-supplied temporal constraints and preserves execution-based wording", () => {
+    expect(projectHistoricalTraceIntent("2号车历史轨迹", configuration, [{ from: "2026-09-01T08:03:00Z" }])?.unsupportedReason).toBe("HISTORICAL_TIME_WINDOW_UNSUPPORTED");
+    expect(projectHistoricalTraceIntent("2号车本次任务历史轨迹", configuration, [{ relativeExpression: "本次任务期间" }])?.unsupportedReason).toBeUndefined();
+  });
+  it.each([false, true])("aligns history discovery and planning for history=%s", enabled => {
+    for (const preview of [false, true]) for (const advanced of [false, true]) {
+      const admitted = historicalTraceEnabled(enabled, preview, advanced);
+      expect(admitted).toBe(enabled && (preview || advanced));
+      expect(planHistoricalRequirements({ intent: projectHistoricalTraceIntent("2号车历史轨迹", configuration)!, historyEnabled: admitted }).status)
+        .toBe(admitted ? "PLANNED" : "CAPABILITY_GAP");
+    }
+  });
   it.each([
     ["任务A什么时候开始执行？", "EXECUTION_INTERVAL", "LATEST", "EXECUTION_ENVELOPE"],
     ["任务A暂停过几次？", "EXECUTION_INTERVAL", "LATEST", "EXECUTION_ENVELOPE"],
@@ -241,6 +263,44 @@ describe("historical multi-turn behavior", () => {
       mode: "REQUERY", intent: { phaseScope: "ACTIVE_PHASES_ONLY", taskReferenceKey: task, subjectReferenceKey: vehicle }
     });
     expect(resolveHistoricalFollowup("现在更新了吗？", prior, configuration)).toMatchObject({ mode: "REQUERY", compareWithPrior: true });
+  });
+  it.each(["排除暂停后，这段轨迹完整吗？", "3号车第2次任务这段轨迹完整吗？", "任务B这段轨迹有哪些缺失？", "本次任务这段轨迹完整吗？"])("never reuses a changed or unknown scope: %s", text => {
+    const result = resolveHistoricalFollowup(text, prior, configuration);
+    expect(result.mode).toBe("REQUERY");
+    if (result.mode === "REQUERY" && text.includes("3号车")) {
+      expect(result.intent.subjectReferenceKey).toBeUndefined();
+      expect(result.intent.taskReferenceKey).toBeUndefined();
+      expect(result.intent.executionSelection).toEqual({ kind: "EXECUTION_NO", executionNo: 2 });
+    }
+    if (result.mode === "REQUERY" && text.includes("任务B")) {
+      expect(result.intent.taskReferenceKey).toBeUndefined();
+      expect(result.intent.subjectReferenceKey).toBeUndefined();
+    }
+  });
+  it.each(["3号车排除暂停阶段呢？", "任务B现在更新了吗？"])("retains explicit context in an abbreviated follow-up: %s", text => {
+    const result = resolveHistoricalFollowup(text, prior, configuration);
+    expect(result.mode).toBe("REQUERY");
+    if (result.mode !== "REQUERY") throw new Error("expected requery");
+    expect(result.intent.taskReferenceKey).toBeUndefined();
+    expect(result.intent.subjectReferenceKey).toBeUndefined();
+    if (text.includes("3号车")) expect(result.intent.subjectMention).toBe("3号车");
+    else expect(result.intent.taskMention).toBe("任务B");
+  });
+  it("inherits only omitted scope and retains the original execution selector on reuse", () => {
+    const intent = { ...projectHistoricalTraceIntent("2号车任务A第2次任务历史轨迹", configuration)!, taskReferenceKey: task, subjectReferenceKey: vehicle, phaseScope: "ACTIVE_PHASES_ONLY" as const };
+    const scoped = { ...prior, intent, phaseScope: intent.phaseScope };
+    expect(resolveHistoricalFollowup("这段轨迹完整吗？", scoped, configuration)).toMatchObject({ mode: "REUSE", intent: { phaseScope: "ACTIVE_PHASES_ONLY", executionSelection: { kind: "EXECUTION_NO", executionNo: 2 } } });
+    expect(resolveHistoricalFollowup("2号车任务A第2次任务这段轨迹完整吗？", scoped, configuration).mode).toBe("REUSE");
+    expect(resolveHistoricalFollowup("包含暂停，这段轨迹完整吗？", scoped, configuration)).toMatchObject({ mode: "REQUERY", intent: { phaseScope: "EXECUTION_ENVELOPE" } });
+    expect(resolveHistoricalFollowup("这段轨迹有更新吗，完整吗？", scoped, configuration)).toMatchObject({ mode: "REQUERY", compareWithPrior: true });
+    expect(resolveHistoricalFollowup("这段轨迹完整吗，仅限昨天", scoped, configuration)).toMatchObject({ mode: "REQUERY", intent: { unsupportedReason: "HISTORICAL_TIME_WINDOW_UNSUPPORTED" } });
+  });
+  it("compares explicit source and tracker selection before reusing a trajectory", () => {
+    const intent = projectHistoricalTraceIntent("2号车历史轨迹 sourceKey: radio-a trackerSessionKey: session-1", configuration)!;
+    const scoped = { ...prior, intent };
+    expect(resolveHistoricalFollowup("这段轨迹完整吗？", scoped, configuration)).toMatchObject({ mode: "REUSE", intent: { sourceSelection: intent.sourceSelection } });
+    expect(resolveHistoricalFollowup("这段轨迹完整吗 sourceKey: radio-b trackerSessionKey: session-2", scoped, configuration)).toMatchObject({ mode: "REQUERY", intent: { sourceSelection: { mode: "EXPLICIT_SOURCE", sourceKey: "radio-b", trackerSessionKey: "session-2" } } });
+    expect(resolveHistoricalFollowup("这段轨迹完整吗，换一个数据源", scoped, configuration)).toMatchObject({ mode: "REQUERY", intent: { unsupportedReason: "HISTORICAL_SOURCE_SELECTION_UNSUPPORTED" } });
   });
 
   it("requeries an expired provisional reference", () => {

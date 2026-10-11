@@ -24,6 +24,7 @@ export type HistoricalSourceSelection =
 
 export interface HistoricalTraceIntent {
   queryKind: HistoricalQueryKind;
+  unsupportedReason?: "HISTORICAL_TIME_WINDOW_UNSUPPORTED" | "HISTORICAL_SOURCE_SELECTION_UNSUPPORTED";
   subjectMention?: string;
   taskMention?: string;
   subjectReferenceKey?: HistoricalReferenceKey;
@@ -69,7 +70,7 @@ export type HistoricalRequirementType =
 export interface HistoricalRequirementPlan {
   status: "PLANNED" | "PROJECTION_ONLY" | "CAPABILITY_GAP";
   requirements: HistoricalRequirementType[];
-  reason?: HistoricalContextFailure | "MULTI_EXECUTION_TRAJECTORY_NOT_SUPPORTED" | "HISTORY_CAPABILITY_DISABLED";
+  reason?: HistoricalContextFailure | "MULTI_EXECUTION_TRAJECTORY_NOT_SUPPORTED" | "HISTORY_CAPABILITY_DISABLED" | HistoricalTraceIntent["unsupportedReason"];
 }
 
 export interface HistoricalTraceConfiguration {
@@ -147,6 +148,7 @@ export interface HistoricalReferenceProjection {
 
 export interface PriorHistoricalResult {
   finding: HistoricalTraceFinding;
+  intent?: HistoricalTraceIntent;
   taskReferenceKey?: HistoricalReferenceKey;
   subjectReferenceKey?: HistoricalReferenceKey;
   phaseScope: HistoricalPhaseScope;
@@ -154,7 +156,7 @@ export interface PriorHistoricalResult {
 }
 
 export type HistoricalFollowupDecision =
-  | { mode: "REUSE"; queryKind: "TRAJECTORY_COMPLETENESS" | "TRAJECTORY_GAPS"; finding: HistoricalTraceFinding }
+  | { mode: "REUSE"; queryKind: "TRAJECTORY_COMPLETENESS" | "TRAJECTORY_GAPS"; intent: HistoricalTraceIntent; finding: HistoricalTraceFinding }
   | { mode: "REQUERY"; intent: HistoricalTraceIntent; compareWithPrior: boolean }
   | { mode: "NOT_HISTORICAL" };
 

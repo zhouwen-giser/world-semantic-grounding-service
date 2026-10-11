@@ -6,6 +6,18 @@ type RecordValue = Record<string, unknown>;
 const referenceFields = ["productId", "productKind", "referenceKey", "referenceType", "displayName", "matchedBy", "matchScore", "stateConfidence", "sourceOperation", "sourceWorldVersion", "validUntil", "revalidationRequired"];
 const evidenceFields = ["evidenceProductId", "productKind", "authority", "sourceOperation", "sourceProvider", "sourceQueryId", "sourceNodeId", "upstreamStatus", "payloadSchemaUri", "payloadSchemaHash", "receiptIds", "evidenceIds", "unknowns", "warnings"];
 
+export function worldAnalysisValidUntil(issuedAt: string, referenceProducts: readonly { validUntil?: string }[], foundation?: ProjectionInput["foundation"]): string {
+  const issued = Date.parse(issuedAt);
+  if (!Number.isFinite(issued)) throw new Error("WORLD_ANALYSIS_VALIDITY_INVALID");
+  let expiry = issued + 60_000;
+  for (const source of [...referenceProducts, ...(foundation ? [foundation.reference] : [])]) {
+    if (source.validUntil === undefined) continue;
+    const limit = Date.parse(source.validUntil);
+    expiry = Math.min(expiry, Number.isFinite(limit) ? limit : issued);
+  }
+  return new Date(expiry).toISOString();
+}
+
 function pick(value: RecordValue, fields: readonly string[]): RecordValue {
   return Object.fromEntries(fields.filter(key => value[key] !== undefined).map(key => [key, value[key]]));
 }
@@ -15,6 +27,7 @@ export function assembleProductionWorldAnalysis(input: {
   base: RecordValue;
   runFingerprint: string;
   validUntil: string;
+  issuedAt?: string;
   maxResultBytes: number;
   contracts?: ProjectionInput["contracts"];
   catalog?: ProjectionInput["catalog"];
@@ -31,9 +44,11 @@ export function assembleProductionWorldAnalysis(input: {
       input.historicalExecution?.status === "CAPABILITY_GAP" ? input.historicalExecution.reasonCode : undefined);
   const references = (input.base["referenceProducts"] as RecordValue[]).map(item => pick(item, referenceFields));
   const foundation = input.foundation ?? input.advanced?.foundation;
+  const issuedAt = input.issuedAt ?? new Date(Date.parse(input.validUntil) - 60_000).toISOString();
+  const validUntil = new Date(Math.min(Date.parse(input.validUntil), Date.parse(worldAnalysisValidUntil(issuedAt, references, foundation)))).toISOString();
   if (foundation) {
     for (const findingKind of ["TASK_EXECUTION_INTERVAL", "HISTORICAL_TRAJECTORY"] as const) {
-      const projected = projectHistoricalReference({ ...foundation.finding, findingKind }, 0, new Date(input.validUntil));
+      const projected = projectHistoricalReference({ ...foundation.finding, findingKind }, 0, new Date(validUntil));
       if (!projected || references.some(product => worldAnalysisCanonicalHash(product["referenceKey"]) === worldAnalysisCanonicalHash(projected.referenceKey))) continue;
       references.push({ productId: `history-reference-${worldAnalysisCanonicalHash(projected.referenceKey).slice(7, 31)}`,
         productKind: "DERIVED_REFERENCE", referenceKey: projected.referenceKey, referenceType: projected.referenceType,
@@ -61,7 +76,7 @@ export function assembleProductionWorldAnalysis(input: {
   } as unknown as GroundingResult12;
   const projection = projectPublicWorldAnalysis({
     context: { groundingId: base.groundingId, referenceProducts: base.referenceProducts, evidenceItems: base.evidenceItems,
-      foundationEvidenceIds: input.foundationEvidenceIds, validUntil: input.validUntil },
+      foundationEvidenceIds: input.foundationEvidenceIds, validUntil },
     ...(input.contracts ? { contracts: input.contracts } : {}),
     ...(input.catalog ? { catalog: input.catalog } : {}),
     ...(input.advanced ? { advanced: input.advanced } : {}),
@@ -78,10 +93,17 @@ export function assembleProductionWorldAnalysis(input: {
     }
     const choiceId = `choice-${worldAnalysisCanonicalHash({ groundingId: base.groundingId, ambiguity: ambiguity.ambiguityId }).slice(7, 39)}`;
     projection.component.choices.push({ choiceId, choiceKind: candidates.every(product => product.referenceKey.kind === "OPERATIONAL_TASK") ? "TASK_SELECTION" : "REFERENCE_SELECTION",
-      promptCode: "REFERENCE_AMBIGUOUS", validUntil: input.validUntil,
+      promptCode: "REFERENCE_AMBIGUOUS", validUntil,
       candidates: candidates.slice(0, 100).map(product => ({ candidateId: `candidate-${worldAnalysisCanonicalHash({ choiceId, productId: product.productId }).slice(7, 39)}`,
         displayName: product.displayName, referenceProductId: product.productId })) });
     projection.status = "AMBIGUOUS";
+  }
+  if (Date.parse(validUntil) <= Date.parse(issuedAt) && projection.component.choices.length > 0) {
+    projection.component.choices = [];
+    projection.component.gaps.push({ gapId: `gap-${worldAnalysisCanonicalHash({ groundingId: base.groundingId, reason: "SOURCE_REFERENCE_EXPIRED" }).slice(7, 39)}`,
+      gapKind: "REFERENCE_MISSING", severity: "BLOCKING", messageCode: "REFERENCE_MISSING", findingIds: [], evidenceIds: [],
+      detail: { reasonCode: "SOURCE_REFERENCE_EXPIRED" } });
+    projection.status = projection.component.findings.length ? "PARTIAL" : "UNRESOLVED";
   }
   projection.component.findingSetHash = worldAnalysisFindingSetHash(projection.component);
   return assemblePublicWorldAnalysisResult(base, projection, { maxResultBytes: input.maxResultBytes });

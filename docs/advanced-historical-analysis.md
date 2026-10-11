@@ -21,9 +21,15 @@ Missing analysis providers are optional for ordinary WSGS readiness. An analysis
 
 Foundation resolution reuses `executeHistoricalTrace`: task discovery/get, execution intervals, historical trajectory. Only one execution is analyzed. LATEST and explicit execution number are supported; ALL is rejected. ACTIVE_PHASES_ONLY goes back through trajectory resolution and never subtracts paused periods locally.
 
+Historical source selection accepts `sourceKey: <key>` with optional `trackerSessionKey: <key>` and sends those constraints through the existing `EXPLICIT_SOURCE` contract. Changing either selector forces historical resolution again. An explicit source request that cannot be represented returns `HISTORICAL_SOURCE_SELECTION_UNSUPPORTED` through `CAPABILITY_UNAVAILABLE`; the service does not substitute another source.
+
+Arbitrary absolute or relative time windows are currently rejected with `HISTORICAL_TIME_WINDOW_UNSUPPORTED`; the service does not silently analyze the whole execution instead. Requests combining different analysis families or event types return `MULTI_ANALYSIS_NOT_SUPPORTED` and must be split into separate requests. Both reasons use the existing public `CAPABILITY_UNAVAILABLE` gap with `detail.reasonCode`.
+
+In 1.2, task-only advanced requests admit the resolved actor through the same task-membership, `reference.get` and `reference.validate` checks as ordinary historical queries. The public subject product uses the validated current version; historical provenance is retained. Rejected subjects stop analysis before a Provider is invoked.
+
 CROSS binds the complete validated T2 result to `/source/mapMatchResult`, not only its ID, hash, or road visits. T3 requests exactly one event type. ENTER/EXIT/DWELL use a uniquely resolved area; PASS_NEAR uses supported target geometry. Geometry comes from `world.get-geometry`, correlated to the trusted reference and validated as EPSG:4326. STOP and CROSS do not query target geometry.
 
-The compiler emits fixed recipes only. Provider input schemas, operation versions, output schemas, semantic profiles, maturity, permission, and snapshot support must match. Execution materializes only those compiler-owned bindings. A compile-only request without resolved historical foundation returns `HISTORICAL_FOUNDATION_REQUIRED` rather than executing hidden reads to manufacture a plan.
+The compiler emits fixed recipes only. Provider input schemas, operation versions, output schemas, semantic profiles, maturity, permission, and snapshot support must match. Execution materializes only those compiler-owned bindings. A compile-only request with a valid, matching server-owned historical foundation produces and persists the actual plan without executing history or analysis operations. Target-dependent events additionally require an already resolved trusted target. Missing or expired foundations return `HISTORICAL_TRAJECTORY_REFERENCE_MISSING`; missing targets return `TARGET_CONTEXT_REQUIRED`.
 
 ## XODR and Collected Data
 
@@ -60,6 +66,8 @@ Historical action candidates always carry `currentValidationRequired=true`, `rou
 Prior advanced evidence is loaded from server-owned persisted result bytes under the same actor/data scope. Result hash, selected product IDs, foundation hash, reference correlation, TTL, finalization and historical scope are checked. Client-provided safe payloads are not trusted. Truncated foundations cannot be reused.
 
 Rank-N can select a retained candidate locally; a missing rank triggers another bounded query. Event LAST is reused only from an untruncated complete event list with a complete suffix and matching event/target. Changing metric can reuse a valid trajectory; changing phase/execution/subject or an expired reference requires historical resolution again. Update checks refresh and compare trajectory version/finalization and analysis inputs/results without a strict-replay claim.
+
+New public Findings and Choices receive at most 60 seconds from result assembly, bounded by the original source/reference expiry. Processing time no longer consumes that 60-second maximum. Reusing prior evidence never extends its original lease; expired sources produce a gap instead of a usable Choice. Stored GET and idempotent replay return unchanged bytes and do not renew validity.
 
 ## Budgets
 

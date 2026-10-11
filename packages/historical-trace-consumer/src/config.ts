@@ -2,6 +2,10 @@ import type { HistoricalReferenceKey, HistoricalTraceConfiguration } from "./typ
 
 type Environment = Readonly<Record<string, string | undefined>>;
 
+export function historicalTraceEnabled(historyEnabled: boolean, allowPreview: boolean, advancedEnabled: boolean): boolean {
+  return historyEnabled && (allowPreview || advancedEnabled);
+}
+
 function integer(environment: Environment, name: string, fallback: number, minimum: number, maximum: number): number {
   const raw = environment[name]?.trim();
   if (!raw) return fallback;

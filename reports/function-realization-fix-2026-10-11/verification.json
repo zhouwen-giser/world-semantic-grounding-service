@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "wsgs-functional-minimal-repair-verification/1.0",
+  "observedAt": "2026-10-11T12:24:24.706980+00:00",
+  "baselineSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+  "branch": "codex/wsgs-v0.2.4-stable-world-analysis-service",
+  "workingTreeDirty": true,
+  "verificationClass": "LOCAL_IMPLEMENTATION_AND_CONTROLLED_HTTP",
+  "issues": [
+    {
+      "id": "F01",
+      "status": "MINIMAL_FIX_VERIFIED",
+      "behavior": "Scope-aware reuse and abbreviated follow-up context"
+    },
+    {
+      "id": "F02",
+      "status": "MINIMAL_FIX_VERIFIED",
+      "behavior": "Reject unsupported windows explicitly; full window analysis remains unsupported"
+    },
+    {
+      "id": "F03",
+      "status": "MINIMAL_FIX_VERIFIED",
+      "behavior": "Shared strict task-only subject admission before analysis"
+    },
+    {
+      "id": "F04",
+      "status": "MINIMAL_FIX_VERIFIED",
+      "behavior": "Assembly-time maximum TTL bounded by existing source leases; replay never renews"
+    },
+    {
+      "id": "F05",
+      "status": "MINIMAL_FIX_VERIFIED",
+      "behavior": "Reject compound analysis explicitly; multiple-analysis execution remains unsupported"
+    },
+    {
+      "id": "F06",
+      "status": "MINIMAL_FIX_VERIFIED",
+      "behavior": "Shared discovery/planning enablement"
+    },
+    {
+      "id": "F07",
+      "status": "MINIMAL_FIX_VERIFIED",
+      "behavior": "Compile valid trusted foundations without historical/provider execution"
+    }
+  ],
+  "fullCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "testFilesPassed": 88,
+    "testFilesSkipped": 4,
+    "testsPassed": 1157,
+    "testsFailed": 0,
+    "testsSkipped": 49,
+    "environmentOptionsCovered": 128,
+    "log": "check.log",
+    "logSha256": "sha256:78fe07bb95273a47687bfe8213449f3a133ff32d80b57dd54a3bc17921d220ea",
+    "skippedReason": "Isolated TEST_DATABASE_URL and TEST_UPGRADE_DATABASE_URL are not configured",
+    "skippedFiles": [
+      "packages/runtime/src/job-store.integration.test.ts",
+      "packages/runtime/src/migration-002.integration.test.ts",
+      "services/grounding-api/src/production.integration.test.ts",
+      "services/grounding-worker/src/postgres.integration.test.ts"
+    ],
+    "rawLogSha256": "sha256:45387da45fefadc9c16f2c263d9448ca2e08b76c57e991aed130ad192f53fafe",
+    "logNormalization": "Trailing blank lines removed; command output preserved"
+  },
+  "gdpsLedger": {
+    "command": "node validation/scripts/generate-gdps-v021-acceptance-ledger.mjs",
+    "exitCode": 0,
+    "passed": 9,
+    "failed": 0,
+    "notRun": 318,
+    "candidateStatus": "BLOCKED",
+    "runtimeQualification": "NOT_RUN"
+  },
+  "n03FocusedEvidence": {
+    "testsPassed": 120,
+    "testFiles": 4,
+    "realSignedGateway": "NOT_RUN"
+  },
+  "simulation": {
+    "slowProcessingMs": 72000,
+    "method": "Backdate LOAD_CONTEXT.startedAt; preserve actual source lease deadlines"
+  },
+  "boundaries": {
+    "postgresDurability": "NOT_RUN",
+    "newDeploymentPackage": "NOT_RUN",
+    "remoteDeployment": "NOT_RUN",
+    "realSacsGowmBusinessAcceptance": "NOT_RUN",
+    "productionQualified": false,
+    "productionDeferredItems": 14
+  },
+  "fileHashes": {
+    ".env.example": "sha256:3ec0f056cc963eb07fb6e065226bb6b5b3fbb3c3e4ea2e23cd50df9b8e68a28c",
+    "deployment/deploy-dev.py": "sha256:cf1fd5c0180aba4a526c5f67e4570988e74d617b1ed7fcdcc637a8e5a152b818",
+    "docs/advanced-historical-analysis.md": "sha256:b4ef0abec9db2cd4fd7ccd7483d810213d8a2b623e5a4f2d84cd44328c678116",
+    "docs/development-deployment.md": "sha256:3e10383c75541540a2d1ada2fd08645b99d0c6a6ed4b083500882e16c79f57ca",
+    "docs/latest-gowm-instance.md": "sha256:ee51fac4ab306e9e1d3a6d3aaa5abe664e0286af2a42d32f80c61d8bfa10e071",
+    "docs/world-analysis-http-development.md": "sha256:aef744cf96b6c403f3512043fe732b7b0c446f4b9f1acbbeb13af8092dcff972",
+    "packages/historical-trace-consumer/src/advanced-executor.ts": "sha256:0230b19b0b1e8d63edb19cc40716a2afbd1e6125ae30964f20082110c7b82784",
+    "packages/historical-trace-consumer/src/advanced-historical.test.ts": "sha256:0e1dc8fc617f36b7ca2b072b9039f865c121d663c4a294fcf0bbad20e3185ffc",
+    "packages/historical-trace-consumer/src/advanced-intent.ts": "sha256:d44798cba0d0d50e9cd17246d5b4e91ada8df106d461cdea109c4087da3084d9",
+    "packages/historical-trace-consumer/src/config.ts": "sha256:15360c42682829699b2f0e2e9711b9f5ae0e5b683522d73f756f2961ef2367d9",
+    "packages/historical-trace-consumer/src/constraints.ts": "sha256:84bdf09b77a193cdabb9fa9d74dd65f21cd7d25369800341bdf3440a45e6faa8",
+    "packages/historical-trace-consumer/src/executor.ts": "sha256:af1638de93388bdca224fe8f1f03ec1fd697765fd541dcac010f80b5d1c159af",
+    "packages/historical-trace-consumer/src/historical.test.ts": "sha256:6d7c1318a4735db4eb76d473dcb634ac9af6a6503c75a2bdc6f7f2df9d6bca76",
+    "packages/historical-trace-consumer/src/index.ts": "sha256:f910c99a8853b36077fd85f04310b09ae727bac9b96ea3d7080a86fe8fe14139",
+    "packages/historical-trace-consumer/src/intent.ts": "sha256:4f392a4bf2ea158f0ddcc38465845fc3a59336add72f2f48a2603fc26a7c7353",
+    "packages/historical-trace-consumer/src/planner.ts": "sha256:8aa5c3fcc0f99d6d603bfd4ca6207b6e51539813350b6b8bced0ccad35a3f85b",
+    "packages/historical-trace-consumer/src/public-world-analysis.ts": "sha256:ecd06e99ef2e8b58c3537c61011e846012fee13c69ce49f8fa8bd6a58c804a2e",
+    "packages/historical-trace-consumer/src/types.ts": "sha256:c87d68a97a8c27d1fd08aa2c1f3df4aa571ce0431bb2a8e15607ace41849cfc0",
+    "reports/function-realization-fix-2026-10-11/README.md": "sha256:96598891d81a392f73bd3cb8d92835dff8a06327efc1133596ceeef4b0a27e74",
+    "reports/sacs-geospatial-v1/N03-focused-test-execution.json": "sha256:cccb871e74c098ff678f21a6e64a13e3845cb939a4274ffbb3b6f7c3ae0939f4",
+    "reports/sacs-geospatial-v1/N03-gap-normalization.json": "sha256:5f183f34dd012129fa91133c6f70ce686f194248d176e55e616e620fe1868b0a",
+    "reports/sacs-geospatial-v1/N03-phase-report.md": "sha256:eb21ad8dbe8f79a311dda2a2ecb67e098a0a3931c8779be511845a0b140cad6a",
+    "reports/sacs-geospatial-v1/N03-provenance-integrity.json": "sha256:db993d642fff321e9fcc5d00d77d0ec4cb15248306fd5be9b6362ec232343350",
+    "reports/sacs-geospatial-v1/N03-scope-negative-cases.json": "sha256:2ed2f0e79bc1cbed4ce515d84723cad75fcd948e118903efee0b606c789e8ceb",
+    "reports/sacs-geospatial-v1/provenance-report.json": "sha256:7e0f5e89e695c374e09c734b943286d88233ac3c56765385155d40438d1678a1",
+    "reports/wsgs-v0.2-gdps-v0.2.1/acceptance-evidence-map.json": "sha256:5b00c6b36c13cab318be7080995875b5e516da5c3da3b9216348b4877b42854d",
+    "reports/wsgs-v0.2-gdps-v0.2.1/acceptance-ledger.json": "sha256:860efab38e417ef49bd56533d82d450de1c0bbc5dda182318f9e36a25d4b5c0c",
+    "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+    "services/grounding-worker/src/advanced-history-integration.test.ts": "sha256:6e78ae0fb62c45186cd091678d1e2181d0c4dddeec264824d22a06ef6c5059ec",
+    "services/grounding-worker/src/production-module.ts": "sha256:0d5fd30204279500f94cf9dcdb8023b3cdfbec263d01ce2863b09bf650541448",
+    "services/grounding-worker/src/world-analysis-result.test.ts": "sha256:54f5154460580e9428fadf2ae6fb6394a3fa699c0b76d43f9d8f2745141a6ae8",
+    "services/grounding-worker/src/world-analysis-result.ts": "sha256:e62cdc524a3d364a03faadec8abb2a5e4b8978d24d537bf36c178a90701995ce",
+    "tests/development-verification.test.ts": "sha256:2c9c56639c5a2c87af64f92145fac254637742f92e9d9140d510c37a742ccca5",
+    "tests/world-analysis-business-http.test.ts": "sha256:370740a58b04a9298d53b4ec24946f587cfb9739a4b50b934b8a5b9ac5280df6",
+    "tests/world-analysis-http-support.ts": "sha256:d33453133690815e8e1d7d02b2fda6ce7c59ee94be89280f1b2dabe6f93347d1",
+    "validation/scripts/live-business-assertions.mjs": "sha256:dc00f45046d8455b061ccad09271bbbe97f6b34c599cddabf29752464d4ba594",
+    "validation/scripts/real-wsgs-instance-gate.mjs": "sha256:58c01a267e7cbcf6c69a2aa87bac6a73287f5791a53722b23e4d614f14d3afd0",
+    "validation/scripts/verify-development-runtime.mjs": "sha256:0b10a0c5070bfcabcd4c69df531516464540d357b4991de3300ef9bf04e29df9"
+  }
+}

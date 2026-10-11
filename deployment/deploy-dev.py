@@ -99,8 +99,7 @@ def main():
         subprocess.run(command + ['build'], env=environment, check=True)
     subprocess.run(command + ['up', '-d', '--wait', '--wait-timeout', str(wait)], env=environment, check=True)
     # Liveness is insufficient: verify actual dependencies and anonymous capability access inside API container.
-    probe = "for(const p of ['/health/ready','/v1/capabilities']){const r=await fetch('http://127.0.0.1:'+process.env.PORT+p);if(!r.ok)throw Error(p+' HTTP '+r.status)}"
-    subprocess.run(command + ['exec', '-T', 'grounding-api', 'node', '--input-type=module', '-e', probe], env=environment, check=True)
+    subprocess.run(command + ['exec', '-T', 'grounding-api', 'node', 'validation/scripts/verify-development-runtime.mjs'], env=environment, check=True)
     print(f"Development deployment ready: http://<server-ip>:{api.get('WSGS_API_PORT', '8080')}/v1/capabilities (no authentication)")
 
 

@@ -19,6 +19,11 @@ export function parseAdvancedHistoricalIntent(text: string, catalog: MetricSeman
   const active = /排除暂停|只看(?:实际)?运行阶段|只看实际执行/u.test(text);
   let analysis: AdvancedAnalysisIntent | undefined;
   const ranking = /最好|最高|最低|最小|最大|排名|较好/u.test(text) && /位置|哪里|哪些|信号|通信|RSSI|丢包|时延|延迟|震动|定位质量/iu.test(text);
+  const requested = [ranking, /路口/u.test(text), /道路|哪条路|离开路网|离网|驶离.*路网|没有.*小道|路网.*问题/u.test(text),
+    /停车|停下/u.test(text), /停留/u.test(text), /进入/u.test(text), /离开(?!路网)/u.test(text), /靠近|附近/u.test(text)].filter(Boolean).length;
+  if (requested > 1 || /第一|首次|最早/u.test(text) && /最后/u.test(text)) {
+    return { status: "UNRESOLVED", reasonCode: "MULTI_ANALYSIS_NOT_SUPPORTED" };
+  }
   if (ranking) {
     const resolved = catalog.resolve(text);
     if ("reasonCode" in resolved) return { status: "UNRESOLVED", reasonCode: resolved.reasonCode };
@@ -52,9 +57,11 @@ export function parseAdvancedHistoricalIntent(text: string, catalog: MetricSeman
     if (analysis.kind === "TEMPORAL_EVENT" && /最后一个/u.test(text)) analysis.selection = { kind: "LAST" };
   }
   if (!analysis) return { status: "NOT_ADVANCED" };
+  if (projected.unsupportedReason) return { status: "UNRESOLVED", reasonCode: projected.unsupportedReason };
   const historicalScope = { ...(prior?.historicalScope ?? scope),
       ...(scope.subjectMention ? { subjectMention: scope.subjectMention } : {}),
       ...(scope.taskMention ? { taskMention: scope.taskMention } : {}),
+      ...(scope.sourceSelection.mode === "EXPLICIT_SOURCE" ? { sourceSelection: scope.sourceSelection } : {}),
       ...(/第.*次(?:任务|执行)|本次|最近一次/u.test(text) ? { executionSelection: scope.executionSelection } : {}),
       ...(active ? { phaseScope: "ACTIVE_PHASES_ONLY" as const } : {}) };
   if (scope.subjectMention && prior?.historicalScope.subjectMention !== scope.subjectMention) delete historicalScope.subjectReferenceKey;

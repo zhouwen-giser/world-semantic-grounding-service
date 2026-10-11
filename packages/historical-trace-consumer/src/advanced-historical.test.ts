@@ -8,7 +8,7 @@ import { historicalTraceConfigurationFromEnvironment } from "./config.js";
 import { advancedHistoryConfigurationFromEnvironment } from "./advanced-config.js";
 import { parseAdvancedHistoricalIntent } from "./advanced-intent.js";
 import { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
-import { executeAdvancedHistoricalAnalysis, canReuseAdvancedFoundation, type AdvancedExecutionInput } from "./advanced-executor.js";
+import { executeAdvancedHistoricalAnalysis, compileAdvancedHistoricalAnalysis, canReuseAdvancedFoundation, type AdvancedExecutionInput } from "./advanced-executor.js";
 import { boundAdvancedSafePayload, normalizeMetricRanking, normalizeRoadAssociation, normalizeTemporalEvent } from "./advanced-normalizer.js";
 import { decodeStoredAdvancedHistory, resolveAdvancedFollowup } from "./advanced-followup.js";
 import type { AdvancedHistoricalFoundation, AdvancedHistoricalIntent, AdvancedHistoryConfiguration } from "./advanced-types.js";
@@ -51,6 +51,12 @@ function executionInput(text: string, name: string): AdvancedExecutionInput {
 }
 
 describe("advanced deterministic historical intent", () => {
+  it.each(["2号车进入A区、离开A区、停留多久", "2号车经过哪些道路，在哪里停车", "任务期间信号最好的位置和最后经过的路口", "2号车首次和最后进入A区的时间"])("rejects compound analysis without silently dropping clauses: %s", text => {
+    expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqual({ status: "UNRESOLVED", reasonCode: "MULTI_ANALYSIS_NOT_SUPPORTED" });
+  });
+  it.each(["仅限2026-09-01T08:03:00Z至2026-09-01T08:04:00Z", "昨天", "最近10分钟"])("rejects unsupported advanced time windows: %s", window => {
+    expect(parseAdvancedHistoricalIntent(`2号车通信最好的三个位置，${window}`, catalog, config)).toEqual({ status: "UNRESOLVED", reasonCode: "HISTORICAL_TIME_WINDOW_UNSUPPORTED" });
+  });
   it.each([
     ["2号车本次任务经过了哪些道路？", "ROAD_ASSOCIATION"], ["2号车最后确认在哪条道路上？", "ROAD_ASSOCIATION"],
     ["2号车是否驶离已有路网？", "ROAD_ASSOCIATION"], ["哪些轨迹片段无法关联到道路？", "ROAD_ASSOCIATION"],
@@ -69,6 +75,11 @@ describe("advanced deterministic historical intent", () => {
   it("separates event FIRST from execution batch and preserves phase and mentions", () => {
     expect(parse("2号车第一次进入A区是什么时候？")).toMatchObject({ historicalScope: { executionSelection: { kind: "LATEST" }, subjectMention: "2号车" }, analysis: { eventType: "ENTER", selection: { kind: "FIRST" }, targetMention: "A区" } });
     expect(parse("任务T1第十次任务2号车经过哪些道路，排除暂停阶段").historicalScope).toMatchObject({ taskMention: "任务T1", executionSelection: { kind: "EXECUTION_NO", executionNo: 10 }, phaseScope: "ACTIVE_PHASES_ONLY" });
+  });
+  it("preserves an explicitly changed historical source instead of overwriting it from prior scope", () => {
+    const prior = parse("2号车经过哪些道路 sourceKey: radio-a");
+    expect(parse("2号车经过哪些道路 sourceKey: radio-b trackerSessionKey: session-2", prior).historicalScope.sourceSelection)
+      .toEqual({ mode: "EXPLICIT_SOURCE", sourceKey: "radio-b", trackerSessionKey: "session-2" });
   });
   it("bounds top K and resolves Arabic/Chinese ranks", () => {
     expect(parse("通信最好的三个位置在哪里？").analysis).toMatchObject({ topK: 3 });
@@ -178,6 +189,26 @@ describe("real provider fixture envelopes, offline", () => {
   });
 });
 describe("advanced execution through a mock Gateway", () => {
+  it.each([
+    ["2号车经过哪些道路", "map-match", 1], ["2号车最后经过哪个路口", "cross-last", 2],
+    ["2号车任务期间在哪里停车", "stop", 1], ["2号车通信信号最好的位置", "metric-shared-campus", 1]
+  ])("compiles %s without invoking a Gateway", (text, name, nodes) => {
+    const input = executionInput(String(text), String(name));
+    const compiled = compileAdvancedHistoricalAnalysis({ ...input, foundation: input.reusableFoundation! });
+    expect(compiled.status).toBe("COMPILED");
+    if (compiled.status === "COMPILED") expect(compiled.submission.plan.nodes).toHaveLength(Number(nodes));
+    expect(input.foundationGateway.execute).not.toHaveBeenCalled();
+    expect(input.gateway.execute).not.toHaveBeenCalled();
+    expect(input.resolveTarget).not.toHaveBeenCalled();
+  });
+  it("requires a valid foundation and a pre-resolved target for compile-only", () => {
+    const input = executionInput("2号车什么时候进入A区", "enter");
+    expect(compileAdvancedHistoricalAnalysis(input)).toMatchObject({ reasonCode: "HISTORICAL_TRAJECTORY_REFERENCE_MISSING" });
+    const compiledInput = { ...input, foundation: input.reusableFoundation! };
+    expect(compileAdvancedHistoricalAnalysis(compiledInput)).toMatchObject({ reasonCode: "TARGET_CONTEXT_REQUIRED" });
+    expect(compileAdvancedHistoricalAnalysis({ ...compiledInput, target: contracts.validateTarget(fixture("target")) }).status).toBe("COMPILED");
+    expect(compileAdvancedHistoricalAnalysis({ ...compiledInput, foundation: { ...input.reusableFoundation!, reference: { ...input.reusableFoundation!.reference, validUntil: new Date(0).toISOString() } } })).toMatchObject({ reasonCode: "HISTORICAL_TRAJECTORY_REFERENCE_MISSING" });
+  });
   it("keeps an incomplete final road partial", async () => {
     const input = executionInput("2号车最后确认在哪条道路上", "map-match");
     expect(await executeAdvancedHistoricalAnalysis(input)).toMatchObject({ status: "PARTIAL", reasonCode: "ASSOCIATION_SUFFIX_INCOMPLETE" });

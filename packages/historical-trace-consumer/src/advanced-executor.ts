@@ -5,7 +5,7 @@ import {
   type MapMatchProviderResultV01, type SpatialEventTarget
 } from "@wsgs/gowm-contract-intake";
 import { TypedWorldQueryCompiler, type CompileInput, type CompileResult, type WorldQueryNode, type QuerySemanticPattern } from "@wsgs/query-compiler";
-import { executeHistoricalTrace, type HistoricalGatewayOperationExecutor } from "./executor.js";
+import { executeHistoricalTrace, type HistoricalExecutionResult, type HistoricalGatewayOperationExecutor } from "./executor.js";
 import { projectHistoricalReference } from "./normalizer.js";
 import { boundAdvancedSafePayload, normalizeMetricRanking, normalizeRoadAssociation, normalizeTemporalEvent } from "./advanced-normalizer.js";
 import type { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
@@ -24,6 +24,8 @@ export interface AdvancedExecutionInput {
   deadlineAt: Date; now?: () => number;
   taskReferenceKeys?: readonly HistoricalReferenceKey[]; subjectReferenceKeys?: readonly HistoricalReferenceKey[];
   reusableFoundation?: AdvancedHistoricalFoundation;
+  admitFoundationSubject?: (execution: HistoricalExecutionResult) => Promise<
+    { status: "ADMITTED"; subjectReferenceKey: HistoricalReferenceKey } | { status: "REJECTED"; reasonCode: string }>;
   resolveTarget?: (mention: string) => Promise<SpatialEventTarget | { reasonCode: string }>;
   observeAvailability?: (operationIds: readonly string[]) => Promise<AdvancedAvailabilityObservation>;
   onCompiled?: (plan: Extract<CompileResult, { status: "COMPILED" }>) => void;
@@ -85,6 +87,8 @@ export function canReuseAdvancedFoundation(prior: AdvancedHistoricalFoundation, 
   const old = prior.intent;
   const projection = prior.reference;
   return ["COMPLETED", "PARTIAL"].includes(prior.finding.status) && prior.finding.trajectory?.finalization.state !== "CONFLICTED" &&
+    !scope.unsupportedReason && !!prior.finding.trajectory?.trajectoryReferenceKey &&
+    analysisHash(prior.finding.trajectory.trajectoryReferenceKey) === analysisHash(projection.referenceKey) &&
     !!old.taskReferenceKey && !!old.subjectReferenceKey &&
     projection.referenceType === "HISTORICAL_TRAJECTORY" && /^[1-9][0-9]*$/.test(projection.referenceKey.version) &&
     (projection.validUntil === undefined ? !projection.revalidationRequired : Number.isFinite(Date.parse(projection.validUntil)) && Date.parse(projection.validUntil) > now) &&
@@ -95,11 +99,53 @@ export function canReuseAdvancedFoundation(prior: AdvancedHistoricalFoundation, 
     (!scope.subjectMention || scope.subjectMention === old.subjectMention) && (!scope.taskMention || scope.taskMention === old.taskMention);
 }
 
+/** Compiles an already trusted foundation without resolving or executing anything. */
+export function compileAdvancedHistoricalAnalysis(input: Pick<AdvancedExecutionInput,
+  "intent" | "configuration" | "history" | "contracts" | "compileContext" | "deadlineAt" | "now"> & {
+    foundation?: AdvancedHistoricalFoundation; target?: SpatialEventTarget;
+  }): Extract<CompileResult, { status: "COMPILED" }> | { status: "CAPABILITY_GAP"; reasonCode: string } {
+  const gap = (reasonCode: string) => ({ status: "CAPABILITY_GAP" as const, reasonCode });
+  if (!input.configuration.enabled) return gap("ADVANCED_HISTORY_DISABLED");
+  if (!input.history.enabled) return gap("ADVANCED_HISTORY_REQUIRES_HISTORY");
+  if (input.intent.historicalScope.unsupportedReason) return gap(input.intent.historicalScope.unsupportedReason);
+  if (input.intent.historicalScope.executionSelection.kind === "ALL") return gap("MULTI_EXECUTION_ADVANCED_ANALYSIS_NOT_SUPPORTED");
+  const now = (input.now ?? Date.now)();
+  if (now >= input.deadlineAt.getTime()) return gap("ADVANCED_HISTORY_DEADLINE_EXCEEDED");
+  if (!input.foundation || !canReuseAdvancedFoundation(input.foundation, input.intent, now)) return gap("HISTORICAL_TRAJECTORY_REFERENCE_MISSING");
+  const analysis = input.intent.analysis;
+  if (analysis.kind === "TEMPORAL_EVENT" && !["CROSS", "STOP"].includes(analysis.eventType)) {
+    if (!input.target) return gap("TARGET_CONTEXT_REQUIRED");
+    const target = input.contracts.validateTarget(input.target);
+    if (!target.referenceKey || target.crs !== "EPSG:4326" ||
+        (["ENTER", "EXIT", "DWELL"].includes(analysis.eventType) && target.targetType !== "AREA") ||
+        (analysis.targetReferenceKey && analysisHash(analysis.targetReferenceKey) !== analysisHash(target.referenceKey))) return gap("TARGET_GEOMETRY_UNSUPPORTED");
+  }
+  const cross = analysis.kind === "TEMPORAL_EVENT" && analysis.eventType === "CROSS";
+  const nodes = cross ? 2 : 1;
+  const compiled = new TypedWorldQueryCompiler().compile({
+    ...input.compileContext, pattern: advancedAnalysisPattern(input.intent), requiredForProduct: "WORLD_EVIDENCE",
+    operationInput: operationInput(input.intent, input.foundation, input.configuration, input.target),
+    ...(cross ? { parameterValues: { selection: analysis.selection } } : {}),
+    advancedHistoryEnabled: true, analysisProviderAuthorizations: input.contracts.authorizations,
+    maturityPolicy: { allowPreview: false }, degradedPolicy: "REJECT", snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false },
+    observedAt: new Date(now).toISOString(),
+    budgets: { ...input.compileContext.budgets, maximumNodes: Math.min(nodes, input.compileContext.budgets.maximumNodes),
+      maximumDepth: Math.min(nodes, input.compileContext.budgets.maximumDepth),
+      maximumExecutionMs: Math.min(input.compileContext.budgets.maximumExecutionMs, input.deadlineAt.getTime() - now) }
+  });
+  if (compiled.status === "COMPILED") return compiled;
+  const reasons: Record<string, string> = { NOT_REGISTERED: "ANALYSIS_CAPABILITY_NOT_REGISTERED", OPERATION_UNAVAILABLE: "ANALYSIS_CAPABILITY_UNAVAILABLE",
+    OPERATION_DEGRADED: "ANALYSIS_CAPABILITY_DEGRADED", AVAILABILITY_STALE: "ANALYSIS_CAPABILITY_UNAVAILABLE",
+    SCHEMA_MISMATCH: "ANALYSIS_PROVIDER_CONTRACT_DRIFT", SEMANTIC_MISMATCH: "ANALYSIS_SEMANTIC_PROFILE_MISMATCH" };
+  return gap(String(compiled.gap.details["reasonCode"] ?? reasons[compiled.gap.reason] ?? `ANALYSIS_${compiled.gap.reason}`));
+}
+
 export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecutionInput): Promise<AdvancedHistoricalExecutionResult> {
   const result: AdvancedHistoricalExecutionResult = { status: "CAPABILITY_GAP", reasonCode: "HISTORICAL_FOUNDATION_REQUIRED", intent: input.intent, analysisEvidence: [], findings: [], operations: [] };
   const stop = (code: string, status: AdvancedHistoricalExecutionResult["status"] = "CAPABILITY_GAP") => ({ ...result, status, reasonCode: code });
   if (!input.configuration.enabled) return stop("ADVANCED_HISTORY_DISABLED");
   if (!input.history.enabled) return stop("ADVANCED_HISTORY_REQUIRES_HISTORY");
+  if (input.intent.historicalScope.unsupportedReason) return stop(input.intent.historicalScope.unsupportedReason);
   if (input.intent.historicalScope.executionSelection.kind === "ALL") return stop("MULTI_EXECUTION_ADVANCED_ANALYSIS_NOT_SUPPORTED", "UNRESOLVED");
   const now = input.now ?? Date.now;
   const checkDeadline = () => { if (now() >= input.deadlineAt.getTime()) throw new Error("ADVANCED_HISTORY_DEADLINE_EXCEEDED"); };
@@ -130,8 +176,11 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
       if (!executed.context?.taskReferenceKey || !executed.context.subjectReferenceKey) return stop("SUBJECT_CONTEXT_REQUIRED", "UNRESOLVED");
       const projection = projectHistoricalReference(finding, input.history.provisionalReferenceTtlMs, new Date(now()));
       if (!projection || projection.referenceType !== "HISTORICAL_TRAJECTORY") return stop("HISTORICAL_TRAJECTORY_REFERENCE_MISSING");
+      checkDeadline();
+      const admission = await input.admitFoundationSubject?.(executed);
+      if (admission?.status === "REJECTED") return stop(admission.reasonCode, "UNRESOLVED");
       result.foundation = { intent: { ...input.intent.historicalScope, taskReferenceKey: executed.context.taskReferenceKey,
-        subjectReferenceKey: executed.context.subjectReferenceKey }, finding, reference: projection };
+        subjectReferenceKey: admission?.subjectReferenceKey ?? executed.context.subjectReferenceKey }, finding, reference: projection };
     }
     const analysis = input.intent.analysis;
     if (analysis.kind === "TEMPORAL_EVENT" && !["CROSS", "STOP"].includes(analysis.eventType)) {
@@ -143,9 +192,7 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
       result.target = target;
     }
     checkDeadline();
-    const operation = operationInput(input.intent, result.foundation, input.configuration, result.target);
     const cross = analysis.kind === "TEMPORAL_EVENT" && analysis.eventType === "CROSS";
-    const nodes = cross ? 2 : 1;
     const requiredOperations = cross ? ["trajectory.map-match", "temporal-spatial.find-events"]
       : [analysis.kind === "ROAD_ASSOCIATION" ? "trajectory.map-match"
         : analysis.kind === "METRIC_RANKING" ? "spatiotemporal-metric.rank-locations" : "temporal-spatial.find-events"];
@@ -156,22 +203,10 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
       executionAvailability = [...executionAvailability.filter(entry => !ids.includes(entry.operationId)), ...observation.operations];
     };
     if (input.observeAvailability) await observe(requiredOperations);
-    const compiled = new TypedWorldQueryCompiler().compile({
-      ...input.compileContext, pattern: advancedAnalysisPattern(input.intent), requiredForProduct: "WORLD_EVIDENCE", operationInput: operation,
-      ...(cross ? { parameterValues: { selection: analysis.selection } } : {}),
-      advancedHistoryEnabled: true, analysisProviderAuthorizations: input.contracts.authorizations,
-      maturityPolicy: { allowPreview: false }, degradedPolicy: "REJECT", snapshotPolicy: { mode: "LATEST_AT_START", allowDowngrade: false },
-      availability: executionAvailability, observedAt: new Date(now()).toISOString(),
-      budgets: { ...input.compileContext.budgets, maximumNodes: Math.min(nodes, input.compileContext.budgets.maximumNodes),
-        maximumDepth: Math.min(nodes, input.compileContext.budgets.maximumDepth),
-        maximumExecutionMs: Math.min(input.compileContext.budgets.maximumExecutionMs, input.deadlineAt.getTime() - now()) }
-    });
-    if (compiled.status !== "COMPILED") {
-      const reasons: Record<string, string> = { NOT_REGISTERED: "ANALYSIS_CAPABILITY_NOT_REGISTERED", OPERATION_UNAVAILABLE: "ANALYSIS_CAPABILITY_UNAVAILABLE",
-        OPERATION_DEGRADED: "ANALYSIS_CAPABILITY_DEGRADED", AVAILABILITY_STALE: "ANALYSIS_CAPABILITY_UNAVAILABLE",
-        SCHEMA_MISMATCH: "ANALYSIS_PROVIDER_CONTRACT_DRIFT", SEMANTIC_MISMATCH: "ANALYSIS_SEMANTIC_PROFILE_MISMATCH" };
-      return stop(String(compiled.gap.details["reasonCode"] ?? reasons[compiled.gap.reason] ?? `ANALYSIS_${compiled.gap.reason}`));
-    }
+    const compiled = compileAdvancedHistoricalAnalysis({ ...input, foundation: result.foundation,
+      compileContext: { ...input.compileContext, availability: executionAvailability }, now,
+      ...(result.target ? { target: result.target } : {}) });
+    if (compiled.status !== "COMPILED") return stop(compiled.reasonCode);
     input.onCompiled?.(compiled); result.planHash = compiled.planHash;
     let mapResult: MapMatchProviderResultV01 | undefined;
     const outputs = new Map<string, unknown>();

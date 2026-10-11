@@ -2,7 +2,7 @@
   "schemaVersion": "wsgs-gdps-acceptance-evidence-map/2.0",
   "candidate": {
     "repository": "world-semantic-grounding-service",
-    "gitHead": "d45925ae5f8debe57d3cab362e42aba5385af921"
+    "gitHead": "00f66257c601e128d8cc6ab6957183f78139dfbf"
   },
   "target": {
     "release": "GDPS v0.2.1",
@@ -14,12 +14,12 @@
   },
   "overall": {
     "status": "BLOCKED",
-    "reasonCode": "GDPS_V021_HANDOFF_INCOMPLETE",
+    "reasonCode": "GDPS_V021_ACCEPTANCE_INCOMPLETE",
     "blockers": [
       {
-        "code": "GDPS_V021_HANDOFF_INCOMPLETE",
-        "detail": "The GDPS v0.2.1 handoff is missing three required authority files; intake and runtime qualification remain blocked.",
-        "evidenceArtifact": "reports/wsgs-v0.2-gdps-v0.2.1/w33-handoff-negative-gate.json"
+        "code": "CURRENT_RUNTIME_AND_BUSINESS_EVIDENCE_NOT_RUN",
+        "detail": "Nine required handoff files and local intake now pass; the remaining acceptance matrix has no current runtime/business evidence.",
+        "evidenceArtifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json"
       }
     ]
   },
@@ -61,18 +61,120 @@
     },
     {
       "acceptanceId": "W33-008",
-      "status": "NOT_RUN",
-      "evidence": []
+      "status": "PASS",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
+      "evidence": [
+        {
+          "type": "SOURCE",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-008.positive.current-intake"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-008.positive.current-intake"
+        }
+      ]
     },
     {
       "acceptanceId": "W33-009",
-      "status": "NOT_RUN",
-      "evidence": []
+      "status": "PASS",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
+      "evidence": [
+        {
+          "type": "SOURCE",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-009.positive.current-intake"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-009.positive.current-intake"
+        }
+      ]
     },
     {
       "acceptanceId": "W33-010",
-      "status": "NOT_RUN",
-      "evidence": []
+      "status": "PASS",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
+      "evidence": [
+        {
+          "type": "SOURCE",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-010.positive.current-intake"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-010.positive.current-intake"
+        }
+      ]
     },
     {
       "acceptanceId": "W33-011",
@@ -81,23 +183,159 @@
     },
     {
       "acceptanceId": "W33-012",
-      "status": "NOT_RUN",
-      "evidence": []
+      "status": "PASS",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
+      "evidence": [
+        {
+          "type": "SOURCE",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-012.positive.current-intake"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-012.positive.current-intake"
+        }
+      ]
     },
     {
       "acceptanceId": "W33-013",
-      "status": "NOT_RUN",
-      "evidence": []
+      "status": "PASS",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
+      "evidence": [
+        {
+          "type": "SOURCE",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-013.positive.current-intake"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-013.positive.current-intake"
+        }
+      ]
     },
     {
       "acceptanceId": "W33-014",
-      "status": "NOT_RUN",
-      "evidence": []
+      "status": "PASS",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
+      "evidence": [
+        {
+          "type": "SOURCE",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-014.positive.current-intake"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-014.positive.current-intake"
+        }
+      ]
     },
     {
       "acceptanceId": "W33-015",
-      "status": "NOT_RUN",
-      "evidence": []
+      "status": "PASS",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
+      "evidence": [
+        {
+          "type": "SOURCE",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-015.positive.current-intake"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-015.positive.current-intake"
+        }
+      ]
     },
     {
       "acceptanceId": "W33-016",
@@ -111,23 +349,13 @@
     },
     {
       "acceptanceId": "W33-018",
-      "status": "NOT_RUN",
-      "evidence": []
-    },
-    {
-      "acceptanceId": "W33-019",
-      "status": "NOT_RUN",
-      "evidence": []
-    },
-    {
-      "acceptanceId": "W33-020",
       "status": "PASS",
-      "reason": "Expected missing-handoff rejection was observed; the candidate itself remains BLOCKED.",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
       "evidence": [
         {
           "type": "SOURCE",
-          "polarity": "NEGATIVE",
-          "candidateSha": "d45925ae5f8debe57d3cab362e42aba5385af921",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
           "target": {
             "release": "GDPS v0.2.1",
             "providerId": "gdps.geospatial-products",
@@ -137,13 +365,13 @@
             "descriptorProfileCount": 35
           },
           "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
-          "sha256": "sha256:3e5788a71838c246613325187eb5bad3be1f8cd9cd4d0e4c14e88aede3f804e5",
-          "assertionId": "missing-required-handoff-fails-closed"
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-018.positive.current-intake"
         },
         {
           "type": "SCHEMA",
-          "polarity": "NEGATIVE",
-          "candidateSha": "d45925ae5f8debe57d3cab362e42aba5385af921",
+          "polarity": "POSITIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
           "target": {
             "release": "GDPS v0.2.1",
             "providerId": "gdps.geospatial-products",
@@ -152,9 +380,53 @@
             "productTypeCount": 34,
             "descriptorProfileCount": 35
           },
-          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/w33-handoff-negative-gate.json",
-          "sha256": "sha256:f9c4cab51ca6747d7686b2ca46b6fd0081f8f7dff50f5413c07c1ff392512d71",
-          "assertionId": "W33-020.expected-rejection"
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-018.positive.current-intake"
+        }
+      ]
+    },
+    {
+      "acceptanceId": "W33-019",
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "acceptanceId": "W33-020",
+      "status": "PASS",
+      "reason": "Current local source/schema assertion verified; runtime and business qualification remain NOT_RUN.",
+      "evidence": [
+        {
+          "type": "SOURCE",
+          "polarity": "NEGATIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "validation/scripts/intake-gdps-v021-handoff.mjs",
+          "sha256": "sha256:b2d4408f50edbf7b9fda217655a14ecc456078006502ef8d00bc9eb966d4b374",
+          "assertionId": "W33-020.negative.current-intake"
+        },
+        {
+          "type": "SCHEMA",
+          "polarity": "NEGATIVE",
+          "candidateSha": "00f66257c601e128d8cc6ab6957183f78139dfbf",
+          "target": {
+            "release": "GDPS v0.2.1",
+            "providerId": "gdps.geospatial-products",
+            "providerVersion": "0.2.1",
+            "capabilityCount": 30,
+            "productTypeCount": 34,
+            "descriptorProfileCount": 35
+          },
+          "artifact": "reports/wsgs-v0.2-gdps-v0.2.1/current-intake-verification.json",
+          "sha256": "sha256:e4710a4a73f3fba1fc3d1e109e9eb17a0b18f9a23e400e9d306fb8df309b707a",
+          "assertionId": "W33-020.negative.current-intake"
         }
       ]
     },

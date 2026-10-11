@@ -25,6 +25,13 @@ const period = { start: "2026-09-01T00:00:00.000Z", end: "2026-09-01T00:03:05.00
 const identity = createGroundingIdentity({ servicePrincipalId: "business-http-consumer", actorId: "business-http-actor", dataScopes: ["business-http-scope"], datasetScopes: [], permissions: ["grounding.read", "data:read"] });
 const headers = { "content-type": "application/json", "WSGS-Contract-Version": "sacs-wsgs-grounding/1.2", "WSGS-Result-Profile": "wsgs-world-analysis-findings/1.0" };
 
+function requestBody(text: string, knownWorldReferences: any[] = []) {
+  return { schemaVersion: "1.0", requestId: `request-${randomUUID()}`, operation: "EXECUTE_WORLD_QUERY",
+    source: { conversationRef: "business-conversation", messageId: `message-${randomUUID()}`, originalText: text, originalTextSha256: utf8Sha256(text), locale: "zh-CN", createdAt: new Date().toISOString() },
+    requestedProducts: ["WORLD_EVIDENCE"], contextCapsule: { knownWorldReferences, priorGroundings: [], mapSelections: [], externalCorrelationHints: [], externalPredicates: [] },
+    executionPolicy: { readOnly: true, deadlineMs: 15_000, maxQueryOperations: 16, maxCandidatesPerMention: 5, maxResultBytes: 1_048_576, allowApproximation: false } };
+}
+
 describe("nonempty historical production HTTP", () => {
   let api: Awaited<ReturnType<typeof createGroundingApi>>;
   let gateway: ReturnType<typeof Fastify>;
@@ -34,8 +41,8 @@ describe("nonempty historical production HTTP", () => {
   let baseUrl: string;
   const calls: string[] = [];
   const gatewayErrors: string[] = [];
-  async function start(options: { advanced: boolean; failure?: "HASH_DRIFT" | "MAP_UNAVAILABLE"; metric?: boolean; ambiguousSeries?: boolean; completeCross?: boolean }) {
-    const { advanced, failure, metric, ambiguousSeries, completeCross } = options;
+  async function start(options: { advanced: boolean; failure?: "HASH_DRIFT" | "MAP_UNAVAILABLE"; metric?: boolean; ambiguousSeries?: boolean; completeCross?: boolean; rejectSubject?: boolean; recordedElapsedMs?: number }) {
+    const { advanced, failure, metric, ambiguousSeries, completeCross, rejectSubject, recordedElapsedMs } = options;
     calls.length = 0;
     gatewayErrors.length = 0;
     const fixture = analysisAdmissionFixture();
@@ -48,6 +55,7 @@ describe("nonempty historical production HTTP", () => {
     for (const [path, schema] of Object.entries(JSON.parse(schemaBytes.toString("utf8")) as Record<string, any>))
       ajv.addSchema({ ...schema, $id: `https://fixture.invalid/${path}` });
     const outputs: Record<string, any> = {
+      "reference.get": { referenceKey: subject, referenceType: "WORLD_OBJECT", displayName: "2号车", version: { referenceVersion: subject.version }, revalidationRequired: false, provenance: [] },
       "operational-task.get": { schemaVersion: "1.0", referenceKey: task, actorReferenceKeys: [subject], activityState: "ACTIVE", controlState: "RUNNING" },
       "operational-task.get-execution-intervals": { schemaVersion: "1.1", status: "COMPLETED", reasonCode: "EXECUTION_INTERVAL_AVAILABLE", requestedPhaseScope: "ACTIVE_PHASES_ONLY", truncated: false,
         intervals: [{ executionIntervalReferenceKey: interval, executionNo: 1, revisionNo: 1, lifecycleState: "CLOSED", selectedPeriods: [period], activePeriods: [period], pausedPeriods: [], derivationKind: "OBSERVED", stabilityState: "SEALED", reasonCodes: [] }] },
@@ -198,7 +206,14 @@ describe("nonempty historical production HTTP", () => {
       }
       let output = outputs[operationId];
       if (operationId === "operational-task.get-execution-intervals") output = { ...output, requestedPhaseScope: body.input.phaseScope };
-      if (operationId === "reference.validate") output = { schemaVersion: "1.0", results: body.input.references.map(({ referenceKey }: any) => ({ referenceKey, existence: "AVAILABLE", freshness: "CURRENT", usable: "YES", snapshot: "CURRENT", reasons: [] })) };
+      if (operationId === "reference.validate") output = { schemaVersion: "1.0", results: body.input.references.map(({ referenceKey }: any) => ({ referenceKey, existence: rejectSubject && referenceKey.kind === "WORLD_OBJECT" ? "SCOPE_DENIED" : "AVAILABLE", freshness: "CURRENT", usable: rejectSubject && referenceKey.kind === "WORLD_OBJECT" ? "NO" : "YES", snapshot: "CURRENT", reasons: [] })) };
+      if (operationId === "reference.get") {
+        const descriptorSchema = JSON.parse(readFileSync(new URL("../contracts/upstream/gowm-v0.4/reference-descriptor.schema.json", import.meta.url), "utf8"));
+        const common = JSON.parse(readFileSync(new URL("../contracts/upstream/gowm-v0.4/common.schema.json", import.meta.url), "utf8"));
+        const validateDescriptor = new Ajv2020({ strict: true, strictRequired: false, allErrors: true }); addFormats(validateDescriptor);
+        validateDescriptor.addSchema({ ...common, $id: "https://fixture.invalid/common.schema.json" });
+        expect(validateDescriptor.compile({ ...descriptorSchema, $id: "https://fixture.invalid/reference-descriptor.schema.json" })(output)).toBe(true);
+      }
       if (!output) return reply.code(500).send({ error: `UNEXPECTED_OPERATION:${operationId}` });
       const operation = { operationId, operationVersion: descriptor.operationVersion };
       const provider = { providerId: "controlled.history", providerVersion: "1.0", implementationDigest: analysisHash("controlled-history-http") };
@@ -260,7 +275,12 @@ describe("nonempty historical production HTTP", () => {
     for (const name of ["WSGS_GDPS_RECIPE_LOCK_FILE", "WSGS_GDPS_RECIPE_LOCK_SHA256", "WSGS_GDPS_PREVIEW_RECIPE_ALLOWLIST", "WSGS_CROSS_SCOPE_GATEWAY_ROUTING", "WSGS_GDPS_CONSUMER_SNAPSHOT_FILE", "WSGS_GDPS_DESCRIPTOR_REGISTRY_FILE", "MODEL_BASE_URL", "MODEL_API_KEY", "MODEL_NAME", "GOWM_DELEGATION_PRIVATE_KEY_FILE"]) vi.stubEnv(name, "");
     for (const [name, value] of Object.entries({ GOWM_SOUTHBOUND_LOCK_FILE: lockPath, GOWM_SOUTHBOUND_LOCK_SHA256: hashBytes(bytes), WSGS_HISTORY_TRACE_ENABLED: "YES", WSGS_ADVANCED_HISTORY_ENABLED: advanced ? "YES" : "NO", WSGS_ALLOW_PREVIEW_CAPABILITIES: advanced ? "NO" : "YES", WSGS_MODEL_POLICY: "MODEL_OPTIONAL", GOWM_GATEWAY_BASE_URL: gatewayUrl, GOWM_GATEWAY_TOKEN: "controlled-test-only", GOWM_GATEWAY_MAX_RETRIES: "0", GOWM_DELEGATION_ISSUER: "business-issuer", GOWM_DELEGATION_AUDIENCE: "business-audience", GOWM_DELEGATION_SERVICE_PRINCIPAL_ID: identity.servicePrincipalId, GOWM_DELEGATION_PRIVATE_KEY_PKCS8: keys.privateKey.export({ type: "pkcs8", format: "pem" }).toString() })) vi.stubEnv(name, value);
     store = new HttpMemoryStore();
-    const executor = await createPipelineStageExecutor({ pool: store.pool as any, priorAnalysisJournal: store });
+    const realExecutor = await createPipelineStageExecutor({ pool: store.pool as any, priorAnalysisJournal: store });
+    // Simulate previously consumed processing time without waiting or renewing source leases.
+    const executor = recordedElapsedMs ? { execute: async (...args: Parameters<typeof realExecutor.execute>) => {
+      const output = await realExecutor.execute(...args);
+      return args[0] === "LOAD_CONTEXT" ? { ...output as object, startedAt: new Date(Date.now() - recordedElapsedMs).toISOString() } : output;
+    } } : realExecutor;
     worker = new GroundingWorker({ workerId: "business-http-worker", store, pipeline: new GroundingPipeline({ executor, journal: store }), leaseMs: 30_000, heartbeatMs: 100, maxJobAttempts: 1 });
     store.runWorker = () => worker.runOnce();
     const backend = new ProductionGroundingBackend({ store, sealer: store.codec, readiness: async () => ({ ready: true, reasons: [] }), captureAdmissionSnapshot: async () => fixture.admission,
@@ -271,20 +291,81 @@ describe("nonempty historical production HTTP", () => {
     baseUrl = await api.listen({ host: "127.0.0.1", port: 0 });
   }
   afterEach(async () => { await worker?.stop(0); await api?.close(); await gateway?.close(); vi.unstubAllEnvs(); if (directory) rmSync(directory, { recursive: true, force: true }); });
-  it.each(["TRACE", "MAP", "CROSS", "CROSS_COMPLETE", "CROSS_HASH_DRIFT", "CROSS_MAP_UNAVAILABLE", "RANK", "SERIES_RANK_ACTION"])("queries nonempty %s over Gateway HTTP", async scenario => {
-    const advanced = scenario !== "TRACE";
+  it.each([
+    ["2号车历史轨迹，仅限昨天", "HISTORICAL_TIME_WINDOW_UNSUPPORTED"],
+    ["2号车通信信号最好的位置，仅限2026-09-01T08:03:00Z至2026-09-01T08:04:00Z", "HISTORICAL_TIME_WINDOW_UNSUPPORTED"],
+    ["2号车进入A区、离开A区、停留多久", "MULTI_ANALYSIS_NOT_SUPPORTED"]
+  ])("returns a public gap without querying unsupported history: %s", async (text, reasonCode) => {
+    await start({ advanced: true });
+    const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": randomUUID() }, body: JSON.stringify(requestBody(text)) });
+    const result = await response.json();
+    expect(response.status, JSON.stringify({ result, gatewayErrors })).toBe(200);
+    expect(createWorldAnalysisValidator()("result", result)).toEqual({ valid: true, errors: [] });
+    expect(result.worldAnalysisFindings.findings).toEqual([]);
+    expect(result.worldAnalysisFindings.gaps).toContainEqual(expect.objectContaining({ gapKind: "CAPABILITY_UNAVAILABLE", detail: { reasonCode } }));
+    expect(calls.filter(id => /history|operational-task|map-match|find-events|rank-locations/u.test(id))).toEqual([]);
+  });
+  it("rejects a task-only advanced subject denied by reference validation before analysis", async () => {
+    await start({ advanced: true, rejectSubject: true });
+    const body = requestBody(`任务 ${task.id}经过了哪些道路`, [{ referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: task.id, sourceMessageId: "known-task" }]);
+    const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": randomUUID() }, body: JSON.stringify(body) });
+    const result = await response.json();
+    expect(response.status, JSON.stringify({ result, gatewayErrors })).toBe(200);
+    expect(createWorldAnalysisValidator()("result", result)).toEqual({ valid: true, errors: [] });
+    expect(result.worldAnalysisFindings.findings).toEqual([]);
+    expect(result.worldAnalysisFindings.gaps).toContainEqual(expect.objectContaining({ gapKind: "REFERENCE_MISSING" }));
+    expect(calls).toContain("reference.validate");
+    expect(calls).not.toContain("trajectory.map-match");
+    expect(result.referenceProducts.some((product: any) => product.referenceKey.kind === "WORLD_OBJECT")).toBe(false);
+  });
+  it("requeries a legacy historical follow-up when phase changes and preserves scope on later reuse", async () => {
+    await start({ advanced: true });
+    const initial = requestBody("2号车历史轨迹", [
+      { referenceKey: subject, referenceType: "WORLD_OBJECT", alias: "2号车", sourceMessageId: "known-subject" },
+      { referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: "任务", sourceMessageId: "known-task" }
+    ]);
+    async function submit(text: string, prior?: any) {
+      const body: any = { ...initial, requestId: `request-${randomUUID()}`, source: { ...initial.source, originalText: text, originalTextSha256: utf8Sha256(text), messageId: randomUUID() } };
+      if (prior) {
+        const bytes = store.jobs.get(prior.groundingId)!.resultBytes!;
+        body.contextCapsule = { ...initial.contextCapsule, knownWorldReferences: [], priorGroundings: [{ groundingId: prior.groundingId, resultHash: hashBytes(Buffer.from(bytes)), selectedProductIds: [prior.evidenceItems.find((item: any) => item.sourceOperation === "history.get-trajectory").evidenceProductId] }] };
+      }
+      const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { "content-type": "application/json", "idempotency-key": randomUUID() }, body: JSON.stringify(body) });
+      const result = await response.json();
+      expect(response.status, JSON.stringify({ result, gatewayErrors })).toBe(200);
+      return result;
+    }
+    const first = await submit(initial.source.originalText);
+    const beforePhaseChange = calls.length;
+    const active = await submit("排除暂停后，这段轨迹完整吗？", first);
+    expect(calls.slice(beforePhaseChange)).toContain("history.get-trajectory");
+    expect(active.evidenceItems[0].safePayload.queryContext.intent.phaseScope).toBe("ACTIVE_PHASES_ONLY");
+    const beforeReuse = calls.length;
+    const reused = await submit("这段轨迹完整吗？", active);
+    expect(calls.slice(beforeReuse)).toEqual([]);
+    expect(reused.evidenceItems[0].safePayload.queryContext.intent.phaseScope).toBe("ACTIVE_PHASES_ONLY");
+    const beforeUnsupported = calls.length;
+    const unsupported = await submit("这段轨迹完整吗，仅限昨天", reused);
+    expect(calls.slice(beforeUnsupported).filter(id => id.startsWith("history.") || id.startsWith("operational-task."))).toEqual([]);
+    expect(unsupported.evidenceItems).toEqual([]);
+    expect(unsupported.capabilityGaps.some((gap: any) => JSON.stringify(gap).includes("HISTORICAL_TIME_WINDOW_UNSUPPORTED"))).toBe(true);
+  });
+  it.each(["TRACE", "TRACE_WITH_ADVANCED", "TRACE_TASK_ONLY", "MAP", "MAP_TASK_ONLY", "CROSS", "CROSS_COMPLETE", "CROSS_HASH_DRIFT", "CROSS_MAP_UNAVAILABLE", "RANK", "RANK_SLOW", "RANK_TASK_ONLY", "SERIES_RANK_ACTION"])("queries nonempty %s over Gateway HTTP", async scenario => {
+    const taskOnly = scenario.endsWith("TASK_ONLY");
+    const advanced = !scenario.startsWith("TRACE");
     const cross = scenario.startsWith("CROSS");
-    const metric = scenario === "RANK" || scenario === "SERIES_RANK_ACTION";
+    const metric = scenario.startsWith("RANK") || scenario === "SERIES_RANK_ACTION";
     const completeCross = scenario === "CROSS_COMPLETE";
-    await start({ advanced, failure: scenario === "CROSS_HASH_DRIFT" ? "HASH_DRIFT" : scenario === "CROSS_MAP_UNAVAILABLE" ? "MAP_UNAVAILABLE" : undefined,
-      metric, ambiguousSeries: scenario === "SERIES_RANK_ACTION", completeCross });
-    const text = metric ? "2号车本次任务通信信号最好的三个位置在哪里" : cross ? "2号车最后经过哪个路口" : advanced ? "2号车本次任务经过了哪些道路？" : "2号车最近一次任务的历史轨迹";
+    await start({ advanced: advanced || scenario === "TRACE_WITH_ADVANCED", failure: scenario === "CROSS_HASH_DRIFT" ? "HASH_DRIFT" : scenario === "CROSS_MAP_UNAVAILABLE" ? "MAP_UNAVAILABLE" : undefined,
+      metric, ambiguousSeries: scenario === "SERIES_RANK_ACTION", completeCross, recordedElapsedMs: scenario === "RANK_SLOW" ? 72_000 : undefined });
+    const text = taskOnly ? `任务 ${task.id}${metric ? "通信信号最好的三个位置在哪里" : advanced ? "经过了哪些道路？" : "的历史轨迹"}` : metric ? "2号车本次任务通信信号最好的三个位置在哪里" : cross ? "2号车最后经过哪个路口" : advanced ? "2号车本次任务经过了哪些道路？" : "2号车最近一次任务的历史轨迹";
     const body = { schemaVersion: "1.0", requestId: `request-${randomUUID()}`, operation: "EXECUTE_WORLD_QUERY", source: { conversationRef: "business-conversation", messageId: `message-${randomUUID()}`, originalText: text, originalTextSha256: utf8Sha256(text), locale: "zh-CN", createdAt: new Date().toISOString() }, requestedProducts: ["WORLD_EVIDENCE"],
       contextCapsule: { knownWorldReferences: [{ referenceKey: subject, referenceType: "WORLD_OBJECT", alias: "2号车", sourceMessageId: "known-subject-message" }, { referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: "任务", sourceMessageId: "known-task-message" }], priorGroundings: [], mapSelections: [], externalCorrelationHints: [], externalPredicates: [] },
       executionPolicy: { readOnly: true, deadlineMs: 15_000, maxQueryOperations: 16, maxCandidatesPerMention: 5, maxResultBytes: 1_048_576, allowApproximation: false } };
+    if (taskOnly) body.contextCapsule.knownWorldReferences = [{ referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: task.id, sourceMessageId: "known-task-message" }];
     const validate = createWorldAnalysisValidator(); expect(validate("request", body)).toEqual({ valid: true, errors: [] });
-    async function submitSelection(prior: any, choice: any, selected: any, nextText: string) {
-      const next = { ...body, requestId: `request-${randomUUID()}`,
+    async function submitSelection(prior: any, choice: any, selected: any, nextText: string, operation = "EXECUTE_WORLD_QUERY") {
+      const next = { ...body, operation, requestId: `request-${randomUUID()}`,
         source: { ...body.source, messageId: `message-${randomUUID()}`, originalText: nextText, originalTextSha256: utf8Sha256(nextText), createdAt: new Date().toISOString() },
         contextCapsule: { ...body.contextCapsule, knownWorldReferences: [], priorGroundings: [{ groundingId: prior.groundingId, resultHash: prior.resultHash, selectedProductIds: [] }] },
         analysisSelections: [{ priorGroundingId: prior.groundingId, priorResultHash: prior.resultHash, findingSetHash: prior.worldAnalysisFindings.findingSetHash,
@@ -335,7 +416,15 @@ describe("nonempty historical production HTTP", () => {
     expect(finding, JSON.stringify(result)).toBeDefined();
     expect(finding.coverage).toMatchObject(metric ? { temporalCoverageRatio: 0.8333333333, sampleCount: 14 } : completeCross ? { temporalCoverageRatio: 1, sampleCount: 4 } : { temporalCoverageRatio: 0.67, sampleCount: 10 });
     expect(result.referenceProducts.some((product: any) => product.productId === finding.executionIntervalReferenceProductId && product.referenceKey.id === interval.id)).toBe(true);
-    expect(calls).toEqual(["reference.validate", "operational-task.get", "operational-task.get-execution-intervals", "history.get-trajectory", ...(metric ? ["spatiotemporal-metric.rank-locations"] : advanced ? ["trajectory.map-match"] : []), ...(cross && scenario !== "CROSS_MAP_UNAVAILABLE" ? ["temporal-spatial.find-events"] : [])]);
+    expect(calls).toEqual(["reference.validate", "operational-task.get", ...(taskOnly ? ["reference.get"] : []), "operational-task.get-execution-intervals", "history.get-trajectory", ...(taskOnly ? ["reference.get", "reference.validate"] : []), ...(metric ? ["spatiotemporal-metric.rank-locations"] : advanced ? ["trajectory.map-match"] : []), ...(cross && scenario !== "CROSS_MAP_UNAVAILABLE" ? ["temporal-spatial.find-events"] : [])]);
+    if (taskOnly) {
+      const products = result.referenceProducts.filter((product: any) => product.referenceKey.kind === "WORLD_OBJECT");
+      expect(products).toHaveLength(1);
+      expect(products[0]).toMatchObject({ referenceKey: subject, revalidationRequired: false, sourceOperation: "VALIDATE_REFERENCES" });
+      expect(Date.parse(products[0].validUntil)).toBeGreaterThan(Date.now());
+      for (const finding of result.worldAnalysisFindings.findings) expect(finding.subjectReferenceProductIds).toEqual([products[0].productId]);
+      expect(result.worldAnalysisFindings.gaps.some((gap: any) => gap.gapKind === "REFERENCE_MISSING")).toBe(false);
+    }
     if (advanced && !metric && scenario !== "CROSS_MAP_UNAVAILABLE") {
       const roads = result.worldAnalysisFindings.findings.find((entry: any) => entry.findingKind === "ROAD_ASSOCIATION");
       expect(roads, JSON.stringify(result)).toBeDefined();
@@ -408,9 +497,23 @@ describe("nonempty historical production HTTP", () => {
       expect(rankedResult.worldAnalysisFindings.findings.some((entry: any) => entry.findingKind === "ACTION_TARGET_CANDIDATE")).toBe(false);
       const choice = rankedResult.worldAnalysisFindings.choices.find((entry: any) => entry.choiceKind === "RANKED_LOCATION_SELECTION");
       expect(choice).toBeDefined();
+      if (scenario === "RANK_SLOW") {
+        expect(rankedResult.execution.elapsedMs).toBeGreaterThanOrEqual(72_000);
+        expect(Date.parse(choice.validUntil) - Date.now()).toBeGreaterThan(50_000);
+        expect(Date.parse(choice.validUntil) - Date.now()).toBeLessThanOrEqual(60_000);
+        for (const product of rankedResult.referenceProducts) if (product.validUntil) expect(Date.parse(choice.validUntil)).toBeLessThanOrEqual(Date.parse(product.validUntil));
+      }
       const selected = choice.candidates.find((candidate: any) => candidate.rank === 2);
       expect(selected).toBeDefined();
       if (scenario === "RANK") {
+        const beforeCompile = calls.length;
+        const compiled = await submitSelection(rankedResult, choice, selected, "所选位置的通信排名", "COMPILE_WORLD_QUERY");
+        expect(compiled.gowmQueries).toHaveLength(1);
+        expect(compiled.gowmQueries[0].status).toBe("COMPLETED");
+        expect(compiled.worldAnalysisFindings.gaps).toEqual([]);
+        expect(compiled.worldAnalysisFindings.findings).toEqual([]);
+        expect(calls.slice(beforeCompile).filter(id => /history|operational-task|map-match|find-events|rank-locations/u.test(id))).toEqual([]);
+        expect(store.sql.some(sql => sql.includes("INSERT INTO wsgs.world_query"))).toBe(true);
         for (const invalid of ["CANDIDATE", "HASH", "EXPIRED"] as const) {
           const previousCalls = calls.length;
           const submission = store.jobs.get(rankedResult.groundingId)!.submission;

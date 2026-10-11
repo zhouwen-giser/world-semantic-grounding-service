@@ -31,6 +31,7 @@ export interface HistoricalExecutionResult {
   finding?: HistoricalTraceFinding;
   context?: Extract<HistoricalContextResolution, { status: "RESOLVED" }>;
   phaseScope?: HistoricalTraceIntent["phaseScope"];
+  intent?: HistoricalTraceIntent;
   comparison?: HistoricalFindingComparison;
   operations: string[];
 }
@@ -72,6 +73,9 @@ export async function executeHistoricalTrace(input: {
 }): Promise<HistoricalExecutionResult> {
   if (!input.configuration.enabled) {
     return { status: "CAPABILITY_GAP", reasonCode: "HISTORY_CAPABILITY_DISABLED", operations: [] };
+  }
+  if (input.intent.unsupportedReason) {
+    return { status: "CAPABILITY_GAP", reasonCode: input.intent.unsupportedReason, operations: [] };
   }
   if (input.intent.queryKind !== "EXECUTION_INTERVAL" && input.intent.executionSelection.kind === "ALL") {
     return { status: "CAPABILITY_GAP", reasonCode: "MULTI_EXECUTION_TRAJECTORY_NOT_SUPPORTED", operations: [] };

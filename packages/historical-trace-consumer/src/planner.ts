@@ -12,6 +12,7 @@ export function planHistoricalRequirements(input: {
   priorFindingReusable?: boolean;
 }): HistoricalRequirementPlan {
   if (!input.historyEnabled) return { status: "CAPABILITY_GAP", requirements: [], reason: "HISTORY_CAPABILITY_DISABLED" };
+  if (input.intent.unsupportedReason) return { status: "CAPABILITY_GAP", requirements: [], reason: input.intent.unsupportedReason };
   if (input.context?.status === "CONTEXT_GAP") {
     return { status: "CAPABILITY_GAP", requirements: [], reason: input.context.reason };
   }

@@ -1,0 +1,93 @@
+{
+  "scope": "LOCAL_SYNTHETIC_COMPONENT_REPRODUCTION",
+  "observations": {
+    "timeWindow": {
+      "historyIntentUnchanged": true,
+      "advancedIntentUnchanged": true,
+      "actualScope": {
+        "queryKind": "HISTORICAL_TRAJECTORY",
+        "subjectMention": "2号车",
+        "executionSelection": {
+          "kind": "LATEST"
+        },
+        "phaseScope": "EXECUTION_ENVELOPE",
+        "sourceSelection": {
+          "mode": "ONLY_CANDIDATE"
+        },
+        "maximumInlinePoints": 256
+      }
+    },
+    "historicalFollowup": {
+      "changedPhaseMode": "REUSE",
+      "changedSubjectAndExecutionMode": "REUSE",
+      "requestedSubject": "3号车",
+      "requestedExecution": {
+        "kind": "EXECUTION_NO",
+        "executionNo": 2
+      },
+      "priorExecution": 1,
+      "priorPhaseScope": "EXECUTION_ENVELOPE"
+    },
+    "compoundAnalysis": {
+      "status": "PARSED",
+      "intent": {
+        "historicalScope": {
+          "subjectMention": "2号车",
+          "executionSelection": {
+            "kind": "LATEST"
+          },
+          "phaseScope": "EXECUTION_ENVELOPE",
+          "sourceSelection": {
+            "mode": "ONLY_CANDIDATE"
+          }
+        },
+        "analysis": {
+          "kind": "TEMPORAL_EVENT",
+          "eventType": "DWELL",
+          "selection": {
+            "kind": "ALL",
+            "limit": 100
+          },
+          "targetMention": "A区"
+        }
+      }
+    },
+    "advancedTaskOnlyProjection": {
+      "withAdmittedSubjectFindingKinds": [
+        "HISTORICAL_TRACE",
+        "ROAD_ASSOCIATION"
+      ],
+      "withoutSubjectFindingCount": 0,
+      "withoutSubjectGaps": [
+        "REFERENCE_MISSING",
+        "REFERENCE_MISSING"
+      ]
+    },
+    "choiceTtl": {
+      "simulatedProcessingMs": 72000,
+      "actualProjectedChoiceCount": 1,
+      "remainingValidityMsAtResponse": -12000,
+      "basis": "production-module.ts resultDocument uses LOAD_CONTEXT.startedAt + 60000"
+    },
+    "featureGateMismatch": {
+      "configuration": {
+        "history": true,
+        "advanced": true,
+        "preview": false
+      },
+      "discovery": {
+        "capability": "HISTORICAL_TRACE",
+        "supported": true,
+        "available": true,
+        "reasonCodes": [
+          "AVAILABLE"
+        ]
+      },
+      "historyPlan": {
+        "status": "CAPABILITY_GAP",
+        "requirements": [],
+        "reason": "HISTORY_CAPABILITY_DISABLED"
+      }
+    }
+  }
+}

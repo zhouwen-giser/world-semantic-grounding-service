@@ -75,7 +75,8 @@ export function projectPublicWorldAnalysis(input: {
   const foundation = input.foundation ?? input.advanced?.foundation;
   const id = (prefix: string, source: unknown) => stableId(prefix, { groundingId: context.groundingId, source });
   const gap = (gapKind: GapKind, source: unknown, severity: WorldAnalysisGap["severity"] = "BLOCKING") => {
-    gaps.push({ gapId: id("gap", { gapKind, source }), gapKind, severity, messageCode: gapKind, findingIds: [], evidenceIds: [], detail: {} });
+    gaps.push({ gapId: id("gap", { gapKind, source }), gapKind, severity, messageCode: gapKind, findingIds: [], evidenceIds: [],
+      detail: typeof source === "string" && codePattern.test(source) ? { reasonCode: source } : {} });
   };
   function reference(key: HistoricalReferenceKey | undefined, required = false): string | undefined {
     if (!key) { if (required) throw new ProjectionError("REFERENCE_MISSING"); return undefined; }
@@ -261,6 +262,8 @@ export function projectPublicWorldAnalysis(input: {
       TARGET_REFERENCE_UNRESOLVED: "REFERENCE_MISSING", SUBJECT_TASK_MISMATCH: "REFERENCE_MISSING",
       METRIC_CONCEPT_UNSUPPORTED: "METRIC_UNSUPPORTED", METRIC_UNIT_CONFLICT: "METRIC_UNSUPPORTED",
       MULTI_EXECUTION_ADVANCED_ANALYSIS_NOT_SUPPORTED: "MULTI_EXECUTION_UNSUPPORTED",
+      HISTORICAL_TIME_WINDOW_UNSUPPORTED: "CAPABILITY_UNAVAILABLE", MULTI_ANALYSIS_NOT_SUPPORTED: "CAPABILITY_UNAVAILABLE",
+      HISTORICAL_SOURCE_SELECTION_UNSUPPORTED: "CAPABILITY_UNAVAILABLE",
       ADVANCED_HISTORY_DEADLINE_EXCEEDED: "UPSTREAM_TIMEOUT", ADVANCED_HISTORY_RESULT_INVALID: "UPSTREAM_CONTRACT_MISMATCH",
       HISTORICAL_UPSTREAM_CONTRACT_MISMATCH: "UPSTREAM_CONTRACT_MISMATCH",
       HISTORICAL_UPSTREAM_UNAVAILABLE: "UPSTREAM_FAILURE",

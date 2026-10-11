@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createWorldAnalysisValidator, worldAnalysisResultHash, worldAnalysisFindingSetHash } from "@wsgs/contracts";
-import { assembleProductionWorldAnalysis } from "./world-analysis-result.js";
+import { assembleProductionWorldAnalysis, worldAnalysisValidUntil } from "./world-analysis-result.js";
 
 const example = (name: string) => JSON.parse(readFileSync(new URL(`../../../contracts/wsgs-v0.2.4-world-analysis/examples/${name}.json`, import.meta.url), "utf8"));
 const validate = createWorldAnalysisValidator();
@@ -11,6 +11,23 @@ function assemble(base: Record<string, unknown>) {
 }
 
 describe("production world-analysis consumer boundary", () => {
+  it("issues a 60-second choice lease after slow processing, bounded by source leases", () => {
+    const started = Date.parse("2026-10-11T00:00:00.000Z");
+    const issued = new Date(started + 72_000).toISOString();
+    expect(worldAnalysisValidUntil(issued, [])).toBe("2026-10-11T00:02:12.000Z");
+    expect(worldAnalysisValidUntil(issued, [{ validUntil: "2026-10-11T00:01:30.000Z" }])).toBe("2026-10-11T00:01:30.000Z");
+    expect(worldAnalysisValidUntil(issued, [{ validUntil: "invalid" }])).toBe(issued);
+  });
+  it("does not publish an already-expired reference choice", () => {
+    const base = example("empty");
+    base.status = "AMBIGUOUS";
+    base.referenceProducts = base.referenceProducts.slice(0, 2).map((product: Record<string, unknown>, index: number) => ({ ...product, productId: `product-${index}`, validUntil: "2026-09-06T00:00:00Z" }));
+    base.ambiguities = [{ ambiguityId: "ambiguity-1", mentionId: "mention-1", surfaceText: "object", candidateProductIds: ["product-0", "product-1"], reason: "MULTIPLE_EXACT_MATCHES" }];
+    const result = assembleProductionWorldAnalysis({ base, issuedAt: "2026-09-06T00:00:01Z", validUntil: "2026-09-06T00:01:01Z", maxResultBytes: 1048576, runFingerprint: `sha256:${"b".repeat(64)}`, foundationEvidenceIds: [] });
+    expect(result.worldAnalysisFindings.choices).toEqual([]);
+    expect(result.worldAnalysisFindings.gaps).toContainEqual(expect.objectContaining({ gapKind: "REFERENCE_MISSING", detail: { reasonCode: "SOURCE_REFERENCE_EXPIRED" } }));
+    expect(validate("result", result)).toEqual({ valid: true, errors: [] });
+  });
   it.each(["PROJECTION_PENDING", "HISTORICAL_PROJECTION_PENDING"])("exposes %s without a trajectory foundation", reasonCode => {
     const base = example("empty"); base.status = "PARTIAL";
     const input = { base, historicalExecution: { status: "PENDING" as const, reasonCode },
@@ -52,7 +69,8 @@ describe("production world-analysis consumer boundary", () => {
     ["REFERENCE_MISSING", "REFERENCE_MISSING"],
     ["SELECTION_EXPIRED", "SELECTION_EXPIRED"],
     ["SELECTION_INVALID", "SELECTION_INVALID"],
-    ["SELECTION_AMBIGUOUS", "SELECTION_AMBIGUOUS"]
+    ["SELECTION_AMBIGUOUS", "SELECTION_AMBIGUOUS"],
+    ["HISTORICAL_TIME_WINDOW_UNSUPPORTED", "CAPABILITY_UNAVAILABLE"], ["MULTI_ANALYSIS_NOT_SUPPORTED", "CAPABILITY_UNAVAILABLE"]
   ])("preserves pre-execution %s as a typed public gap", (failureReasonCode, gapKind) => {
     const base = example("empty"); base.status = "UNRESOLVED";
     const result = assembleProductionWorldAnalysis({ base, failureReasonCode, runFingerprint: `sha256:${"b".repeat(64)}`,

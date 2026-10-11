@@ -26,6 +26,8 @@ cd wsgs-development
 
 脚本验证配置，生成 `compose.dev.generated.json`，构建镜像，启动 PostgreSQL、迁移、API 和 Worker，等待容器健康，最后检查真实 `/health/ready` 和匿名 `/v1/capabilities`。任一步失败返回非零状态，不会声称部署成功；失败后的容器保留供诊断，数据库卷不删除。
 
+启用 `WSGS_ADVANCED_HISTORY_ENABLED=YES` 时，脚本另外协商 1.2 契约，验证未过期的能力快照，并要求历史轨迹、道路关联、时空事件、CROSS、指标排名和动作候选六项能力均可用。需在 `WSGS_WORLD_ANALYSIS_CONSUMER_PRINCIPALS_JSON` 中包含实际静态服务主体。此检查只证明服务与能力就绪，输出中的 `businessAcceptance=NOT_RUN` 表示尚未执行真实业务验收。
+
 开发配置必须包含 `WSGS_AUTH_MODE=STATIC_TRUSTED` 和 `WSGS_API_BIND_ADDRESS=0.0.0.0`。未配置 `WSGS_STATIC_*` 时，部署脚本使用委托服务主体、readiness actor、数据范围与权限生成固定身份，并增加 `grounding.read`。可在 `.env` 中使用新的复数范围字段覆盖；不要同时设置旧单数别名。这不会绕过 GOWM 的上游数据授权。
 
 访问地址为 `http://服务器IP:8080`（可通过 `WSGS_API_PORT` 修改）；服务器网络需允许该端口。API 没有网页账户界面：

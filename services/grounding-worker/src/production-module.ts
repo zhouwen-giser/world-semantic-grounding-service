@@ -1,5 +1,5 @@
 import { ReadinessCache } from "./readiness-cache.js";
-import { admitHistoricalSubject } from "./historical-subject.js";
+import { admitHistoricalSubject, type HistoricalSubjectAdmission } from "./historical-subject.js";
 import { referenceValidationLease } from "./reference-validation-lease.js";
 import { loadGatewayAvailability } from "./gateway-availability.js";
 import { validateExecutionAvailability, executionAvailabilityObservation } from "./execution-availability.js";
@@ -84,6 +84,7 @@ import {
   compareHistoricalFindings,
   executeHistoricalTrace,
   executeAdvancedHistoricalAnalysis,
+  compileAdvancedHistoricalAnalysis,
   canReuseAdvancedFoundation,
   advancedHistoryConfigurationFromEnvironment,
   parseAdvancedHistoricalIntent,
@@ -101,6 +102,8 @@ import {
   type AdvancedIntentResolution,
   type AdvancedHistoricalIntent,
   historicalTraceConfigurationFromEnvironment,
+  historicalTraceEnabled,
+  hasUnsupportedHistoricalTimeWindow,
   projectHistoricalReference,
   projectHistoricalTraceIntent,
   resolveHistoricalFollowup,
@@ -623,7 +626,7 @@ function runtime(options: ProductionFactoryOptions = {}): Runtime {
   const metadataContracts = analysisContracts ?? (history.enabled && allowPreview
     ? new AnalysisProviderContracts(advancedHistory.contractRoot) : undefined);
   const metricCatalog = MetricSemanticCatalog.load(advancedHistory.metricCatalogPath);
-  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes, history.enabled && (allowPreview || advancedHistory.enabled), analysisContracts?.authorizations);
+  const productionLock = selectProductionSouthboundLock(lock, gdps.recipes, historicalTraceEnabled(history.enabled, allowPreview, advancedHistory.enabled), analysisContracts?.authorizations);
   const segmentedMode = process.env["WSGS_CROSS_SCOPE_GATEWAY_ROUTING"]?.trim();
   if (segmentedMode && segmentedMode !== "GOWM_GDPS_V021") {
     throw new ProductionStageModuleError("INVALID_WSGS_CROSS_SCOPE_GATEWAY_ROUTING");
@@ -749,7 +752,7 @@ async function captureLiveAuthority(value: Runtime, principal: GroundingIdentity
   const productionLock = selectProductionSouthboundLock(
     lock,
     value.gdpsRecipes,
-    value.history.enabled && (value.allowPreview || value.advancedHistory.enabled),
+    historicalTraceEnabled(value.history.enabled, value.allowPreview, value.advancedHistory.enabled),
     value.analysisContracts?.authorizations
   );
   const requestId = `wsgs-readiness-${createHash("sha256").update(JSON.stringify({
@@ -896,9 +899,9 @@ export async function discoverWorldAnalysis(identity: GroundingIdentityV2) {
   const value = readinessRuntime();
   const lock = value.operationalLock.lock;
   const selected = selectProductionSouthboundLock(lock, value.gdpsRecipes,
-    value.history.enabled && (value.allowPreview || value.advancedHistory.enabled), value.analysisContracts?.authorizations);
+    historicalTraceEnabled(value.history.enabled, value.allowPreview, value.advancedHistory.enabled), value.analysisContracts?.authorizations);
   const input = {
-    historyEnabled: value.history.enabled && (value.allowPreview || value.advancedHistory.enabled),
+    historyEnabled: historicalTraceEnabled(value.history.enabled, value.allowPreview, value.advancedHistory.enabled),
     advancedEnabled: value.advancedHistory.enabled,
     locks: allGatewayLocks(selected),
     expectedCatalogRevision: lock.contractCatalogRevision,
@@ -1460,6 +1463,7 @@ async function loadPriorHistoricalResult(
         ...(taskReferenceKey ? { taskReferenceKey } : {}),
         ...(subjectReferenceKey ? { subjectReferenceKey } : {}),
         phaseScope: contextValue["phaseScope"] === "ACTIVE_PHASES_ONLY" ? "ACTIVE_PHASES_ONLY" : "EXECUTION_ENVELOPE",
+        ...(contextValue["intent"] ? { intent: contextValue["intent"] as HistoricalTraceIntent } : {}),
         ...(referenceProduct && expectedReference ? {
           reference: {
             referenceKey: expectedReference,
@@ -1493,9 +1497,29 @@ function advancedSubjectReferences(references: ReferenceGroundingResult, intent:
     (entry.displayName === mention || productIds.has(entry.productId))).map(entry => entry.referenceKey);
 }
 
+export function publicAnalysisSelectionFailure(authorities: readonly PriorAnalysisAuthority[], references: ReferenceGroundingResult,
+  now = Date.now()): "SELECTION_EXPIRED" | "REFERENCE_MISSING" | undefined {
+  for (const authority of authorities) {
+    const choiceExpiry = Date.parse(authority.choice.validUntil);
+    if (!Number.isFinite(choiceExpiry) || choiceExpiry <= now) return "SELECTION_EXPIRED";
+    if (!("referenceProductId" in authority.candidate)) continue;
+    const selectedId = authority.candidate.referenceProductId;
+    const selectedKey = authority.result.referenceProducts.find(product => product.productId === selectedId)?.referenceKey;
+    const validated = references.referenceProducts.find(product => selectedKey && canonicalSha256(product.referenceKey) === canonicalSha256(selectedKey));
+    const referenceExpiry = validated?.validUntil ? Date.parse(validated.validUntil) : Number.NaN;
+    if (!validated || validated.revalidationRequired !== false || !Number.isFinite(referenceExpiry) || referenceExpiry <= now) return "REFERENCE_MISSING";
+  }
+  return undefined;
+}
+
 export function historicalFoundationForAdvanced(prior: PriorHistoricalResult | undefined, intent: AdvancedHistoricalIntent,
   sourceText: string): AdvancedHistoricalFoundation | undefined {
   if (!prior?.finding.trajectory || prior.reference?.referenceType !== "HISTORICAL_TRAJECTORY" || !prior.taskReferenceKey || !prior.subjectReferenceKey) return undefined;
+  if (prior.intent) {
+    const foundation = { intent: { ...prior.intent, taskReferenceKey: prior.taskReferenceKey, subjectReferenceKey: prior.subjectReferenceKey },
+      finding: prior.finding, reference: prior.reference };
+    return !/更新了吗|有更新/u.test(sourceText) && canReuseAdvancedFoundation(foundation, intent, Date.now()) ? foundation : undefined;
+  }
   const scope = intent.historicalScope;
   // Legacy historical evidence did not persist the original execution selector.
   // Never relabel that trajectory as a newly requested execution or source.
@@ -1978,6 +2002,7 @@ function historicalEvidence(
     safePayload: {
       ...finding,
       queryContext: {
+        ...(execution.intent ? { intent: execution.intent } : {}),
         ...(execution.phaseScope ? { phaseScope: execution.phaseScope } : {}),
         ...(execution.context?.taskReferenceKey ? { taskReferenceKey: execution.context.taskReferenceKey } : {}),
         ...(execution.context?.subjectReferenceKey ? { subjectReferenceKey: execution.context.subjectReferenceKey } : {})
@@ -2128,9 +2153,10 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
   if (executed?.advancedExecution) document["evidenceItems"] = (document["evidenceItems"] as GroundingEvidenceItem[])
     .filter(item => !ANALYSIS_OPERATION_IDS.includes(item.sourceOperation as typeof ANALYSIS_OPERATION_IDS[number]));
   const failureReasonCode = executed?.advancedFailure ?? compiled?.advancedFailure ?? executed?.historicalSubjectFailure;
+  const issuedAt = new Date();
   return assembleProductionWorldAnalysis({
     base: document, runFingerprint: context.runFingerprint,
-    validUntil: new Date(Date.parse(String(stageValue<JsonObject>(context, "LOAD_CONTEXT")["startedAt"])) + 60_000).toISOString(),
+    issuedAt: issuedAt.toISOString(), validUntil: new Date(issuedAt.getTime() + 60_000).toISOString(),
     maxResultBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
     ...(runtime.analysisContracts ? { contracts: runtime.analysisContracts } : {}), catalog: runtime.metricCatalog,
     ...(executed?.advancedExecution ? { advanced: executed.advancedExecution } : {}),
@@ -3514,7 +3540,10 @@ export async function createPipelineStageExecutor(
         priorHistorical?: PriorHistoricalResult;
         advancedFollowup?: AdvancedFollowup;
       }>(context, "LOAD_CONTEXT");
-      const advancedResolution = loaded.advancedFollowup?.resolution ?? parseAdvancedHistoricalIntent(text(parts.source["originalText"], "SOURCE_TEXT_MISSING"), value.metricCatalog, value.advancedHistory);
+      let advancedResolution = loaded.advancedFollowup?.resolution ?? parseAdvancedHistoricalIntent(text(parts.source["originalText"], "SOURCE_TEXT_MISSING"), value.metricCatalog, value.advancedHistory);
+      if (advancedResolution.status === "PARSED" && hasUnsupportedHistoricalTimeWindow(String(parts.source["originalText"]), model.frame.temporalConstraints)) {
+        advancedResolution = { status: "UNRESOLVED", reasonCode: "HISTORICAL_TIME_WINDOW_UNSUPPORTED" };
+      }
       if (advancedResolution.status !== "NOT_ADVANCED") {
         if (advancedResolution.status === "PARSED") {
           const bound = bindHistoricalIntent({ ...advancedResolution.intent.historicalScope, queryKind: "HISTORICAL_TRAJECTORY", maximumInlinePoints: 0 }, references);
@@ -3528,10 +3557,10 @@ export async function createPipelineStageExecutor(
       }
       const projectedHistoricalIntent = projectHistoricalTraceIntent(
         text(parts.source["originalText"], "SOURCE_TEXT_MISSING"),
-        value.history
+        value.history, model.frame.temporalConstraints
       );
-      const historicalIntent = loaded.historicalFollowup?.mode === "REQUERY"
-        ? loaded.historicalFollowup.intent
+      const historicalIntent = loaded.historicalFollowup && loaded.historicalFollowup.mode !== "NOT_HISTORICAL"
+        ? { ...loaded.historicalFollowup.intent, ...(projectedHistoricalIntent?.unsupportedReason ? { unsupportedReason: projectedHistoricalIntent.unsupportedReason } : {}) }
         : projectedHistoricalIntent;
       const projected = value.gdpsDescriptor ? projectGeospatialProductIntent({
         frame: model.frame,
@@ -3548,7 +3577,7 @@ export async function createPipelineStageExecutor(
         ...(historicalIntent ? {
           historicalTrace: {
             intent: bindHistoricalIntent(historicalIntent, references),
-            enabled: value.history.enabled && value.allowPreview,
+            enabled: historicalTraceEnabled(value.history.enabled, value.allowPreview, value.advancedHistory.enabled),
             ...(loaded.historicalFollowup?.mode === "REUSE" ? { priorFindingReusable: true } : {})
           }
         } : {}),
@@ -3670,10 +3699,45 @@ export async function createPipelineStageExecutor(
           ...(stageValue<{ advancedFollowup?: AdvancedFollowup }>(context, "LOAD_CONTEXT").advancedFollowup ? { advancedFollowup: stageValue<{ advancedFollowup: AdvancedFollowup }>(context, "LOAD_CONTEXT").advancedFollowup } : {}),
           ...(planning.advancedResolution.status === "PARSED" ? { advancedIntent: planning.advancedResolution.intent } : {}) };
         if (context.operation === "COMPILE_WORLD_QUERY") {
-          output.advancedFailure = planning.advancedResolution.status === "UNRESOLVED" ? planning.advancedResolution.reasonCode :
-            !value.advancedHistory.enabled ? "ADVANCED_HISTORY_DISABLED" : !value.history.enabled ? "ADVANCED_HISTORY_REQUIRES_HISTORY" : "HISTORICAL_TRAJECTORY_REFERENCE_MISSING";
+          const loaded = stageValue<{ priorHistorical?: PriorHistoricalResult; publicAnalysisAuthority?: PriorAnalysisAuthority;
+            publicAnalysisAuthorities?: PriorAnalysisAuthority[] }>(context, "LOAD_CONTEXT");
+          const prior = loaded.publicAnalysisAuthority?.advanced;
+          const foundation = output.advancedFollowup?.reusableFoundation ?? output.advancedFollowup?.publicReuse?.foundation ??
+            (output.advancedIntent ? historicalFoundationForAdvanced(loaded.priorHistorical, output.advancedIntent, String(parts.source["originalText"])) : undefined);
+          const selections = loaded.publicAnalysisAuthorities ?? (loaded.publicAnalysisAuthority ? [loaded.publicAnalysisAuthority] : []);
+          const selectionFailure = publicAnalysisSelectionFailure(selections, references);
+          const target = prior?.target && prior.intent.analysis.kind === "TEMPORAL_EVENT" && output.advancedIntent?.analysis.kind === "TEMPORAL_EVENT" &&
+            prior.intent.analysis.targetMention === output.advancedIntent.analysis.targetMention ? prior.target : undefined;
+          if (selectionFailure) output.advancedFailure = selectionFailure;
+          else if (planning.advancedResolution.status === "UNRESOLVED") output.advancedFailure = planning.advancedResolution.reasonCode;
+          else if (!output.advancedIntent || !value.analysisContracts) output.advancedFailure = "ADVANCED_HISTORY_DISABLED";
+          else {
+            const result = compileAdvancedHistoricalAnalysis({ intent: output.advancedIntent, configuration: value.advancedHistory,
+              history: value.history, contracts: value.analysisContracts, deadlineAt: context.deadlineAt,
+              ...(foundation ? { foundation } : {}), ...(target ? { target } : {}),
+              compileContext: { groundingId: context.groundingId, requestId: gatewayRequestId(String(request(context)["requestId"])), idempotencyKey: idempotencyKey(context),
+                capabilities: authority.capabilityCatalog.capabilities, semanticProfiles: authority.semanticCatalog.profiles,
+                operationLocks: allGatewayLocks(authority.southboundLock), availability: authority.availability.operations,
+                grantedPermissions: identity(context).permissions, parameterSchemaHash: value.parameterSchemaHash,
+                budgets: { maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"), maximumDepth: 2,
+                  maximumRows: 250000, maximumCandidates: 250000, maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
+                  maximumExecutionMs: Math.max(1, context.deadlineAt.getTime() - Date.now()) } } });
+            if (result.status === "CAPABILITY_GAP") output.advancedFailure = result.reasonCode;
+            else {
+              output.compiled.push(result);
+              await withFence(context, value.pool, async client => {
+                const saved = await client.query(`INSERT INTO wsgs.world_query(query_id, grounding_id, data_scope, plan, plan_hash)
+                  VALUES ($1,$2,$3,$4::jsonb,$5)
+                  ON CONFLICT (query_id) DO UPDATE SET plan = EXCLUDED.plan, plan_hash = EXCLUDED.plan_hash
+                  WHERE wsgs.world_query.grounding_id = EXCLUDED.grounding_id AND wsgs.world_query.plan_hash = EXCLUDED.plan_hash`,
+                  [result.submission.plan.queryId, context.groundingId, identity(context).dataScope, JSON.stringify(result.submission), result.planHash]);
+                if (saved.rowCount !== 1) throw new PipelineFenceRejectedError();
+              });
+            }
+          }
           return resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output,
-            EVIDENCE_NORMALIZE: { status: "PARTIAL", evidenceItems: [], capabilityGaps: [], warnings: ["HISTORICAL_FOUNDATION_REQUIRED"] } } }, value);
+            EVIDENCE_NORMALIZE: { status: output.advancedFailure ? "PARTIAL" : "COMPLETED", evidenceItems: [], capabilityGaps: [],
+              warnings: output.advancedFailure ? [output.advancedFailure] : [] } } }, value);
         }
         return output;
       }
@@ -3685,14 +3749,14 @@ export async function createPipelineStageExecutor(
         const material = {
           schemaVersion: "wsgs-historical-query-dag/1.0" as const,
           intent: planning.historicalIntent,
-          operations: planning.historicalPlan?.status === "PROJECTION_ONLY"
+          operations: planning.historicalPlan?.status !== "PLANNED"
             ? []
             : historicalOperationIds(planning.historicalIntent)
         };
         const output: HistoricalCompilation = {
           compiled,
           capabilityGaps: gaps,
-          ...(loaded.historicalFollowup?.mode === "REUSE" && loaded.priorHistorical
+          ...(planning.historicalPlan?.status === "PROJECTION_ONLY" && loaded.historicalFollowup?.mode === "REUSE" && loaded.priorHistorical
             ? { historicalReuse: loaded.priorHistorical }
             : {}),
           ...(loaded.historicalFollowup?.mode === "REQUERY" && loaded.historicalFollowup.compareWithPrior && loaded.priorHistorical
@@ -3800,6 +3864,33 @@ export async function createPipelineStageExecutor(
       const compilation = stageValue<HistoricalCompilation>(context, "WORLD_QUERY_COMPILE");
       const foundationOutcomes: PersistedWorldQueryOutcome[] = [];
       const executeHistoryQuery = (query: HistoricalQueryRequest) => executeHistoricalWorldQuery(value, context, query, foundationOutcomes);
+      const admitSubject = async (execution: HistoricalExecutionResult, references: ReferenceGroundingResult): Promise<HistoricalSubjectAdmission> => {
+        return admitHistoricalSubject({ execution, references,
+          validityTtlMs: environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000),
+          resolve: async (key, attempt) => {
+            const lock = operationLock(persistedAuthority(context, value.gateway), "reference.get");
+            const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", referenceKey: key }, `history-subject-get-${attempt}`);
+            const descriptor = object(envelopeValue(envelope, lock), "HISTORICAL_SUBJECT_DESCRIPTOR_MISSING");
+            const snapshot = object(envelope["dataSnapshot"], "INVALID_DATA_SNAPSHOT");
+            return { referenceKey: referenceKey(descriptor["referenceKey"]), referenceType: text(descriptor["referenceType"], "INVALID_REFERENCE_TYPE"),
+              displayName: text(descriptor["displayName"], "INVALID_REFERENCE_DISPLAY_NAME"),
+              sourceWorldVersion: typeof snapshot["worldVersion"] === "number" ? integer(snapshot["worldVersion"], "INVALID_WORLD_VERSION") : 0,
+              stale: descriptor["stale"] === true || descriptor["revalidationRequired"] === true };
+          },
+          validate: async (key, attempt) => {
+            const lock = operationLock(persistedAuthority(context, value.gateway), "reference.validate");
+            const envelope = await executeOperation(value, context, lock,
+              { schemaVersion: "1.0", references: [{ referenceKey: key, requireCurrentSnapshot: true }] }, `history-subject-validate-${attempt}`);
+            const validations = normalizeValidation(envelopeValue(envelope, lock));
+            if (validations.length !== 1) throw new ProductionStageModuleError("HISTORICAL_SUBJECT_VALIDATION_MISSING");
+            return validations[0]!;
+          }
+        }).catch(error => {
+          if (context.signal.aborted || error instanceof PipelineFenceRejectedError) throw error;
+          return { status: "REJECTED" as const, reasonCode: "REFERENCE_MISSING" as const };
+        });
+      };
+      const publicAnalysis = isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION));
       if (compilation.advancedResolution) {
         if (!compilation.advancedIntent || !value.advancedHistory.enabled || !value.history.enabled || !value.analysisContracts) {
           return { outcomes: [], advancedFailure: compilation.advancedResolution.status === "UNRESOLVED" ? compilation.advancedResolution.reasonCode :
@@ -3810,14 +3901,8 @@ export async function createPipelineStageExecutor(
         const parts = requestParts(context);
         const selectionContext = stageValue<{ publicAnalysisAuthority?: PriorAnalysisAuthority; publicAnalysisAuthorities?: PriorAnalysisAuthority[] }>(context, "LOAD_CONTEXT");
         const selectedAuthorities = selectionContext.publicAnalysisAuthorities ?? (selectionContext.publicAnalysisAuthority ? [selectionContext.publicAnalysisAuthority] : []);
-        for (const selectedAuthority of selectedAuthorities) {
-          if (Date.parse(selectedAuthority.choice.validUntil) <= Date.now()) return { outcomes: [], advancedFailure: "SELECTION_EXPIRED" };
-          if (!("referenceProductId" in selectedAuthority.candidate)) continue;
-          const selectedId = selectedAuthority.candidate.referenceProductId;
-          const selectedKey = selectedAuthority.result.referenceProducts.find(product => product.productId === selectedId)!.referenceKey;
-          const validated = references.referenceProducts.find(product => canonicalSha256(product.referenceKey) === canonicalSha256(selectedKey));
-          if (!validated || validated.revalidationRequired !== false || !validated.validUntil || Date.parse(validated.validUntil) <= Date.now()) return { outcomes: [], advancedFailure: "REFERENCE_MISSING" };
-        }
+        const selectionFailure = publicAnalysisSelectionFailure(selectedAuthorities, references);
+        if (selectionFailure) return { outcomes: [], advancedFailure: selectionFailure };
         if (compilation.advancedFollowup?.publicReuse && canReuseAdvancedFoundation(compilation.advancedFollowup.publicReuse.foundation!, compilation.advancedIntent, Date.now())) {
           const loaded = stageValue<{ publicAnalysisAuthority: PriorAnalysisAuthority }>(context, "LOAD_CONTEXT");
           if (Date.parse(loaded.publicAnalysisAuthority.choice.validUntil) <= Date.now()) return { outcomes: [], advancedFailure: "SELECTION_EXPIRED" };
@@ -3829,7 +3914,14 @@ export async function createPipelineStageExecutor(
         const prior = loaded.priorHistorical;
         const reusableFoundation = compilation.advancedFollowup?.reusableFoundation ??
           historicalFoundationForAdvanced(prior, compilation.advancedIntent, String(parts.source["originalText"]));
+        let subjectAdmission: HistoricalSubjectAdmission | undefined;
         const advancedExecution = await executeAdvancedHistoricalAnalysis({
+          ...(publicAnalysis ? { admitFoundationSubject: async (execution: HistoricalExecutionResult) => {
+            subjectAdmission = await admitSubject(execution, references);
+            return subjectAdmission.status === "ADMITTED"
+              ? { status: "ADMITTED" as const, subjectReferenceKey: subjectAdmission.product.referenceKey }
+              : subjectAdmission;
+          } } : {}),
           intent: compilation.advancedIntent, configuration: value.advancedHistory, history: value.history,
           contracts: value.analysisContracts, catalog: value.metricCatalog, deadlineAt: context.deadlineAt,
           observeAvailability: async operationIds => {
@@ -3857,7 +3949,10 @@ export async function createPipelineStageExecutor(
             return observation;
           },
           onFailure: diagnostic => console.error(JSON.stringify({ level: "error", event: "advanced_execution_failed", groundingId: context.groundingId, ...diagnostic })),
-          ...(reusableFoundation ? { reusableFoundation } : {}),
+          ...(reusableFoundation && (!publicAnalysis || references.referenceProducts.some(product =>
+            canonicalSha256(product.referenceKey) === canonicalSha256(reusableFoundation.intent.subjectReferenceKey) &&
+            !product.revalidationRequired && product.validUntil && Date.parse(product.validUntil) > Date.now()) ||
+            selectionContext.publicAnalysisAuthority) ? { reusableFoundation } : {}),
           taskReferenceKeys: historicalReferences(references, "OPERATIONAL_TASK"), subjectReferenceKeys: advancedSubjectReferences(references, compilation.advancedIntent),
           compileContext: { groundingId: context.groundingId, requestId: gatewayRequestId(String(request(context)["requestId"])), idempotencyKey: idempotencyKey(context),
             capabilities: authority.capabilityCatalog.capabilities, semanticProfiles: authority.semanticCatalog.profiles,
@@ -3893,7 +3988,13 @@ export async function createPipelineStageExecutor(
           advancedExecution.comparison = { changed: changedFields.length > 0, changedFields };
         }
         const publicAuthority = stageValue<{ publicAnalysisAuthority?: PriorAnalysisAuthority }>(context, "LOAD_CONTEXT").publicAnalysisAuthority;
-        return { outcomes: foundationOutcomes, advancedExecution, ...(publicAuthority ? { publicReferenceProducts: publicAuthority.result.referenceProducts } : {}) };
+        return { outcomes: foundationOutcomes, advancedExecution,
+          ...(subjectAdmission ? { historicalSubjectAdmission: subjectAdmission,
+            ...(subjectAdmission.status === "ADMITTED" ? {
+              publicReferenceProducts: [...(publicAuthority?.result.referenceProducts ?? []), subjectAdmission.product],
+              historicalSubjectReferenceKey: subjectAdmission.product.referenceKey
+            } : { historicalSubjectFailure: subjectAdmission.reasonCode })
+            } : publicAuthority ? { publicReferenceProducts: publicAuthority.result.referenceProducts } : {}) };
       }
       if (compilation.historicalPlan) {
         if (compilation.historicalReuse) {
@@ -3904,6 +4005,7 @@ export async function createPipelineStageExecutor(
               : prior.finding.status === "PENDING" ? "PENDING" : "PARTIAL",
             reasonCode: prior.finding.reasonCode,
             finding: structuredClone(prior.finding),
+            intent: compilation.historicalPlan.intent,
             phaseScope: prior.phaseScope,
             ...(prior.taskReferenceKey ? {
               context: {
@@ -3961,37 +4063,15 @@ export async function createPipelineStageExecutor(
         });
         const historicalExecution: HistoricalExecutionResult = {
           ...executed,
+          intent: compilation.historicalPlan.intent,
           phaseScope: compilation.historicalPlan.intent.phaseScope,
           ...(compilation.historicalPriorForComparison?.finding && executed.finding ? {
             comparison: compareHistoricalFindings(compilation.historicalPriorForComparison.finding, executed.finding)
           } : {})
         };
-        if (isWorldAnalysisContract(parseGroundingContractSelection(context.state["contractSelection"] ?? LEGACY_GROUNDING_CONTRACT_SELECTION)) &&
+        if (publicAnalysis &&
             ["COMPLETED", "PARTIAL"].includes(historicalExecution.status) && historicalExecution.finding?.trajectory?.trajectoryReferenceKey) {
-          const admission = await admitHistoricalSubject({ execution: historicalExecution, references,
-            validityTtlMs: environmentInteger("WSGS_REFERENCE_VALIDATION_TTL_MS", 60_000, 1_000, 300_000),
-            resolve: async (key, attempt) => {
-              const lock = operationLock(persistedAuthority(context, value.gateway), "reference.get");
-              const envelope = await executeOperation(value, context, lock, { schemaVersion: "1.0", referenceKey: key }, `history-subject-get-${attempt}`);
-              const descriptor = object(envelopeValue(envelope, lock), "HISTORICAL_SUBJECT_DESCRIPTOR_MISSING");
-              const snapshot = object(envelope["dataSnapshot"], "INVALID_DATA_SNAPSHOT");
-              return { referenceKey: referenceKey(descriptor["referenceKey"]), referenceType: text(descriptor["referenceType"], "INVALID_REFERENCE_TYPE"),
-                displayName: text(descriptor["displayName"], "INVALID_REFERENCE_DISPLAY_NAME"),
-                sourceWorldVersion: typeof snapshot["worldVersion"] === "number" ? integer(snapshot["worldVersion"], "INVALID_WORLD_VERSION") : 0,
-                stale: descriptor["stale"] === true || descriptor["revalidationRequired"] === true };
-            },
-            validate: async (key, attempt) => {
-              const lock = operationLock(persistedAuthority(context, value.gateway), "reference.validate");
-              const envelope = await executeOperation(value, context, lock,
-                { schemaVersion: "1.0", references: [{ referenceKey: key, requireCurrentSnapshot: true }] }, `history-subject-validate-${attempt}`);
-              const validations = normalizeValidation(envelopeValue(envelope, lock));
-              if (validations.length !== 1) throw new ProductionStageModuleError("HISTORICAL_SUBJECT_VALIDATION_MISSING");
-              return validations[0]!;
-            }
-          }).catch(error => {
-            if (context.signal.aborted || error instanceof PipelineFenceRejectedError) throw error;
-            return { status: "REJECTED" as const, reasonCode: "REFERENCE_MISSING" as const };
-          });
+          const admission = await admitSubject(historicalExecution, references);
           return { outcomes: foundationOutcomes, historicalExecution, historicalSubjectAdmission: admission,
             ...(admission.status === "ADMITTED" ? { publicReferenceProducts: [admission.product], historicalSubjectReferenceKey: admission.product.referenceKey }
               : { historicalSubjectFailure: admission.reasonCode }) };

@@ -6,6 +6,7 @@ import {createWorldAnalysisValidator} from '../../packages/contracts/dist/index.
 import {GowmGatewayClient} from '../../packages/gowm-gateway-client/dist/index.js';
 import {GowmDelegationSigner,createGroundingIdentity} from '../../packages/delegated-identity/dist/index.js';
 import {currentGowmPath,currentGowmSnapshot} from '../../packages/gowm-contract-intake/dist/index.js';
+import {evaluateLiveBusinessCase} from './live-business-assertions.mjs';
 const e=process.env;
 const base=e.WSGS_TEST_API_URL??'http://grounding-api:8080';
 const site=JSON.parse(readFileSync(new URL('../live-site-references.json',import.meta.url),'utf8'));
@@ -34,11 +35,16 @@ const sign=async (overrides={})=>new SignJWT({actorId:'wsgs-instance-test',dataS
  datasetScopes:(e.WSGS_READINESS_DATASET_SCOPES??'').split(',').filter(Boolean),permissions:['grounding.read','data:read','dataset:read','gateway:execute'],...overrides})
  .setProtectedHeader({alg:'HS256'}).setSubject('wsgs-consumer').setIssuer(e.WSGS_JWT_ISSUER).setAudience(e.WSGS_JWT_AUDIENCE??'wsgs')
  .setIssuedAt().setExpirationTime('30m').sign(new TextEncoder().encode(e.WSGS_JWT_HS256_SECRET));
-const token=await sign();
-const headers={authorization:'Bearer '+token,'content-type':'application/json','WSGS-Contract-Version':'sacs-wsgs-grounding/1.2','WSGS-Result-Profile':'wsgs-world-analysis-findings/1.0'};
+const authNegative=process.argv.includes('--auth-negative');
+if(authNegative&&e.WSGS_AUTH_MODE!=='JWT_SERVICE')throw Error('AUTH_NEGATIVE_REQUIRES_JWT_SERVICE');
+const token=e.WSGS_AUTH_MODE==='STATIC_TRUSTED'?undefined:await sign();
+const headers={...(token?{authorization:'Bearer '+token}:{}),'content-type':'application/json','WSGS-Contract-Version':'sacs-wsgs-grounding/1.2','WSGS-Result-Profile':'wsgs-world-analysis-findings/1.0'};
 const hash=text=>createHash('sha256').update(text,'utf8').digest('hex');
 const validate=createWorldAnalysisValidator();
-const chosen=process.argv[2];
+const chosen=process.argv.slice(2).find(value=>!value.startsWith('--'))??'FUNCTIONAL';
+const noData=process.argv.includes('--expect-no-data');
+if(noData&&chosen!=='GDPS')throw Error('NO_DATA_EXPECTATION_REQUIRES_EXPLICIT_GDPS_CASE');
+if(authNegative&&chosen!=='CANCEL')throw Error('AUTH_NEGATIVE_REQUIRES_EXPLICIT_CANCEL_CASE');
 const cases=[['BASIC','2号车在哪里？'],['TRACE','2号车本次任务的轨迹是什么'],['MAP','2号车本次任务经过哪些道路'],
  ['STOP','2号车本次任务在哪里停车'],['CROSS','2号车最后经过哪个路口'],['RANK','2号车本次任务通信信号最好的三个位置在哪里'],['GDPS','2号车所在位置的地表覆盖类型是什么'],['CANCEL','2号车本次任务的轨迹是什么']];
 const report={observedAt:new Date().toISOString(),status:'PASS',cases:[]};
@@ -68,10 +74,14 @@ for(const [name,text] of cases.filter(([name])=>!chosen||chosen==='ALL'||(chosen
   }
  }
  if(name==='CANCEL'){
-  const denied=await fetch(base+'/v1/groundings/'+groundingId,{headers:{...headers,authorization:'Bearer '+await sign({dataScopes:['ungranted']})}});
-  const bad=await fetch(base+'/v1/groundings/'+groundingId,{headers:{...headers,authorization:'Bearer '+token.slice(0,-16)+'AAAAAAAAAAAAAAAA'}});
-  const item={name,groundingId,status:value.status,cancelled:value.status==='CANCELLED',deniedScope:denied.status,badSignature:bad.status};
-  report.cases.push(item);if(!item.cancelled||![403,404].includes(item.deniedScope)||item.badSignature!==401)report.status='FAILED';console.log(JSON.stringify({case:item}));continue;
+  const item={name,groundingId,status:value.status,cancelled:value.status==='CANCELLED',authNegative:'NOT_RUN'};
+  if(authNegative){
+   const denied=await fetch(base+'/v1/groundings/'+groundingId,{headers:{...headers,authorization:'Bearer '+await sign({dataScopes:['ungranted']})}});
+   const bad=await fetch(base+'/v1/groundings/'+groundingId,{headers:{...headers,authorization:'Bearer '+token.slice(0,-16)+'AAAAAAAAAAAAAAAA'}});
+   Object.assign(item,{authNegative:'RUN',deniedScope:denied.status,badSignature:bad.status});
+   if(![403,404].includes(denied.status)||bad.status!==401)report.status='FAILED';
+  }
+  report.cases.push(item);if(!item.cancelled)report.status='FAILED';console.log(JSON.stringify({case:item}));continue;
  }
  const valid=terminal.resultHash && validate('result',terminal).valid;
  const beforeReplay=JSON.stringify(terminal);
@@ -88,16 +98,10 @@ for(const [name,text] of cases.filter(([name])=>!chosen||chosen==='ALL'||(chosen
   findings:terminal.worldAnalysisFindings?.findings?.map(f=>({kind:f.findingKind,status:f.status})),
   operations:terminal.evidenceItems?.map(i=>i.sourceOperation),gaps:terminal.worldAnalysisFindings?.gaps??terminal.capabilityGaps,
   executions,gdpsWarnings:terminal.warnings?.filter(w=>typeof w==='string'&&/^GDPS_[A-Z_:]+$/.test(w)),error:value.error??terminal.error};
- if(name==='GDPS'){
-  item.expectation='NO_DATA';
-  item.providerNoData=executions.some(entry=>entry.operation_id==='landcover.get-class'&&entry.upstream_status==='NO_DATA'&&entry.receipt_count>0);
-  item.publicNoData=terminal.evidenceItems?.some(entry=>entry.sourceOperation==='landcover.get-class'&&entry.upstreamStatus==='NO_DATA'&&entry.receiptIds?.length>0&&entry.unknowns?.includes('NO_DATA'))??false;
-  item.businessDataAvailable=item.providerNoData?false:null;
- }
+ const business=evaluateLiveBusinessCase(name,terminal,executions,noData?'NO_DATA_PROPAGATION':'POSITIVE_BUSINESS');
+ Object.assign(item,business);
  report.cases.push(item);
- const expectedOutcome=name==='GDPS'?item.providerNoData&&item.publicNoData
-  :item.operations?.length&&!item.gaps?.some(g=>g.severity==='BLOCKING');
- if(!valid||['FAILED','CANCELLED'].includes(item.status)||!item.replayIdentical||!expectedOutcome)report.status='FAILED';
+ if(!valid||['FAILED','CANCELLED'].includes(item.status)||!item.replayIdentical||!business.passed)report.status='FAILED';
  console.log(JSON.stringify({case:item}));
 }
 console.log(JSON.stringify(report));

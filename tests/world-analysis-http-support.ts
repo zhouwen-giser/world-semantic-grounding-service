@@ -186,6 +186,12 @@ export class HttpMemoryStore implements ProductionGroundingStore, GroundingWorke
         dataset_scopes: identity.datasetScopes, authorization_context_hash: identity.authorizationContextHash,
         result_hash: result.resultHash, result_bytes: Buffer.from(job.resultBytes), source_expires_at: job.submission.sourceExpiresAt }] };
     }
+    if (sql.includes("FROM wsgs.grounding_result") && sql.includes("actor_id = $3")) {
+      const job = this.jobs.get(String(values[0]));
+      if (!job?.resultBytes || job.submission.identity.dataScope !== values[1] || job.submission.identity.actorId !== values[2]) return { rowCount: 0, rows: [] };
+      const bytes = Buffer.from(job.resultBytes);
+      return { rowCount: 1, rows: [{ result_hash: `sha256:${createHash("sha256").update(bytes).digest("hex")}`, result_bytes: bytes }] };
+    }
     if (sql.includes("SELECT plan,plan_hash FROM wsgs.world_query")) return { rows: [...this.worldQueries.values()].filter(row => row.grounding_id === values[0] && row.plan.idempotencyKey === values[1]), rowCount: 0 };
     if (sql.includes("INSERT INTO wsgs.world_query(")) { this.worldQueries.set(String(values[0]), { grounding_id: values[1], plan: JSON.parse(String(values[3])), plan_hash: String(values[4]) }); return { rows: [], rowCount: 1 }; }
     if (sql.includes("UPDATE wsgs.world_query") || sql.includes("INSERT INTO wsgs.gowm_execution(")) return { rows: [], rowCount: 1 };

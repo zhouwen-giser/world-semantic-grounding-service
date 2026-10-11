@@ -1,4 +1,5 @@
 export * from "./context.js";
+export * from "./constraints.js";
 export * from "./config.js";
 export * from "./advanced-types.js";
 export * from "./advanced-config.js";
