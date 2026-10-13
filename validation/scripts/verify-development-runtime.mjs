@@ -1,11 +1,20 @@
 import { pathToFileURL } from 'node:url';
 import { createWorldAnalysisValidator } from '../../packages/contracts/dist/index.js';
 
+export function developmentReadinessTimeoutMs(environment = process.env) {
+  if ((environment.WSGS_MODEL_POLICY || 'MODEL_REQUIRED') !== 'MODEL_REQUIRED') return 15_000;
+  const modelBudget = Number(environment.MODEL_TIMEOUT_MS || '30000');
+  if (!Number.isSafeInteger(modelBudget) || modelBudget < 100 || modelBudget > 300_000) throw new Error('DEVELOPMENT_MODEL_READINESS_CONFIG_INVALID');
+  // The adapter's total budget already includes retries; retain time for DB/Gateway checks.
+  return modelBudget + 15_000;
+}
+
 /** Readiness and capability access only; this never submits a business query. */
 export async function verifyDevelopmentRuntime({ environment = process.env, fetcher = fetch, now = Date.now } = {}) {
   const base = `http://127.0.0.1:${environment.PORT || '8080'}`;
+  const readinessTimeout = developmentReadinessTimeoutMs(environment);
   const get = async (path, headers = {}) => {
-    const response = await fetcher(base + path, { headers, signal: AbortSignal.timeout(15_000) });
+    const response = await fetcher(base + path, { headers, signal: AbortSignal.timeout(readinessTimeout) });
     if (!response.ok) throw new Error(`DEVELOPMENT_PROBE_HTTP_FAILURE ${path} HTTP ${response.status}`);
     return response.json();
   };

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
-import { verifyDevelopmentRuntime } from "../validation/scripts/verify-development-runtime.mjs";
+import { developmentReadinessTimeoutMs, verifyDevelopmentRuntime } from "../validation/scripts/verify-development-runtime.mjs";
 import { evaluateLiveBusinessCase } from "../validation/scripts/live-business-assertions.mjs";
 import { verifyUnifiedWsgsRuntime } from "../deployment/deploy-unified.mjs";
 
@@ -18,6 +18,25 @@ describe("development deployment readiness probe", () => {
     const fetcher = vi.fn(async (_url: string, init: any) => new Response(JSON.stringify(init.headers["WSGS-Contract-Version"] ? value : { requiredCapabilitiesReady: true }), { status: 200 }));
     return { fetcher, run: () => verifyDevelopmentRuntime({ environment: { PORT: "8080", WSGS_ADVANCED_HISTORY_ENABLED: enabled }, fetcher, now: () => now }) };
   }
+  it.each([
+    [{ WSGS_MODEL_POLICY: "MODEL_REQUIRED", MODEL_TIMEOUT_MS: "120000", MODEL_MAX_RETRIES: "0" }, 135_000],
+    [{ WSGS_MODEL_POLICY: "MODEL_REQUIRED", MODEL_TIMEOUT_MS: "120000", MODEL_MAX_RETRIES: "5" }, 135_000],
+    [{ WSGS_MODEL_POLICY: "MODEL_OPTIONAL", MODEL_TIMEOUT_MS: "120000" }, 15_000],
+    [{ WSGS_MODEL_POLICY: "MODEL_REQUIRED" }, 45_000]
+  ])("covers the configured total model budget without multiplying retries: %j", (environment, expected) => {
+    expect(developmentReadinessTimeoutMs(environment)).toBe(expected);
+  });
+  it.each(["-1", "invalid", "500000"])("rejects invalid model readiness budget %s", MODEL_TIMEOUT_MS => {
+    expect(() => developmentReadinessTimeoutMs({ WSGS_MODEL_POLICY: "MODEL_REQUIRED", MODEL_TIMEOUT_MS })).toThrow("DEVELOPMENT_MODEL_READINESS_CONFIG_INVALID");
+  });
+  it("uses the model-aware budget for every readiness-dependent HTTP request", async () => {
+    const fixture = probe();
+    const timeout = vi.spyOn(AbortSignal, "timeout").mockImplementation(() => new AbortController().signal);
+    try {
+      await verifyDevelopmentRuntime({ environment: { PORT: "8080", WSGS_ADVANCED_HISTORY_ENABLED: "YES", WSGS_MODEL_POLICY: "MODEL_REQUIRED", MODEL_TIMEOUT_MS: "120000" }, fetcher: fixture.fetcher, now: () => now });
+      expect(timeout.mock.calls).toEqual([[135_000], [135_000], [135_000]]);
+    } finally { timeout.mockRestore(); }
+  });
   it("negotiates anonymous 1.2 capabilities and labels business acceptance NOT_RUN", async () => {
     const { run, fetcher } = probe();
     expect(await run()).toEqual({ serviceReady: true, advancedCapabilities: "READY", businessAcceptance: "NOT_RUN" });

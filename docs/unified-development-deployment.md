@@ -48,6 +48,8 @@ GSAP 继续使用原有部署入口及正式 GOWM 镜像校验脚本。WSGS 的�
 
 WSGS 自检复用 `validation/scripts/verify-development-runtime.mjs`：检查普通依赖就绪，并在高级分析启用时协商 1.2，验证 Schema、能力快照有效期及六项分析能力。仅 HTTP 200、CROSS 不可用或过期能力快照不能通过。自检输出仍区分 `serviceReady`、`advancedCapabilities` 和 `businessAcceptance=NOT_RUN`。
 
+在 `MODEL_REQUIRED` 下，就绪请求等待 `MODEL_TIMEOUT_MS + 15000` 毫秒，为真实模型及数据库/Gateway 检查保留时间；模型总预算已经包含重试。`MODEL_OPTIONAL` 使用 15 秒就绪请求预算。
+
 上游单独排障可执行 `ANALYSIS_DEV_ENV_FILE="$PWD/upstream.env" ./.runtime/upstream/gowm-gdps-analysis-dev-server-0.1.0/deploy logs 服务名`。统一入口无清库命令。失败后保留配置和诊断容器，修复后重新执行 `./deploy up`。中断留下 `.runtime/unified-up.lock` 时，先确认没有部署进程运行，再删除该锁。
 
 归档校验、配置校验和离线回归不等于整栈现场验收。发布清单中 `siteAcceptance=NOT_RUN`；`smoke` 的 readiness/能力清单通过也不证明真实业务分析、模型准确率或 SACS 联调通过。使用真实数据执行业务验收后再判断现场是否可用。
