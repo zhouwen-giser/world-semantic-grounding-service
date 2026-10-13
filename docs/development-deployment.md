@@ -4,6 +4,8 @@
 
 ## 生成与使用部署包
 
+需要同时部署 GOWM、GDPS、GSAP 与 WSGS 时，参见 [统一开发部署包](unified-development-deployment.md)，使用 `npm run deploy:unified:package` 合并已经生成的 GSAP 联合包。
+
 在源码目录执行 `npm run deploy:dev:package`，得到 `output/deployment/wsgs-development.tar.gz` 及 `.sha256` 校验文件。包包含源码、当前锁定的上游契约、Dockerfile、数据库迁移、配置模板与脚本；不包含本机环境变量文件、私钥、node_modules 或镜像。服务器需要 Docker Engine、支持 `env_file.required` 和 `up --wait` 的 Docker Compose、Python 3.9+，以及拉取基础镜像和 npm 依赖的网络连接。这是联网构建包，不是离线镜像包。
 
 ```bash

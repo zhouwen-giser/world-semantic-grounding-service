@@ -5,6 +5,7 @@ import { canReuseAdvancedFoundation } from "./advanced-executor.js";
 import { publicWorldAnalysisEventId, publicWorldAnalysisFindingId } from "./public-world-analysis.js";
 import { advancedAnalysisRequests } from "./advanced-types.js";
 import { advancedSelectionRank, parseAdvancedHistoricalIntent } from "./advanced-intent.js";
+import { historicalRefreshRequested } from "./intent.js";
 import type { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
 import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation, AdvancedHistoricalIntent, AdvancedHistoryConfiguration, AdvancedIntentResolution } from "./advanced-types.js";
 
@@ -124,7 +125,7 @@ export function resolvePublicAdvancedFollowup(text: string, result: GroundingRes
     return { resolution: { status: "PARSED", intent }, compare: false };
   }
   if (!prior.foundation) return reject("SELECTION_INVALID");
-  const compare = /更新|重查|重新|最新|最近一次|本次|第.*次(?:任务|执行)|refresh|recompute/iu.test(text);
+  const compare = historicalRefreshRequested(text, true);
   const ordinal = advancedSelectionRank(text);
   if (ordinal !== undefined && ("rank" in candidate ? ordinal !== candidate.rank : choice.candidates.findIndex(value => value.candidateId === candidateId) + 1 !== ordinal)) return reject("SELECTION_AMBIGUOUS");
   if (intent.additionalAnalyses?.length) return { resolution: { status: "PARSED", intent }, compare,
@@ -201,7 +202,7 @@ export function resolveAdvancedFollowup(text: string, prior: PriorAdvancedHistor
   config: AdvancedHistoryConfiguration, now = Date.now()): AdvancedFollowup {
   const resolution = parseAdvancedHistoricalIntent(text, catalog, config, { ...prior.intent,
     historicalScope: { ...prior.intent.historicalScope, ...prior.foundation.intent } });
-  const compare = /更新了吗|有更新/u.test(text);
+  const compare = historicalRefreshRequested(text, true);
   if (resolution.status !== "PARSED") return { resolution, compare };
   const intent = resolution.intent;
   const reusable = !compare && canReuseAdvancedFoundation(prior.foundation, intent, now);

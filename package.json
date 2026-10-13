@@ -85,6 +85,7 @@
     "start:worker": "node --env-file-if-exists=.env services/grounding-worker/dist/main.js",
     "deploy:dev": "bash deploy-dev.sh",
     "deploy:dev:package": "npm run config:check && python3 deployment/package-dev.py",
+    "deploy:unified:package": "npm run config:check && python3 deployment/package-unified.py",
     "config:check": "node validation/scripts/check-env-coverage.mjs"
   },
   "dependencies": {

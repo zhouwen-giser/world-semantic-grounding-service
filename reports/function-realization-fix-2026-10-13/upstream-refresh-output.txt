@@ -1,0 +1,6 @@
+
+> world-semantic-grounding-service@0.2.1 gowm:refresh
+> python3 validation/scripts/refresh-gowm.py
+
+{"status":"PASS","packageVersion":"0.7.1","schemas":91}
+{"status": "PASS", "snapshot": "df52ffc02e1a14110cac11be894e4e0bccefff561ae4ae2f462b8e9ffe65edc2", "packageVersion": "0.7.1"}

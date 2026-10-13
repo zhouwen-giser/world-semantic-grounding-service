@@ -1,0 +1,353 @@
+
+ RUN  v4.1.11 /home/sz/code/world-semantic-grounding-service
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts (156 tests | 21 failed) 9417ms
+     × rejects multiple scopes even for one analysis: 2号车、3号车经过哪些道路 22ms
+     × rejects multiple scopes even for one analysis: 2号车和3号车经过哪些道路 3ms
+     × rejects multiple scopes even for one analysis: 第1次任务、第2次任务经过哪些道路 2ms
+     × rejects multiple scopes even for one analysis: 任务T1、任务T2经过哪些道路 1ms
+     × rejects multiple scopes even for one analysis: 经过哪些道路 sourceKey: source-a，sourceKey: source-b 2ms
+     × rejects multiple scopes even for one analysis: 经过哪些道路，排除暂停并包含暂停 2ms
+     × does not discard an independent unsupported request: 2号车经过哪些道路，以及行驶是否超速 1ms
+     × does not discard an independent unsupported request: 2号车经过哪些道路，并且统计超速次数 1ms
+     × does not discard an independent unsupported request: 2号车经过哪些道路，以及查询电池温度 2ms
+     × keeps analysis words inside the spatial target: 2号车首次进入停车区是什么时候 1ms
+     × keeps analysis words inside the spatial target: 2号车最后离开进入区是什么时候 1ms
+     × keeps analysis words inside the spatial target: 2号车在道路区停留多久 0ms
+     × keeps analysis words inside the spatial target: 2号车靠近停车区 0ms
+     × keeps analysis words inside the spatial target: 2号车进入和停车区 3ms
+     × requeries the full execution after active-only analysis: 包含暂停，重新查询经过哪些道路 3ms
+     × requeries the full execution after active-only analysis: 包括暂停，经过哪些道路 1ms
+     × requeries the full execution after active-only analysis: 整个执行时段经过哪些道路 1ms
+     × does not reuse unchanged scope after an explicit refresh: 重新查询经过哪些道路 1ms
+     × does not reuse unchanged scope after an explicit refresh: 重查经过哪些道路 1ms
+     × does not reuse unchanged scope after an explicit refresh: 刷新经过哪些道路 1ms
+     × does not reuse unchanged scope after an explicit refresh: refresh经过哪些道路 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 21 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > rejects multiple scopes even for one analysis: 2号车、3号车经过哪些道路
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > rejects multiple scopes even for one analysis: 2号车和3号车经过哪些道路
+AssertionError: expected { status: 'PARSED', intent: { …(2) } } to deeply equal { status: 'UNRESOLVED', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "reasonCode": "MULTI_ANALYSIS_SCOPE_MISMATCH",
+-   "status": "UNRESOLVED",
++   "intent": {
++     "analysis": {
++       "kind": "ROAD_ASSOCIATION",
++       "output": "ROAD_VISITS",
++     },
++     "historicalScope": {
++       "executionSelection": {
++         "kind": "LATEST",
++       },
++       "phaseScope": "EXECUTION_ENVELOPE",
++       "sourceSelection": {
++         "mode": "ONLY_CANDIDATE",
++       },
++       "subjectMention": "2号车",
++     },
++   },
++   "status": "PARSED",
+  }
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:57:66
+     55|     "任务T1、任务T2经过哪些道路", "经过哪些道路 sourceKey: source-a，sourceKey: source-b…
+     56|     "经过哪些道路，排除暂停并包含暂停"])("rejects multiple scopes even for one analysi…
+     57|     expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqu…
+       |                                                                  ^
+     58|   });
+     59|   it.each(["2号车经过哪些道路，以及行驶是否超速", "2号车经过哪些道路，并且统计超速次数",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > rejects multiple scopes even for one analysis: 第1次任务、第2次任务经过哪些道路
+AssertionError: expected { status: 'PARSED', intent: { …(2) } } to deeply equal { status: 'UNRESOLVED', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "reasonCode": "MULTI_ANALYSIS_SCOPE_MISMATCH",
+-   "status": "UNRESOLVED",
++   "intent": {
++     "analysis": {
++       "kind": "ROAD_ASSOCIATION",
++       "output": "ROAD_VISITS",
++     },
++     "historicalScope": {
++       "executionSelection": {
++         "executionNo": 1,
++         "kind": "EXECUTION_NO",
++       },
++       "phaseScope": "EXECUTION_ENVELOPE",
++       "sourceSelection": {
++         "mode": "ONLY_CANDIDATE",
++       },
++     },
++   },
++   "status": "PARSED",
+  }
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:57:66
+     55|     "任务T1、任务T2经过哪些道路", "经过哪些道路 sourceKey: source-a，sourceKey: source-b…
+     56|     "经过哪些道路，排除暂停并包含暂停"])("rejects multiple scopes even for one analysi…
+     57|     expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqu…
+       |                                                                  ^
+     58|   });
+     59|   it.each(["2号车经过哪些道路，以及行驶是否超速", "2号车经过哪些道路，并且统计超速次数",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > rejects multiple scopes even for one analysis: 任务T1、任务T2经过哪些道路
+AssertionError: expected { status: 'PARSED', intent: { …(2) } } to deeply equal { status: 'UNRESOLVED', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "reasonCode": "MULTI_ANALYSIS_SCOPE_MISMATCH",
+-   "status": "UNRESOLVED",
++   "intent": {
++     "analysis": {
++       "kind": "ROAD_ASSOCIATION",
++       "output": "ROAD_VISITS",
++     },
++     "historicalScope": {
++       "executionSelection": {
++         "kind": "LATEST",
++       },
++       "phaseScope": "EXECUTION_ENVELOPE",
++       "sourceSelection": {
++         "mode": "ONLY_CANDIDATE",
++       },
++       "taskMention": "任务T1",
++     },
++   },
++   "status": "PARSED",
+  }
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:57:66
+     55|     "任务T1、任务T2经过哪些道路", "经过哪些道路 sourceKey: source-a，sourceKey: source-b…
+     56|     "经过哪些道路，排除暂停并包含暂停"])("rejects multiple scopes even for one analysi…
+     57|     expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqu…
+       |                                                                  ^
+     58|   });
+     59|   it.each(["2号车经过哪些道路，以及行驶是否超速", "2号车经过哪些道路，并且统计超速次数",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > rejects multiple scopes even for one analysis: 经过哪些道路 sourceKey: source-a，sourceKey: source-b
+AssertionError: expected { status: 'PARSED', intent: { …(2) } } to deeply equal { status: 'UNRESOLVED', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "reasonCode": "MULTI_ANALYSIS_SCOPE_MISMATCH",
+-   "status": "UNRESOLVED",
++   "intent": {
++     "analysis": {
++       "kind": "ROAD_ASSOCIATION",
++       "output": "ROAD_VISITS",
++     },
++     "historicalScope": {
++       "executionSelection": {
++         "kind": "LATEST",
++       },
++       "phaseScope": "EXECUTION_ENVELOPE",
++       "sourceSelection": {
++         "mode": "EXPLICIT_SOURCE",
++         "sourceKey": "source-a",
++       },
++     },
++   },
++   "status": "PARSED",
+  }
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:57:66
+     55|     "任务T1、任务T2经过哪些道路", "经过哪些道路 sourceKey: source-a，sourceKey: source-b…
+     56|     "经过哪些道路，排除暂停并包含暂停"])("rejects multiple scopes even for one analysi…
+     57|     expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqu…
+       |                                                                  ^
+     58|   });
+     59|   it.each(["2号车经过哪些道路，以及行驶是否超速", "2号车经过哪些道路，并且统计超速次数",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > rejects multiple scopes even for one analysis: 经过哪些道路，排除暂停并包含暂停
+AssertionError: expected { status: 'PARSED', intent: { …(2) } } to deeply equal { status: 'UNRESOLVED', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "reasonCode": "MULTI_ANALYSIS_SCOPE_MISMATCH",
+-   "status": "UNRESOLVED",
++   "intent": {
++     "analysis": {
++       "kind": "ROAD_ASSOCIATION",
++       "output": "ROAD_VISITS",
++     },
++     "historicalScope": {
++       "executionSelection": {
++         "kind": "LATEST",
++       },
++       "phaseScope": "ACTIVE_PHASES_ONLY",
++       "sourceSelection": {
++         "mode": "ONLY_CANDIDATE",
++       },
++     },
++   },
++   "status": "PARSED",
+  }
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:57:66
+     55|     "任务T1、任务T2经过哪些道路", "经过哪些道路 sourceKey: source-a，sourceKey: source-b…
+     56|     "经过哪些道路，排除暂停并包含暂停"])("rejects multiple scopes even for one analysi…
+     57|     expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqu…
+       |                                                                  ^
+     58|   });
+     59|   it.each(["2号车经过哪些道路，以及行驶是否超速", "2号车经过哪些道路，并且统计超速次数",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > does not discard an independent unsupported request: 2号车经过哪些道路，以及行驶是否超速
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > does not discard an independent unsupported request: 2号车经过哪些道路，并且统计超速次数
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > does not discard an independent unsupported request: 2号车经过哪些道路，以及查询电池温度
+AssertionError: expected { status: 'PARSED', intent: { …(2) } } to deeply equal { status: 'UNRESOLVED', …(1) }
+
+- Expected
++ Received
+
+  {
+-   "reasonCode": "ANALYSIS_CLAUSE_UNSUPPORTED",
+-   "status": "UNRESOLVED",
++   "intent": {
++     "analysis": {
++       "kind": "ROAD_ASSOCIATION",
++       "output": "ROAD_VISITS",
++     },
++     "historicalScope": {
++       "executionSelection": {
++         "kind": "LATEST",
++       },
++       "phaseScope": "EXECUTION_ENVELOPE",
++       "sourceSelection": {
++         "mode": "ONLY_CANDIDATE",
++       },
++       "subjectMention": "2号车",
++     },
++   },
++   "status": "PARSED",
+  }
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:61:66
+     59|   it.each(["2号车经过哪些道路，以及行驶是否超速", "2号车经过哪些道路，并且统计超速次数",
+     60|     "2号车经过哪些道路，以及查询电池温度"])("does not discard an independent unsupporte…
+     61|     expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqu…
+       |                                                                  ^
+     62|   });
+     63|   it.each([
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > keeps analysis words inside the spatial target: 2号车首次进入停车区是什么时候
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > keeps analysis words inside the spatial target: 2号车最后离开进入区是什么时候
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > keeps analysis words inside the spatial target: 2号车在道路区停留多久
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > keeps analysis words inside the spatial target: 2号车靠近停车区
+Error: {"status":"UNRESOLVED","reasonCode":"MULTI_ANALYSIS_NOT_SUPPORTED"}
+ ❯ parse packages/historical-trace-consumer/src/advanced-historical.test.ts:24:41
+     22| const parse = (text: string, prior?: AdvancedHistoricalIntent) => {
+     23|   const parsed = parseAdvancedHistoricalIntent(text, catalog, config, …
+     24|   if (parsed.status !== "PARSED") throw new Error(JSON.stringify(parse…
+       |                                         ^
+     25|   return parsed.intent;
+     26| };
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:70:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > advanced deterministic historical intent > keeps analysis words inside the spatial target: 2号车进入和停车区
+AssertionError: expected { kind: 'TEMPORAL_EVENT', …(2) } to match object { kind: 'TEMPORAL_EVENT', …(2) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "eventType": "ENTER",
+    "kind": "TEMPORAL_EVENT",
+-   "targetMention": "和停车区",
+  }
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:70:34
+     68|     ["2号车进入和停车区", "ENTER", "和停车区"]
+     69|   ])("keeps analysis words inside the spatial target: %s", (text, even…
+     70|     expect(parse(text).analysis).toMatchObject({ kind: "TEMPORAL_EVENT…
+       |                                  ^
+     71|   });
+     72|   it("preserves context-only clauses and repeated scope", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > trusted advanced multi-turn > requeries the full execution after active-only analysis: 包含暂停，重新查询经过哪些道路
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > trusted advanced multi-turn > requeries the full execution after active-only analysis: 包括暂停，经过哪些道路
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > trusted advanced multi-turn > requeries the full execution after active-only analysis: 整个执行时段经过哪些道路
+AssertionError: expected { status: 'PARSED', intent: { …(2) } } to match object { status: 'PARSED', intent: { …(1) } }
+(18 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "intent": {
+      "historicalScope": {
+-       "phaseScope": "EXECUTION_ENVELOPE",
++       "phaseScope": "ACTIVE_PHASES_ONLY",
+      },
+    },
+    "status": "PARSED",
+  }
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:503:29
+    501|     const next = resolveAdvancedFollowup(text, { intent, foundation: o…
+    502|       sourceResultHash: `sha256:${"0".repeat(64)}` }, catalog, config);
+    503|     expect(next.resolution).toMatchObject({ status: "PARSED", intent: …
+       |                             ^
+    504|     expect(next.reusableFoundation).toBeUndefined();
+    505|     expect(next.reuse).toBeUndefined();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/21]⎯
+
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > trusted advanced multi-turn > does not reuse unchanged scope after an explicit refresh: 重新查询经过哪些道路
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > trusted advanced multi-turn > does not reuse unchanged scope after an explicit refresh: 重查经过哪些道路
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > trusted advanced multi-turn > does not reuse unchanged scope after an explicit refresh: 刷新经过哪些道路
+ FAIL  packages/historical-trace-consumer/src/advanced-historical.test.ts > trusted advanced multi-turn > does not reuse unchanged scope after an explicit refresh: refresh经过哪些道路
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ packages/historical-trace-consumer/src/advanced-historical.test.ts:512:26
+    510|     const next = resolveAdvancedFollowup(text, { intent, foundation: o…
+    511|       sourceResultHash: `sha256:${"0".repeat(64)}` }, catalog, config);
+    512|     expect(next.compare).toBe(true);
+       |                          ^
+    513|     expect(next.reusableFoundation).toBeUndefined();
+    514|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/21]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  21 failed | 135 passed (156)
+   Start at  18:01:22
+   Duration  11.98s (transform 1.29s, setup 0ms, import 2.39s, tests 9.42s, environment 0ms)

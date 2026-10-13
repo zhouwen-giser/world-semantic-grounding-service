@@ -12,7 +12,7 @@ export async function verifyDevelopmentRuntime({ environment = process.env, fetc
   await get('/health/ready');
   const ordinary = await get('/v1/capabilities');
   if (ordinary.requiredCapabilitiesReady !== true) throw new Error('DEVELOPMENT_REQUIRED_CAPABILITIES_UNAVAILABLE');
-  if (environment.WSGS_ADVANCED_HISTORY_ENABLED !== 'YES') return { serviceReady: true, advancedCapabilities: 'DISABLED', businessAcceptance: 'NOT_RUN' };
+  if (!['YES', 'true'].includes(environment.WSGS_ADVANCED_HISTORY_ENABLED)) return { serviceReady: true, advancedCapabilities: 'DISABLED', businessAcceptance: 'NOT_RUN' };
   const capabilities = await get('/v1/capabilities', { 'WSGS-Contract-Version': 'sacs-wsgs-grounding/1.2', 'WSGS-Result-Profile': 'wsgs-world-analysis-findings/1.0' });
   if (!createWorldAnalysisValidator()('capabilities', capabilities).valid) throw new Error('DEVELOPMENT_ANALYSIS_CAPABILITIES_INVALID');
   if (capabilities.requiredCapabilitiesReady !== true || Date.parse(capabilities.worldAnalysis.validUntil) <= now()) throw new Error('DEVELOPMENT_ANALYSIS_SNAPSHOT_UNAVAILABLE');

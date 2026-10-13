@@ -1,0 +1,5 @@
+
+> world-semantic-grounding-service@0.2.1 findings:provenance:write
+> tsx validation/scripts/generate-sacs-geospatial-provenance-evidence.ts --write
+
+WSGS_V021_N03_EVIDENCE_SOURCE_READY input=sha256:96fe4fb8924f98de92b01eacf011a16fa857aad242b9853ffa4e25252f896836 tests=120 real=NOT_RUN

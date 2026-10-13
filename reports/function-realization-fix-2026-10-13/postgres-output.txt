@@ -1,0 +1,43 @@
+
+> world-semantic-grounding-service@0.2.1 test:postgres
+> npm run typecheck && node validation/scripts/test-postgres-isolated.mjs postgres:17-alpine
+
+
+> world-semantic-grounding-service@0.2.1 typecheck
+> tsc -b --pretty false
+
+
+ RUN  v4.1.11 /home/sz/code/world-semantic-grounding-service
+
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  18:39:47
+   Duration  1.01s (transform 89ms, setup 0ms, import 130ms, tests 706ms, environment 0ms)
+
+
+ RUN  v4.1.11 /home/sz/code/world-semantic-grounding-service
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  18:39:48
+   Duration  4.28s (transform 669ms, setup 0ms, import 1.44s, tests 2.67s, environment 0ms)
+
+
+ RUN  v4.1.11 /home/sz/code/world-semantic-grounding-service
+
+
+ Test Files  1 passed (1)
+      Tests  32 passed (32)
+   Start at  18:39:53
+   Duration  6.84s (transform 1.69s, setup 0ms, import 3.55s, tests 3.11s, environment 0ms)
+
+
+ RUN  v4.1.11 /home/sz/code/world-semantic-grounding-service
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  18:40:00
+   Duration  577ms (transform 59ms, setup 0ms, import 98ms, tests 296ms, environment 0ms)

@@ -1,0 +1,12 @@
+{
+  "providerId": "gowm.analysis.temporal-events",
+  "providerVersion": "0.1.0",
+  "implementationDigest": "sha256:2f0c8116e9f0d945c9ec13f4ae79e660551c0d6b0b6a6afbd05bd0039cbc683d",
+  "manifestHash": "sha256:74949c729f48f1c91e1b105b90ad4cc602a4b4c95a29c39cb24f83c3b2d5ae5f",
+  "manifestPath": "contracts/manifests/providers/temporal-events-provider.json",
+  "endpoint": "http://temporal-events-provider:18130",
+  "approvalId": "temporal-events-provider-v0.1-development",
+  "approvedBy": "development-operator",
+  "transportTokenEnv": "TEMPORAL_EVENTS_PROVIDER_TRANSPORT_TOKEN",
+  "allowPlaintextPrivateNetwork": true
+}

@@ -1,0 +1,126 @@
+{
+  "gitCommit": "0c00de5c0f45f591c2986544e0902b84038a1537",
+  "evidenceScope": "LOCAL_COMPONENT_AND_CONTROLLED_FETCH_ONLY",
+  "realModel": "NOT_RUN",
+  "liveBusiness": "NOT_RUN",
+  "cases": [
+    {
+      "id": "A01",
+      "text": "包含暂停，重新查询经过哪些道路",
+      "expectedPhaseScope": "EXECUTION_ENVELOPE",
+      "actualPhaseScope": "ACTIVE_PHASES_ONLY",
+      "reusablePriorFoundation": true,
+      "compare": false
+    },
+    {
+      "id": "A02-subject",
+      "text": "2号车、3号车经过哪些道路",
+      "expected": "REJECT_MULTI_SUBJECT",
+      "actual": {
+        "status": "PARSED",
+        "intent": {
+          "historicalScope": {
+            "subjectMention": "2号车",
+            "executionSelection": {
+              "kind": "LATEST"
+            },
+            "phaseScope": "EXECUTION_ENVELOPE",
+            "sourceSelection": {
+              "mode": "ONLY_CANDIDATE"
+            }
+          },
+          "analysis": {
+            "kind": "ROAD_ASSOCIATION",
+            "output": "ROAD_VISITS"
+          }
+        }
+      }
+    },
+    {
+      "id": "A02-execution",
+      "text": "第1次任务、第2次任务经过哪些道路",
+      "expected": "REJECT_MULTI_EXECUTION",
+      "actual": {
+        "status": "PARSED",
+        "intent": {
+          "historicalScope": {
+            "executionSelection": {
+              "kind": "EXECUTION_NO",
+              "executionNo": 1
+            },
+            "phaseScope": "EXECUTION_ENVELOPE",
+            "sourceSelection": {
+              "mode": "ONLY_CANDIDATE"
+            }
+          },
+          "analysis": {
+            "kind": "ROAD_ASSOCIATION",
+            "output": "ROAD_VISITS"
+          }
+        }
+      }
+    },
+    {
+      "id": "A03",
+      "text": "2号车经过哪些道路，以及行驶是否超速",
+      "expected": "UNSUPPORTED_CLAUSE_GAP_OR_REJECT",
+      "actual": {
+        "status": "PARSED",
+        "intent": {
+          "historicalScope": {
+            "subjectMention": "2号车",
+            "executionSelection": {
+              "kind": "LATEST"
+            },
+            "phaseScope": "EXECUTION_ENVELOPE",
+            "sourceSelection": {
+              "mode": "ONLY_CANDIDATE"
+            }
+          },
+          "analysis": {
+            "kind": "ROAD_ASSOCIATION",
+            "output": "ROAD_VISITS"
+          }
+        }
+      }
+    },
+    {
+      "id": "A04",
+      "text": "2号车首次进入停车区是什么时候",
+      "expected": "SINGLE_ENTER_ANALYSIS",
+      "actual": {
+        "status": "UNRESOLVED",
+        "reasonCode": "MULTI_ANALYSIS_NOT_SUPPORTED"
+      }
+    },
+    {
+      "id": "A05",
+      "input": "HTTP 200 basic readiness/capabilities with CROSS unavailable in 1.2",
+      "unifiedProbePassed": true,
+      "currentDevelopmentVerifierRejected": "DEVELOPMENT_ANALYSIS_CAPABILITIES_UNAVAILABLE CROSS",
+      "sourceProbeSha256": "f6cff9825cf02c1d67414fc735abddc74bcf5bd28db725eeb769b98496e94ff5"
+    }
+  ],
+  "controls": {
+    "supportedSeparatedCompound": "PARSED",
+    "supportedSeparatedCompoundAnalysisCount": 5,
+    "absoluteTimeWindow": {
+      "status": "UNRESOLVED",
+      "reasonCode": "HISTORICAL_TIME_WINDOW_UNSUPPORTED"
+    },
+    "allExecutions": {
+      "status": "UNRESOLVED",
+      "reasonCode": "MULTI_EXECUTION_ADVANCED_ANALYSIS_NOT_SUPPORTED"
+    },
+    "gnssMetric": {
+      "reasonCode": "METRIC_CONCEPT_UNSUPPORTED"
+    },
+    "vibrationMetric": {
+      "reasonCode": "METRIC_CONCEPT_UNSUPPORTED"
+    },
+    "combinedMetricScore": {
+      "reasonCode": "METRIC_CONCEPT_AMBIGUOUS"
+    }
+  },
+  "credentialsIncluded": false
+}

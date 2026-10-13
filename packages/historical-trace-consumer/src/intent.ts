@@ -15,13 +15,56 @@ const intervalPattern = /(?:什么时候(?:开始|结束|开始执行)|执行了
 const trajectoryPattern = /(?:任务轨迹|执行轨迹|走过哪里|行驶路径|经过的位置|历史轨迹|轨迹是什么|轨迹是什麼)/u;
 const completenessPattern = /(?:轨迹.*(?:完整|连续)|有没有缺失)/u;
 const gapsPattern = /(?:(?:哪些|什么)时间.*没有轨迹|轨迹.*缺失时段|定位中断时间|有哪些缺失)/u;
-const activeOnlyPattern = /(?:排除暂停|只看运行阶段|有效执行时段)/u;
+const activeOnlyPattern = /(?:排除暂停|只看(?:实际)?(?:运行|执行)阶段|只看实际执行|有效执行时段)/u;
+const envelopePattern = /(?:包含暂停|包括暂停|整个执行(?:时段)?|完整执行时段)/u;
 const allPattern = /(?:所有执行(?:记录|轨迹)|历次执行)/u;
 const latestPattern = /(?:本次|最近一次|这次)/u;
 const taskPattern = /任务\s*(?:(?:ID|编号|引用)\s*[:：]?\s*|[:：]\s*)?[A-Za-z0-9_-]+/iu;
 const subjectPattern = /(?:[A-Za-z0-9]+|[一二三四五六七八九十百千]+)号车/u;
 const sourceKeyPattern = /\bsourceKey\s*[:：=]\s*([A-Za-z0-9._:/-]+)/iu;
 const trackerSessionPattern = /\btrackerSessionKey\s*[:：=]\s*([A-Za-z0-9._:/-]+)/iu;
+
+/** Undefined means the caller omitted this dimension and may inherit it. */
+export function explicitHistoricalPhaseScope(text: string): HistoricalPhaseScope | undefined {
+  return activeOnlyPattern.test(text) ? "ACTIVE_PHASES_ONLY" : envelopePattern.test(text) ? "EXECUTION_ENVELOPE" : undefined;
+}
+
+export function conflictingHistoricalPhaseScopes(text: string): boolean {
+  return activeOnlyPattern.test(text) && envelopePattern.test(text);
+}
+
+export function historicalRefreshRequested(text: string, selectedExecutionIsRefresh = false): boolean {
+  return /更新|重查|重新|刷新|最新|\b(?:refresh|recompute)\b/iu.test(text) || selectedExecutionIsRefresh &&
+    /最近一次|本次|第\s*(?:[1-9][0-9]*|[一二三四五六七八九十]+)\s*(?:次|回)\s*(?:任务|执行)/u.test(text);
+}
+
+/** Execution ordinals and reference/source names are context, not event verbs. */
+export function historicalAnalysisText(text: string): string {
+  let result = text;
+  for (const pattern of [/第\s*(?:[1-9][0-9]*|[一二三四五六七八九十]+)\s*(?:次|回)\s*(?:任务|执行)/gu,
+    taskPattern, subjectPattern, sourceKeyPattern, trackerSessionPattern]) {
+    result = result.replace(new RegExp(pattern.source, pattern.flags.replace("g", "") + "g"), value => "_".repeat(value.length));
+  }
+  return result;
+}
+
+/** Inspect every explicit scope, not only the first mention selected for a query. */
+export function historicalScopeMentions(text: string): {
+  subjects: string[]; tasks: string[]; executions: HistoricalExecutionSelection[]; sources: string[]; sessions: string[];
+} {
+  const matches = (pattern: RegExp) => [...text.matchAll(new RegExp(pattern.source, pattern.flags.replace("g", "") + "g"))];
+  const numbered = [...text.matchAll(/第\s*([1-9][0-9]*|[一二三四五六七八九十]+)\s*(?:次|回)/gu)];
+  return {
+    subjects: matches(subjectPattern).map(match => match[0]),
+    tasks: matches(taskPattern).filter(match => !text.slice(match.index! + match[0].length).startsWith("号车"))
+      .map(match => match[0].replace(/\s/gu, "")),
+    executions: [
+      ...numbered.map(match => ({ kind: "EXECUTION_NO" as const, executionNo: chineseInteger(match[1]!)! })),
+      ...(latestPattern.test(text) ? [{ kind: "LATEST" as const }] : [])
+    ],
+    sources: matches(sourceKeyPattern).map(match => match[1]!), sessions: matches(trackerSessionPattern).map(match => match[1]!)
+  };
+}
 
 export function chineseInteger(value: string): number | null {
   if (/^[1-9][0-9]*$/u.test(value)) {
@@ -68,9 +111,7 @@ export function projectHistoricalTraceIntent(
   const kind = queryKind(text);
   if (!kind) return null;
   const selection = executionSelection(text, configuration.allIntervalsLimit);
-  const phaseScope: HistoricalPhaseScope = activeOnlyPattern.test(text)
-    ? "ACTIVE_PHASES_ONLY"
-    : "EXECUTION_ENVELOPE";
+  const phaseScope: HistoricalPhaseScope = explicitHistoricalPhaseScope(text) ?? "EXECUTION_ENVELOPE";
   const sourceKey = sourceKeyPattern.exec(text)?.[1];
   const trackerSessionKey = trackerSessionPattern.exec(text)?.[1];
   const unsupportedReason = hasUnsupportedHistoricalTimeWindow(text, temporalConstraints) ? "HISTORICAL_TIME_WINDOW_UNSUPPORTED" :
@@ -94,20 +135,19 @@ export function resolveHistoricalFollowup(
   now: Date = new Date()
 ): HistoricalFollowupDecision {
   const projected = projectHistoricalTraceIntent(text, configuration);
-  const updateRequested = /(?:现在更新了吗|更新了吗|有更新吗)/u.test(text);
-  const activeOnlyRequested = activeOnlyPattern.test(text);
-  if (!projected && !updateRequested && !activeOnlyRequested) return { mode: "NOT_HISTORICAL" };
+  const updateRequested = historicalRefreshRequested(text);
+  const requestedPhase = explicitHistoricalPhaseScope(text);
+  if (!projected && !updateRequested && !requestedPhase) return { mode: "NOT_HISTORICAL" };
   if (!prior) return projected ? { mode: "REQUERY", intent: projected, compareWithPrior: false } : { mode: "NOT_HISTORICAL" };
   const intent = projected ?? projectHistoricalTraceIntent(`${text} 历史轨迹`, configuration)!;
   const explicitExecution = allPattern.test(text) || latestPattern.test(text) || /第\s*[一二三四五六七八九十\d]+\s*(?:次|回)/u.test(text);
-  const envelopeRequested = /(?:包含暂停|包括暂停|整个执行|完整执行时段)/u.test(text);
   const subjectChanged = Boolean(intent?.subjectMention && intent.subjectMention !== prior.intent?.subjectMention);
   const taskChanged = Boolean(intent?.taskMention && intent.taskMention !== prior.intent?.taskMention);
   const explicitSource = sourceKeyPattern.test(text) || trackerSessionPattern.test(text);
   const requeryIntent: HistoricalTraceIntent = {
     ...intent,
     ...(!explicitExecution && prior.intent ? { executionSelection: prior.intent.executionSelection } : {}),
-    phaseScope: activeOnlyRequested ? "ACTIVE_PHASES_ONLY" : envelopeRequested ? "EXECUTION_ENVELOPE" : prior.phaseScope,
+    phaseScope: requestedPhase ?? prior.phaseScope,
     sourceSelection: explicitSource && intent ? intent.sourceSelection : prior.intent?.sourceSelection ?? { mode: "ONLY_CANDIDATE" },
     ...(!taskChanged && !subjectChanged && prior.taskReferenceKey ? { taskReferenceKey: prior.taskReferenceKey } : {}),
     ...(!subjectChanged && !taskChanged && prior.subjectReferenceKey ? { subjectReferenceKey: prior.subjectReferenceKey } : {})

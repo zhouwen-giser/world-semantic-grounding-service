@@ -51,6 +51,37 @@ function executionInput(text: string, name: string): AdvancedExecutionInput {
 }
 
 describe("advanced deterministic historical intent", () => {
+  it.each(["2号车、3号车经过哪些道路", "2号车和3号车经过哪些道路", "第1次任务、第2次任务经过哪些道路",
+    "任务T1、任务T2经过哪些道路", "经过哪些道路 sourceKey: source-a，sourceKey: source-b",
+    "经过哪些道路，排除暂停并包含暂停"])("rejects multiple scopes even for one analysis: %s", text => {
+    expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqual({ status: "UNRESOLVED", reasonCode: "MULTI_ANALYSIS_SCOPE_MISMATCH" });
+  });
+  it.each(["2号车经过哪些道路，以及行驶是否超速", "2号车经过哪些道路，并且统计超速次数",
+    "2号车经过哪些道路，以及查询电池温度", "2号车经过哪些道路，以及查电池", "2号车经过哪些道路，并且看看速度数据"])("does not discard an independent unsupported request: %s", text => {
+    expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqual({ status: "UNRESOLVED", reasonCode: "ANALYSIS_CLAUSE_UNSUPPORTED" });
+  });
+  it.each([
+    ["2号车首次进入停车区是什么时候", "ENTER", "停车区"],
+    ["2号车最后离开进入区是什么时候", "EXIT", "进入区"],
+    ["2号车在道路区停留多久", "DWELL", "道路区"],
+    ["2号车靠近停车区", "PASS_NEAR", "停车区"],
+    ["2号车进入和停车区", "ENTER", "和停车区"],
+    ["2号车进入“进入”", "ENTER", "进入"],
+    ["2号车在“道路，停车区”停留多久", "DWELL", "道路，停车区"]
+  ])("keeps analysis words inside the spatial target: %s", (text, eventType, targetMention) => {
+    expect(parse(text).analysis).toMatchObject({ kind: "TEMPORAL_EVENT", eventType, targetMention });
+  });
+  it("preserves context-only clauses and repeated scope", () => {
+    const intent = parse("2号车，任务T1，本次任务，经过哪些道路，sourceKey: radio-a，排除暂停");
+    expect(intent.historicalScope).toMatchObject({ subjectMention: "2号车", taskMention: "任务T1", phaseScope: "ACTIVE_PHASES_ONLY",
+      sourceSelection: { mode: "EXPLICIT_SOURCE", sourceKey: "radio-a" } });
+    expect(parse("2号车经过哪些道路，2号车经过哪些道路").additionalAnalyses).toBeUndefined();
+    expect(parse("2号车第一次任务最后确认在哪条道路")).toMatchObject({
+      historicalScope: { executionSelection: { kind: "EXECUTION_NO", executionNo: 1 } }, analysis: { output: "LAST_CONFIRMED_ROAD" }
+    });
+    expect(parse("查询历史轨迹，以及经过哪些道路").analysis.kind).toBe("ROAD_ASSOCIATION");
+    expect(parse("请，2号车，本次任务期间，经过哪些道路，排除暂停阶段再看，谢谢").analysis.kind).toBe("ROAD_ASSOCIATION");
+  });
   it.each(["2号车首次和最后进入A区的时间", "2号车进入A区离开B区"])("rejects ambiguous compound boundaries: %s", text => {
     expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqual({ status: "UNRESOLVED", reasonCode: "MULTI_ANALYSIS_NOT_SUPPORTED" });
   });
@@ -382,6 +413,7 @@ describe("advanced execution through a mock Gateway", () => {
     ["2号车经过哪些道路", "map-match", ["trajectory.map-match"]],
     ["2号车最后经过哪个路口", "cross-last", ["trajectory.map-match", "temporal-spatial.find-events"]],
     ["2号车什么时候进入A区", "enter", ["temporal-spatial.find-events"]],
+    ["2号车进入停车区", "enter", ["temporal-spatial.find-events"]],
     ["2号车任务期间在哪里停车", "stop", ["temporal-spatial.find-events"]],
     ["2号车通信信号最好的位置", "metric-shared-campus", ["spatiotemporal-metric.rank-locations"]]
   ])("executes %s", async (text, name, ids) => {
@@ -396,6 +428,7 @@ describe("advanced execution through a mock Gateway", () => {
       expect(request["source"]).toEqual({ kind: "MAP_MATCH_RESULT", mapMatchResult: (fixture("map-match")["output"] as { value: unknown }).value });
     }
     if (name === "stop") expect(input.resolveTarget).not.toHaveBeenCalled();
+    if (text.includes("停车区")) expect(input.resolveTarget).toHaveBeenCalledWith("停车区", undefined);
   });
   it.each(["advanced", "history", "deadline", "multiple"])("does not query when %s blocks", async kind => {
     const input = executionInput("2号车经过哪些道路", "map-match");
@@ -471,6 +504,23 @@ describe("advanced execution through a mock Gateway", () => {
 });
 
 describe("trusted advanced multi-turn", () => {
+  it.each(["包含暂停，重新查询经过哪些道路", "包括暂停，经过哪些道路", "整个执行时段经过哪些道路"])("requeries the full execution after active-only analysis: %s", text => {
+    const intent = parse("2号车经过哪些道路，排除暂停");
+    const old = foundation("map-match", intent);
+    const next = resolveAdvancedFollowup(text, { intent, foundation: old, evidenceItems: [], sourceGroundingId: "prior",
+      sourceResultHash: `sha256:${"0".repeat(64)}` }, catalog, config);
+    expect(next.resolution).toMatchObject({ status: "PARSED", intent: { historicalScope: { phaseScope: "EXECUTION_ENVELOPE" } } });
+    expect(next.reusableFoundation).toBeUndefined();
+    expect(next.reuse).toBeUndefined();
+  });
+  it.each(["重新查询经过哪些道路", "重查经过哪些道路", "刷新经过哪些道路", "refresh经过哪些道路"])("does not reuse unchanged scope after an explicit refresh: %s", text => {
+    const intent = parse("2号车经过哪些道路");
+    const old = foundation("map-match", intent);
+    const next = resolveAdvancedFollowup(text, { intent, foundation: old, evidenceItems: [], sourceGroundingId: "prior",
+      sourceResultHash: `sha256:${"0".repeat(64)}` }, catalog, config);
+    expect(next.compare).toBe(true);
+    expect(next.reusableFoundation).toBeUndefined();
+  });
   function priorRanking() {
     const intent = parse("2号车通信最好的三个位置在哪里");
     if (intent.analysis.kind !== "METRIC_RANKING") throw new Error("expected metric");

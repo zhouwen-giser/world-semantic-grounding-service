@@ -1,0 +1,12 @@
+{
+  "providerId": "gowm.analysis.metric-ranking",
+  "providerVersion": "0.1.0",
+  "implementationDigest": "sha256:482c8df64a0fee8b59bb195bb54f0bc2d4f461512d741678574da1985b282d98",
+  "manifestHash": "sha256:0e4805b5bf1beff57a393b55080137d56fa85a80513840132970844a1ed829d4",
+  "manifestPath": "contracts/manifests/providers/metric-ranking-provider.json",
+  "endpoint": "http://metric-ranking-provider:18140",
+  "approvalId": "metric-ranking-provider-v0.1-development",
+  "approvedBy": "development-operator",
+  "transportTokenEnv": "METRIC_RANKING_PROVIDER_TRANSPORT_TOKEN",
+  "allowPlaintextPrivateNetwork": true
+}

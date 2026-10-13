@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { verifyDevelopmentRuntime } from "../validation/scripts/verify-development-runtime.mjs";
 import { evaluateLiveBusinessCase } from "../validation/scripts/live-business-assertions.mjs";
+import { verifyUnifiedWsgsRuntime } from "../deployment/deploy-unified.mjs";
 
 describe("development deployment readiness probe", () => {
   const now = Date.parse("2026-10-11T00:00:00Z");
@@ -13,9 +14,9 @@ describe("development deployment readiness probe", () => {
     value.worldAnalysis.capabilities = value.worldAnalysis.capabilities.map((entry: any) => ({ ...entry, supported: true, available: true, reasonCodes: ["AVAILABLE"] }));
     return value;
   }
-  function probe(value = capabilities()) {
+  function probe(value = capabilities(), enabled = "YES") {
     const fetcher = vi.fn(async (_url: string, init: any) => new Response(JSON.stringify(init.headers["WSGS-Contract-Version"] ? value : { requiredCapabilitiesReady: true }), { status: 200 }));
-    return { fetcher, run: () => verifyDevelopmentRuntime({ environment: { PORT: "8080", WSGS_ADVANCED_HISTORY_ENABLED: "YES" }, fetcher, now: () => now }) };
+    return { fetcher, run: () => verifyDevelopmentRuntime({ environment: { PORT: "8080", WSGS_ADVANCED_HISTORY_ENABLED: enabled }, fetcher, now: () => now }) };
   }
   it("negotiates anonymous 1.2 capabilities and labels business acceptance NOT_RUN", async () => {
     const { run, fetcher } = probe();
@@ -29,6 +30,25 @@ describe("development deployment readiness probe", () => {
     if (mode === "expired") value.worldAnalysis.validUntil = new Date(now).toISOString();
     if (mode === "invalid") delete value.worldAnalysis;
     await expect(probe(value).run()).rejects.toThrow(/DEVELOPMENT_ANALYSIS_/u);
+  });
+  it("checks capabilities for the runtime-supported true flag", async () => {
+    const value = capabilities();
+    Object.assign(value.worldAnalysis.capabilities.find((entry: any) => entry.capability === "CROSS"), { available: false, reasonCodes: ["DEPENDENCY_UNAVAILABLE"] });
+    await expect(probe(value, "true").run()).rejects.toThrow("DEVELOPMENT_ANALYSIS_CAPABILITIES_UNAVAILABLE CROSS");
+  });
+  it.each([true, false])("unified deployment uses the full capability verifier (CROSS available=%s)", async available => {
+    const value = capabilities();
+    if (!available) Object.assign(value.worldAnalysis.capabilities.find((entry: any) => entry.capability === "CROSS"), { available: false, reasonCodes: ["DEPENDENCY_UNAVAILABLE"] });
+    const fixture = probe(value);
+    const compose = vi.fn((command: string[]) => {
+      expect(command).toEqual(["exec", "-T", "grounding-api", "node", "validation/scripts/verify-development-runtime.mjs"]);
+      return fixture.run();
+    });
+    const result = verifyUnifiedWsgsRuntime(compose);
+    if (available) await expect(result).resolves.toMatchObject({ advancedCapabilities: "READY", businessAcceptance: "NOT_RUN" });
+    else await expect(result).rejects.toThrow("DEVELOPMENT_ANALYSIS_CAPABILITIES_UNAVAILABLE CROSS");
+    expect(compose).toHaveBeenCalledTimes(1);
+    expect(fixture.fetcher).toHaveBeenCalledTimes(3);
   });
 });
 

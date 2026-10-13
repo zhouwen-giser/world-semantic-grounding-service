@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "package": "gowm-gdps-gsap-wsgs-dev-server-0.2.1.tar.gz",
+  "sha256": "631dff623d1c3a2ff9d25787ff023f576165a7a0efd1b334fc3e85ddc712bdb8",
+  "checks": {
+    "archiveInventory": "PASS",
+    "nestedSources": "PASS",
+    "freshInit": "PASS",
+    "repeatInitPreservesCredentials": "PASS",
+    "composeConfiguration": "PASS",
+    "signedGatewayMapping": "PASS",
+    "gdpsConsumerMapping": "PASS",
+    "privateFilePermissions": "PASS",
+    "extractedSourceBuild": "PASS",
+    "noContainersStarted": "PASS"
+  },
+  "configurationFixture": {
+    "ugvIngestEnabled": false,
+    "modelPolicy": "MODEL_OPTIONAL"
+  },
+  "siteAcceptance": "NOT_RUN",
+  "realModel": "NOT_RUN",
+  "realMqtt": "NOT_RUN",
+  "credentialsIncluded": false
+}

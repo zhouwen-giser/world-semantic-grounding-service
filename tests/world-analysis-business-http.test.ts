@@ -40,10 +40,12 @@ describe("nonempty historical production HTTP", () => {
   let directory: string;
   let baseUrl: string;
   const calls: string[] = [];
+  const operationInputs: Array<{ operationId: string; input: any }> = [];
   const gatewayErrors: string[] = [];
   async function start(options: { advanced: boolean; failure?: "HASH_DRIFT" | "MAP_UNAVAILABLE"; metric?: boolean; ambiguousSeries?: boolean; completeCross?: boolean; rejectSubject?: boolean; recordedElapsedMs?: number }) {
     const { advanced, failure, metric, ambiguousSeries, completeCross, rejectSubject, recordedElapsedMs } = options;
     calls.length = 0;
+    operationInputs.length = 0;
     gatewayErrors.length = 0;
     const fixture = analysisAdmissionFixture();
     const keys = generateKeyPairSync("rsa", { modulusLength: 2048 });
@@ -174,6 +176,7 @@ describe("nonempty historical production HTTP", () => {
       const { payload } = await jwtVerify(String(request.headers["x-gowm-delegation"]), keys.publicKey, { issuer: "business-issuer", audience: "business-audience", algorithms: ["RS256"] });
       expect(payload["allowedOperations"]).toEqual([`${operationId}@${body.operationVersion}`]);
       calls.push(operationId);
+      operationInputs.push({ operationId, input: structuredClone(body.input) });
       const descriptor = fixture.metadata.catalog.capabilities.find(entry => entry.operationId === operationId)!;
       expect(body.inputSchemaHash).toBe(descriptor.inputSchemaHash); expect(body.outputSchemaHash).toBe(descriptor.outputSchemaHash);
       if (operationId === "trajectory.map-match" || operationId === "temporal-spatial.find-events" || operationId === "spatiotemporal-metric.rank-locations") {
@@ -247,6 +250,7 @@ describe("nonempty historical production HTTP", () => {
           if (!binding.targetPath) input = structuredClone(v);
           else { const path = binding.targetPath.split('/').slice(1); let target = input; for (const part of path.slice(0,-1)) target = target[part] ??= {}; target[path.at(-1)] = structuredClone(v); }
         }
+        operationInputs.push({ operationId, input: structuredClone(input) });
         const output = { ...outputs[operationId], ...(operationId === "operational-task.get-execution-intervals" ? { requestedPhaseScope: input.phaseScope } : {}) };
         produced.set(node.nodeId, output);
         const operation = { operationId, operationVersion: descriptor.operationVersion };
@@ -294,7 +298,13 @@ describe("nonempty historical production HTTP", () => {
   it.each([
     ["2号车历史轨迹，仅限昨天", "HISTORICAL_TIME_WINDOW_UNSUPPORTED"],
     ["2号车通信信号最好的位置，仅限2026-09-01T08:03:00Z至2026-09-01T08:04:00Z", "HISTORICAL_TIME_WINDOW_UNSUPPORTED"],
-    ["2号车进入A区离开B区", "MULTI_ANALYSIS_NOT_SUPPORTED"]
+    ["2号车进入A区离开B区", "MULTI_ANALYSIS_NOT_SUPPORTED"],
+    ["2号车、3号车经过哪些道路", "MULTI_ANALYSIS_SCOPE_MISMATCH"],
+    ["第1次任务、第2次任务经过哪些道路", "MULTI_ANALYSIS_SCOPE_MISMATCH"],
+    ["任务T1、任务T2经过哪些道路", "MULTI_ANALYSIS_SCOPE_MISMATCH"],
+    ["2号车经过哪些道路，以及行驶是否超速", "ANALYSIS_CLAUSE_UNSUPPORTED"],
+    ["2号车经过哪些道路，并且统计超速次数", "ANALYSIS_CLAUSE_UNSUPPORTED"],
+    ["2号车经过哪些道路，以及查电池", "ANALYSIS_CLAUSE_UNSUPPORTED"]
   ])("returns a public gap without querying unsupported history: %s", async (text, reasonCode) => {
     await start({ advanced: true });
     const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": randomUUID() }, body: JSON.stringify(requestBody(text)) });
@@ -385,6 +395,49 @@ describe("nonempty historical production HTTP", () => {
     expect(calls.slice(beforeUnsupported).filter(id => id.startsWith("history.") || id.startsWith("operational-task."))).toEqual([]);
     expect(unsupported.evidenceItems).toEqual([]);
     expect(unsupported.capabilityGaps.some((gap: any) => JSON.stringify(gap).includes("HISTORICAL_TIME_WINDOW_UNSUPPORTED"))).toBe(true);
+  });
+  it("requeries changed public analysis scope, refreshes unchanged scope, and preserves later selection reuse", async () => {
+    await start({ advanced: true, metric: true });
+    const references = [
+      { referenceKey: subject, referenceType: "WORLD_OBJECT", alias: "2号车", sourceMessageId: "known-subject" },
+      { referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: "任务", sourceMessageId: "known-task" }
+    ];
+    async function submit(text: string, prior?: any) {
+      const body: any = requestBody(text, prior ? [] : references);
+      if (prior) {
+        const choice = prior.worldAnalysisFindings.choices.find((value: any) => value.choiceKind === "RANKED_LOCATION_SELECTION");
+        expect(choice).toBeDefined();
+        body.contextCapsule.priorGroundings = [{ groundingId: prior.groundingId, resultHash: prior.resultHash, selectedProductIds: [] }];
+        body.analysisSelections = [{ priorGroundingId: prior.groundingId, priorResultHash: prior.resultHash,
+          findingSetHash: prior.worldAnalysisFindings.findingSetHash, choiceId: choice.choiceId, candidateId: choice.candidates[0].candidateId }];
+      }
+      const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": randomUUID() }, body: JSON.stringify(body) });
+      const result = await response.json();
+      expect(response.status, JSON.stringify({ result, calls, gatewayErrors })).toBe(200);
+      expect(createWorldAnalysisValidator()("result", result)).toEqual({ valid: true, errors: [] });
+      expect(result.worldAnalysisFindings.findings.some((value: any) => value.findingKind === "METRIC_RANKING")).toBe(true);
+      expect(result.worldAnalysisFindings.gaps).toEqual([]);
+      return result;
+    }
+    const active = await submit("2号车通信信号最好的三个位置，排除暂停");
+    expect(operationInputs.find(value => value.operationId === "history.get-trajectory")?.input.phaseScope).toBe("ACTIVE_PHASES_ONLY");
+    const beforeFull = operationInputs.length;
+    const full = await submit("包含暂停，重新查询通信信号最好的三个位置", active);
+    const fullCalls = operationInputs.slice(beforeFull);
+    expect(fullCalls.filter(value => value.operationId === "history.get-trajectory")).toHaveLength(1);
+    expect(fullCalls.find(value => value.operationId === "history.get-trajectory")?.input.phaseScope).toBe("EXECUTION_ENVELOPE");
+    expect(fullCalls.find(value => value.operationId === "operational-task.get-execution-intervals")?.input.phaseScope).toBe("EXECUTION_ENVELOPE");
+    const beforeRefresh = operationInputs.length;
+    const refreshed = await submit("重查通信信号最好的三个位置", full);
+    expect(operationInputs.slice(beforeRefresh).filter(value => value.operationId === "history.get-trajectory")).toHaveLength(1);
+    const beforeReuse = calls.length;
+    const selected = await submit("选择第一个位置", refreshed);
+    expect(calls.slice(beforeReuse).filter(id => /history|operational-task|rank-locations/u.test(id))).toEqual([]);
+    const beforeGet = calls.length;
+    const saved = await (await fetch(`${baseUrl}/v1/groundings/${selected.groundingId}`, { headers })).json();
+    expect(saved.result).toEqual(selected);
+    expect(calls.length).toBe(beforeGet);
+    expect(gatewayErrors).toEqual([]);
   });
   it.each(["TRACE", "TRACE_WITH_ADVANCED", "TRACE_TASK_ONLY", "MAP", "MAP_TASK_ONLY", "CROSS", "CROSS_COMPLETE", "CROSS_HASH_DRIFT", "CROSS_MAP_UNAVAILABLE", "RANK", "RANK_SLOW", "RANK_TASK_ONLY", "RANK_COMPOUND", "SERIES_RANK_ACTION"])("queries nonempty %s over Gateway HTTP", async scenario => {
     const taskOnly = scenario.endsWith("TASK_ONLY");

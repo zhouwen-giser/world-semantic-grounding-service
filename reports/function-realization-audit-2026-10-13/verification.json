@@ -1,0 +1,50 @@
+{
+  "auditDate": "2026-10-13",
+  "timezone": "Asia/Shanghai",
+  "gitCommit": "0c00de5c0f45f591c2986544e0902b84038a1537",
+  "branch": "codex/wsgs-v0.2.4-stable-world-analysis-service",
+  "gitPull": "FAST_FORWARD_00f6625_TO_0c00de5",
+  "localDeploymentWorkPreserved": true,
+  "backupStash": "8ed91c714d600ca4f0192e8b37baa048dc6ad484",
+  "checks": {
+    "typecheck": {
+      "status": "PASS"
+    },
+    "check": {
+      "status": "PASS",
+      "testsPassed": 1177,
+      "postgresTestsSkipped": 49
+    },
+    "isolatedPostgres": {
+      "status": "PASS",
+      "testsPassed": 49,
+      "testsSkipped": 0,
+      "image": "postgres:17-alpine",
+      "existingBusinessDatabaseUsed": false
+    },
+    "auditProbes": {
+      "status": "COMPLETED",
+      "scope": "LOCAL_COMPONENT_AND_CONTROLLED_FETCH_ONLY",
+      "findings": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05"
+      ]
+    }
+  },
+  "liveBusiness": "NOT_RUN",
+  "realModel": "NOT_RUN",
+  "realSacs": "NOT_RUN",
+  "siteDeployment": "NOT_RUN",
+  "credentialsIncluded": false,
+  "fileHashes": {
+    "README.md": "e993ed24b85cec00fc72f3d7ae26f78d5fec7fb94e7864aaef35e60edd76bdaa",
+    "check-output.txt": "d03ecf36de787f5a522c9a806c59ca12c0c67d07f5bbe9f08ea13602fe338af6",
+    "postgres-output.txt": "42574138541f050e0b6e6c68988bc88751bd60e9521b20a2cc81797ed80188f2",
+    "probe-output.json": "4b2eae8a49a59d38cfcd167b0259aef1f1148ea4a664b719e1c7e75f3042416e",
+    "probe.mjs": "310b38fa0d1a91199f51ee3c8eeaf0a29bf0ad60282c760064bd2c307512fe00"
+  },
+  "logNormalization": "TRAILING_EMPTY_LINES_REMOVED"
+}
