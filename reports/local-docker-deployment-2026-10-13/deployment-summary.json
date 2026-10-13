@@ -1,0 +1,287 @@
+{
+  "schemaVersion": "wsgs-local-deployment/1.0",
+  "status": "PASS",
+  "completedAtUtc": "2026-10-13T11:59:11.279Z",
+  "source": "/home/sz/.wsgs-deployments/local-20261013-0615c07/source/wsgs-development",
+  "archive": "/home/sz/code/world-semantic-grounding-service/output/deployment/wsgs-development.tar.gz",
+  "archiveSha256": "33941ed9e76dbe7951a8d94aeb9a0e29d05cbdec44a95f6cfb16f61ba98a45ed",
+  "commit": "0615c07b38f61038453b6ee4e1166418516f4e4a",
+  "project": "gowm-analysis-dev-f3dc6f4b8e-wsgs",
+  "referencedGsapThread": "01a12515-2515-7390-b756-62cbe5bfb735",
+  "image": "wsgs-unified:33941ed9e76dbe79",
+  "apiUrl": "http://127.0.0.1:28080",
+  "model": {
+    "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "name": "qwen3.7-flash-2026-07-15",
+    "policy": "MODEL_REQUIRED",
+    "outputMode": "CHAT_COMPLETIONS_STRICT",
+    "timeoutMs": 120000,
+    "maxRetries": 1,
+    "apiKeyConfigured": true
+  },
+  "gsap": {
+    "sourceCommit": "c6b2b7273b9d4028d6cc8bed2af634fa8f740ab8",
+    "archiveSha256": "c963ab2230a6c2e5d3948470dfa8c0765df4cd21f6a73f630e021121de8aec9f",
+    "project": "gowm-analysis-dev-f3dc6f4b8e"
+  },
+  "preserve": {
+    "databaseCredentials": true,
+    "encryptionKey": true,
+    "delegationIdentity": true,
+    "volumes": true,
+    "upstreamContainers": true
+  },
+  "imageIdentity": {
+    "status": "PASS",
+    "image": "wsgs-unified:33941ed9e76dbe79",
+    "imageId": "sha256:bcc3fc9fe577c442819e244e96fa0309873e62108cd04d44a5946286d04fe246",
+    "commit": "0615c07b38f61038453b6ee4e1166418516f4e4a",
+    "sourcePackageSha256": "33941ed9e76dbe7951a8d94aeb9a0e29d05cbdec44a95f6cfb16f61ba98a45ed"
+  },
+  "runningContainers": [
+    {
+      "name": "gowm-analysis-dev-f3dc6f4b8e-wsgs-grounding-api-1",
+      "id": "2811aa65c029f143cdb053ce9a3e7a25ef0f7dd223cf824e1dbe4425d435f1b3",
+      "imageId": "sha256:bcc3fc9fe577c442819e244e96fa0309873e62108cd04d44a5946286d04fe246",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "gowm-analysis-dev-f3dc6f4b8e-wsgs-grounding-worker-1",
+      "id": "d408d548867b30f4c6dca6da3a243d8b89b94e5b80f8763dd7c7a713db88b691",
+      "imageId": "sha256:bcc3fc9fe577c442819e244e96fa0309873e62108cd04d44a5946286d04fe246",
+      "state": "running",
+      "health": "healthy"
+    }
+  ],
+  "modelConfigMatchesEnv": "PASS",
+  "realModelPreflight": {
+    "status": "PASS",
+    "schemaValidated": true,
+    "sourceAnchored": true,
+    "receipt": {
+      "receiptVersion": "1.0",
+      "status": "SUCCEEDED",
+      "modelHash": "efbf1b434185550f82dd7730bb69fff651e7e160f6e166631d99ef32cfb52d9d",
+      "promptVersion": "wsgs-domain-semantic-frame/1.0.3",
+      "promptHash": "f80d33f89801ab67894fbb9e674cb32b8d2f639411209c7a3bde58950eb4ae73",
+      "schemaHash": "01b32e1c0960facadad3cf06381bf5e84bc17f8c0ba1fa6cbd639475ab3f2026",
+      "inputHash": "04dd2e6ec850645a136c3f0f2434f56f8f313e3b3ad8995657f5a1eba9c300c4",
+      "outputHash": "b92a785f34211b2e8cb30306013c2bf51c39345e49e2d094d6c331a7b62748d3",
+      "requestIdHash": "5e76bcc143a06681dbe33a4a2b483c6190439bae64ad8b0b01cc95cd8de6840d",
+      "attempts": 1,
+      "elapsedMs": 35275
+    }
+  },
+  "signedGatewayPreflight": {
+    "status": "PASS",
+    "gatewayContractVersion": "0.7.1",
+    "capabilities": 160,
+    "semanticProfiles": 160,
+    "contractCatalogRevision": "sha256:9903649397d43d20d6f78b975a378c5a9feaa6a788416f9d35840d72c662043f",
+    "semanticCatalogHash": "sha256:c489cafa9e1ae8928d98d29e394a702d5b55a13028b06a26dfe71b9c6b6828c0",
+    "signedAvailability": "PASS",
+    "wrongSignature": 403,
+    "deniedScope": 403
+  },
+  "readiness": {
+    "http": 200,
+    "status": "ready",
+    "reasons": []
+  },
+  "capabilityVerification": {
+    "serviceReady": true,
+    "advancedCapabilities": "READY",
+    "businessAcceptance": "NOT_RUN"
+  },
+  "runtimeSource": {
+    "status": "PASS",
+    "verifiedFiles": 7
+  },
+  "northboundSchemaRejection": {
+    "http": 400,
+    "status": "PASS"
+  },
+  "concurrentExternalChanges": [
+    {
+      "name": "smpp-telemetry-telemetry-processor-1",
+      "project": "smpp-telemetry",
+      "oldId": "183ca72cba5e6c58d5866279d859372cdd68d5bb191017bc2ac86e15e674b54f",
+      "newId": "36a1f52b321cb617baeb88710a5f76a58e839b9b8d2dfe44da7ce73b6ee6adc2",
+      "createdAt": "2026-10-13T11:58:11.488304422Z"
+    },
+    {
+      "name": "smpp-telemetry-query-api-1",
+      "project": "smpp-telemetry",
+      "oldId": "defc6a6adac5baf12fb7125910f1da8f7e3269081eb2c05bb4340b985ce41728",
+      "newId": "4a11b390ffac0716b9db26f9f2963a2d2b9d58951f484d65d34531b1767089e1",
+      "createdAt": "2026-10-13T11:50:59.983635964Z"
+    },
+    {
+      "name": "smpp-telemetry-grafana-1",
+      "project": "smpp-telemetry",
+      "oldId": "c8acbfb6211e31a1eacc55b31c68fe2bb776633522518c0085ad817c0d0a784a",
+      "newId": "079056646f52a6cf8275e2a151f372ed324aaa3e45b259288e913e34b7de7af9",
+      "createdAt": "2026-10-13T11:50:58.667256997Z"
+    }
+  ],
+  "preservation": {
+    "status": "PASS",
+    "scope": "GOWM_GDPS_GSAP_AND_WSGS_PROJECTS",
+    "untargetedContainers": 36,
+    "containerIdsUnchanged": true,
+    "credentialAndEncryptionKeyUnchanged": true,
+    "delegationIdentityUnchanged": true,
+    "persistentVolumesUnchanged": true,
+    "databases": {
+      "wsgs": {
+        "systemIdentifier": "7695025932950261795",
+        "databaseOid": "16384"
+      },
+      "gowm": {
+        "systemIdentifier": "7695022525258043435",
+        "databaseOid": "16384"
+      }
+    }
+  },
+  "composeConfig": "/home/sz/.wsgs-deployments/local-20261013-0615c07/after.wsgs.compose.json",
+  "rollbackComposeConfig": "/home/sz/.wsgs-deployments/local-20261013-0615c07/before.wsgs.compose.json",
+  "fullRealDataAnalysis": "NOT_RUN",
+  "externalMqttBusinessAcceptance": "NOT_RUN",
+  "publicHttpSmoke": {
+    "status": "PASS",
+    "operation": "EXECUTE_WORLD_QUERY",
+    "groundingId": "grounding-bcaa63e6-b731-4b46-acb2-e936aca4c60e",
+    "admissionHttp": 202,
+    "terminalStatus": "UNRESOLVED",
+    "resultSchema": "PASS",
+    "idempotentReplayIdentical": true,
+    "elapsedMs": 72272,
+    "resultHash": "sha256:98acb89a2f2d47d5138b9b781b8ef1ee6ed4e7070950f6516e8ccf8bd9ae1db1",
+    "evidenceCount": 0,
+    "referenceProductCount": 0,
+    "ambiguityCount": 0,
+    "gapCount": 2,
+    "worldAnalysisFindingCount": 0,
+    "scope": "ONE_ANONYMOUS_READ_ONLY_REQUEST",
+    "positiveBusinessClaim": false
+  },
+  "publicPipelineEvidence": {
+    "groundingId": "grounding-bcaa63e6-b731-4b46-acb2-e936aca4c60e",
+    "checkpointAvailable": true,
+    "model": {
+      "status": "SUCCEEDED",
+      "attempts": 1,
+      "elapsedMs": 28026
+    },
+    "stages": [
+      {
+        "stage": "LOAD_CONTEXT",
+        "status": "COMPLETED",
+        "elapsedMs": 178,
+        "errorCode": null
+      },
+      {
+        "stage": "DETERMINISTIC_PARSE",
+        "status": "COMPLETED",
+        "elapsedMs": 6,
+        "errorCode": null
+      },
+      {
+        "stage": "SEMANTIC_MODEL_PARSE",
+        "status": "COMPLETED",
+        "elapsedMs": 28048,
+        "errorCode": null
+      },
+      {
+        "stage": "SEMANTIC_FRAME_VALIDATE",
+        "status": "COMPLETED",
+        "elapsedMs": 10,
+        "errorCode": null
+      },
+      {
+        "stage": "GROUNDING_GRAPH_BUILD",
+        "status": "COMPLETED",
+        "elapsedMs": 5,
+        "errorCode": null
+      },
+      {
+        "stage": "REFERENCE_RESOLVE",
+        "status": "COMPLETED",
+        "elapsedMs": 866,
+        "errorCode": null
+      },
+      {
+        "stage": "REFERENCE_VALIDATE",
+        "status": "COMPLETED",
+        "elapsedMs": 15,
+        "errorCode": null
+      },
+      {
+        "stage": "REQUIREMENT_PLAN",
+        "status": "COMPLETED",
+        "elapsedMs": 11,
+        "errorCode": null
+      },
+      {
+        "stage": "CAPABILITY_MATCH",
+        "status": "COMPLETED",
+        "elapsedMs": 23,
+        "errorCode": null
+      },
+      {
+        "stage": "WORLD_QUERY_COMPILE",
+        "status": "COMPLETED",
+        "elapsedMs": 21,
+        "errorCode": null
+      },
+      {
+        "stage": "GOWM_EXECUTE",
+        "status": "COMPLETED",
+        "elapsedMs": 13,
+        "errorCode": null
+      },
+      {
+        "stage": "EVIDENCE_NORMALIZE",
+        "status": "COMPLETED",
+        "elapsedMs": 19,
+        "errorCode": null
+      },
+      {
+        "stage": "PRODUCT_ASSEMBLE",
+        "status": "COMPLETED",
+        "elapsedMs": 18,
+        "errorCode": null
+      },
+      {
+        "stage": "RESULT_PERSIST",
+        "status": "COMPLETED",
+        "elapsedMs": 4,
+        "errorCode": null
+      }
+    ],
+    "operations": []
+  },
+  "fullCheck": {
+    "status": "PASS",
+    "testsPassed": 1222,
+    "postgresTestsSkipped": 49,
+    "testFilesPassed": 88,
+    "testFilesSkipped": 4
+  },
+  "modelReadinessRegression": {
+    "status": "PASS",
+    "testsPassed": 23
+  },
+  "modelReadinessBudgetMs": 135000,
+  "packages": {
+    "wsgs-development.tar.gz": {
+      "path": "/home/sz/code/world-semantic-grounding-service/output/deployment/wsgs-development.tar.gz",
+      "sha256": "33941ed9e76dbe7951a8d94aeb9a0e29d05cbdec44a95f6cfb16f61ba98a45ed"
+    },
+    "gowm-gdps-gsap-wsgs-dev-server-0.2.1.tar.gz": {
+      "path": "/home/sz/code/world-semantic-grounding-service/output/deployment/gowm-gdps-gsap-wsgs-dev-server-0.2.1.tar.gz",
+      "sha256": "b2b10f06896b33ce69ce4c6675fdebc70ca5b2b4608d4aa0e60f659d4a2cff5e"
+    }
+  }
+}

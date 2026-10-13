@@ -1,0 +1,96 @@
+{
+  "groundingId": "grounding-bcaa63e6-b731-4b46-acb2-e936aca4c60e",
+  "checkpointAvailable": true,
+  "model": {
+    "status": "SUCCEEDED",
+    "attempts": 1,
+    "elapsedMs": 28026
+  },
+  "stages": [
+    {
+      "stage": "LOAD_CONTEXT",
+      "status": "COMPLETED",
+      "elapsedMs": 178,
+      "errorCode": null
+    },
+    {
+      "stage": "DETERMINISTIC_PARSE",
+      "status": "COMPLETED",
+      "elapsedMs": 6,
+      "errorCode": null
+    },
+    {
+      "stage": "SEMANTIC_MODEL_PARSE",
+      "status": "COMPLETED",
+      "elapsedMs": 28048,
+      "errorCode": null
+    },
+    {
+      "stage": "SEMANTIC_FRAME_VALIDATE",
+      "status": "COMPLETED",
+      "elapsedMs": 10,
+      "errorCode": null
+    },
+    {
+      "stage": "GROUNDING_GRAPH_BUILD",
+      "status": "COMPLETED",
+      "elapsedMs": 5,
+      "errorCode": null
+    },
+    {
+      "stage": "REFERENCE_RESOLVE",
+      "status": "COMPLETED",
+      "elapsedMs": 866,
+      "errorCode": null
+    },
+    {
+      "stage": "REFERENCE_VALIDATE",
+      "status": "COMPLETED",
+      "elapsedMs": 15,
+      "errorCode": null
+    },
+    {
+      "stage": "REQUIREMENT_PLAN",
+      "status": "COMPLETED",
+      "elapsedMs": 11,
+      "errorCode": null
+    },
+    {
+      "stage": "CAPABILITY_MATCH",
+      "status": "COMPLETED",
+      "elapsedMs": 23,
+      "errorCode": null
+    },
+    {
+      "stage": "WORLD_QUERY_COMPILE",
+      "status": "COMPLETED",
+      "elapsedMs": 21,
+      "errorCode": null
+    },
+    {
+      "stage": "GOWM_EXECUTE",
+      "status": "COMPLETED",
+      "elapsedMs": 13,
+      "errorCode": null
+    },
+    {
+      "stage": "EVIDENCE_NORMALIZE",
+      "status": "COMPLETED",
+      "elapsedMs": 19,
+      "errorCode": null
+    },
+    {
+      "stage": "PRODUCT_ASSEMBLE",
+      "status": "COMPLETED",
+      "elapsedMs": 18,
+      "errorCode": null
+    },
+    {
+      "stage": "RESULT_PERSIST",
+      "status": "COMPLETED",
+      "elapsedMs": 4,
+      "errorCode": null
+    }
+  ],
+  "operations": []
+}

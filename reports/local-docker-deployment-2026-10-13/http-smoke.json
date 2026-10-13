@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "operation": "EXECUTE_WORLD_QUERY",
+  "groundingId": "grounding-bcaa63e6-b731-4b46-acb2-e936aca4c60e",
+  "admissionHttp": 202,
+  "terminalStatus": "UNRESOLVED",
+  "resultSchema": "PASS",
+  "idempotentReplayIdentical": true,
+  "elapsedMs": 72272,
+  "resultHash": "sha256:98acb89a2f2d47d5138b9b781b8ef1ee6ed4e7070950f6516e8ccf8bd9ae1db1",
+  "evidenceCount": 0,
+  "referenceProductCount": 0,
+  "ambiguityCount": 0,
+  "gapCount": 2,
+  "worldAnalysisFindingCount": 0,
+  "scope": "ONE_ANONYMOUS_READ_ONLY_REQUEST",
+  "positiveBusinessClaim": false
+}

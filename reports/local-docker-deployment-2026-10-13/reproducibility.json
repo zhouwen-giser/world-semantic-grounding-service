@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "commit": "0615c07b38f61038453b6ee4e1166418516f4e4a",
+  "method": "TWO_INDEPENDENT_BUILD_INVOCATIONS",
+  "firstBuild": {
+    "wsgs-development.tar.gz": "33941ed9e76dbe7951a8d94aeb9a0e29d05cbdec44a95f6cfb16f61ba98a45ed",
+    "gowm-gdps-gsap-wsgs-dev-server-0.2.1.tar.gz": "b2b10f06896b33ce69ce4c6675fdebc70ca5b2b4608d4aa0e60f659d4a2cff5e"
+  },
+  "secondBuild": {
+    "wsgs-development.tar.gz": "33941ed9e76dbe7951a8d94aeb9a0e29d05cbdec44a95f6cfb16f61ba98a45ed",
+    "gowm-gdps-gsap-wsgs-dev-server-0.2.1.tar.gz": "b2b10f06896b33ce69ce4c6675fdebc70ca5b2b4608d4aa0e60f659d4a2cff5e"
+  }
+}

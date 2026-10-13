@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /home/sz/code/world-semantic-grounding-service
+
+
+ Test Files  1 passed (1)
+      Tests  23 passed (23)
+   Start at  19:40:21
+   Duration  3.44s (transform 407ms, setup 0ms, import 523ms, tests 2.74s, environment 0ms)
