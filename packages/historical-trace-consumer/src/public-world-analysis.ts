@@ -10,7 +10,7 @@ import {
   type ValidatedAnalysisEnvelope, type MapMatchProviderResultV01,
   type TemporalSpatialEventResultV01, type MetricLocationRankingResultV01
 } from "@wsgs/gowm-contract-intake";
-import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation } from "./advanced-types.js";
+import { advancedAnalysisRequests, MAXIMUM_ADVANCED_ANALYSES, type AdvancedAnalysisFailure, type AdvancedHistoricalExecutionResult, type AdvancedHistoricalFoundation } from "./advanced-types.js";
 import type { HistoricalReferenceKey, TimeRange } from "./types.js";
 import type { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
 
@@ -25,6 +25,7 @@ const codes = (values: readonly string[]) => [...new Set(values.filter(value => 
 const range = (value: TimeRange) => ({ start: value.start, end: value.end, bounds: value.bounds ?? "UNSPECIFIED" });
 const stableId = (prefix: string, value: unknown) => `${prefix}-${hash(value).slice(7, 39)}`;
 export const publicWorldAnalysisEventId = (groundingId: string, sourceId: string, eventId: string) => stableId("event", { groundingId, source: { sourceId, eventId } });
+export const publicWorldAnalysisFindingId = (groundingId: string, kind: Finding["findingKind"], source: string) => stableId("finding", { groundingId, source: { kind, source } });
 
 class ProjectionError extends Error {
   constructor(readonly gapKind: GapKind) { super(gapKind); }
@@ -64,6 +65,7 @@ export function projectPublicWorldAnalysis(input: {
   catalog?: MetricSemanticCatalog;
   advanced?: AdvancedHistoricalExecutionResult;
   failureReasonCode?: string;
+  compilationFailures?: readonly AdvancedAnalysisFailure[];
   foundation?: AdvancedHistoricalFoundation;
 }): PublicWorldAnalysisProjection {
   const { context } = input;
@@ -78,6 +80,40 @@ export function projectPublicWorldAnalysis(input: {
     gaps.push({ gapId: id("gap", { gapKind, source }), gapKind, severity, messageCode: gapKind, findingIds: [], evidenceIds: [],
       detail: typeof source === "string" && codePattern.test(source) ? { reasonCode: source } : {} });
   };
+  const scopedGap = (source: WorldAnalysisGap, analysis: AdvancedHistoricalExecutionResult["intent"]["analysis"], index: number): WorldAnalysisGap => ({
+    ...source, gapId: id("gap", { source: source.gapId, analysis, index }),
+    detail: { ...source.detail, reasonCode: `ANALYSIS_${index}_${analysis.kind}${analysis.kind === "TEMPORAL_EVENT" ? `_${analysis.eventType}` : ""}/${source.detail.reasonCode ?? source.gapKind}` }
+  });
+  for (const failure of input.compilationFailures ?? []) {
+    const projected = projectPublicWorldAnalysis({ context, failureReasonCode: failure.reasonCode });
+    gaps.push(...projected.component.gaps.map(source => scopedGap(source, failure.intent.analysis, failure.analysisIndex)));
+  }
+  if (input.advanced?.analysisResults) {
+    const requests = advancedAnalysisRequests(input.advanced.intent);
+    const children = input.advanced.analysisResults;
+    if (children.length !== requests.length || children.length < 2 || children.length > MAXIMUM_ADVANCED_ANALYSES ||
+        children.some((child, index) => child.analysisResults || child.intent.additionalAnalyses?.length || analysisHash(child.intent) !== analysisHash(requests[index]) ||
+          foundation && child.foundation && analysisHash(child.foundation) !== analysisHash(foundation))) {
+      gap("UPSTREAM_CONTRACT_MISMATCH", "ADVANCED_HISTORY_RESULT_INVALID");
+      return finish();
+    }
+    const merge = <T>(values: T[], additions: T[], key: (value: T) => string) => {
+      for (const value of additions) {
+        const existing = values.find(entry => key(entry) === key(value));
+        if (!existing) values.push(value);
+        else if (analysisHash(existing) !== analysisHash(value)) gap("UPSTREAM_CONTRACT_MISMATCH", "ADVANCED_HISTORY_RESULT_INVALID");
+      }
+    };
+    for (const [index, child] of children.entries()) {
+      const projected = projectPublicWorldAnalysis({ ...input, advanced: child,
+        ...(child.foundation ? { foundation: child.foundation } : {}) });
+      merge(findings, projected.component.findings, value => value.findingId);
+      merge(choices, projected.component.choices, value => value.choiceId);
+      merge(evidenceItems, projected.evidenceItems, value => value.evidenceProductId);
+      for (const source of projected.component.gaps) gaps.push(scopedGap(source, child.intent.analysis, index + 1));
+    }
+    return finish();
+  }
   function reference(key: HistoricalReferenceKey | undefined, required = false): string | undefined {
     if (!key) { if (required) throw new ProjectionError("REFERENCE_MISSING"); return undefined; }
     const matched = context.referenceProducts.filter(product => hash(product.referenceKey) === hash(key));
@@ -171,7 +207,11 @@ export function projectPublicWorldAnalysis(input: {
         const result = input.contracts.validateResult(source.operationId, envelope.output.value);
         assertScope(result.source.trajectoryReferenceKey, result.subjectReferenceKey);
         const intent = input.advanced!.intent.analysis;
-        if (intent.kind !== "TEMPORAL_EVENT" || analysisHash(result.requestedEventTypes) !== analysisHash([intent.eventType]) || (intent.selection.kind !== "ALL" && result.selectionResult?.kind !== intent.selection.kind)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
+        if (intent.kind !== "TEMPORAL_EVENT" || analysisHash(result.requestedEventTypes) !== analysisHash([intent.eventType]) ||
+            result.events.some(event => event.eventType !== intent.eventType) || (intent.selection.kind !== "ALL" && result.selectionResult?.kind !== intent.selection.kind)) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
+        const target = input.advanced!.target;
+        if (target && result.events.some(event => event.target?.kind !== "SPATIAL_TARGET" || event.target.targetId !== target.targetId ||
+            event.target.targetType !== target.targetType || !event.target.referenceKey || analysisHash(event.target.referenceKey) !== analysisHash(target.referenceKey))) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
         if (intent.eventType === "CROSS" && (result.source.kind !== "MAP_MATCH_RESULT" || !validatedMaps.has(result.source.mapMatchResultHash))) throw new ProjectionError("UPSTREAM_CONTRACT_MISMATCH");
         if (intent.eventType === "CROSS" && result.source.kind === "MAP_MATCH_RESULT") {
           const map = validatedMaps.get(result.source.mapMatchResultHash)!;
@@ -246,15 +286,18 @@ export function projectPublicWorldAnalysis(input: {
       gap(error instanceof ProjectionError ? error.gapKind : "UPSTREAM_CONTRACT_MISMATCH", source.operationId);
     }
   }
-  if (input.failureReasonCode || input.advanced && !input.advanced.analysisEvidence.length) {
+  if (!input.compilationFailures?.length && (input.failureReasonCode || input.advanced && (!input.advanced.analysisEvidence.length || ["FAILED", "CAPABILITY_GAP", "PENDING", "UNRESOLVED"].includes(input.advanced.status) ||
+      ["ADVANCED_HISTORY_DEADLINE_EXCEEDED", "ASSOCIATION_SUFFIX_INCOMPLETE", "MAP_MATCH_PRECONDITION_NOT_SATISFIED"].includes(input.advanced.reasonCode)))) {
     const reason = input.failureReasonCode ?? input.advanced!.reasonCode;
     const reasons: Record<string, GapKind> = {
       ADVANCED_HISTORY_DISABLED: "CAPABILITY_UNAVAILABLE", ADVANCED_HISTORY_REQUIRES_HISTORY: "CAPABILITY_UNAVAILABLE",
       REFERENCE_MISSING: "REFERENCE_MISSING", SELECTION_EXPIRED: "SELECTION_EXPIRED",
       SELECTION_INVALID: "SELECTION_INVALID", SELECTION_AMBIGUOUS: "SELECTION_AMBIGUOUS",
+      SELECTION_CONTEXT_REQUIRED: "SELECTION_AMBIGUOUS",
       HISTORICAL_PROJECTION_PENDING: "HISTORICAL_PROJECTION_PENDING",
       HISTORICAL_TRAJECTORY_NO_DATA: "HISTORICAL_DATA_INCOMPLETE",
       HISTORICAL_TRAJECTORY_CONFLICTED: "HISTORICAL_DATA_INCOMPLETE",
+      ASSOCIATION_SUFFIX_INCOMPLETE: "ANALYSIS_INCOMPLETE", MAP_MATCH_PRECONDITION_NOT_SATISFIED: "ANALYSIS_INCOMPLETE",
       HISTORICAL_TRAJECTORY_REFERENCE_MISSING: "REFERENCE_MISSING",
       SUBJECT_CONTEXT_REQUIRED: "SUBJECT_CONTEXT_REQUIRED", SUBJECT_CONTEXT_AMBIGUOUS: "REFERENCE_AMBIGUOUS",
       TASK_CONTEXT_REQUIRED: "TASK_CONTEXT_REQUIRED", TASK_CONTEXT_AMBIGUOUS: "REFERENCE_AMBIGUOUS",
@@ -263,6 +306,8 @@ export function projectPublicWorldAnalysis(input: {
       METRIC_CONCEPT_UNSUPPORTED: "METRIC_UNSUPPORTED", METRIC_UNIT_CONFLICT: "METRIC_UNSUPPORTED",
       MULTI_EXECUTION_ADVANCED_ANALYSIS_NOT_SUPPORTED: "MULTI_EXECUTION_UNSUPPORTED",
       HISTORICAL_TIME_WINDOW_UNSUPPORTED: "CAPABILITY_UNAVAILABLE", MULTI_ANALYSIS_NOT_SUPPORTED: "CAPABILITY_UNAVAILABLE",
+      ADVANCED_ANALYSIS_LIMIT_EXCEEDED: "CAPABILITY_UNAVAILABLE", ADVANCED_ANALYSIS_BUDGET_EXCEEDED: "CAPABILITY_UNAVAILABLE",
+      MULTI_ANALYSIS_SCOPE_MISMATCH: "CAPABILITY_UNAVAILABLE",
       HISTORICAL_SOURCE_SELECTION_UNSUPPORTED: "CAPABILITY_UNAVAILABLE",
       ADVANCED_HISTORY_DEADLINE_EXCEEDED: "UPSTREAM_TIMEOUT", ADVANCED_HISTORY_RESULT_INVALID: "UPSTREAM_CONTRACT_MISMATCH",
       HISTORICAL_UPSTREAM_CONTRACT_MISMATCH: "UPSTREAM_CONTRACT_MISMATCH",
@@ -383,9 +428,10 @@ function projectRanking(result: MetricLocationRankingResultV01, conceptId: strin
     display: { returnedCount: result.candidates.length, ...(result.summary.truncated ? { sourceCount: result.summary.qualifiedLocationCount } : {}), truncated: result.summary.truncated } };
 }
 
-export function assemblePublicWorldAnalysisResult(base: GroundingResult12, projection: PublicWorldAnalysisProjection, options: { maxResultBytes?: number; selectedCandidateIds?: readonly string[] } = {}): GroundingResult12 {
+export function assemblePublicWorldAnalysisResult(base: GroundingResult12, projection: PublicWorldAnalysisProjection, options: { maxResultBytes?: number; selectedCandidateIds?: readonly string[]; compileOnly?: boolean } = {}): GroundingResult12 {
   const statuses = [base.status, projection.status];
-  const usable = base.referenceProducts.length > 0 || projection.component.findings.some(finding => ["COMPLETED", "PARTIAL", "NO_DATA"].includes(finding.status));
+  const usable = base.referenceProducts.length > 0 || projection.component.findings.some(finding => ["COMPLETED", "PARTIAL", "NO_DATA"].includes(finding.status)) ||
+    options.compileOnly === true && base.gowmQueries?.some(query => ["COMPLETED", "PARTIAL"].includes(query.status));
   const emptyAnalysis = projection.component.findings.length === 0 && projection.component.choices.length === 0 && projection.component.gaps.length === 0;
   const status = emptyAnalysis ? base.status : statuses.includes("CANCELLED") ? "CANCELLED" : statuses.includes("AMBIGUOUS") ? "AMBIGUOUS" :
     statuses.includes("FAILED") ? (usable ? "PARTIAL" : "FAILED") : statuses.includes("UNRESOLVED") ? (usable ? "PARTIAL" : "UNRESOLVED") :

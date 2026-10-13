@@ -10,8 +10,18 @@ export type AdvancedAnalysisIntent =
   | { kind: "ROAD_ASSOCIATION"; output: "ROAD_VISITS" | "LAST_CONFIRMED_ROAD" | "OFF_NETWORK_SEGMENTS" | "NETWORK_DATA_ISSUES" }
   | { kind: "TEMPORAL_EVENT"; eventType: TemporalEventType; selection: EventSelection; targetMention?: string; targetReferenceKey?: HistoricalReferenceKey }
   | { kind: "METRIC_RANKING"; metricConceptId: string; metricSelector: MetricSelector; metricSeriesSelection: MetricSeriesSelection; topK: number; selectedRank?: number; actionTargetRequested: boolean };
-export interface AdvancedHistoricalIntent { historicalScope: HistoricalScopeIntent; analysis: AdvancedAnalysisIntent }
+export interface AdvancedHistoricalIntent {
+  historicalScope: HistoricalScopeIntent;
+  analysis: AdvancedAnalysisIntent;
+  additionalAnalyses?: AdvancedAnalysisIntent[];
+}
+
+export const MAXIMUM_ADVANCED_ANALYSES = 8;
+export function advancedAnalysisRequests(intent: AdvancedHistoricalIntent): AdvancedHistoricalIntent[] {
+  return [intent.analysis, ...(intent.additionalAnalyses ?? [])].map(analysis => ({ historicalScope: intent.historicalScope, analysis }));
+}
 export type AdvancedIntentResolution = { status: "PARSED"; intent: AdvancedHistoricalIntent } | { status: "UNRESOLVED"; reasonCode: string } | { status: "NOT_ADVANCED" };
+export interface AdvancedAnalysisFailure { intent: AdvancedHistoricalIntent; reasonCode: string; analysisIndex: number }
 export interface AdvancedHistoryConfiguration {
   enabled: boolean; contractRoot?: string; metricCatalogPath?: string;
   maximumEvents: number; maximumRoadVisits: number; maximumSegments: number;
@@ -44,7 +54,11 @@ export interface AdvancedHistoricalExecutionResult {
   findings: Record<string, unknown>[];
   operations: string[];
   planHash?: string;
+  queryId?: string;
+  reusedOperationIds?: string[];
   executionAvailabilityObservations?: AdvancedAvailabilityObservation[];
   publicEventSelection?: { sourceResultHash: string; eventId: string };
   comparison?: { changed: boolean; changedFields: string[] };
+  /** Server-owned per-analysis results. Each child has one intent and its own evidence. */
+  analysisResults?: AdvancedHistoricalExecutionResult[];
 }

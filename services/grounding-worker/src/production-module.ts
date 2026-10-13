@@ -84,7 +84,9 @@ import {
   compareHistoricalFindings,
   executeHistoricalTrace,
   executeAdvancedHistoricalAnalysis,
-  compileAdvancedHistoricalAnalysis,
+  compileAdvancedHistoricalAnalyses,
+  advancedAnalysisRequests,
+  advancedAnalysisPattern,
   canReuseAdvancedFoundation,
   advancedHistoryConfigurationFromEnvironment,
   parseAdvancedHistoricalIntent,
@@ -95,6 +97,7 @@ import {
   advancedSelectionRank,
   type PriorAdvancedHistory,
   type AdvancedFollowup,
+  type AdvancedAnalysisFailure,
   type AdvancedHistoricalFoundation,
   boundAdvancedSafePayload,
   type AdvancedHistoryConfiguration,
@@ -324,6 +327,7 @@ interface HistoricalCompilation {
   advancedIntent?: AdvancedHistoricalIntent;
   advancedResolution?: AdvancedIntentResolution;
   advancedFailure?: string;
+  advancedCompilationFailures?: AdvancedAnalysisFailure[];
   advancedFollowup?: AdvancedFollowup;
 }
 
@@ -1902,7 +1906,20 @@ async function resolveAdvancedTarget(value: Runtime, context: PipelineStageConte
 }
 
 export function advancedEvidence(execution: AdvancedHistoricalExecutionResult | undefined, failure: string | undefined,
-  authority: Pick<PersistedAuthority, "capabilityCatalog">, groundingId: string, runtime: Pick<Runtime, "history" | "advancedHistory">) {
+  authority: Pick<PersistedAuthority, "capabilityCatalog">, groundingId: string, runtime: Pick<Runtime, "history" | "advancedHistory">): {
+    status: "COMPLETED" | "PARTIAL"; advancedStatus: string; evidenceItems: GroundingEvidenceItem[];
+    referenceProducts: JsonObject[]; capabilityGaps: JsonObject[]; warnings: string[];
+  } {
+  if (execution?.analysisResults) {
+    const children = execution.analysisResults.map(child => advancedEvidence(child, failure, authority, groundingId, runtime));
+    return { status: execution.status === "COMPLETED" && children.every(child => child.status === "COMPLETED") ? "COMPLETED" as const : "PARTIAL" as const,
+      advancedStatus: execution.status, evidenceItems: children.flatMap(child => child.evidenceItems),
+      referenceProducts: children.flatMap(child => child.referenceProducts).filter((product, index, all) =>
+        all.findIndex(value => canonicalSha256(value["referenceKey"]) === canonicalSha256(product["referenceKey"])) === index),
+      capabilityGaps: children.flatMap((child, index) => child.capabilityGaps.map(gap => ({ ...gap,
+        gapId: `advanced-gap-${canonicalSha256({ index, gap }).slice(7, 31)}` }))),
+      warnings: [...new Set(children.flatMap(child => child.warnings))] };
+  }
   const code = failure ?? execution?.reasonCode ?? "HISTORICAL_FOUNDATION_REQUIRED";
   const referenceProducts: JsonObject[] = [];
   if (execution?.foundation) {
@@ -2085,8 +2102,9 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
     status: executed.historicalExecution.status === "CAPABILITY_GAP" ? "FAILED" :
       executed.historicalExecution.status === "PENDING" ? "PARTIAL" : executed.historicalExecution.status,
     resultHash: canonicalSha256(executed.historicalExecution)
-  }] : []).concat(executed?.advancedExecution?.planHash ? [{ queryId: executed.advancedExecution.planHash,
-    status: executed.advancedExecution.status === "COMPLETED" ? "COMPLETED" : "PARTIAL", resultHash: canonicalSha256(executed.advancedExecution) }] : []);
+  }] : []).concat(executed?.advancedExecution ? (executed.advancedExecution.analysisResults ?? [executed.advancedExecution]).flatMap(analysis => analysis.planHash ? [{
+    queryId: analysis.queryId ?? analysis.planHash, status: analysis.status === "COMPLETED" ? "COMPLETED" : analysis.status === "FAILED" ? "FAILED" : "PARTIAL",
+    resultHash: canonicalSha256(analysis) }] : []) : []);
   const compiledQueryRecords = compiled?.compiled.flatMap((entry) => entry.status === "COMPILED" ? [{
     queryId: entry.submission.plan.queryId, status: "COMPLETED", resultHash: entry.planHash
   }] : []).concat(compiled?.historicalPlan ? [{
@@ -2155,12 +2173,13 @@ function resultDocument(context: PipelineStageContext, runtime: Runtime, evidenc
   const failureReasonCode = executed?.advancedFailure ?? compiled?.advancedFailure ?? executed?.historicalSubjectFailure;
   const issuedAt = new Date();
   return assembleProductionWorldAnalysis({
-    base: document, runFingerprint: context.runFingerprint,
+    base: document, runFingerprint: context.runFingerprint, compileOnly: context.operation === "COMPILE_WORLD_QUERY",
     issuedAt: issuedAt.toISOString(), validUntil: new Date(issuedAt.getTime() + 60_000).toISOString(),
     maxResultBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
     ...(runtime.analysisContracts ? { contracts: runtime.analysisContracts } : {}), catalog: runtime.metricCatalog,
     ...(executed?.advancedExecution ? { advanced: executed.advancedExecution } : {}),
     ...(failureReasonCode ? { failureReasonCode } : {}),
+    ...(compiled?.advancedIntent?.additionalAnalyses?.length && compiled.advancedCompilationFailures?.length ? { compilationFailures: compiled.advancedCompilationFailures } : {}),
     ...(executed?.historicalExecution ? { historicalExecution: executed.historicalExecution } : {}),
     ...(foundation ? { foundation } : {}), foundationEvidenceIds
   }) as unknown as JsonObject;
@@ -2192,6 +2211,20 @@ async function withFence(context: Pick<PipelineStageContext, "jobId" | "leaseTok
     );
     if (owned.rowCount !== 1) throw new PipelineFenceRejectedError();
     await run(client);
+  });
+}
+
+async function persistAdvancedPlans(context: PipelineStageContext, pool: Pool, plans: Extract<CompileResult, { status: "COMPILED" }>[]): Promise<void> {
+  if (!plans.length) return;
+  await withFence(context, pool, async client => {
+    for (const plan of plans) {
+      const saved = await client.query(`INSERT INTO wsgs.world_query(query_id, grounding_id, data_scope, plan, plan_hash)
+        VALUES ($1,$2,$3,$4::jsonb,$5)
+        ON CONFLICT (query_id) DO UPDATE SET plan = EXCLUDED.plan, plan_hash = EXCLUDED.plan_hash
+        WHERE wsgs.world_query.grounding_id = EXCLUDED.grounding_id AND wsgs.world_query.plan_hash = EXCLUDED.plan_hash`,
+        [plan.submission.plan.queryId, context.groundingId, identity(context).dataScope, JSON.stringify(plan.submission), plan.planHash]);
+      if (saved.rowCount !== 1) throw new PipelineFenceRejectedError();
+    }
   });
 }
 
@@ -3706,15 +3739,19 @@ export async function createPipelineStageExecutor(
             (output.advancedIntent ? historicalFoundationForAdvanced(loaded.priorHistorical, output.advancedIntent, String(parts.source["originalText"])) : undefined);
           const selections = loaded.publicAnalysisAuthorities ?? (loaded.publicAnalysisAuthority ? [loaded.publicAnalysisAuthority] : []);
           const selectionFailure = publicAnalysisSelectionFailure(selections, references);
-          const target = prior?.target && prior.intent.analysis.kind === "TEMPORAL_EVENT" && output.advancedIntent?.analysis.kind === "TEMPORAL_EVENT" &&
-            prior.intent.analysis.targetMention === output.advancedIntent.analysis.targetMention ? prior.target : undefined;
+          const targets = output.advancedIntent ? advancedAnalysisRequests(output.advancedIntent).flatMap(({ analysis }) => {
+            if (analysis.kind !== "TEMPORAL_EVENT") return [];
+            const source = (prior?.analysisResults ?? (prior ? [prior] : [])).find(child => child.target && child.intent.analysis.kind === "TEMPORAL_EVENT" &&
+              child.intent.analysis.targetMention === analysis.targetMention);
+            return source?.target ? [{ analysis, target: source.target }] : [];
+          }) : [];
           if (selectionFailure) output.advancedFailure = selectionFailure;
           else if (planning.advancedResolution.status === "UNRESOLVED") output.advancedFailure = planning.advancedResolution.reasonCode;
           else if (!output.advancedIntent || !value.analysisContracts) output.advancedFailure = "ADVANCED_HISTORY_DISABLED";
           else {
-            const result = compileAdvancedHistoricalAnalysis({ intent: output.advancedIntent, configuration: value.advancedHistory,
+            const result = compileAdvancedHistoricalAnalyses({ intent: output.advancedIntent, configuration: value.advancedHistory,
               history: value.history, contracts: value.analysisContracts, deadlineAt: context.deadlineAt,
-              ...(foundation ? { foundation } : {}), ...(target ? { target } : {}),
+              ...(foundation ? { foundation } : {}), targets,
               compileContext: { groundingId: context.groundingId, requestId: gatewayRequestId(String(request(context)["requestId"])), idempotencyKey: idempotencyKey(context),
                 capabilities: authority.capabilityCatalog.capabilities, semanticProfiles: authority.semanticCatalog.profiles,
                 operationLocks: allGatewayLocks(authority.southboundLock), availability: authority.availability.operations,
@@ -3722,18 +3759,15 @@ export async function createPipelineStageExecutor(
                 budgets: { maximumNodes: integer(parts.policy["maxQueryOperations"], "MAX_QUERY_OPERATIONS_INVALID"), maximumDepth: 2,
                   maximumRows: 250000, maximumCandidates: 250000, maximumOutputBytes: integer(parts.policy["maxResultBytes"], "MAX_RESULT_BYTES_INVALID"),
                   maximumExecutionMs: Math.max(1, context.deadlineAt.getTime() - Date.now()) } } });
-            if (result.status === "CAPABILITY_GAP") output.advancedFailure = result.reasonCode;
-            else {
-              output.compiled.push(result);
-              await withFence(context, value.pool, async client => {
-                const saved = await client.query(`INSERT INTO wsgs.world_query(query_id, grounding_id, data_scope, plan, plan_hash)
-                  VALUES ($1,$2,$3,$4::jsonb,$5)
-                  ON CONFLICT (query_id) DO UPDATE SET plan = EXCLUDED.plan, plan_hash = EXCLUDED.plan_hash
-                  WHERE wsgs.world_query.grounding_id = EXCLUDED.grounding_id AND wsgs.world_query.plan_hash = EXCLUDED.plan_hash`,
-                  [result.submission.plan.queryId, context.groundingId, identity(context).dataScope, JSON.stringify(result.submission), result.planHash]);
-                if (saved.rowCount !== 1) throw new PipelineFenceRejectedError();
-              });
-            }
+            if (result.failures.length) output.advancedFailure = result.failures[0]!.reasonCode;
+            output.advancedCompilationFailures = result.failures;
+            output.compiled.push(...result.plans);
+            for (const failure of result.failures) output.capabilityGaps.push({ gapId: `gap-${canonicalSha256(failure).slice(7, 39)}`,
+              semanticCapability: advancedAnalysisPattern(failure.intent), reason: failure.reasonCode.includes("BUDGET_EXCEEDED") ? "BUDGET_EXCEEDED" :
+                /^ANALYSIS_(CAPABILITY_|AVAILABILITY_)/u.test(failure.reasonCode) ? "OPERATION_UNAVAILABLE" :
+                  /CONTRACT|SCHEMA|SEMANTIC/u.test(failure.reasonCode) ? "SCHEMA_MISMATCH" : "UNSUPPORTED_EXPRESSION", requiredForProduct: "WORLD_EVIDENCE", blocking: true,
+              details: { reasonCode: failure.reasonCode, analysisKind: failure.intent.analysis.kind, analysisIndex: failure.analysisIndex } });
+            await persistAdvancedPlans(context, value.pool, result.plans);
           }
           return resultDocument({ ...context, state: { ...context.state, WORLD_QUERY_COMPILE: output,
             EVIDENCE_NORMALIZE: { status: output.advancedFailure ? "PARTIAL" : "COMPLETED", evidenceItems: [], capabilityGaps: [],
@@ -3915,7 +3949,9 @@ export async function createPipelineStageExecutor(
         const reusableFoundation = compilation.advancedFollowup?.reusableFoundation ??
           historicalFoundationForAdvanced(prior, compilation.advancedIntent, String(parts.source["originalText"]));
         let subjectAdmission: HistoricalSubjectAdmission | undefined;
+        const advancedPlans: Extract<CompileResult, { status: "COMPILED" }>[] = [];
         const advancedExecution = await executeAdvancedHistoricalAnalysis({
+          onCompiled: plan => { advancedPlans.push(plan); },
           ...(publicAnalysis ? { admitFoundationSubject: async (execution: HistoricalExecutionResult) => {
             subjectAdmission = await admitSubject(execution, references);
             return subjectAdmission.status === "ADMITTED"
@@ -3971,11 +4007,11 @@ export async function createPipelineStageExecutor(
           } },
           gateway: { execute: async (operationId, input, execution) => {
             const lock = operationLock(authority, operationId);
-            return executeOperation(value, context, lock, input, `advanced-${execution.idempotencyKey.slice(7)}`, execution.budget);
+            return executeOperation(value, { ...context, deadlineAt: execution.deadlineAt }, lock, input, `advanced-${execution.idempotencyKey.slice(7)}`, execution.budget);
           } },
-          resolveTarget: async mention => resolveAdvancedTarget(value, context, mention,
-            compilation.advancedIntent!.analysis.kind === "TEMPORAL_EVENT" ? compilation.advancedIntent!.analysis.targetReferenceKey : undefined)
+          resolveTarget: async (mention, referenceKey) => resolveAdvancedTarget(value, context, mention, referenceKey)
         });
+        await persistAdvancedPlans(context, value.pool, advancedPlans);
         if (compilation.advancedFollowup?.compare && compilation.advancedFollowup.prior) {
           const priorResult = compilation.advancedFollowup.prior;
           const previousFindings = priorResult.evidenceItems.map(item => object(item["safePayload"], "HISTORICAL_PRIOR_EVIDENCE_INVALID"));

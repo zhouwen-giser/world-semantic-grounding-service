@@ -8,10 +8,10 @@ import { historicalTraceConfigurationFromEnvironment } from "./config.js";
 import { advancedHistoryConfigurationFromEnvironment } from "./advanced-config.js";
 import { parseAdvancedHistoricalIntent } from "./advanced-intent.js";
 import { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
-import { executeAdvancedHistoricalAnalysis, compileAdvancedHistoricalAnalysis, canReuseAdvancedFoundation, type AdvancedExecutionInput } from "./advanced-executor.js";
+import { executeAdvancedHistoricalAnalysis, compileAdvancedHistoricalAnalysis, compileAdvancedHistoricalAnalyses, canReuseAdvancedFoundation, type AdvancedExecutionInput } from "./advanced-executor.js";
 import { boundAdvancedSafePayload, normalizeMetricRanking, normalizeRoadAssociation, normalizeTemporalEvent } from "./advanced-normalizer.js";
 import { decodeStoredAdvancedHistory, resolveAdvancedFollowup } from "./advanced-followup.js";
-import type { AdvancedHistoricalFoundation, AdvancedHistoricalIntent, AdvancedHistoryConfiguration } from "./advanced-types.js";
+import { advancedAnalysisRequests, type AdvancedHistoricalFoundation, type AdvancedHistoricalIntent, type AdvancedHistoryConfiguration } from "./advanced-types.js";
 import { createHash } from "node:crypto";
 
 const config = advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" });
@@ -51,8 +51,31 @@ function executionInput(text: string, name: string): AdvancedExecutionInput {
 }
 
 describe("advanced deterministic historical intent", () => {
-  it.each(["2号车进入A区、离开A区、停留多久", "2号车经过哪些道路，在哪里停车", "任务期间信号最好的位置和最后经过的路口", "2号车首次和最后进入A区的时间"])("rejects compound analysis without silently dropping clauses: %s", text => {
+  it.each(["2号车首次和最后进入A区的时间", "2号车进入A区离开B区"])("rejects ambiguous compound boundaries: %s", text => {
     expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqual({ status: "UNRESOLVED", reasonCode: "MULTI_ANALYSIS_NOT_SUPPORTED" });
+  });
+  it("preserves every separated analysis, event selection, target, and shared scope", () => {
+    const intent = parse("2号车任务T1第一次进入A区、最后离开B区、在C区停留多久，以及经过哪些道路，通信信号最好的三个位置");
+    expect(intent.historicalScope).toMatchObject({ subjectMention: "2号车", taskMention: "任务T1", executionSelection: { kind: "LATEST" } });
+    expect(advancedAnalysisRequests(intent).map(value => value.analysis)).toMatchObject([
+      { kind: "TEMPORAL_EVENT", eventType: "ENTER", selection: { kind: "FIRST" }, targetMention: "A区" },
+      { kind: "TEMPORAL_EVENT", eventType: "EXIT", selection: { kind: "LAST" }, targetMention: "B区" },
+      { kind: "TEMPORAL_EVENT", eventType: "DWELL", targetMention: "C区" }, { kind: "ROAD_ASSOCIATION" }, { kind: "METRIC_RANKING", topK: 3 }
+    ]);
+    expect(parse("2号车进入和谐区").analysis).toMatchObject({ targetMention: "和谐区" });
+    expect(parse("2号车经过哪些道路，经过哪些道路").additionalAnalyses).toBeUndefined();
+  });
+  it.each(["2号车经过哪些道路，3号车在哪里停车", "任务T1经过哪些道路，任务T2通信信号最好的位置", "第2次任务经过哪些道路，第3次任务在哪里停车",
+    "经过哪些道路 sourceKey: source-a，在哪里停车 sourceKey: source-b"])("rejects inconsistent shared scopes: %s", text => {
+    expect(parseAdvancedHistoricalIntent(text, catalog, config)).toMatchObject({ reasonCode: "MULTI_ANALYSIS_SCOPE_MISMATCH" });
+  });
+  it("requires an authenticated choice for an implicit compound follow-up", () => {
+    expect(parseAdvancedHistoricalIntent("返回第二个", catalog, config, parse("经过哪些道路，通信信号最好的三个位置")))
+      .toEqual({ status: "UNRESOLVED", reasonCode: "SELECTION_CONTEXT_REQUIRED" });
+  });
+  it("bounds the number of distinct analyses before compilation", () => {
+    const text = Array.from({ length: 9 }, (_, index) => `进入A${index}区`).join("、");
+    expect(parseAdvancedHistoricalIntent(text, catalog, config)).toEqual({ status: "UNRESOLVED", reasonCode: "ADVANCED_ANALYSIS_LIMIT_EXCEEDED" });
   });
   it.each(["仅限2026-09-01T08:03:00Z至2026-09-01T08:04:00Z", "昨天", "最近10分钟"])("rejects unsupported advanced time windows: %s", window => {
     expect(parseAdvancedHistoricalIntent(`2号车通信最好的三个位置，${window}`, catalog, config)).toEqual({ status: "UNRESOLVED", reasonCode: "HISTORICAL_TIME_WINDOW_UNSUPPORTED" });
@@ -189,6 +212,107 @@ describe("real provider fixture envelopes, offline", () => {
   });
 });
 describe("advanced execution through a mock Gateway", () => {
+  function compoundInput(): AdvancedExecutionInput {
+    const input = executionInput("2号车经过哪些道路，在哪里停车，以及通信信号最好的三个位置", "map-match");
+    input.compileContext.budgets.maximumNodes = 8;
+    input.gateway.execute = vi.fn(async (id, request) => {
+      const envelope = fixture(id === "trajectory.map-match" ? "map-match" : id === "temporal-spatial.find-events" ? "stop" : "metric-shared-campus");
+      const rewrite = (value: unknown): void => {
+        if (!value || typeof value !== "object") return;
+        const record = value as Record<string, unknown>;
+        if (record["namespace"] === "gowm" && record["kind"] === "HISTORICAL_TRAJECTORY") Object.assign(record, input.reusableFoundation!.reference.referenceKey);
+        Object.values(record).forEach(rewrite);
+      };
+      rewrite(envelope);
+      const outputHash = analysisHash((envelope["output"] as { value: unknown }).value);
+      (envelope["execution"] as Record<string, unknown>)["resultHash"] = outputHash;
+      for (const receipt of envelope["receipts"] as Array<Record<string, unknown>>) Object.assign(receipt, { inputHash: analysisHash(request), outputHash });
+      return envelope;
+    });
+    return input;
+  }
+  it("compiles all recipes within one budget without any resolution or execution", () => {
+    const input = compoundInput();
+    const compiled = compileAdvancedHistoricalAnalyses({ ...input, foundation: input.reusableFoundation! });
+    expect(compiled.failures).toEqual([]); expect(compiled.plans).toHaveLength(3);
+    expect(new Set(compiled.plans.map(plan => plan.submission.plan.queryId)).size).toBe(3);
+    for (const field of ["maximumRows", "maximumCandidates", "maximumOutputBytes", "maximumExecutionMs"] as const) {
+      expect(compiled.plans.flatMap(plan => plan.submission.plan.nodes).reduce((total, node) => total + node.budget[field], 0)).toBeLessThanOrEqual(input.compileContext.budgets[field]);
+    }
+    expect(input.gateway.execute).not.toHaveBeenCalled(); expect(input.foundationGateway.execute).not.toHaveBeenCalled(); expect(input.resolveTarget).not.toHaveBeenCalled();
+  });
+  it("assigns distinct query identities to different interpretations of one operation", () => {
+    const input = executionInput("2号车经过哪些道路，以及最后确认在哪条道路上", "map-match");
+    const compiled = compileAdvancedHistoricalAnalyses({ ...input, foundation: input.reusableFoundation! });
+    expect(compiled.failures).toEqual([]); expect(compiled.plans).toHaveLength(2);
+    expect(new Set(compiled.plans.map(plan => plan.submission.plan.queryId)).size).toBe(2);
+  });
+  it("passes each event's own target key and rejects a response for another target", async () => {
+    const input = executionInput("2号车进入A区、离开B区", "enter");
+    const requests = advancedAnalysisRequests(input.intent);
+    const targets = requests.map((value, index) => {
+      if (value.analysis.kind !== "TEMPORAL_EVENT") throw new Error("event required");
+      const target = contracts.validateTarget(fixture("target"));
+      target.referenceKey = { ...target.referenceKey!, id: index ? "wrf_other_area" : "wrf_fixture_area" };
+      value.analysis.targetReferenceKey = target.referenceKey;
+      return target;
+    });
+    input.resolveTarget = vi.fn(async (_mention, key) => targets.find(target => analysisHash(target.referenceKey) === analysisHash(key))!);
+    input.gateway.execute = vi.fn(async (_id, request) => {
+      const name = (request["eventTypes"] as string[])[0]!.toLowerCase();
+      const envelope = fixture(name);
+      for (const receipt of envelope["receipts"] as Array<Record<string, unknown>>) receipt["inputHash"] = analysisHash(request);
+      return envelope; // EXIT fixture deliberately echoes A instead of the requested B.
+    });
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(input.resolveTarget).toHaveBeenNthCalledWith(1, "A区", targets[0]!.referenceKey);
+    expect(input.resolveTarget).toHaveBeenNthCalledWith(2, "B区", targets[1]!.referenceKey);
+    expect(result.analysisResults![0]!.status).toBe("COMPLETED");
+    expect(result.analysisResults![1]).toMatchObject({ status: "FAILED", reasonCode: "ADVANCED_HISTORY_RESULT_INVALID" });
+  });
+  it("executes each analysis and shares the admitted trajectory", async () => {
+    const input = compoundInput();
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(result.analysisResults?.map(value => value.analysisEvidence[0]?.operationId)).toEqual(["trajectory.map-match", "temporal-spatial.find-events", "spatiotemporal-metric.rank-locations"]);
+    expect(result.analysisResults?.map(value => value.reasonCode)).not.toContain("ADVANCED_HISTORY_RESULT_INVALID");
+    expect(result.analysisResults?.map(value => value.foundation?.reference.referenceKey)).toEqual(Array(3).fill(input.reusableFoundation!.reference.referenceKey));
+    expect(input.foundationGateway.execute).not.toHaveBeenCalled(); expect(input.gateway.execute).toHaveBeenCalledTimes(3);
+    expect(result.status).toBe("PARTIAL"); // Ranking fixture explicitly has incomplete coverage.
+  });
+  it("keeps independent successes when one provider fails", async () => {
+    const input = compoundInput(), execute = input.gateway.execute;
+    input.gateway.execute = vi.fn(async (...args: Parameters<AdvancedExecutionInput["gateway"]["execute"]>) => {
+      if (args[0] === "trajectory.map-match") throw Object.assign(new Error("private provider failure"), { code: "HTTP_503" });
+      return execute(...args);
+    });
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(result.status).toBe("PARTIAL"); expect(result.analysisResults![0]).toMatchObject({ status: "FAILED", reasonCode: "ADVANCED_HISTORY_UPSTREAM_FAILURE" });
+    expect(result.analysisResults![1]!.status).toBe("COMPLETED"); expect(result.analysisResults![2]!.analysisEvidence).toHaveLength(1);
+    expect(JSON.stringify(result)).not.toContain("private provider failure");
+  });
+  it("rejects the aggregate node budget before any Gateway call", async () => {
+    const input = compoundInput(); input.compileContext.budgets.maximumNodes = 2;
+    expect(await executeAdvancedHistoricalAnalysis(input)).toMatchObject({ reasonCode: "ADVANCED_ANALYSIS_BUDGET_EXCEEDED", operations: [] });
+    expect(input.gateway.execute).not.toHaveBeenCalled(); expect(input.foundationGateway.execute).not.toHaveBeenCalled();
+  });
+  it("stops later analyses when the shared deadline expires", async () => {
+    const input = compoundInput(), execute = input.gateway.execute;
+    let clock = Date.now(); input.now = () => clock; input.deadlineAt = new Date(clock + 30_000);
+    input.gateway.execute = vi.fn(async (...args: Parameters<AdvancedExecutionInput["gateway"]["execute"]>) => { const result = await execute(...args); clock += 31_000; return result; });
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(input.gateway.execute).toHaveBeenCalledTimes(1);
+    expect(result.analysisResults!.slice(1).every(value => value.reasonCode === "ADVANCED_HISTORY_DEADLINE_EXCEEDED")).toBe(true);
+  });
+  it("queries a pending foundation once and propagates waiting to every analysis", async () => {
+    const input = compoundInput(), old = input.reusableFoundation!; delete input.reusableFoundation;
+    input.intent.historicalScope.taskReferenceKey = old.intent.taskReferenceKey!; input.subjectReferenceKeys = [old.intent.subjectReferenceKey!];
+    input.foundationGateway.execute = vi.fn(async id => id === "operational-task.get" ? { referenceKey: old.intent.taskReferenceKey, actorReferenceKeys: [old.intent.subjectReferenceKey], activityState: "ACTIVE" } :
+      { status: "INDETERMINATE", reasonCode: "PROJECTION_PENDING", intervals: [] });
+    const result = await executeAdvancedHistoricalAnalysis(input);
+    expect(result.status).toBe("PENDING"); expect(result.analysisResults).toHaveLength(3);
+    expect(result.analysisResults!.every(value => value.reasonCode === "HISTORICAL_PROJECTION_PENDING")).toBe(true);
+    expect(input.foundationGateway.execute).toHaveBeenCalledTimes(2); expect(input.gateway.execute).not.toHaveBeenCalled();
+  });
   it.each([
     ["2号车经过哪些道路", "map-match", 1], ["2号车最后经过哪个路口", "cross-last", 2],
     ["2号车任务期间在哪里停车", "stop", 1], ["2号车通信信号最好的位置", "metric-shared-campus", 1]

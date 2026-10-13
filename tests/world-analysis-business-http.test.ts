@@ -199,7 +199,7 @@ describe("nonempty historical production HTTP", () => {
         envelope.output.schemaUri = descriptor.outputSchemaUri; envelope.output.schemaHash = descriptor.outputSchemaHash;
         envelope.computeSnapshot.schemas = { inputSchemaHash: descriptor.inputSchemaHash, outputSchemaHash: descriptor.outputSchemaHash };
         envelope.execution.resultHash = analysisHash(envelope.output.value);
-        for (const receipt of envelope.receipts) { receipt.inputHash = analysisHash(body.input); receipt.outputHash = envelope.execution.resultHash; receipt.computeSnapshotHash = analysisHash(envelope.computeSnapshot); }
+        for (const receipt of envelope.receipts) { receipt.receiptId = `receipt-${randomUUID()}`; receipt.inputHash = analysisHash(body.input); receipt.outputHash = envelope.execution.resultHash; receipt.computeSnapshotHash = analysisHash(envelope.computeSnapshot); }
         new AnalysisProviderContracts().validateEnvelope(operationId, envelope, body.input);
         registry.validate("platform/capability-result-envelope.schema.json", envelope);
         return envelope;
@@ -294,7 +294,7 @@ describe("nonempty historical production HTTP", () => {
   it.each([
     ["2号车历史轨迹，仅限昨天", "HISTORICAL_TIME_WINDOW_UNSUPPORTED"],
     ["2号车通信信号最好的位置，仅限2026-09-01T08:03:00Z至2026-09-01T08:04:00Z", "HISTORICAL_TIME_WINDOW_UNSUPPORTED"],
-    ["2号车进入A区、离开A区、停留多久", "MULTI_ANALYSIS_NOT_SUPPORTED"]
+    ["2号车进入A区离开B区", "MULTI_ANALYSIS_NOT_SUPPORTED"]
   ])("returns a public gap without querying unsupported history: %s", async (text, reasonCode) => {
     await start({ advanced: true });
     const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": randomUUID() }, body: JSON.stringify(requestBody(text)) });
@@ -304,6 +304,42 @@ describe("nonempty historical production HTTP", () => {
     expect(result.worldAnalysisFindings.findings).toEqual([]);
     expect(result.worldAnalysisFindings.gaps).toContainEqual(expect.objectContaining({ gapKind: "CAPABILITY_UNAVAILABLE", detail: { reasonCode } }));
     expect(calls.filter(id => /history|operational-task|map-match|find-events|rank-locations/u.test(id))).toEqual([]);
+  });
+  it.each([false, true])("executes a compound road and CROSS request with one foundation (map failure=%s)", async failMap => {
+    await start({ advanced: true, completeCross: true, ...(failMap ? { failure: "MAP_UNAVAILABLE" as const } : {}) });
+    const text = "2号车经过哪些道路，以及最后经过哪个路口";
+    const body = requestBody(text, [
+      { referenceKey: subject, referenceType: "WORLD_OBJECT", alias: "2号车", sourceMessageId: "known-subject" },
+      { referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: "任务", sourceMessageId: "known-task" }
+    ]);
+    const key = randomUUID();
+    const response = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": key }, body: JSON.stringify(body) });
+    const result = await response.json();
+    expect(response.status, JSON.stringify({ result, gatewayErrors })).toBe(200);
+    expect(createWorldAnalysisValidator()("result", result)).toEqual({ valid: true, errors: [] });
+    expect(calls.filter(id => id === "history.get-trajectory")).toHaveLength(1);
+    expect(calls.filter(id => id === "operational-task.get-execution-intervals")).toHaveLength(1);
+    expect(result.worldAnalysisFindings.findings.filter((value: any) => value.findingKind === "HISTORICAL_TRACE")).toHaveLength(1);
+    if (failMap) {
+      expect(result.status).toBe("PARTIAL"); expect(calls).not.toContain("temporal-spatial.find-events");
+      expect(result.worldAnalysisFindings.gaps.filter((gap: any) => gap.gapKind === "UPSTREAM_FAILURE").map((gap: any) => gap.detail.reasonCode)).toEqual([
+        "ANALYSIS_1_ROAD_ASSOCIATION/ADVANCED_HISTORY_UPSTREAM_FAILURE", "ANALYSIS_2_TEMPORAL_EVENT_CROSS/ADVANCED_HISTORY_UPSTREAM_FAILURE"
+      ]);
+    } else {
+      expect(result.worldAnalysisFindings.gaps).toEqual([]);
+      expect(result.worldAnalysisFindings.findings.map((value: any) => value.findingKind)).toEqual(["HISTORICAL_TRACE", "ROAD_ASSOCIATION", "TEMPORAL_EVENT"]);
+      expect(result.worldAnalysisFindings.findings.find((value: any) => value.findingKind === "TEMPORAL_EVENT").selection.confirmed).toBe(true);
+      expect(calls.filter(id => id === "temporal-spatial.find-events")).toHaveLength(1);
+      expect(calls.filter(id => id === "trajectory.map-match")).toHaveLength(1); // CROSS reuses the same verified T2 envelope.
+    }
+    expect(result.gowmQueries).toHaveLength(3); // One shared foundation plus two actual compiled recipes.
+    expect(result.gowmQueries.every((query: any) => store.worldQueries.has(query.queryId))).toBe(true);
+    const before = calls.length;
+    const saved = await (await fetch(`${baseUrl}/v1/groundings/${result.groundingId}`, { headers })).json();
+    expect(saved.result).toEqual(result);
+    const replay = await fetch(`${baseUrl}/v1/groundings`, { method: "POST", headers: { ...headers, "idempotency-key": key }, body: JSON.stringify(body) });
+    expect(await replay.json()).toEqual(result); expect(calls.length).toBe(before);
+    expect(gatewayErrors).toEqual([]);
   });
   it("rejects a task-only advanced subject denied by reference validation before analysis", async () => {
     await start({ advanced: true, rejectSubject: true });
@@ -350,15 +386,16 @@ describe("nonempty historical production HTTP", () => {
     expect(unsupported.evidenceItems).toEqual([]);
     expect(unsupported.capabilityGaps.some((gap: any) => JSON.stringify(gap).includes("HISTORICAL_TIME_WINDOW_UNSUPPORTED"))).toBe(true);
   });
-  it.each(["TRACE", "TRACE_WITH_ADVANCED", "TRACE_TASK_ONLY", "MAP", "MAP_TASK_ONLY", "CROSS", "CROSS_COMPLETE", "CROSS_HASH_DRIFT", "CROSS_MAP_UNAVAILABLE", "RANK", "RANK_SLOW", "RANK_TASK_ONLY", "SERIES_RANK_ACTION"])("queries nonempty %s over Gateway HTTP", async scenario => {
+  it.each(["TRACE", "TRACE_WITH_ADVANCED", "TRACE_TASK_ONLY", "MAP", "MAP_TASK_ONLY", "CROSS", "CROSS_COMPLETE", "CROSS_HASH_DRIFT", "CROSS_MAP_UNAVAILABLE", "RANK", "RANK_SLOW", "RANK_TASK_ONLY", "RANK_COMPOUND", "SERIES_RANK_ACTION"])("queries nonempty %s over Gateway HTTP", async scenario => {
     const taskOnly = scenario.endsWith("TASK_ONLY");
     const advanced = !scenario.startsWith("TRACE");
     const cross = scenario.startsWith("CROSS");
     const metric = scenario.startsWith("RANK") || scenario === "SERIES_RANK_ACTION";
     const completeCross = scenario === "CROSS_COMPLETE";
-    await start({ advanced: advanced || scenario === "TRACE_WITH_ADVANCED", failure: scenario === "CROSS_HASH_DRIFT" ? "HASH_DRIFT" : scenario === "CROSS_MAP_UNAVAILABLE" ? "MAP_UNAVAILABLE" : undefined,
+    const compound = scenario === "RANK_COMPOUND";
+    await start({ advanced: advanced || scenario === "TRACE_WITH_ADVANCED", failure: scenario === "CROSS_HASH_DRIFT" ? "HASH_DRIFT" : scenario === "CROSS_MAP_UNAVAILABLE" || compound ? "MAP_UNAVAILABLE" : undefined,
       metric, ambiguousSeries: scenario === "SERIES_RANK_ACTION", completeCross, recordedElapsedMs: scenario === "RANK_SLOW" ? 72_000 : undefined });
-    const text = taskOnly ? `任务 ${task.id}${metric ? "通信信号最好的三个位置在哪里" : advanced ? "经过了哪些道路？" : "的历史轨迹"}` : metric ? "2号车本次任务通信信号最好的三个位置在哪里" : cross ? "2号车最后经过哪个路口" : advanced ? "2号车本次任务经过了哪些道路？" : "2号车最近一次任务的历史轨迹";
+    const text = compound ? "2号车本次任务经过哪些道路，以及通信信号最好的三个位置在哪里" : taskOnly ? `任务 ${task.id}${metric ? "通信信号最好的三个位置在哪里" : advanced ? "经过了哪些道路？" : "的历史轨迹"}` : metric ? "2号车本次任务通信信号最好的三个位置在哪里" : cross ? "2号车最后经过哪个路口" : advanced ? "2号车本次任务经过了哪些道路？" : "2号车最近一次任务的历史轨迹";
     const body = { schemaVersion: "1.0", requestId: `request-${randomUUID()}`, operation: "EXECUTE_WORLD_QUERY", source: { conversationRef: "business-conversation", messageId: `message-${randomUUID()}`, originalText: text, originalTextSha256: utf8Sha256(text), locale: "zh-CN", createdAt: new Date().toISOString() }, requestedProducts: ["WORLD_EVIDENCE"],
       contextCapsule: { knownWorldReferences: [{ referenceKey: subject, referenceType: "WORLD_OBJECT", alias: "2号车", sourceMessageId: "known-subject-message" }, { referenceKey: task, referenceType: "OPERATIONAL_TASK", alias: "任务", sourceMessageId: "known-task-message" }], priorGroundings: [], mapSelections: [], externalCorrelationHints: [], externalPredicates: [] },
       executionPolicy: { readOnly: true, deadlineMs: 15_000, maxQueryOperations: 16, maxCandidatesPerMention: 5, maxResultBytes: 1_048_576, allowApproximation: false } };
@@ -416,7 +453,13 @@ describe("nonempty historical production HTTP", () => {
     expect(finding, JSON.stringify(result)).toBeDefined();
     expect(finding.coverage).toMatchObject(metric ? { temporalCoverageRatio: 0.8333333333, sampleCount: 14 } : completeCross ? { temporalCoverageRatio: 1, sampleCount: 4 } : { temporalCoverageRatio: 0.67, sampleCount: 10 });
     expect(result.referenceProducts.some((product: any) => product.productId === finding.executionIntervalReferenceProductId && product.referenceKey.id === interval.id)).toBe(true);
-    expect(calls).toEqual(["reference.validate", "operational-task.get", ...(taskOnly ? ["reference.get"] : []), "operational-task.get-execution-intervals", "history.get-trajectory", ...(taskOnly ? ["reference.get", "reference.validate"] : []), ...(metric ? ["spatiotemporal-metric.rank-locations"] : advanced ? ["trajectory.map-match"] : []), ...(cross && scenario !== "CROSS_MAP_UNAVAILABLE" ? ["temporal-spatial.find-events"] : [])]);
+    expect(calls).toEqual(["reference.validate", "operational-task.get", ...(taskOnly ? ["reference.get"] : []), "operational-task.get-execution-intervals", "history.get-trajectory", ...(taskOnly ? ["reference.get", "reference.validate"] : []), ...(compound ? ["trajectory.map-match"] : []), ...(metric ? ["spatiotemporal-metric.rank-locations"] : advanced ? ["trajectory.map-match"] : []), ...(cross && scenario !== "CROSS_MAP_UNAVAILABLE" ? ["temporal-spatial.find-events"] : [])]);
+    if (compound) {
+      expect(result.status).toBe("PARTIAL");
+      expect(result.worldAnalysisFindings.gaps).toContainEqual(expect.objectContaining({ gapKind: "UPSTREAM_FAILURE", detail: { reasonCode: "ANALYSIS_1_ROAD_ASSOCIATION/ADVANCED_HISTORY_UPSTREAM_FAILURE" } }));
+      expect(result.gowmQueries).toHaveLength(3);
+      expect(result.gowmQueries.every((query: any) => store.worldQueries.has(query.queryId))).toBe(true);
+    }
     if (taskOnly) {
       const products = result.referenceProducts.filter((product: any) => product.referenceKey.kind === "WORLD_OBJECT");
       expect(products).toHaveLength(1);
@@ -514,6 +557,22 @@ describe("nonempty historical production HTTP", () => {
         expect(compiled.worldAnalysisFindings.findings).toEqual([]);
         expect(calls.slice(beforeCompile).filter(id => /history|operational-task|map-match|find-events|rank-locations/u.test(id))).toEqual([]);
         expect(store.sql.some(sql => sql.includes("INSERT INTO wsgs.world_query"))).toBe(true);
+        const beforeCompoundCompile = calls.length;
+        const compoundCompiled = await submitSelection(rankedResult, choice, selected, "所选任务经过哪些道路，在哪里停车，以及通信信号最好的三个位置", "COMPILE_WORLD_QUERY");
+        expect(compoundCompiled.gowmQueries).toHaveLength(3);
+        expect(new Set(compoundCompiled.gowmQueries.map((query: any) => query.queryId)).size).toBe(3);
+        expect(compoundCompiled.gowmQueries.every((query: any) => store.worldQueries.has(query.queryId))).toBe(true);
+        expect(compoundCompiled.worldAnalysisFindings.gaps).toEqual([]);
+        expect(compoundCompiled.worldAnalysisFindings.findings).toEqual([]);
+        expect(calls.slice(beforeCompoundCompile).filter(id => /history|operational-task|map-match|find-events|rank-locations/u.test(id))).toEqual([]);
+        const beforeTargetCompile = calls.length;
+        const missingTargets = await submitSelection(rankedResult, choice, selected, "所选任务进入A区、离开B区、经过哪些道路", "COMPILE_WORLD_QUERY");
+        expect(missingTargets.gowmQueries, JSON.stringify(missingTargets)).toHaveLength(1);
+        expect(missingTargets.status, JSON.stringify(missingTargets)).toBe("PARTIAL");
+        expect(missingTargets.worldAnalysisFindings.gaps.filter((gap: any) => gap.gapKind === "TARGET_CONTEXT_REQUIRED").map((gap: any) => gap.detail.reasonCode)).toEqual([
+          "ANALYSIS_1_TEMPORAL_EVENT_ENTER/TARGET_CONTEXT_REQUIRED", "ANALYSIS_2_TEMPORAL_EVENT_EXIT/TARGET_CONTEXT_REQUIRED"
+        ]);
+        expect(calls.slice(beforeTargetCompile).filter(id => /history|operational-task|map-match|find-events|rank-locations|world.get-geometry|reference.resolve/u.test(id))).toEqual([]);
         for (const invalid of ["CANDIDATE", "HASH", "EXPIRED"] as const) {
           const previousCalls = calls.length;
           const submission = store.jobs.get(rankedResult.groundingId)!.submission;
@@ -540,6 +599,10 @@ describe("nonempty historical production HTTP", () => {
       const restoredRanking = nextResult.worldAnalysisFindings.findings.find((entry: any) => entry.findingId === action.sourceFindingId);
       expect(restoredRanking.candidates.find((candidate: any) => candidate.candidateId === action.sourceCandidateId)).toMatchObject({ rank: 2, representativeVisitedPosition: action.target });
       expect(calls.slice(previousCallCount)).not.toContain("spatiotemporal-metric.rank-locations");
+      if (compound) {
+        expect(nextResult.worldAnalysisFindings.findings.some((entry: any) => entry.findingKind === "ROAD_ASSOCIATION")).toBe(false);
+        expect(nextResult.worldAnalysisFindings.gaps.some((entry: any) => entry.gapKind === "UPSTREAM_FAILURE")).toBe(false);
+      }
       expect(store.sql.some(sql => sql.includes("FROM wsgs.grounding_result AS result"))).toBe(true);
     }
     for (const key of [trajectory, interval]) expect(result.referenceProducts.filter((product: any) => product.referenceKey.id === key.id)).toHaveLength(1);

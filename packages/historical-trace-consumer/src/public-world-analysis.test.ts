@@ -75,6 +75,88 @@ function setup(name: string, action = false) {
 }
 
 describe("public world analysis projection", () => {
+  function compoundSetup() {
+    const input = setup("map-match");
+    const children = [input.advanced, setup("stop").advanced, setup("metric-shared-campus").advanced];
+    for (const child of children.slice(1)) {
+      child.foundation = input.advanced.foundation!;
+      child.intent.historicalScope = input.advanced.intent.historicalScope;
+      for (const source of child.analysisEvidence) {
+        const rewrite = (value: unknown): void => {
+          if (!value || typeof value !== "object") return;
+          const record = value as Record<string, unknown>;
+          if (record["namespace"] === "gowm" && record["kind"] === "HISTORICAL_TRAJECTORY") Object.assign(record, child.foundation!.reference.referenceKey);
+          if (record["namespace"] === "gowm" && record["kind"] === "WORLD_OBJECT") Object.assign(record, child.foundation!.intent.subjectReferenceKey);
+          Object.values(record).forEach(rewrite);
+        };
+        rewrite(source.envelope); reseal(source.envelope);
+      }
+    }
+    const advanced: AdvancedHistoricalExecutionResult = { ...input.advanced,
+      intent: { ...input.advanced.intent, additionalAnalyses: children.slice(1).map(child => child.intent.analysis) },
+      analysisResults: children, analysisEvidence: children.flatMap(child => child.analysisEvidence), status: "PARTIAL", reasonCode: "MULTI_ANALYSIS_PARTIAL" };
+    return { ...input, advanced };
+  }
+  it("projects all compound families once and binds a non-primary rank selection to its own evidence", () => {
+    const input = compoundSetup();
+    const result = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));
+    expect(result.worldAnalysisFindings.findings.map(finding => finding.findingKind)).toEqual(["HISTORICAL_TRACE", "ROAD_ASSOCIATION", "TEMPORAL_EVENT", "METRIC_RANKING"]);
+    expect(validate("result", result)).toEqual({ valid: true, errors: [] });
+    const choice = result.worldAnalysisFindings.choices.find(value => value.choiceKind === "RANKED_LOCATION_SELECTION")!;
+    const candidate = choice.candidates[1]!;
+    const followup = resolvePublicAdvancedFollowup("前往所选位置", result, choice.choiceId, candidate.candidateId, input.advanced, catalog,
+      advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" }), Date.parse("2026-09-06T12:00:00Z"));
+    expect(followup.resolution).toMatchObject({ status: "PARSED", intent: { analysis: { kind: "METRIC_RANKING", selectedRank: 2 } } });
+    expect(followup.publicReuse?.analysisResults).toBeUndefined();
+    expect(followup.publicReuse?.analysisEvidence.map(value => value.operationId)).toEqual(["spatiotemporal-metric.rank-locations"]);
+    const projected = projectPublicWorldAnalysis({ ...input, advanced: followup.publicReuse! });
+    expect(projected.component.findings.some(value => value.findingKind === "ACTION_TARGET_CANDIDATE" && value.sourceRank === 2)).toBe(true);
+    expect(projected.component.findings.some(value => value.findingKind === "ROAD_ASSOCIATION")).toBe(false);
+  });
+  it("retains a typed per-analysis failure beside independent successful findings", () => {
+    const input = compoundSetup(), child = input.advanced.analysisResults![1]!;
+    child.analysisEvidence = []; child.status = "UNRESOLVED"; child.reasonCode = "TARGET_CONTEXT_REQUIRED";
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.findings.map(value => value.findingKind)).toEqual(["HISTORICAL_TRACE", "ROAD_ASSOCIATION", "METRIC_RANKING"]);
+    expect(projection.component.gaps).toContainEqual(expect.objectContaining({ gapKind: "TARGET_CONTEXT_REQUIRED", detail: { reasonCode: "ANALYSIS_2_TEMPORAL_EVENT_STOP/TARGET_CONTEXT_REQUIRED" } }));
+    expect(projection.status).toBe("PARTIAL");
+    expect(validate("result", assemblePublicWorldAnalysisResult(input.base, projection)).valid).toBe(true);
+  });
+  it("rejects mismatched compound child intent and scope instead of projecting unchecked siblings", () => {
+    const input = compoundSetup();
+    input.advanced.analysisResults![1]!.intent = { ...input.advanced.analysisResults![1]!.intent, historicalScope: { ...input.advanced.intent.historicalScope, subjectMention: "different-subject" } };
+    const projection = projectPublicWorldAnalysis(input);
+    expect(projection.component.findings).toEqual([]);
+    expect(projection.component.gaps).toContainEqual(expect.objectContaining({ gapKind: "UPSTREAM_CONTRACT_MISMATCH" }));
+  });
+  it("keeps two targets of the same event type distinct in reference selections", () => {
+    const input = setup("enter"), first = input.advanced, second = structuredClone(first);
+    const firstKey = input.base.referenceProducts.at(-1)!.referenceKey, secondKey = { ...key("WORLD_OBJECT", "area-b"), namespace: "gowm" as const };
+    const target = contracts.validateTarget(JSON.parse(readFileSync(new URL("target.json", fixtureRoot), "utf8")));
+    first.target = { ...target, referenceKey: firstKey }; second.target = { ...target, referenceKey: secondKey, targetId: "other-yard", displayName: "B区" };
+    if (first.intent.analysis.kind !== "TEMPORAL_EVENT" || second.intent.analysis.kind !== "TEMPORAL_EVENT") throw new Error("events required");
+    first.intent.analysis.targetMention = "A区"; second.intent.analysis.targetMention = "B区";
+    for (const source of second.analysisEvidence) if (source.operationId === "temporal-spatial.find-events") {
+      const output = contracts.validateResult(source.operationId, source.envelope.output.value);
+      for (const event of output.events) if (event.target?.kind === "SPATIAL_TARGET") Object.assign(event.target, { referenceKey: secondKey, targetId: "other-yard", displayName: "B区" });
+      reseal(source.envelope);
+    }
+    input.base.referenceProducts.push({ ...input.base.referenceProducts.at(-1)!, productId: "target-b", referenceKey: secondKey, displayName: "B区" });
+    const advanced: AdvancedHistoricalExecutionResult = { ...first, intent: { ...first.intent, additionalAnalyses: [second.intent.analysis] }, analysisResults: [first, second] };
+    const result = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis({ ...input, advanced }));
+    const products = [result.referenceProducts[0]!, result.referenceProducts.find(product => analysisHash(product.referenceKey) === analysisHash(firstKey))!, result.referenceProducts.at(-1)!];
+    const choices = products.map((product, index) => ({ choiceId: `target-ref-${index}`, choiceKind: "REFERENCE_SELECTION" as const, promptCode: "REFERENCE_AMBIGUOUS", validUntil,
+      candidates: [{ candidateId: `target-candidate-${index}`, displayName: product.displayName, referenceProductId: product.productId }] }));
+    result.worldAnalysisFindings.choices.push(...choices);
+    const config = advancedHistoryConfigurationFromEnvironment({ WSGS_ADVANCED_HISTORY_ENABLED: "YES" });
+    const single = resolvePublicAdvancedFollowup("选择这个对象", result, choices[1]!.choiceId, choices[1]!.candidates[0]!.candidateId, advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
+    expect(single.resolution).toMatchObject({ status: "PARSED", intent: { analysis: { targetReferenceKey: firstKey }, additionalAnalyses: [{ targetMention: "B区" }] } });
+    if (single.resolution.status === "PARSED") expect(single.resolution.intent.additionalAnalyses![0]).not.toHaveProperty("targetReferenceKey");
+    const combined = resolvePublicAdvancedFollowups("选择这些对象", result, choices.map(choice => ({ choiceId: choice.choiceId, candidateId: choice.candidates[0]!.candidateId })), advanced, catalog, config, Date.parse("2026-09-06T12:00:00Z"));
+    expect(combined.resolution).toMatchObject({ status: "PARSED", intent: { historicalScope: { subjectReferenceKey: products[0]!.referenceKey },
+      analysis: { targetReferenceKey: firstKey }, additionalAnalyses: [{ targetReferenceKey: secondKey }] } });
+    expect(combined.publicReuse).toBeUndefined();
+  });
   it.each([false, true])("combines independently selected subject and task without old target reuse (reverse=%s)", reverse => {
     const input = setup("metric-shared-campus", true);
     const first = assemblePublicWorldAnalysisResult(input.base, projectPublicWorldAnalysis(input));

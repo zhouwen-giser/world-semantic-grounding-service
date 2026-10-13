@@ -29,10 +29,12 @@ export function assembleProductionWorldAnalysis(input: {
   validUntil: string;
   issuedAt?: string;
   maxResultBytes: number;
+  compileOnly?: boolean;
   contracts?: ProjectionInput["contracts"];
   catalog?: ProjectionInput["catalog"];
   advanced?: ProjectionInput["advanced"];
   failureReasonCode?: string;
+  compilationFailures?: ProjectionInput["compilationFailures"];
   historicalExecution?: Pick<HistoricalExecutionResult, "status" | "reasonCode">;
   foundation?: ProjectionInput["foundation"];
   foundationEvidenceIds: string[];
@@ -81,6 +83,7 @@ export function assembleProductionWorldAnalysis(input: {
     ...(input.catalog ? { catalog: input.catalog } : {}),
     ...(input.advanced ? { advanced: input.advanced } : {}),
     ...(failureReasonCode ? { failureReasonCode } : {}),
+    ...(input.compilationFailures?.length ? { compilationFailures: input.compilationFailures } : {}),
     ...(input.foundation ? { foundation: input.foundation } : {})
   });
   for (const ambiguity of base.ambiguities) {
@@ -106,5 +109,5 @@ export function assembleProductionWorldAnalysis(input: {
     projection.status = projection.component.findings.length ? "PARTIAL" : "UNRESOLVED";
   }
   projection.component.findingSetHash = worldAnalysisFindingSetHash(projection.component);
-  return assemblePublicWorldAnalysisResult(base, projection, { maxResultBytes: input.maxResultBytes });
+  return assemblePublicWorldAnalysisResult(base, projection, { maxResultBytes: input.maxResultBytes, ...(input.compileOnly ? { compileOnly: true } : {}) });
 }

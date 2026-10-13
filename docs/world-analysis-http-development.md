@@ -47,9 +47,11 @@ required follow-on work. No database URL or deployment credential is used.
   without entering GOWM_EXECUTE, including the default-disabled typed gap.
 - Unchanged 1.0 and 1.1 public results through the same production path.
 - Task-only trace, map and ranking requests admit one validated subject product; denied subjects never invoke analysis.
-- Unsupported time windows and compound analysis produce typed gaps without history/analysis calls.
+- Unsupported time windows, unclear clause boundaries and conflicting compound scopes produce typed gaps without history/analysis calls.
+- Explicit compound road/CROSS requests share one foundation, retain independent results and typed failures, and persist each actual query plan.
+- A failed road analysis retains a non-primary ranking result; its persisted Choice creates a rank-bound action candidate without inheriting the failed road analysis.
 - Ordinary history runs when advanced history is enabled and global PREVIEW is disabled.
-- Compile-only succeeds with a trusted selected prior foundation and executes no history/analysis operation.
+- Compile-only succeeds for all three analysis families with a trusted selected prior foundation, persists all three plans, and executes no history/analysis operation.
 - Legacy historical follow-ups requery changed phase scope and preserve that scope through later reuse.
 
 The discovery suite adds a second real local HTTP Gateway listener. Northbound
@@ -69,6 +71,17 @@ consistent subject/trajectory references, sample counts, times and gaps. Public
 results retain interval/trajectory reference closure, off-network segments and
 incomplete suffix semantics, and GET equals the saved result. Memory storage is
 still controlled; none of these fixtures are live collected observations.
+
+For real PostgreSQL persistence and migration tests, run `npm run test:postgres`.
+This builds current workspace packages, requires an already available local
+`postgres:17` Docker image, and creates a unique container with a loopback-only
+port, an in-memory data directory and two fresh databases. The four destructive
+integration suites run serially; cleanup removes only that container and its
+owned anonymous volumes. No existing database URLs, containers or host volumes
+are used. To select another already available PostgreSQL 17 image, pass its tag
+to `node validation/scripts/test-postgres-isolated.mjs <image>`. Remote Docker
+endpoints are rejected. These storage tests do not establish live GOWM business
+acceptance or production HA/PITR qualification.
 
 CROSS consumes the complete preceding map-match value through actual signed
 HTTP and retains an unconfirmed LAST when its source suffix is incomplete. A

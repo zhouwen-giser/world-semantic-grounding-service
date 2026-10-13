@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import type { GroundingResult12 } from "@wsgs/contracts";
 import { analysisHash, type MetricSeriesIdentity } from "@wsgs/gowm-contract-intake";
 import { canReuseAdvancedFoundation } from "./advanced-executor.js";
-import { publicWorldAnalysisEventId } from "./public-world-analysis.js";
+import { publicWorldAnalysisEventId, publicWorldAnalysisFindingId } from "./public-world-analysis.js";
+import { advancedAnalysisRequests } from "./advanced-types.js";
 import { advancedSelectionRank, parseAdvancedHistoricalIntent } from "./advanced-intent.js";
 import type { MetricSemanticCatalog } from "./metric-semantic-catalog.js";
 import type { AdvancedHistoricalExecutionResult, AdvancedHistoricalFoundation, AdvancedHistoricalIntent, AdvancedHistoryConfiguration, AdvancedIntentResolution } from "./advanced-types.js";
@@ -46,8 +47,9 @@ export function resolvePublicAdvancedFollowups(text: string, result: GroundingRe
       if (!product) return reject();
       const intent = followup.resolution.intent;
       const selected = analysisHash(product.referenceKey);
-      const target = intent.analysis.kind === "TEMPORAL_EVENT" ? intent.analysis.targetReferenceKey : undefined;
-      const role = product.referenceKey.kind === "OPERATIONAL_TASK" ? "task" : target && analysisHash(target) === selected ? "target" : "subject";
+      const targets = advancedAnalysisRequests(intent).flatMap(({ analysis }, index) => analysis.kind === "TEMPORAL_EVENT" &&
+        analysis.targetReferenceKey && analysisHash(analysis.targetReferenceKey) === selected ? [index] : []);
+      const role = product.referenceKey.kind === "OPERATIONAL_TASK" ? "task" : targets.length ? `target:${targets.join(",")}` : "subject";
       if (roles.has(role)) return reject();
       roles.add(role);
     }
@@ -70,6 +72,18 @@ export function resolvePublicAdvancedFollowup(text: string, result: GroundingRes
   const choice = result.worldAnalysisFindings.choices.find(value => value.choiceId === choiceId);
   const candidate = choice?.candidates.find(value => value.candidateId === candidateId);
   if (!choice || !candidate) return reject("SELECTION_INVALID");
+  if (prior.analysisResults && !("referenceProductId" in candidate)) {
+    const matches = prior.analysisResults.map((child, index) => ({ child, index })).filter(({ child }) => child.analysisEvidence.some(source => {
+      const kind = source.operationId === "temporal-spatial.find-events" ? "TEMPORAL_EVENT" : source.operationId === "spatiotemporal-metric.rank-locations" ? "METRIC_RANKING" : "ROAD_ASSOCIATION";
+      return choice.sourceFindingId === publicWorldAnalysisFindingId(result.groundingId, kind, source.envelope.execution.resultHash);
+    }));
+    if (matches.length !== 1) return reject("SELECTION_AMBIGUOUS");
+    const { child, index } = matches[0]!;
+    if (child.analysisResults) return reject("SELECTION_INVALID");
+    const intent = advancedAnalysisRequests(prior.intent)[index];
+    if (!intent) return reject("SELECTION_INVALID");
+    return resolvePublicAdvancedFollowup(text, result, choiceId, candidateId, { ...child, intent }, catalog, config, now);
+  }
   const ordinals = (text.match(/第\s*(?:[1-9][0-9]*|[一二三四五六七八九十]+)\s*个/gu) ?? []).map(advancedSelectionRank);
   if (new Set(ordinals).size > 1) return reject("SELECTION_AMBIGUOUS");
   const parsed = parseAdvancedHistoricalIntent(text, catalog, config, prior.intent);
@@ -79,25 +93,33 @@ export function resolvePublicAdvancedFollowup(text: string, result: GroundingRes
   if ("referenceProductId" in candidate) {
     const product = result.referenceProducts.find(value => value.productId === candidate.referenceProductId);
     if (!product) return reject("SELECTION_INVALID");
-    const targetAnalysis = intent.analysis.kind === "TEMPORAL_EVENT" && ["ENTER", "EXIT", "PASS_NEAR", "DWELL"].includes(intent.analysis.eventType) ? intent.analysis : undefined;
-    const targetRole = targetAnalysis && (result.ambiguities.some(ambiguity => ambiguity.surfaceText === targetAnalysis.targetMention && ambiguity.candidateProductIds.includes(product.productId)) ||
-      result.worldAnalysisFindings.findings.some(finding => finding.findingKind === "TEMPORAL_EVENT" && finding.events.some(event => event.target?.kind === "SPATIAL_TARGET" && event.target.referenceProductId === product.productId)));
+    const targetAnalyses = advancedAnalysisRequests(intent).map(value => value.analysis).filter(value => value.kind === "TEMPORAL_EVENT" && ["ENTER", "EXIT", "PASS_NEAR", "DWELL"].includes(value.eventType));
+    const matchingTargets = targetAnalyses.filter(analysis => analysis.kind === "TEMPORAL_EVENT" && (result.ambiguities.some(ambiguity => ambiguity.surfaceText === analysis.targetMention && ambiguity.candidateProductIds.includes(product.productId)) ||
+      analysis.targetReferenceKey && analysisHash(analysis.targetReferenceKey) === analysisHash(product.referenceKey) ||
+      (prior.analysisResults ?? [prior]).some(child => child.intent.analysis.kind === "TEMPORAL_EVENT" && child.intent.analysis.eventType === analysis.eventType &&
+        child.intent.analysis.targetMention === analysis.targetMention && child.target?.referenceKey && analysisHash(child.target.referenceKey) === analysisHash(product.referenceKey)) ||
+      targetAnalyses.length === 1 && result.worldAnalysisFindings.findings.some(finding => finding.findingKind === "TEMPORAL_EVENT" && finding.eventTypes.includes(analysis.eventType) && finding.events.some(event => event.target?.kind === "SPATIAL_TARGET" && event.target.referenceProductId === product.productId))));
+    if (!matchingTargets.length && result.worldAnalysisFindings.findings.some(finding => finding.findingKind === "TEMPORAL_EVENT" &&
+      finding.events.some(event => event.target?.kind === "SPATIAL_TARGET" && event.target.referenceProductId === product.productId))) return reject("SELECTION_AMBIGUOUS");
+    const targetRole = matchingTargets.length > 0;
+    const targets = targetRole ? matchingTargets : targetAnalyses.length === 1 ? targetAnalyses : [];
+    const assignTarget = () => { for (const analysis of targets) if (analysis.kind === "TEMPORAL_EVENT") {
+      analysis.targetReferenceKey = product.referenceKey; analysis.targetMention = product.displayName;
+    } };
     if (product.referenceKey.kind === "OPERATIONAL_TASK") {
       intent.historicalScope.taskReferenceKey = product.referenceKey;
       delete intent.historicalScope.taskMention;
-    } else if (targetRole && targetAnalysis) {
-      targetAnalysis.targetReferenceKey = product.referenceKey;
-      targetAnalysis.targetMention = product.displayName;
+    } else if (targetRole) {
+      assignTarget();
     } else if (["ENTITY", "WORLD_OBJECT"].includes(product.referenceKey.kind)) {
       intent.historicalScope.subjectReferenceKey = product.referenceKey;
       delete intent.historicalScope.subjectMention;
-    } else if (targetAnalysis) {
-      targetAnalysis.targetReferenceKey = product.referenceKey;
-      targetAnalysis.targetMention = product.displayName;
+    } else if (targets.length) {
+      assignTarget();
     } else return reject("SELECTION_AMBIGUOUS");
-    if (intent.analysis.kind === "METRIC_RANKING") {
-      delete intent.analysis.selectedRank;
-      intent.analysis.actionTargetRequested = /回到|返回|前往|^去|让.*去/iu.test(text);
+    for (const { analysis } of advancedAnalysisRequests(intent)) if (analysis.kind === "METRIC_RANKING") {
+      delete analysis.selectedRank;
+      analysis.actionTargetRequested = /回到|返回|前往|^去|让.*去/iu.test(text);
     }
     return { resolution: { status: "PARSED", intent }, compare: false };
   }
@@ -105,6 +127,8 @@ export function resolvePublicAdvancedFollowup(text: string, result: GroundingRes
   const compare = /更新|重查|重新|最新|最近一次|本次|第.*次(?:任务|执行)|refresh|recompute/iu.test(text);
   const ordinal = advancedSelectionRank(text);
   if (ordinal !== undefined && ("rank" in candidate ? ordinal !== candidate.rank : choice.candidates.findIndex(value => value.candidateId === candidateId) + 1 !== ordinal)) return reject("SELECTION_AMBIGUOUS");
+  if (intent.additionalAnalyses?.length) return { resolution: { status: "PARSED", intent }, compare,
+    ...(!compare && canReuseAdvancedFoundation(prior.foundation, intent, now) ? { reusableFoundation: prior.foundation } : {}) };
   if (choice.choiceKind === "EVENT_SELECTION" && "eventId" in candidate && intent.analysis.kind === "TEMPORAL_EVENT" && prior.intent.analysis.kind === "TEMPORAL_EVENT") {
     const reusable = !compare && canReuseAdvancedFoundation(prior.foundation, intent, now);
     const followup: AdvancedFollowup = { resolution: { status: "PARSED", intent }, compare, ...(reusable ? { reusableFoundation: prior.foundation } : {}) };

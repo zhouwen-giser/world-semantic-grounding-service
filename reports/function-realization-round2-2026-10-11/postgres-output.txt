@@ -1,0 +1,36 @@
+
+ RUN  v4.1.11 <workspace>
+
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  21:53:53
+   Duration  684ms (transform 78ms, setup 0ms, import 117ms, tests 430ms, environment 0ms)
+
+
+ RUN  v4.1.11 <workspace>
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  21:53:54
+   Duration  4.01s (transform 696ms, setup 0ms, import 1.51s, tests 2.32s, environment 0ms)
+
+
+ RUN  v4.1.11 <workspace>
+
+
+ Test Files  1 passed (1)
+      Tests  32 passed (32)
+   Start at  21:53:58
+   Duration  6.23s (transform 1.53s, setup 0ms, import 3.35s, tests 2.72s, environment 0ms)
+
+
+ RUN  v4.1.11 <workspace>
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  21:54:05
+   Duration  424ms (transform 41ms, setup 0ms, import 80ms, tests 166ms, environment 0ms)
+

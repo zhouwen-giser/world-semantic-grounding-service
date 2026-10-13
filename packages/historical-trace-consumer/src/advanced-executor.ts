@@ -1,5 +1,5 @@
 import { sameReferenceIdentity } from "./context.js";
-import type { AdvancedAvailabilityObservation } from "./advanced-types.js";
+import { advancedAnalysisRequests, MAXIMUM_ADVANCED_ANALYSES, type AdvancedAnalysisFailure, type AdvancedAvailabilityObservation } from "./advanced-types.js";
 import {
   AnalysisProviderContracts, AnalysisContractError, analysisHash, type AnalysisOperationId,
   type MapMatchProviderResultV01, type SpatialEventTarget
@@ -26,7 +26,7 @@ export interface AdvancedExecutionInput {
   reusableFoundation?: AdvancedHistoricalFoundation;
   admitFoundationSubject?: (execution: HistoricalExecutionResult) => Promise<
     { status: "ADMITTED"; subjectReferenceKey: HistoricalReferenceKey } | { status: "REJECTED"; reasonCode: string }>;
-  resolveTarget?: (mention: string) => Promise<SpatialEventTarget | { reasonCode: string }>;
+  resolveTarget?: (mention: string, referenceKey?: HistoricalReferenceKey) => Promise<SpatialEventTarget | { reasonCode: string }>;
   observeAvailability?: (operationIds: readonly string[]) => Promise<AdvancedAvailabilityObservation>;
   onCompiled?: (plan: Extract<CompileResult, { status: "COMPILED" }>) => void;
   onFailure?: (diagnostic: { phase: "FOUNDATION" | "ANALYSIS"; code: string; classification: string; lastOperation?: string; attemptedOperations: number; analysisEvidenceCount: number }) => void;
@@ -105,6 +105,7 @@ export function compileAdvancedHistoricalAnalysis(input: Pick<AdvancedExecutionI
     foundation?: AdvancedHistoricalFoundation; target?: SpatialEventTarget;
   }): Extract<CompileResult, { status: "COMPILED" }> | { status: "CAPABILITY_GAP"; reasonCode: string } {
   const gap = (reasonCode: string) => ({ status: "CAPABILITY_GAP" as const, reasonCode });
+  if (input.intent.additionalAnalyses?.length) return gap("MULTI_ANALYSIS_REQUIRES_BATCH_COMPILATION");
   if (!input.configuration.enabled) return gap("ADVANCED_HISTORY_DISABLED");
   if (!input.history.enabled) return gap("ADVANCED_HISTORY_REQUIRES_HISTORY");
   if (input.intent.historicalScope.unsupportedReason) return gap(input.intent.historicalScope.unsupportedReason);
@@ -140,7 +141,97 @@ export function compileAdvancedHistoricalAnalysis(input: Pick<AdvancedExecutionI
   return gap(String(compiled.gap.details["reasonCode"] ?? reasons[compiled.gap.reason] ?? `ANALYSIS_${compiled.gap.reason}`));
 }
 
+type AdvancedCompilationInput = Parameters<typeof compileAdvancedHistoricalAnalysis>[0];
+type CompiledAnalysis = Extract<CompileResult, { status: "COMPILED" }>;
+
+/** Allocate one request budget across all recipes, including both CROSS nodes. */
+function batchInputs(input: AdvancedCompilationInput): AdvancedCompilationInput[] | string {
+  const requests = advancedAnalysisRequests(input.intent);
+  if (requests.length > MAXIMUM_ADVANCED_ANALYSES) return "ADVANCED_ANALYSIS_LIMIT_EXCEEDED";
+  const weights = requests.map(request => request.analysis.kind === "TEMPORAL_EVENT" && request.analysis.eventType === "CROSS" ? 2 : 1);
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  const budget = input.compileContext.budgets;
+  if (budget.maximumNodes < total || [budget.maximumRows, budget.maximumCandidates, budget.maximumOutputBytes, budget.maximumExecutionMs].some(value => value < total)) {
+    return "ADVANCED_ANALYSIS_BUDGET_EXCEEDED";
+  }
+  let preceding = 0;
+  return requests.map((intent, index) => {
+    const weight = weights[index]!;
+    const share = (value: number) => Math.floor(value * (preceding + weight) / total) - Math.floor(value * preceding / total);
+    const budgets = { ...budget, maximumNodes: weight, maximumRows: share(budget.maximumRows), maximumCandidates: share(budget.maximumCandidates),
+      maximumOutputBytes: share(budget.maximumOutputBytes), maximumExecutionMs: share(budget.maximumExecutionMs) };
+    preceding += weight;
+    const identity = { requestId: input.compileContext.requestId, key: input.compileContext.idempotencyKey, analysis: intent.analysis, index };
+    return { ...input, intent, compileContext: { ...input.compileContext, budgets,
+      ...(requests.length > 1 ? { requestId: `wsgs-analysis-${analysisHash(identity).slice(7, 39)}`, idempotencyKey: analysisHash(identity) } : {}) } };
+  });
+}
+
+export function compileAdvancedHistoricalAnalyses(input: AdvancedCompilationInput & {
+  targets?: readonly { analysis: AdvancedHistoricalIntent["analysis"]; target: SpatialEventTarget }[];
+}): { plans: CompiledAnalysis[]; failures: AdvancedAnalysisFailure[] } {
+  const children = batchInputs(input);
+  if (typeof children === "string") return { plans: [], failures: [{ intent: input.intent, reasonCode: children, analysisIndex: 1 }] };
+  const plans: CompiledAnalysis[] = [];
+  const failures: AdvancedAnalysisFailure[] = [];
+  for (const [index, child] of children.entries()) {
+    const target = input.targets?.find(value => analysisHash(value.analysis) === analysisHash(child.intent.analysis))?.target ??
+      (children.length === 1 ? input.target : undefined);
+    const { target: _unused, ...withoutTarget } = child;
+    const compiled = compileAdvancedHistoricalAnalysis({ ...withoutTarget, ...(target ? { target } : {}) });
+    if (compiled.status === "COMPILED") plans.push(compiled);
+    else failures.push({ intent: child.intent, reasonCode: compiled.reasonCode, analysisIndex: index + 1 });
+  }
+  return { plans, failures };
+}
+
 export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecutionInput): Promise<AdvancedHistoricalExecutionResult> {
+  if (!input.intent.additionalAnalyses?.length) return executeSingleAdvancedHistoricalAnalysis(input);
+  const result: AdvancedHistoricalExecutionResult = { status: "CAPABILITY_GAP", reasonCode: "HISTORICAL_FOUNDATION_REQUIRED", intent: input.intent,
+    analysisEvidence: [], findings: [], operations: [], analysisResults: [] };
+  const children = batchInputs(input);
+  if (typeof children === "string") { delete result.analysisResults; return { ...result, reasonCode: children }; }
+  const now = input.now ?? Date.now;
+  let foundation = input.reusableFoundation && canReuseAdvancedFoundation(input.reusableFoundation, children[0]!.intent, now()) ? input.reusableFoundation : undefined;
+  let foundationFailure: AdvancedHistoricalExecutionResult | undefined;
+  // Same request, authority, reference versions and exact operation input only.
+  // This also keeps a single source receipt when ROAD and CROSS share T2.
+  const verifiedOutputs = new Map<string, unknown>();
+  for (const child of children) {
+    const reusedOperationIds: string[] = [];
+    const blocked = foundationFailure ?? (foundation && !canReuseAdvancedFoundation(foundation, child.intent, now())
+      ? { status: "CAPABILITY_GAP" as const, reasonCode: "HISTORICAL_TRAJECTORY_REFERENCE_MISSING" } : undefined);
+    const executed: AdvancedHistoricalExecutionResult = blocked ? { status: blocked.status, reasonCode: blocked.reasonCode, intent: child.intent,
+      analysisEvidence: [], findings: [], operations: [] } satisfies AdvancedHistoricalExecutionResult :
+      await executeSingleAdvancedHistoricalAnalysis({ ...input, ...child, ...(foundation ? { reusableFoundation: foundation } : {}),
+        gateway: { execute: async (id, request, execution) => {
+          const key = analysisHash({ id, request });
+          if (verifiedOutputs.has(key)) { reusedOperationIds.push(id); return structuredClone(verifiedOutputs.get(key)); }
+          const response = await input.gateway.execute(id, request, execution);
+          const verified = input.contracts.validateEnvelope(id, response, request);
+          verifiedOutputs.set(key, verified);
+          return structuredClone(verified);
+        } },
+        deadlineAt: new Date(Math.min(input.deadlineAt.getTime(), now() + child.compileContext.budgets.maximumExecutionMs)) });
+    if (reusedOperationIds.length) executed.reusedOperationIds = reusedOperationIds;
+    result.analysisResults!.push(executed);
+    if (executed.foundation) foundation = executed.foundation;
+    else foundationFailure = executed;
+    result.analysisEvidence.push(...executed.analysisEvidence);
+    result.findings.push(...executed.findings);
+    result.operations.push(...executed.operations);
+    (result.executionAvailabilityObservations ??= []).push(...(executed.executionAvailabilityObservations ?? []));
+  }
+  if (foundation && !foundationFailure) result.foundation = foundation;
+  const outcomes = result.analysisResults!;
+  result.status = outcomes.every(value => value.status === "COMPLETED") ? "COMPLETED" :
+    outcomes.some(value => value.foundation || value.analysisEvidence.length) ? "PARTIAL" :
+    outcomes.every(value => value.status === "PENDING") ? "PENDING" : outcomes[0]!.status;
+  result.reasonCode = result.status === "COMPLETED" ? "MULTI_ANALYSIS_COMPLETED" : "MULTI_ANALYSIS_PARTIAL";
+  return result;
+}
+
+async function executeSingleAdvancedHistoricalAnalysis(input: AdvancedExecutionInput): Promise<AdvancedHistoricalExecutionResult> {
   const result: AdvancedHistoricalExecutionResult = { status: "CAPABILITY_GAP", reasonCode: "HISTORICAL_FOUNDATION_REQUIRED", intent: input.intent, analysisEvidence: [], findings: [], operations: [] };
   const stop = (code: string, status: AdvancedHistoricalExecutionResult["status"] = "CAPABILITY_GAP") => ({ ...result, status, reasonCode: code });
   if (!input.configuration.enabled) return stop("ADVANCED_HISTORY_DISABLED");
@@ -186,7 +277,7 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
     if (analysis.kind === "TEMPORAL_EVENT" && !["CROSS", "STOP"].includes(analysis.eventType)) {
       if (!analysis.targetMention || !input.resolveTarget) return stop("TARGET_CONTEXT_REQUIRED", "UNRESOLVED");
       checkDeadline();
-      const target = await input.resolveTarget(analysis.targetMention);
+      const target = await input.resolveTarget(analysis.targetMention, analysis.targetReferenceKey);
       if ("reasonCode" in target) return stop(target.reasonCode, target.reasonCode === "TARGET_CONTEXT_AMBIGUOUS" ? "AMBIGUOUS" : "UNRESOLVED");
       if (!target.referenceKey || target.crs !== "EPSG:4326" || (["ENTER", "EXIT", "DWELL"].includes(analysis.eventType) && target.targetType !== "AREA")) return stop("TARGET_GEOMETRY_UNSUPPORTED", "UNRESOLVED");
       result.target = target;
@@ -207,7 +298,7 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
       compileContext: { ...input.compileContext, availability: executionAvailability }, now,
       ...(result.target ? { target: result.target } : {}) });
     if (compiled.status !== "COMPILED") return stop(compiled.reasonCode);
-    input.onCompiled?.(compiled); result.planHash = compiled.planHash;
+    input.onCompiled?.(compiled); result.planHash = compiled.planHash; result.queryId = compiled.submission.plan.queryId;
     let mapResult: MapMatchProviderResultV01 | undefined;
     const outputs = new Map<string, unknown>();
     for (const node of compiled.submission.plan.nodes) {
@@ -227,9 +318,12 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
         trajectory: result.foundation.reference.referenceKey, target: result.target?.referenceKey, metricCatalogHash: input.catalog.hash,
         intent: input.intent.analysis, node: node.operation, planHash: compiled.planHash, input: request });
       result.operations.push(id);
-      const envelope = input.contracts.validateEnvelope(id, await input.gateway.execute(id, request, {
-        operationVersion: "0.1", idempotencyKey: key, deadlineAt: input.deadlineAt, budget: node.budget
-      }), request);
+      const response = await input.gateway.execute(id, request, {
+        operationVersion: "0.1", idempotencyKey: key,
+        deadlineAt: new Date(Math.min(input.deadlineAt.getTime(), now() + node.budget.maximumExecutionMs)), budget: node.budget
+      });
+      checkDeadline();
+      const envelope = input.contracts.validateEnvelope(id, response, request);
       const payload = envelope.output.value;
       outputs.set(node.nodeId, payload);
       const trajectory = id === "temporal-spatial.find-events" ?
@@ -242,7 +336,11 @@ export async function executeAdvancedHistoricalAnalysis(input: AdvancedExecution
       } else if (id === "temporal-spatial.find-events") {
         const events = input.contracts.validateResult(id, payload);
         if (analysis.kind !== "TEMPORAL_EVENT" || analysisHash(events.requestedEventTypes) !== analysisHash([analysis.eventType]) ||
+            events.events.some(event => event.eventType !== analysis.eventType) ||
             analysis.selection.kind !== "ALL" && events.selectionResult?.kind !== analysis.selection.kind) throw new AnalysisContractError("ADVANCED_HISTORY_RESULT_INVALID");
+        if (result.target && events.events.some(event => event.target?.kind !== "SPATIAL_TARGET" || event.target.targetId !== result.target!.targetId ||
+            event.target.targetType !== result.target!.targetType || !event.target.referenceKey ||
+            analysisHash(event.target.referenceKey) !== analysisHash(result.target!.referenceKey))) throw new AnalysisContractError("ADVANCED_HISTORY_RESULT_INVALID");
         if (cross && (events.source.kind !== "MAP_MATCH_RESULT" || events.source.mapMatchResultHash !== analysisHash(mapResult))) throw new AnalysisContractError("ADVANCED_HISTORY_RESULT_INVALID");
         result.findings.push(normalizeTemporalEvent(events));
       } else if (analysis.kind === "METRIC_RANKING") {

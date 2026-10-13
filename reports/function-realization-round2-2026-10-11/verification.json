@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "wsgs-functional-realization-local/1.0",
+  "status": "LOCAL_FUNCTIONAL_PASS",
+  "generatedAt": "2026-10-11T13:56:19.481429+00:00",
+  "sourceBaseCommit": "1ad2a021bba4d695305ab844ee79028bb721d285",
+  "sourceBranch": "codex/wsgs-v0.2.4-stable-world-analysis-service",
+  "sourceState": "WORKING_TREE",
+  "sourceInputSetHash": "sha256:ca93a27fbf1a85176fe6127e9ce9e0f5e51e30e68877154de9ce1d656e63da0b",
+  "fileSha256": {
+    "contracts/upstream/gowm-current/bundle/schemas/gowm-v0.7.1/task-execution-interval-query.schema.json": "sha256:75dc64dc07abd98b7a01e4b27ddbfdc362434c2944b7b456e2fb4cd1871486bf",
+    "contracts/upstream/gowm-current/bundle/schemas/gowm-v0.7/historical-trajectory-query.schema.json": "sha256:28598b37321f26d27264bf24ee3b5f7687d030e15b734838e166226df5d65cd4",
+    "docs/advanced-historical-analysis.md": "sha256:7310627dc5fd8b1e453cd27b9de2adda98f9f23a03d7f83c044f4626d3fb41ea",
+    "docs/world-analysis-http-development.md": "sha256:97a638f2ce7cc138c7f270a5a551163e11cde45f474a096b51a4d26c629ac330",
+    "package.json": "sha256:39c21e109a2e148ef01679c94dec34a97b736d816aabf5389b8e7112f2454d12",
+    "packages/historical-trace-consumer/src/advanced-executor.ts": "sha256:1a42460980c006860a743376fa817e8b071138ea11f02c3838435652434b5a48",
+    "packages/historical-trace-consumer/src/advanced-followup.ts": "sha256:2ab268ebfe6d665940df8e1306f5315ac3e22d6cf7f30af7d4a4afab5fed9436",
+    "packages/historical-trace-consumer/src/advanced-historical.test.ts": "sha256:693e8850549566d9f139493ff726da605d78dc5ab0cddc270ceaf2be92fbe950",
+    "packages/historical-trace-consumer/src/advanced-intent.ts": "sha256:8903761d949ae310f30164635523e9759eb69a4b5e41abe7955f6781fa0bcfb7",
+    "packages/historical-trace-consumer/src/advanced-types.ts": "sha256:5c896b237489417c545cd11445c4279665aaa642331515ea71c5d3ddfc3887e5",
+    "packages/historical-trace-consumer/src/public-world-analysis.test.ts": "sha256:8f71498cbd5691bc6b6651afcf24f64da687aad5b6eeec727a1532bbb1af229c",
+    "packages/historical-trace-consumer/src/public-world-analysis.ts": "sha256:9aaf1f32232a4a116049e9e08af0c75f014915fc75c5c9069a246cb4454ed80a",
+    "reports/function-realization-round2-2026-10-11/README.md": "sha256:f46d6e43ee531b2d772aa5223ca6b02279c0464f422c197a96809a5409a22f85",
+    "reports/sacs-geospatial-v1/N03-focused-test-execution.json": "sha256:93ce018336171ea7762f091079b1520bc32c73fb43758ff06d20c69abc64c99f",
+    "reports/sacs-geospatial-v1/N03-gap-normalization.json": "sha256:b1adcd19bbb2d51892af4f2e4dca0529adc0f7ffa5d6e05704598f87138ae2bc",
+    "reports/sacs-geospatial-v1/N03-phase-report.md": "sha256:2a12ecb9d275e474e6ad6f6859e5381adb9c5ecc0ea9f1ca1306964f56708cb4",
+    "reports/sacs-geospatial-v1/N03-provenance-integrity.json": "sha256:0e5bac9274afe0b1e39d8baa71daed6a8548436115719ec2bc91ecfac0dbc4ad",
+    "reports/sacs-geospatial-v1/N03-scope-negative-cases.json": "sha256:f56c65eab2015bd0968dd3357ef0af9ca80fde5df4f70cac5a2af03b0aa84646",
+    "reports/sacs-geospatial-v1/provenance-report.json": "sha256:628b2cd9881a2fa9201e2b98874d6b51c30fc811e6ca91ae943c2d737334ee0e",
+    "services/grounding-worker/src/production-module.ts": "sha256:9b34db3713b694b1e37c9b5dcad342ee41cab5edc0f86ec1e8c34ad3331891ac",
+    "services/grounding-worker/src/world-analysis-result.ts": "sha256:c73ddc65515d64ea9b964fa7f4a09cf4a06b2fa380d4a935ec676d1c03dc7b10",
+    "tests/world-analysis-business-http.test.ts": "sha256:eaec33d0ea25535d737740184bf1723111add5facd07e81ec9ea3f47bb5cbc59",
+    "validation/scripts/test-postgres-isolated.mjs": "sha256:de7a00db292c1b797b2d3e66b915d9e4d38b5939bcdb88830c0a8d4331af1bbf"
+  },
+  "verification": {
+    "fullCheck": {
+      "status": "PASS",
+      "testFilesPassed": 88,
+      "testFilesSkipped": 4,
+      "testsPassed": 1177,
+      "testsSkipped": 49
+    },
+    "postgresIntegration": {
+      "status": "PASS",
+      "testFilesPassed": 4,
+      "testsPassed": 49,
+      "testsSkipped": 0,
+      "suiteCounts": [
+        12,
+        3,
+        32,
+        2
+      ],
+      "localDockerOnly": true,
+      "ownedTestContainersRemaining": 0
+    },
+    "combinedDistinctTests": 1226,
+    "environmentConfigurationOptionsCovered": 128,
+    "n03FocusedTests": {
+      "status": "PASS",
+      "testsPassed": 120,
+      "liveUpstream": "NOT_RUN"
+    },
+    "developmentLedger": {
+      "passed": 63,
+      "required": 63,
+      "productionDeferred": 14
+    },
+    "v02Ledger": {
+      "status": "BLOCKED",
+      "passed": 195,
+      "failed": 0,
+      "notRun": 17,
+      "blocked": 67,
+      "required": 279
+    }
+  },
+  "runs": {
+    "fullCheck": {
+      "command": "npm run check",
+      "exitCode": 0,
+      "output": "check-output.txt",
+      "rawSha256": "sha256:865265aa5a574d30e642138cd58f43a128d7147a20e77de5c5d605d3423bf26c",
+      "sha256": "sha256:2f7ca36f32846f6e40ef0ae0f15c51b87aae76c0ba5991189aec2a5eba8c2ac1"
+    },
+    "postgresIntegration": {
+      "command": "node validation/scripts/test-postgres-isolated.mjs",
+      "exitCode": 0,
+      "output": "postgres-output.txt",
+      "rawSha256": "sha256:95a479983a01d0f985bd63933310474b730580a9f82a8bf407ff022b5c5571d8",
+      "sha256": "sha256:85059d494447f82e7f31ffde72eb7276488541ae75d981fe58fcda42a67ba1cf"
+    },
+    "n03Refresh": {
+      "command": "node --import tsx validation/scripts/generate-sacs-geospatial-provenance-evidence.ts --write",
+      "exitCode": 0,
+      "output": "n03-output.txt",
+      "rawSha256": "sha256:69c986f2de260adebd18ed360dadf8df7b2f2c84cdbfabd02a7fbd3eb6dc7756",
+      "sha256": "sha256:69c986f2de260adebd18ed360dadf8df7b2f2c84cdbfabd02a7fbd3eb6dc7756"
+    }
+  },
+  "boundaries": {
+    "httpStorage": "TEST_MEMORY_STORE",
+    "gatewayBusinessData": "CONTROLLED_FIXTURES",
+    "postgresStorage": "ISOLATED_REAL_POSTGRESQL_17",
+    "liveSacsPath": "NOT_RUN",
+    "liveModel": "NOT_RUN",
+    "liveGowmGsapBusiness": "NOT_RUN",
+    "deploymentPackage": "NOT_RUN",
+    "remoteDeployment": "NOT_RUN",
+    "productionQualified": false,
+    "freeTimeWindow": {
+      "status": "BLOCKED_EXTERNAL",
+      "reasonCode": "HISTORICAL_TIME_WINDOW_UNSUPPORTED",
+      "reason": "Pinned GOWM query contracts have no time-window filter; strict additionalProperties=false."
+    }
+  }
+}

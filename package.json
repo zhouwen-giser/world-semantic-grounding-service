@@ -17,6 +17,7 @@
     "clean": "tsc -b --clean",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
+    "test:postgres": "npm run typecheck && node validation/scripts/test-postgres-isolated.mjs",
     "contracts:generate": "node validation/scripts/generate-contract-types.mjs",
     "contracts:types:check": "node validation/scripts/generate-contract-types.mjs --check",
     "verify:world-analysis-contract": "node validation/scripts/verify-world-analysis-contract.mjs",
